@@ -4,8 +4,9 @@
     Được phục vụ bởi controller.MovieListController  ->  URL /movies
     View chỉ dùng JSTL + EL, KHÔNG nhúng code Java.
 --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
 
 <%-- Đường dẫn ngữ cảnh + ảnh placeholder khi phim chưa có poster --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
@@ -17,17 +18,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Phim - RapViet Cinema</title>
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/movie.css">
 </head>
 <body>
-    <header class="site-header">
-        <a href="${ctx}/" class="brand">RapViet</a>
-        <nav><a href="${ctx}/movies">Phim</a></nav>
-    </header>
+    <jsp:include page="/pages/common/header.jsp">
+        <jsp:param name="active" value="movies"/>
+    </jsp:include>
 
+    <div class="page-wrap">
     <div class="container">
         <h1 class="page-title">Danh sách phim</h1>
-
+        
         <%-- ── Form tìm kiếm & lọc (dùng GET để URL chia sẻ được) ── --%>
         <form class="filter-bar" method="get" action="${ctx}/movies">
             <div class="filter-row">
@@ -123,27 +125,8 @@
 
                 <div class="movie-grid">
                     <c:forEach var="m" items="${result.items}">
-                        <a class="movie-card" href="${ctx}/movie?id=${m.id}">
-                            <div class="poster-wrap">
-                                <span class="badge ${m.statusBadgeClass}">
-                                    <c:out value="${m.statusLabel}"/>
-                                </span>
-                                <c:if test="${m.reviewCount > 0}">
-                                    <span class="rating-chip">★ ${m.ratingRounded}</span>
-                                </c:if>
-                                <img src="${empty m.posterUrl ? ph : m.posterUrl}"
-                                     alt="<c:out value='${m.title}'/>"
-                                     onerror="this.onerror=null;this.src='${ph}'">
-                            </div>
-                            <div class="movie-body">
-                                <h3><c:out value="${m.title}"/></h3>
-                                <div class="movie-meta">
-                                    ${m.durationLabel}
-                                    <c:if test="${m.releaseYear > 0}"> &middot; ${m.releaseYear}</c:if>
-                                </div>
-                                <div class="movie-genres"><c:out value="${m.categoryNames}"/></div>
-                            </div>
-                        </a>
+                        <%-- Dùng lại component thẻ phim (include tĩnh, chia sẻ biến m) --%>
+                        <%@ include file="/pages/common/movie-card.jsp" %>
                     </c:forEach>
                 </div>
 
@@ -194,5 +177,8 @@
             </c:otherwise>
         </c:choose>
     </div>
+    </div>
+
+    <jsp:include page="/pages/common/footer.jsp" />
 </body>
 </html>

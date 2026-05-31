@@ -2,10 +2,10 @@
     RapViet Cinema - Chi tiết phim (Xem chi tiết + Suất chiếu)
     Module: Duyệt phim - UC06 / UC12   (Group6 - DuyThai)
     Được phục vụ bởi controller.MovieDetailController  ->  URL /movie?id=N
-    View chỉ dùng JSTL + EL, KHÔNG nhúng code Java.
+    View chỉ dùng JSTL + EL + component, KHÔNG nhúng code Java.
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="ph" value="data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='450'%3E%3Crect%20width='100%25'%20height='100%25'%20fill='%2323262d'/%3E%3Ctext%20x='50%25'%20y='50%25'%20fill='%237d828c'%20font-family='Arial'%20font-size='20'%20text-anchor='middle'%20dominant-baseline='middle'%3ENo%20Image%3C/text%3E%3C/svg%3E" />
@@ -16,14 +16,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><c:out value="${empty movie ? 'Không tìm thấy phim' : movie.title}"/> - RapViet Cinema</title>
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/movie.css">
 </head>
 <body>
-    <header class="site-header">
-        <a href="${ctx}/" class="brand">RapViet</a>
-        <nav><a href="${ctx}/movies">Phim</a></nav>
-    </header>
+    <jsp:include page="/pages/common/header.jsp">
+        <jsp:param name="active" value="movies"/>
+    </jsp:include>
 
+    <div class="page-wrap">
     <div class="container">
     <c:choose>
         <%-- ── Không tìm thấy phim ── --%>
@@ -129,5 +130,8 @@
         </c:otherwise>
     </c:choose>
     </div>
+    </div>
+
+    <jsp:include page="/pages/common/footer.jsp" />
 </body>
 </html>
