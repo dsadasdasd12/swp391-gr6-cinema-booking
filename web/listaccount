@@ -1,0 +1,113 @@
+| Role     | Email                                             | Password |
+| -------- | ------------------------------------------------- | -------- |
+| ADMIN    | [admin@cinema.com](mailto:admin@cinema.com)       | 123456   |
+| MANAGER  | [manager@cinema.com](mailto:manager@cinema.com)   | 123456   |
+| STAFF    | [staff@cinema.com](mailto:staff@cinema.com)       | 123456   |
+| CUSTOMER | [customer@cinema.com](mailto:customer@cinema.com) | 123456   |
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'System Admin',
+    'admin@cinema.com',
+    '123456',
+    'local_admin',
+    '0900000001',
+    'ADMIN',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Branch Manager',
+    'manager@cinema.com',
+    '123456',
+    'local_manager',
+    '0900000002',
+    'MANAGER',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Branch Staff',
+    'staff@cinema.com',
+    '123456',
+    'local_staff',
+    '0900000003',
+    'STAFF',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Customer Test',
+    'customer@cinema.com',
+    '123456',
+    'local_customer',
+    '0900000004',
+    'CUSTOMER',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);

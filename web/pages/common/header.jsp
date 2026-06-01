@@ -7,6 +7,7 @@
     (Group6 - DuyThai)
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="model.User" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <header class="site-header">
@@ -18,7 +19,30 @@
         <a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a>
     </nav>
     <div class="header-actions">
-        <a href="${ctx}/login" class="btn btn-ghost">Đăng nhập</a>
-        <a href="${ctx}/register" class="btn btn-primary">Đăng ký</a>
+        <c:choose>
+
+            <c:when test="${sessionScope.user == null}">
+                <a href="${ctx}/login" class="btn btn-ghost">
+                    Đăng nhập
+                </a>
+
+                <a href="${ctx}/register" class="btn btn-primary">
+                    Đăng ký
+                </a>
+            </c:when>
+
+            <c:otherwise>
+
+                <span class="user-name">
+                    Xin chào, ${sessionScope.user.fullName}
+                </span>
+
+                <a href="${ctx}/logout" class="btn btn-ghost">
+                    Đăng xuất
+                </a>
+
+            </c:otherwise>
+
+        </c:choose>
     </div>
 </header>
