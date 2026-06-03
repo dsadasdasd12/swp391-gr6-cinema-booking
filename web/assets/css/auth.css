@@ -1,15 +1,10 @@
-body{
-    background:#050816;
-    color:#fff;
-    font-family:'Segoe UI',sans-serif;
-}
 
 .auth-container{
-    min-height:100vh;
+    min-height: calc(100vh - 80px);
     display:flex;
     justify-content:center;
     align-items:center;
-    padding:20px;
+    padding:40px 20px;
 }
 
 .auth-card{
@@ -51,7 +46,7 @@ body{
     border-color:#ff1f3d;
 }
 
-.btn-primary{
+.auth-card .btn-primary{
     width:100%;
     padding:12px;
     border:none;
@@ -63,7 +58,7 @@ body{
     transition:.3s;
 }
 
-.btn-primary:hover{
+.auth-card .btn-primary:hover{
     background:#ff334f;
 }
 

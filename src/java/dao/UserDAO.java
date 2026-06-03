@@ -35,8 +35,12 @@ public class UserDAO {
                 user.setId(rs.getInt("id"));
                 user.setFullName(rs.getString("full_name"));
                 user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setGoogleId(rs.getString("google_id"));
+                user.setPhone(rs.getString("phone"));
                 user.setRole(rs.getString("role"));
-
+                user.setActive(rs.getBoolean("active"));
+                user.setEmailVerified(rs.getBoolean("email_verified"));
                 return user;
             }
 
@@ -67,22 +71,29 @@ public class UserDAO {
     public boolean register(User user) {
 
         String sql = """
-            INSERT INTO [USER]
-            (
-                full_name,
-                email,
-                password_hash,
-                phone,
-                role,
-                active,
-                email_verified,
-                created_at,
-                last_update
-            )
-            VALUES
-            (?, ?, ?, ?, 'CUSTOMER', 1, 1,
-             GETDATE(), GETDATE())
-        """;
+    INSERT INTO [USER]
+    (
+        full_name,
+        email,
+        password_hash,
+        google_id,
+        phone,
+        role,
+        active,
+        email_verified,
+        created_at,
+        last_update
+    )
+    VALUES
+    (
+        ?, ?, ?, ?, ?,
+        'CUSTOMER',
+        1,
+        0,
+        GETDATE(),
+        GETDATE()
+    )
+""";
 
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -90,7 +101,31 @@ public class UserDAO {
             ps.setString(1, user.getFullName());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
-            ps.setString(4, user.getPhone());
+            ps.setString(4, user.getGoogleId());
+            ps.setString(5, user.getPhone());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean activateEmail(int userId) {
+
+        String sql = """
+        UPDATE [USER]
+        SET email_verified = 1,
+            last_update = GETDATE()
+        WHERE id = ?
+    """;
+
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
 
             return ps.executeUpdate() > 0;
 

@@ -11,8 +11,9 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>JSP Page</title>
-        <link rel="stylesheet" href="${ctx}/assets/css/auth.css">
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+        <link rel="stylesheet" href="${ctx}/assets/css/auth.css">
+        
     </head>
     <body>
         <jsp:include page="/pages/common/header.jsp">
@@ -30,27 +31,26 @@
 
             <div class="form-group">
                 <label>Họ tên</label>
-                <input type="text" name="fullname">
+                <input type="text" name="fullname" value="${fullname}">
             </div>
 
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email">
+                <input type="email" name="email" value="${email}">
             </div>
 
             <div class="form-group">
                 <label>Số điện thoại</label>
-                <input type="text" name="phone">
+                <input type="text" name="phone" value="${phone}">
             </div>
 
             <div class="form-group">
                 <label>Mật khẩu</label>
-                <input type="password" name="password">
+                <input type="password" name="password" minlength="8" required>
             </div>
-
             <div class="form-group">
                 <label>Xác nhận mật khẩu</label>
-                <input type="password" name="confirmPassword">
+                <input type="password" name="confirmPassword" minlength="8" required>
             </div>
 
             <button type="submit" class="btn-primary">

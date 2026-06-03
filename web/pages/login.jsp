@@ -12,8 +12,8 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Đăng nhập</title>
-        <link rel="stylesheet" href="${ctx}/assets/css/auth.css">
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+        <link rel="stylesheet" href="${ctx}/assets/css/auth.css"> 
     </head>
     <body>
         <jsp:include page="/pages/common/header.jsp">
@@ -44,7 +44,7 @@
 
             <p class="auth-link">
                 Chưa có tài khoản?
-                <a href="register.jsp">Đăng ký</a>
+                <a href="${ctx}/register">Đăng ký</a>
             </p>
         </form>
     </div>

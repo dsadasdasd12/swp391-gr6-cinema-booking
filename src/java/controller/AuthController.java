@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 package controller;
+
 import dao.UserDAO;
 import model.User;
 
@@ -16,16 +17,23 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import util.EmailUtil;
 
 /**
  *
  * @author tttru
  */
-@WebServlet(name = "AuthCotntroller", urlPatterns = {"/auth","/login",
+@WebServlet(name = "AuthController", urlPatterns = {
+    "/auth",
+    "/login",
     "/register",
-    "/logout"})
+    "/logout",
+    "/verify-email"
+})
 public class AuthController extends HttpServlet {
-     private final UserDAO userDAO = new UserDAO();
+
+    private final UserDAO userDAO = new UserDAO();
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -66,23 +74,26 @@ public class AuthController extends HttpServlet {
             throws ServletException, IOException {
         String path = request.getServletPath();
 
-    switch (path) {
+        switch (path) {
 
-        case "/login":
-            request.getRequestDispatcher("/pages/login.jsp")
-                    .forward(request, response);
-            break;
+            case "/login":
+                request.getRequestDispatcher("/pages/login.jsp")
+                        .forward(request, response);
+                break;
 
-        case "/register":
-            request.getRequestDispatcher("/pages/register.jsp")
-                    .forward(request, response);
-            break;
-
-        case "/logout":
-            request.getSession().invalidate();
-            response.sendRedirect("home");
-            break;
-    }
+            case "/register":
+                request.getRequestDispatcher("/pages/register.jsp")
+                        .forward(request, response);
+                break;
+            case "/verify-email":
+                request.getRequestDispatcher("/pages/verify-email.jsp")
+                        .forward(request, response);
+                break;
+            case "/logout":
+                request.getSession().invalidate();
+                response.sendRedirect("home");
+                break;
+        }
     }
 
     /**
@@ -98,7 +109,7 @@ public class AuthController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-         String path = request.getServletPath();
+        String path = request.getServletPath();
 
         switch (path) {
 
@@ -109,74 +120,130 @@ public class AuthController extends HttpServlet {
             case "/register":
                 register(request, response);
                 break;
+            case "/verify-email":
+                verifyEmail(request, response);
+                break;
+            default:
+                response.sendRedirect(request.getContextPath() + "/home");
         }
     }
 
-   private void login(HttpServletRequest request,
-                   HttpServletResponse response)
-        throws ServletException, IOException {
+    private void login(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
 
-    String email = request.getParameter("email");
-    String password = request.getParameter("password");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+        System.out.println(email);
+        System.out.println(password);
+        User user = userDAO.login(email, password);
 
-    User user = userDAO.login(email, password);
+        if (user == null) {
+            System.out.println(user.getEmail());
+            request.setAttribute(
+                    "error",
+                    "Email hoặc mật khẩu không đúng"
+            );
+            request.setAttribute("email", email);
+            request.getRequestDispatcher("/pages/login.jsp")
+                    .forward(request, response);
 
-    if (user == null) {
+            return;
+        }
+        if (!user.isEmailVerified()) {
 
-        request.setAttribute(
-                "error",
-                "Email hoặc mật khẩu không đúng"
-        );
+            HttpSession session = request.getSession();
 
-        request.getRequestDispatcher("/pages/login.jsp")
-                .forward(request, response);
+            session.setAttribute(
+                    "verifyUser",
+                    user
+            );
 
-        return;
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/verify-email"
+            );
+
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        session.setAttribute("user", user);
+
+        switch (user.getRole()) {
+
+            case "ADMIN":
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/pages/admin/dashboard.jsp");
+                break;
+
+            case "MANAGER":
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/pages/manager/dashboard.jsp");
+                break;
+
+            case "STAFF":
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/pages/staff/dashboard.jsp");
+                break;
+
+            default:
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/home");
+                break;
+        }
     }
-
-    HttpSession session = request.getSession();
-    session.setAttribute("user", user);
-
-    switch (user.getRole()) {
-
-        case "ADMIN":
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/pages/admin/dashboard.jsp");
-            break;
-
-        case "MANAGER":
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/pages/manager/dashboard.jsp");
-            break;
-
-        case "STAFF":
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/pages/staff/dashboard.jsp");
-            break;
-
-        default:
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/home");
-            break;
-    }
-}
-    
-    
 
     private void register(HttpServletRequest request,
-                          HttpServletResponse response)
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         String fullName = request.getParameter("fullname");
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
         String password = request.getParameter("password");
-        String confirmPassword =
-                request.getParameter("confirmPassword");
+        String confirmPassword
+                = request.getParameter("confirmPassword");
+
+        String phoneRegex = "^0\\d{9}$";
+
+        if (phone != null && !phone.matches(phoneRegex)) {
+
+            request.setAttribute(
+                    "error",
+                    "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0"
+            );
+
+            request.setAttribute("fullname", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
+
+            request.getRequestDispatcher("/pages/register.jsp")
+                    .forward(request, response);
+
+            return;
+        }
+
+        if (password == null || password.length() < 8) {
+
+            request.setAttribute(
+                    "error",
+                    "Mật khẩu phải có ít nhất 8 ký tự"
+            );
+
+            request.setAttribute("fullname", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
+
+            request.getRequestDispatcher("/pages/register.jsp")
+                    .forward(request, response);
+
+            return;
+        }
 
         if (!password.equals(confirmPassword)) {
 
@@ -185,18 +252,41 @@ public class AuthController extends HttpServlet {
                     "Mật khẩu xác nhận không khớp"
             );
 
+            request.setAttribute("fullname", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
+
             request.getRequestDispatcher("/pages/register.jsp")
                     .forward(request, response);
             return;
         }
+        String emailRegex
+                = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
 
+        if (!email.matches(emailRegex)) {
+
+            request.setAttribute(
+                    "error",
+                    "Email không đúng định dạng"
+            );
+            request.setAttribute("fullname", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
+            request.getRequestDispatcher(
+                    "/pages/register.jsp")
+                    .forward(request, response);
+
+            return;
+        }
         if (userDAO.emailExists(email)) {
 
             request.setAttribute(
                     "error",
                     "Email đã tồn tại"
             );
-
+            request.setAttribute("fullname", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
             request.getRequestDispatcher("/pages/register.jsp")
                     .forward(request, response);
             return;
@@ -207,27 +297,127 @@ public class AuthController extends HttpServlet {
         user.setFullName(fullName);
         user.setEmail(email);
         user.setPhone(phone);
+        user.setGoogleId("local_" + email);
         user.setPasswordHash(password);
-
+        System.out.println(user.getGoogleId());
         boolean success = userDAO.register(user);
 
-        if (success) {
-
-            response.sendRedirect(
-                    request.getContextPath() + "/login"
-            );
-
-        } else {
+        if (!success) {
 
             request.setAttribute(
                     "error",
                     "Đăng ký thất bại"
             );
-
+            request.setAttribute("fullname", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
             request.getRequestDispatcher("/pages/register.jsp")
                     .forward(request, response);
+            return;
+        }
+
+        User createdUser = userDAO.login(email, password);
+
+        String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
+
+        HttpSession session = request.getSession();
+        session.setAttribute("verifyUser", createdUser);
+        session.setAttribute("emailOtp", otp);
+        session.setAttribute("otpExpiredAt", System.currentTimeMillis() + 5 * 60 * 1000);
+
+        EmailUtil.sendOtp(email, otp);
+
+        response.sendRedirect(request.getContextPath() + "/verify-email");
+    }
+
+    private void verifyEmail(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String code = request.getParameter("otp");
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("verifyUser") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        User verifyUser = (User) session.getAttribute("verifyUser");
+
+        // Demo code cố định
+        // Sau này có thể đổi thành OTP gửi email
+        /*if (!"123456".equals(code)) {
+            request.setAttribute("error", "Mã xác thực không đúng");
+            request.getRequestDispatcher("/pages/verify-email.jsp")
+                    .forward(request, response);
+            return;
+        }*/
+        String emailOtp = (String) session.getAttribute("emailOtp");
+        Long otpExpiredAt = (Long) session.getAttribute("otpExpiredAt");
+
+        if (emailOtp == null || otpExpiredAt == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        if (System.currentTimeMillis() > otpExpiredAt) {
+            request.setAttribute("error", "Mã OTP đã hết hạn");
+            request.getRequestDispatcher("/pages/verify-email.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        if (!emailOtp.equals(code)) {
+            request.setAttribute("error", "Mã OTP không đúng");
+            request.getRequestDispatcher("/pages/verify-email.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        boolean success = userDAO.activateEmail(verifyUser.getId());
+
+        if (!success) {
+            request.setAttribute("error", "Xác thực email thất bại");
+            request.getRequestDispatcher("/pages/verify-email.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        verifyUser.setEmailVerified(true);
+        session.removeAttribute("emailOtp");
+        session.removeAttribute("otpExpiredAt");
+        session.removeAttribute("verifyUser");
+        session.setAttribute("user", verifyUser);
+
+        redirectByRole(request, response, verifyUser);
+    }
+
+    private void redirectByRole(HttpServletRequest request,
+            HttpServletResponse response,
+            User user)
+            throws IOException {
+
+        String ctx = request.getContextPath();
+
+        switch (user.getRole()) {
+            case "ADMIN":
+                response.sendRedirect(ctx + "/admin/dashboard");
+                break;
+
+            case "MANAGER":
+                response.sendRedirect(ctx + "/manager/dashboard");
+                break;
+
+            case "STAFF":
+                response.sendRedirect(ctx + "/staff/dashboard");
+                break;
+
+            case "CUSTOMER":
+            default:
+                response.sendRedirect(ctx + "/home");
+                break;
         }
     }
+
 }
-
-
