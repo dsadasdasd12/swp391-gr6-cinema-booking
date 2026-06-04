@@ -16,6 +16,38 @@
         <link rel="stylesheet" href="${ctx}/assets/css/auth.css"> 
     </head>
     <body>
+        <c:if test="${not empty sessionScope.successMessage}">
+
+    <div id="toast-success"
+         style="
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #22c55e;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(0,0,0,.25);
+            z-index: 99999;
+        ">
+        ✓ ${sessionScope.successMessage}
+    </div>
+
+    <script>
+        setTimeout(function () {
+            const toast = document.getElementById("toast-success");
+            if (toast) {
+                toast.style.display = "none";
+            }
+        }, 3000);
+    </script>
+
+    <c:remove var="successMessage" scope="session"/>
+
+</c:if>
         <jsp:include page="/pages/common/header.jsp">
         <jsp:param name="active" value="home"/>
     </jsp:include>
@@ -37,6 +69,10 @@
                 <label>Mật khẩu</label>
                 <input type="password" name="password" placeholder="Nhập mật khẩu">
             </div>
+            </p>
+            <p class="auth-link-forgotpassword">
+    <a href="${ctx}/forgot-password">Quên mật khẩu?</a>
+           </p>
 
             <button type="submit" class="btn-primary">
                 Đăng nhập

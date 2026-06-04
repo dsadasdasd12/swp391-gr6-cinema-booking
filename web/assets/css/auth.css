@@ -72,6 +72,12 @@
     text-decoration:none;
 }
 
+.auth-link-forgotpassword{
+    text-align:left;
+    margin-top:15px;
+    color:#ff1f3d;
+    text-decoration:none;
+}
 .error-message{
     background: rgba(255, 0, 0, 0.15);
     color: #ff6b6b;
@@ -82,3 +88,4 @@
     text-align: center;
     font-size: 14px;
 }
+

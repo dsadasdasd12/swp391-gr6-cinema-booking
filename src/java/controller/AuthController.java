@@ -28,7 +28,10 @@ import util.EmailUtil;
     "/login",
     "/register",
     "/logout",
-    "/verify-email"
+    "/verify-email",
+    "/forgot-password",
+    "/confirm-reset-otp",
+    "/reset-password"
 })
 public class AuthController extends HttpServlet {
 
@@ -93,6 +96,20 @@ public class AuthController extends HttpServlet {
                 request.getSession().invalidate();
                 response.sendRedirect("home");
                 break;
+            case "/forgot-password":
+                request.getRequestDispatcher("/pages/forgot-password.jsp")
+                        .forward(request, response);
+                break;
+
+            case "/confirm-reset-otp":
+                request.getRequestDispatcher("/pages/confirm-reset-otp.jsp")
+                        .forward(request, response);
+                break;
+
+            case "/reset-password":
+                request.getRequestDispatcher("/pages/reset-password.jsp")
+                        .forward(request, response);
+                break;
         }
     }
 
@@ -122,6 +139,17 @@ public class AuthController extends HttpServlet {
                 break;
             case "/verify-email":
                 verifyEmail(request, response);
+                break;
+            case "/forgot-password":
+                forgotPassword(request, response);
+                break;
+
+            case "/confirm-reset-otp":
+                confirmResetOtp(request, response);
+                break;
+
+            case "/reset-password":
+                resetPassword(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/home");
@@ -420,4 +448,118 @@ public class AuthController extends HttpServlet {
         }
     }
 
+    private void forgotPassword(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String email = request.getParameter("email");
+
+        User user = userDAO.getUserByEmail(email);
+
+        if (user == null) {
+            request.setAttribute("error", "Email không tồn tại");
+            request.setAttribute("email", email);
+            request.getRequestDispatcher("/pages/forgot-password.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
+
+        HttpSession session = request.getSession();
+        session.setAttribute("resetUser", user);
+        session.setAttribute("resetEmail", email);
+        session.setAttribute("resetOtp", otp);
+        session.setAttribute("resetOtpExpiredAt",
+                System.currentTimeMillis() + 5 * 60 * 1000);
+        
+         EmailUtil.sendOtp(email, otp);
+        response.sendRedirect(request.getContextPath() + "/confirm-reset-otp");
+    }
+
+    private void confirmResetOtp(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String otp = request.getParameter("otp");
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("resetUser") == null) {
+            response.sendRedirect(request.getContextPath() + "/forgot-password");
+            return;
+        }
+
+        String resetOtp = (String) session.getAttribute("resetOtp");
+        Long expiredAt = (Long) session.getAttribute("resetOtpExpiredAt");
+
+        if (expiredAt == null || System.currentTimeMillis() > expiredAt) {
+            request.setAttribute("error", "Mã OTP đã hết hạn");
+            request.getRequestDispatcher("/pages/confirm-reset-otp.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        if (!resetOtp.equals(otp)) {
+            request.setAttribute("error", "Mã OTP không đúng");
+            request.getRequestDispatcher("/pages/confirm-reset-otp.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        session.setAttribute("resetOtpConfirmed", true);
+
+        response.sendRedirect(request.getContextPath() + "/reset-password");
+    }
+
+    private void resetPassword(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null
+                || session.getAttribute("resetUser") == null
+                || session.getAttribute("resetOtpConfirmed") == null) {
+
+            response.sendRedirect(request.getContextPath() + "/forgot-password");
+            return;
+        }
+
+        User resetUser = (User) session.getAttribute("resetUser");
+
+        if (newPassword == null || newPassword.length() < 8) {
+            request.setAttribute("error", "Mật khẩu mới phải có ít nhất 8 ký tự");
+            request.getRequestDispatcher("/pages/reset-password.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            request.setAttribute("error", "Mật khẩu xác nhận không khớp");
+            request.getRequestDispatcher("/pages/reset-password.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        boolean success = userDAO.updatePassword(resetUser.getId(), newPassword);
+
+        if (success) {
+            session.removeAttribute("resetUser");
+            session.removeAttribute("resetEmail");
+            session.removeAttribute("resetOtp");
+            session.removeAttribute("resetOtpExpiredAt");
+            session.removeAttribute("resetOtpConfirmed");
+            session.setAttribute("successMessage", "Đổi mật khẩu thành công!");
+
+            response.sendRedirect(request.getContextPath() + "/login");
+        } else {
+            request.setAttribute("error", "Đổi mật khẩu thất bại");
+            request.getRequestDispatcher("/pages/reset-password.jsp")
+                    .forward(request, response);
+        }
+    }
 }

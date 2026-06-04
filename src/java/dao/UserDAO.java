@@ -135,4 +135,69 @@ public class UserDAO {
 
         return false;
     }
+
+    public User getUserByEmail(String email) {
+
+        String sql = """
+        SELECT *
+        FROM [USER]
+        WHERE email = ?
+          AND active = 1
+    """;
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                User user = new User();
+
+                user.setId(rs.getInt("id"));
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setGoogleId(rs.getString("google_id"));
+                user.setPhone(rs.getString("phone"));
+                user.setRole(rs.getString("role"));
+                user.setActive(rs.getBoolean("active"));
+                user.setEmailVerified(rs.getBoolean("email_verified"));
+
+                return user;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public boolean updatePassword(int userId, String newPassword) {
+
+        String sql = """
+        UPDATE [USER]
+        SET password_hash = ?,
+            last_update = GETDATE()
+        WHERE id = ?
+    """;
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, newPassword);
+            ps.setInt(2, userId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }
