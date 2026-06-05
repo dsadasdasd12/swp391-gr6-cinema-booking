@@ -27,8 +27,8 @@ public class AuthenticationFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request,
-                         ServletResponse response,
-                         FilterChain chain)
+            ServletResponse response,
+            FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
@@ -59,8 +59,14 @@ public class AuthenticationFilter implements Filter {
                 || uri.equals(ctx + "/home")
                 || uri.equals(ctx + "/login")
                 || uri.equals(ctx + "/register")
+                || uri.equals(ctx + "/logout")
+                || uri.equals(ctx + "/forgot-password")
+                || uri.equals(ctx + "/confirm-reset-otp")
+                || uri.equals(ctx + "/reset-password")
+                || uri.equals(ctx + "/verify-email")
+                || uri.equals(ctx + "/resend-otp")
                 || uri.equals(ctx + "/movies")
-                || uri.startsWith(ctx + "/movies?")
+                || uri.startsWith(ctx + "/movies")
                 || uri.startsWith(ctx + "/movie")) {
 
             chain.doFilter(request, response);
@@ -73,8 +79,45 @@ public class AuthenticationFilter implements Filter {
         String role = null;
         if (session != null) {
             user = (User) session.getAttribute("user");
-            if(user != null) role = user.getRole();
+            if (user != null) {
+                role = user.getRole();
+            }
         }
+        // Block direct JSP access for admin pages
+if (uri.startsWith(ctx + "/pages/admin/")) {
+    if (!"ADMIN".equals(role)) {
+        res.sendRedirect(ctx + "/home");
+        return;
+    }
+
+    chain.doFilter(request, response);
+    return;
+}
+
+// Block direct JSP access for manager pages
+if (uri.startsWith(ctx + "/pages/manager/")) {
+    if (!"MANAGER".equals(role) && !"ADMIN".equals(role)) {
+        res.sendRedirect(ctx + "/home");
+        return;
+    }
+
+    chain.doFilter(request, response);
+    return;
+}
+
+// Block direct JSP access for staff pages
+if (uri.startsWith(ctx + "/pages/staff/")) {
+    if (!"STAFF".equals(role)
+            && !"MANAGER".equals(role)
+            && !"ADMIN".equals(role)) {
+
+        res.sendRedirect(ctx + "/home");
+        return;
+    }
+
+    chain.doFilter(request, response);
+    return;
+}
         // ADMIN only
         if (uri.startsWith(ctx + "/admin")) {
 
