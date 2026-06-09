@@ -170,6 +170,12 @@ public class AuthController extends HttpServlet {
         System.out.println(password);
         User user = userDAO.login(email, password);
 
+        if (email.isEmpty() || password == null || password.isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập email và mật khẩu.");
+            request.setAttribute("email", email);
+            request.getRequestDispatcher("/pages/login.jsp").forward(request, response);
+            return;
+        }
         if (user == null) {
             System.out.println(user.getEmail());
             request.setAttribute(
@@ -238,8 +244,11 @@ public class AuthController extends HttpServlet {
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
         String password = request.getParameter("password");
-        String confirmPassword
-                = request.getParameter("confirmPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        fullName = fullName == null ? "" : fullName.trim();
+        email = email == null ? "" : email.trim();
+        phone = phone == null ? "" : phone.trim();
 
         String phoneRegex = "^0\\d{9}$";
 
@@ -251,6 +260,26 @@ public class AuthController extends HttpServlet {
             );
 
             request.setAttribute("fullname", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
+
+            request.getRequestDispatcher("/pages/register.jsp")
+                    .forward(request, response);
+
+            return;
+        }
+        String nameRegex
+                = "^[\\p{L} ]{2,50}$";
+
+        if (fullName == null
+                || fullName.trim().isEmpty()
+                || !fullName.matches(nameRegex)) {
+
+            request.setAttribute(
+                    "error",
+                    "Họ và tên chỉ được chứa chữ cái và khoảng trắng (2-50 ký tự)"
+            );
+
             request.setAttribute("email", email);
             request.setAttribute("phone", phone);
 
@@ -566,78 +595,78 @@ public class AuthController extends HttpServlet {
                     .forward(request, response);
         }
     }
-    
+
     private void changePassword(HttpServletRequest request,
-        HttpServletResponse response)
-        throws ServletException, IOException {
+            HttpServletResponse response)
+            throws ServletException, IOException {
 
-    HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession(false);
 
-    if (session == null || session.getAttribute("user") == null) {
-        response.sendRedirect(request.getContextPath() + "/login");
-        return;
-    }
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
-    User user = (User) session.getAttribute("user");
+        User user = (User) session.getAttribute("user");
 
-    String oldPassword = request.getParameter("oldPassword");
-    String newPassword = request.getParameter("newPassword");
-    String confirmPassword = request.getParameter("confirmPassword");
+        String oldPassword = request.getParameter("oldPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
 
-    if (!user.getPasswordHash().equals(oldPassword)) {
+        if (!user.getPasswordHash().equals(oldPassword)) {
 
-        session.setAttribute(
-                "profileError",
-                "Mật khẩu hiện tại không đúng"
-        );
+            session.setAttribute(
+                    "profileError",
+                    "Mật khẩu hiện tại không đúng"
+            );
+
+            response.sendRedirect(request.getContextPath() + "/profile");
+            return;
+        }
+
+        if (newPassword == null || newPassword.length() < 8) {
+
+            session.setAttribute(
+                    "profileError",
+                    "Mật khẩu mới phải có ít nhất 8 ký tự"
+            );
+
+            response.sendRedirect(request.getContextPath() + "/profile");
+            return;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+
+            session.setAttribute(
+                    "profileError",
+                    "Xác nhận mật khẩu không khớp"
+            );
+
+            response.sendRedirect(request.getContextPath() + "/profile");
+            return;
+        }
+
+        boolean success
+                = userDAO.updatePassword(user.getId(), newPassword);
+
+        if (success) {
+
+            user.setPasswordHash(newPassword);
+            session.setAttribute("user", user);
+
+            session.setAttribute(
+                    "profileSuccess",
+                    "Đổi mật khẩu thành công"
+            );
+
+        } else {
+
+            session.setAttribute(
+                    "profileError",
+                    "Đổi mật khẩu thất bại"
+            );
+        }
 
         response.sendRedirect(request.getContextPath() + "/profile");
-        return;
     }
-
-    if (newPassword == null || newPassword.length() < 8) {
-
-        session.setAttribute(
-                "profileError",
-                "Mật khẩu mới phải có ít nhất 8 ký tự"
-        );
-
-        response.sendRedirect(request.getContextPath() + "/profile");
-        return;
-    }
-
-    if (!newPassword.equals(confirmPassword)) {
-
-        session.setAttribute(
-                "profileError",
-                "Xác nhận mật khẩu không khớp"
-        );
-
-        response.sendRedirect(request.getContextPath() + "/profile");
-        return;
-    }
-
-    boolean success =
-            userDAO.updatePassword(user.getId(), newPassword);
-
-    if (success) {
-
-        user.setPasswordHash(newPassword);
-        session.setAttribute("user", user);
-
-        session.setAttribute(
-                "profileSuccess",
-                "Đổi mật khẩu thành công"
-        );
-
-    } else {
-
-        session.setAttribute(
-                "profileError",
-                "Đổi mật khẩu thất bại"
-        );
-    }
-
-    response.sendRedirect(request.getContextPath() + "/profile");
-}
 }

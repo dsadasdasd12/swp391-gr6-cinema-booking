@@ -126,6 +126,31 @@ public class UserController extends HttpServlet {
             String fullName = request.getParameter("fullName");
             String phone = request.getParameter("phone");
 
+            fullName = fullName == null ? "" : fullName.trim();
+            phone = phone == null ? "" : phone.trim();
+            String nameRegex
+                    = "^[\\p{L} ]{2,50}$";
+            String phoneRegex = "^0\\d{9}$";
+            if (fullName == null
+                    || fullName.trim().isEmpty()
+                    || !fullName.matches(nameRegex)) {
+
+                request.setAttribute(
+                        "error",
+                        "Họ và tên không hợp lệ"
+                );
+
+                request.getRequestDispatcher(
+                        "/pages/customer/editprofile.jsp")
+                        .forward(request, response);
+
+                return;
+            }
+            if (!phone.matches(phoneRegex)) {
+                request.setAttribute("error", "Số điện thoại phải gồm 10 số và bắt đầu bằng 0.");
+                request.getRequestDispatcher("/pages/customer/editprofile.jsp").forward(request, response);
+                return;
+            }
             UserDAO userDAO = new UserDAO();
 
             boolean updated = userDAO.updateCustomerProfile(
