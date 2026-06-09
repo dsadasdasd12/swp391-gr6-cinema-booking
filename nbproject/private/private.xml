@@ -2,23 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/util/EmailUtil.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/dao/UserDAO.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/UserController.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/home.jsp</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/confirm-reset-otp.jsp</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/register.jsp</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/auth.css</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/filter/AuthenticationFilter.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/verify-email.jsp</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/AuthController.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/model/User.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/forgot-password.jsp</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/reset-password.jsp</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/HomeController.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/dao/CategoryDAO.java</file>
-            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/login.jsp</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

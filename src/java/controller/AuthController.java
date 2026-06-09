@@ -209,7 +209,7 @@ public class AuthController extends HttpServlet {
             case "MANAGER":
                 response.sendRedirect(
                         request.getContextPath()
-                        + "/pages/manager/dashboard.jsp");
+                        + "/pages/manager/brach-list.jsp");
                 break;
 
             case "STAFF":

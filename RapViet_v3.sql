@@ -464,3 +464,120 @@ CREATE INDEX IX_ATT_checked     ON dbo.ATTENDANCE     (checked_at DESC);
 
 GO
 PRINT 'RapVietDB v3.0 — 22 tables created successfully.';
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'System Admin',
+    'admin@cinema.com',
+    '123456',
+    'local_admin',
+    '0900000001',
+    'ADMIN',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Branch Manager',
+    'manager@cinema.com',
+    '123456',
+    'local_manager',
+    '0900000002',
+    'MANAGER',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Branch Staff',
+    'staff@cinema.com',
+    '123456',
+    'local_staff',
+    '0900000003',
+    'STAFF',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Customer Test',
+    'customer@cinema.com',
+    '123456',
+    'local_customer',
+    '0900000004',
+    'CUSTOMER',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO dbo.CINEMA (name, address, phone, logo_url, status)
+VALUES 
+(N'RapViet Cinema', N'Hà Nội, Việt Nam', '02412345678', NULL, 'ACTIVE');
+
+INSERT INTO dbo.BRANCHES 
+(cinema_id, name, address, phone, open_time, close_time, status)
+VALUES
+(1, N'RapViet Hoàn Kiếm', N'Hoàn Kiếm, Hà Nội', '0901234567', '08:00', '23:00', 'ACTIVE');
