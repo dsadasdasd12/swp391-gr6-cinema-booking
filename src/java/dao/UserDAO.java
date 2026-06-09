@@ -200,4 +200,31 @@ public class UserDAO {
 
         return false;
     }
+    
+    public boolean updateCustomerProfile(int userId, String fullName, String phone) {
+
+    String sql = """
+        UPDATE [USER]
+        SET full_name = ?,
+            phone = ?,
+            last_update = GETDATE()
+        WHERE id = ?
+    """;
+
+    Connection conn = DBContext.getInstance().getConnection();
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setString(1, fullName);
+        ps.setString(2, phone);
+        ps.setInt(3, userId);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return false;
+}
 }

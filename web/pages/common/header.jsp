@@ -32,12 +32,20 @@
             </c:when>
 
             <c:otherwise>
-
-                <span class="user-name">
-                    Xin chào, ${sessionScope.user.fullName}
+                <span class="user-name" style="display:flex;align-items:center;">
+                    Xin chào,
+                    <a href="${ctx}/profile" style="
+            color:#e50914 !important;
+            font-weight:700;
+            text-decoration:none;
+            border-bottom:0px solid #e50914;
+            padding-bottom:0px;
+       ">
+                        ${sessionScope.user.fullName}
+                    </a>
                 </span>
 
-                <a href="${ctx}/logout" class="btn btn-ghost">
+                <a href="${ctx}/logout" class="btn btn-primary">
                     Đăng xuất
                 </a>
 

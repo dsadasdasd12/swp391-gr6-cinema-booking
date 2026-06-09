@@ -31,7 +31,8 @@ import util.EmailUtil;
     "/verify-email",
     "/forgot-password",
     "/confirm-reset-otp",
-    "/reset-password"
+    "/reset-password",
+    "/change-password"
 })
 public class AuthController extends HttpServlet {
 
@@ -150,6 +151,9 @@ public class AuthController extends HttpServlet {
 
             case "/reset-password":
                 resetPassword(request, response);
+                break;
+            case "/change-password":
+                changePassword(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/home");
@@ -472,8 +476,8 @@ public class AuthController extends HttpServlet {
         session.setAttribute("resetOtp", otp);
         session.setAttribute("resetOtpExpiredAt",
                 System.currentTimeMillis() + 5 * 60 * 1000);
-        
-         EmailUtil.sendOtp(email, otp);
+
+        EmailUtil.sendOtp(email, otp);
         response.sendRedirect(request.getContextPath() + "/confirm-reset-otp");
     }
 
@@ -562,4 +566,78 @@ public class AuthController extends HttpServlet {
                     .forward(request, response);
         }
     }
+    
+    private void changePassword(HttpServletRequest request,
+        HttpServletResponse response)
+        throws ServletException, IOException {
+
+    HttpSession session = request.getSession(false);
+
+    if (session == null || session.getAttribute("user") == null) {
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
+    }
+
+    User user = (User) session.getAttribute("user");
+
+    String oldPassword = request.getParameter("oldPassword");
+    String newPassword = request.getParameter("newPassword");
+    String confirmPassword = request.getParameter("confirmPassword");
+
+    if (!user.getPasswordHash().equals(oldPassword)) {
+
+        session.setAttribute(
+                "profileError",
+                "Mật khẩu hiện tại không đúng"
+        );
+
+        response.sendRedirect(request.getContextPath() + "/profile");
+        return;
+    }
+
+    if (newPassword == null || newPassword.length() < 8) {
+
+        session.setAttribute(
+                "profileError",
+                "Mật khẩu mới phải có ít nhất 8 ký tự"
+        );
+
+        response.sendRedirect(request.getContextPath() + "/profile");
+        return;
+    }
+
+    if (!newPassword.equals(confirmPassword)) {
+
+        session.setAttribute(
+                "profileError",
+                "Xác nhận mật khẩu không khớp"
+        );
+
+        response.sendRedirect(request.getContextPath() + "/profile");
+        return;
+    }
+
+    boolean success =
+            userDAO.updatePassword(user.getId(), newPassword);
+
+    if (success) {
+
+        user.setPasswordHash(newPassword);
+        session.setAttribute("user", user);
+
+        session.setAttribute(
+                "profileSuccess",
+                "Đổi mật khẩu thành công"
+        );
+
+    } else {
+
+        session.setAttribute(
+                "profileError",
+                "Đổi mật khẩu thất bại"
+        );
+    }
+
+    response.sendRedirect(request.getContextPath() + "/profile");
+}
 }

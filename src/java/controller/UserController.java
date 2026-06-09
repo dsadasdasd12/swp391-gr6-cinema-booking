@@ -4,17 +4,26 @@
  */
 package controller;
 
+import dao.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.User;
 
 /**
  *
  * @author tttru
  */
+@WebServlet(urlPatterns = {
+    "/profile",
+    "/profile/edit",
+    "/favorite-films",
+    "/transaction-history"
+})
 public class UserController extends HttpServlet {
 
     /**
@@ -55,7 +64,41 @@ public class UserController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        String path = request.getServletPath();
+        User user = (User) request.getSession().getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        switch (path) {
+
+            case "/profile":
+                if (user.getRole().equals("CUSTOMER")) {
+                    request.getRequestDispatcher("/pages/customer/customerprofile.jsp")
+                            .forward(request, response);
+                    return;
+                }
+                request.getRequestDispatcher("/pages/profile.jsp")
+                        .forward(request, response);
+                return;
+
+            case "/profile/edit":
+                request.getRequestDispatcher("/pages/customer/editprofile.jsp")
+                        .forward(request, response);
+                return;
+            case "/favorite-films":
+                request.getRequestDispatcher("/pages/customer/favoritefilms.jsp")
+                        .forward(request, response);
+                return;
+
+            case "/transaction-history":
+                request.getRequestDispatcher("/pages/customer/transactionhistory.jsp")
+                        .forward(request, response);
+                return;
+
+        }
     }
 
     /**
@@ -69,7 +112,42 @@ public class UserController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        String path = request.getServletPath();
+
+        if ("/profile/edit".equals(path)) {
+
+            User user = (User) request.getSession().getAttribute("user");
+
+            if (user == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+
+            String fullName = request.getParameter("fullName");
+            String phone = request.getParameter("phone");
+
+            UserDAO userDAO = new UserDAO();
+
+            boolean updated = userDAO.updateCustomerProfile(
+                    user.getId(),
+                    fullName,
+                    phone
+            );
+
+            if (updated) {
+                user.setFullName(fullName);
+                user.setPhone(phone);
+
+                request.getSession().setAttribute("user", user);
+
+                response.sendRedirect(request.getContextPath() + "/profile");
+                return;
+            }
+
+            request.setAttribute("error", "Cập nhật thông tin thất bại.");
+            request.getRequestDispatcher("/pages/customer/editprofile.jsp")
+                    .forward(request, response);
+        }
     }
 
     /**
