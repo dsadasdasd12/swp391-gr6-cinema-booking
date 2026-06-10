@@ -13,7 +13,7 @@ import model.Showtime;
  * hiển thị theo từng rạp (tên rạp + danh sách giờ chiếu). Việc gom nhóm được
  * thực hiện ở tầng service, JSP chỉ việc lặp hai vòng for.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class BranchShowtimes {
 

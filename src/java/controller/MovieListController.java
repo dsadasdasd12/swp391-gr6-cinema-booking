@@ -1,6 +1,6 @@
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Duyệt phim (Browse / Search / Filter) - UC06
+ * Module: Duyệt phim (Browse / Search / Filter)
  */
 package controller;
 
@@ -27,7 +27,7 @@ import service.MovieService;
  * URL: {@code /movies} (GET). Mọi tiêu chí đi theo query-string để có thể lưu
  * và chia sẻ đường dẫn của một danh sách đã lọc.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 @WebServlet(name = "MovieListController", urlPatterns = {"/movies"})
 public class MovieListController extends HttpServlet {

@@ -12,12 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Language;
 import util.DBContext;
+import util.EncodingUtil;
 
 /**
  * DAO cho ngôn ngữ phim. Dùng để đổ dữ liệu cho ô lọc ngôn ngữ và để nạp các
  * ngôn ngữ / phụ đề của một phim cụ thể.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class LanguageDAO {
 
@@ -32,7 +33,7 @@ public class LanguageDAO {
             while (rs.next()) {
                 Language l = new Language();
                 l.setId(rs.getInt("id"));
-                l.setName(rs.getString("name"));
+                l.setName(EncodingUtil.getString(rs, "name"));
                 l.setCode(rs.getString("code"));
                 l.setStatus(rs.getString("status"));
                 list.add(l);
@@ -46,10 +47,10 @@ public class LanguageDAO {
 
     /** Các ngôn ngữ của một phim, kèm cờ phụ đề (subtitle). */
     public List<Language> findByMovieId(int movieId) {
-        String sql = "SELECT l.id, l.name, l.code, l.status, ml.subtitle "
+        String sql = "SELECT l.id, l.name(), l.code, l.status, ml.subtitle "
                 + "FROM dbo.LANGUAGES l "
                 + "JOIN dbo.MOVIE_LANGUAGES ml ON ml.language_id = l.id "
-                + "WHERE ml.movie_id = ? ORDER BY l.name";
+                + "WHERE ml.movie_id = ? ORDER BY l.name()";
         List<Language> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -58,7 +59,7 @@ public class LanguageDAO {
                 while (rs.next()) {
                     Language l = new Language();
                     l.setId(rs.getInt("id"));
-                    l.setName(rs.getString("name"));
+                    l.setName(EncodingUtil.getString(rs, "name"));
                     l.setCode(rs.getString("code"));
                     l.setStatus(rs.getString("status"));
                     l.setSubtitle(rs.getBoolean("subtitle"));

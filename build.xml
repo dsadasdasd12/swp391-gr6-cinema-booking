@@ -9,6 +9,12 @@
 <!-- in the project's Project Properties dialog box.-->
 <project name="swp391-gr6-cinema-booking" default="default" basedir=".">
     <description>Builds, tests, and runs the project swp391-gr6-cinema-booking.</description>
+
+    <!-- Load properties relative to basedir so that running ant from other directories works -->
+    <property file="${basedir}/nbproject/private/private.properties"/>
+    <property file="${user.properties.file}"/>
+    <property file="${basedir}/nbproject/project.properties"/>
+
     <import file="nbproject/build-impl.xml"/>
     <!--
 

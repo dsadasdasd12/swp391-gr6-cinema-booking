@@ -1,13 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
-    <servlet>
-        <servlet-name>UserController</servlet-name>
-        <servlet-class>controller.UserController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>UserController</servlet-name>
-        <url-pattern>/UserController</url-pattern>
-    </servlet-mapping>
+<web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         metadata-complete="false">
+
+    <!-- ── SMTP Mail Configuration (UC 2.4.x - Long) ── -->
+    <context-param>
+        <description>SMTP Server Hostname</description>
+        <param-name>mail.smtp.host</param-name>
+        <param-value>smtp.gmail.com</param-value>
+    </context-param>
+    <context-param>
+        <description>SMTP Server Port (587 for STARTTLS, 465 for SSL)</description>
+        <param-name>mail.smtp.port</param-name>
+        <param-value>587</param-value>
+    </context-param>
+    <context-param>
+        <description>Enable SMTP Authentication (true/false)</description>
+        <param-name>mail.smtp.auth</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <description>Sender Email Address</description>
+        <param-name>mail.smtp.user</param-name>
+        <param-value>noreply@rapviet.vn</param-value>
+    </context-param>
+    <context-param>
+        <description>Sender Email Password / App Password</description>
+        <param-name>mail.smtp.password</param-name>
+        <param-value>your-app-password-here</param-value>
+    </context-param>
+
+    <!-- Servlets & filters: @WebServlet / @WebFilter (tránh trùng mapping với web.xml) -->
+
+    <mime-mapping>
+        <extension>js</extension>
+        <mime-type>application/javascript</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>css</extension>
+        <mime-type>text/css</mime-type>
+    </mime-mapping>
+
+    <!-- ── Error Pages Configuration ── -->
+    <error-page>
+        <error-code>403</error-code>
+        <location>/pages/error/403.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/pages/error/404.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/pages/error/500.jsp</location>
+    </error-page>
+
+    <!-- ── Welcome File List ── -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

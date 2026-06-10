@@ -1,6 +1,6 @@
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Duyệt phim (Xem chi tiết phim + Suất chiếu) - UC06 / UC12
+ * Module: Duyệt phim (Xem chi tiết phim + Suất chiếu) / 
  */
 package controller;
 
@@ -19,7 +19,7 @@ import service.MovieService;
  * <p>
  * URL: {@code /movie?id=<movieId>} (GET).
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 @WebServlet(name = "MovieDetailController", urlPatterns = {"/movie"})
 public class MovieDetailController extends HttpServlet {
@@ -34,7 +34,7 @@ public class MovieDetailController extends HttpServlet {
         Movie movie = movieService.getMovieDetail(id);
 
         if (movie == null) {
-            // id không hợp lệ / không tồn tại -> hiển thị thông báo 404 thân thiện
+            // id không hợp lệ / không tồn tại 
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             request.setAttribute("notFound", Boolean.TRUE);
             request.getRequestDispatcher("/pages/movie/detail.jsp").forward(request, response);

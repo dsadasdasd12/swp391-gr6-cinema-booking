@@ -1,6 +1,6 @@
-<%--
+﻿<%--
     RapViet Cinema - Danh sách phim (Duyệt / Tìm kiếm / Lọc)
-    Module: Duyệt phim - UC06   (Group6 - DuyThai)
+    Module: Duyệt phim   (Group6 - DuyThai)
     Được phục vụ bởi controller.MovieListController  ->  URL /movies
     View chỉ dùng JSTL + EL, KHÔNG nhúng code Java.
 --%>
@@ -98,7 +98,7 @@
 
                 <div class="filter-field">
                     <label>&nbsp;</label>
-                    <button type="submit" class="btn btn-primary">Lọc</button>
+                    <button type="submit" class="btn btn-primary">Lọc dữ liệu</button>
                 </div>
                 <div class="filter-field">
                     <label>&nbsp;</label>

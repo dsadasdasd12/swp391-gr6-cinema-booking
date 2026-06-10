@@ -9,3 +9,26 @@ nbdist/
 # === Log files and temporary files ===
 *.log
 *.clbk
+*.tmp
+
+# IDE
+/.idea/
+*.iml
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Sensitive
+.env
+*.env
+secrets.properties
+
+# Uploaded assets (if generated)
+/web/assets/uploads/
+
+# Java
+*.class
+
+# Maven/Gradle/Ant extras
+target/

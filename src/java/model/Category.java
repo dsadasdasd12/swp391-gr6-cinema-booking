@@ -7,7 +7,7 @@ package model;
 /**
  * Nhãn thể loại / phân loại phim.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class Category {
 

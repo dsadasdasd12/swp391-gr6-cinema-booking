@@ -8,7 +8,8 @@
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="currentUser" value="${sessionScope.user}"/>
 <header class="site-header">
     <a href="${ctx}/home" class="brand">🎬 RapViet</a>
     <nav class="main-nav">
@@ -18,7 +19,20 @@
         <a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a>
     </nav>
     <div class="header-actions">
-        <a href="${ctx}/login" class="btn btn-ghost">Đăng nhập</a>
-        <a href="${ctx}/register" class="btn btn-primary">Đăng ký</a>
+        <c:choose>
+            <c:when test="${not empty currentUser}">
+                <span class="nav-username">
+                    Xin chào, <strong><c:out value="${currentUser.fullName}"/></strong>
+                </span>
+                <c:if test="${currentUser.admin}">
+                    <a href="${ctx}/admin/movies?action=list" class="btn btn-ghost">Quản trị</a>
+                </c:if>
+                <a href="${ctx}/logout" class="btn btn-primary">Đăng xuất</a>
+            </c:when>
+            <c:otherwise>
+                <a href="${ctx}/login" class="btn btn-ghost">Đăng nhập</a>
+                <a href="${ctx}/register" class="btn btn-primary">Đăng ký</a>
+            </c:otherwise>
+        </c:choose>
     </div>
 </header>

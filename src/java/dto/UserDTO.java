@@ -6,7 +6,7 @@ package dto;
 
 /**
  *
- * @author Admin
+ * @author LONG
  */
 public class UserDTO {
     
