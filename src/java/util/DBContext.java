@@ -9,17 +9,24 @@ import java.sql.DriverManager;
 
 /**
  *
- * @author Admin
+ * @author LONG
  */
 public class DBContext {
 
-    // Thông tin kết nối dùng chung cho cả constructor và main() test.
-    // encrypt=true;trustServerCertificate=true: driver mssql-jdbc >=10 mặc định bật mã hóa;
-    // SQL Server dev dùng chứng chỉ tự ký nên phải "tin" chứng chỉ, nếu không sẽ lỗi PKIX/SSL.
-    private static final String URL =
-            "jdbc:sqlserver://localhost:1433;databaseName=RapVietDB;encrypt=true;trustServerCertificate=true";
-    private static final String USER = "sa";
-    private static final String PASSWORD = "123";
+        // Thông tin kết nối: đọc từ biến môi trường nếu có, ngược lại dùng giá trị mặc định.
+        private static final String URL;
+        private static final String USER;
+        private static final String PASSWORD;
+
+        static {
+        String envUrl = System.getenv("DB_URL");
+        URL = (envUrl != null && !envUrl.isBlank()) ? envUrl
+            : "jdbc:sqlserver://localhost:1433;databaseName=RapVietDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true";
+        String envUser = System.getenv("DB_USER");
+        USER = (envUser != null) ? envUser : "sa";
+        String envPass = System.getenv("DB_PASSWORD");
+        PASSWORD = (envPass != null) ? envPass : "123"; // default to 123 for local environment
+        }
 
     private static DBContext instance = new DBContext();
     Connection connection;
@@ -29,25 +36,26 @@ public class DBContext {
     }
 
     public Connection getConnection() {
+        connect();
         return connection;
     }
 
-    private DBContext(){
+    private DBContext() {
+        connect();
+    }
+
+    private void connect() {
         try {
-            if(connection == null || connection.isClosed()) {
+            if (connection == null || connection.isClosed()) {
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
             }
-         }catch (Exception e){
-             connection = null;
-         }
+        } catch (Exception e) {
+            connection = null;
+            System.err.println("[DBContext] Kết nối thất bại: " + e.getMessage());
         }
+    }
 
-    /**
-     * Chạy riêng file này (chuột phải ▸ Run File / Shift+F6) để kiểm tra kết nối DB.
-     * Khác với constructor (nuốt lỗi, gán null), main() in ra lỗi CỤ THỂ để biết
-     * vì sao kết nối thất bại (sai instance/cổng, sai mật khẩu, thiếu driver, SSL...).
-     */
     public static void main(String[] args) {
         System.out.println("Đang thử kết nối: " + URL);
         try {
