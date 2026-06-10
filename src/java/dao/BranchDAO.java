@@ -150,6 +150,114 @@ public class BranchDAO {
         return false;
     }
 
+    public boolean existsByNameAndAddress(String name, String address) {
+        String sql = "SELECT COUNT(*) "
+                + "FROM dbo.BRANCHES "
+                + "WHERE LOWER(LTRIM(RTRIM(name))) = LOWER(LTRIM(RTRIM(?))) "
+                + "AND LOWER(LTRIM(RTRIM(address))) = LOWER(LTRIM(RTRIM(?)))";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, address);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean existsByNameAndAddressExceptId(String name, String address, int id) {
+        String sql = "SELECT COUNT(*) "
+                + "FROM dbo.BRANCHES "
+                + "WHERE LOWER(LTRIM(RTRIM(name))) = LOWER(LTRIM(RTRIM(?))) "
+                + "AND LOWER(LTRIM(RTRIM(address))) = LOWER(LTRIM(RTRIM(?))) "
+                + "AND id <> ?";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, address);
+            ps.setInt(3, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean existsByPhone(String phone) {
+        if (phone == null) {
+            return false;
+        }
+
+        String sql = "SELECT COUNT(*) "
+                + "FROM dbo.BRANCHES "
+                + "WHERE LTRIM(RTRIM(phone)) = LTRIM(RTRIM(?))";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, phone);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean existsByPhoneExceptId(String phone, int id) {
+        if (phone == null) {
+            return false;
+        }
+
+        String sql = "SELECT COUNT(*) "
+                + "FROM dbo.BRANCHES "
+                + "WHERE LTRIM(RTRIM(phone)) = LTRIM(RTRIM(?)) "
+                + "AND id <> ?";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, phone);
+            ps.setInt(2, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     private Branch mapRow(ResultSet rs) throws SQLException {
         Branch branch = new Branch();
 

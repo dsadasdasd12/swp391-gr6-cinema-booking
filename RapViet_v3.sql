@@ -581,3 +581,22 @@ INSERT INTO dbo.BRANCHES
 (cinema_id, name, address, phone, open_time, close_time, status)
 VALUES
 (1, N'RapViet Hoàn Kiếm', N'Hoàn Kiếm, Hà Nội', '0901234567', '08:00', '23:00', 'ACTIVE');
+
+INSERT INTO dbo.STAFF_BRANCH (user_id, branch_id, position)
+SELECT u.id, b.id, N'Branch Manager'
+FROM dbo.[USER] u
+CROSS JOIN dbo.BRANCHES b
+WHERE u.email = 'manager@cinema.com'
+  AND b.name = N'RapViet Hoàn Kiếm';
+
+  SELECT 
+    u.id AS user_id,
+    u.full_name,
+    u.email,
+    u.role,
+    b.id AS branch_id,
+    b.name AS branch_name,
+    sb.position
+FROM dbo.STAFF_BRANCH sb
+JOIN dbo.[USER] u ON sb.user_id = u.id
+JOIN dbo.BRANCHES b ON sb.branch_id = b.id;

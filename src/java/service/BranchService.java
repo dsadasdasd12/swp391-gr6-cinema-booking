@@ -30,11 +30,32 @@ public class BranchService {
 
     public boolean createBranch(Branch branch) {
         validateBranch(branch, false);
+
+        if (branchDAO.existsByNameAndAddress(branch.getName(), branch.getAddress())) {
+            throw new IllegalArgumentException("Chi nhánh này đã tồn tại với cùng tên và địa chỉ.");
+        }
+
+        if (branchDAO.existsByPhone(branch.getPhone())) {
+            throw new IllegalArgumentException("Số điện thoại này đã được dùng cho chi nhánh khác.");
+        }
+
         return branchDAO.insert(branch);
     }
 
     public boolean updateBranch(Branch branch) {
         validateBranch(branch, true);
+
+        if (branchDAO.existsByNameAndAddressExceptId(
+                branch.getName(),
+                branch.getAddress(),
+                branch.getId())) {
+            throw new IllegalArgumentException("Chi nhánh này đã tồn tại với cùng tên và địa chỉ.");
+        }
+
+        if (branchDAO.existsByPhoneExceptId(branch.getPhone(), branch.getId())) {
+            throw new IllegalArgumentException("Số điện thoại này đã được dùng cho chi nhánh khác.");
+        }
+
         return branchDAO.update(branch);
     }
 
@@ -85,8 +106,12 @@ public class BranchService {
         if (branch.getAddress() == null) {
             throw new IllegalArgumentException("Địa chỉ chi nhánh không được để trống.");
         }
+        
+        if (branch.getPhone() == null) {
+            throw new IllegalArgumentException("Số điện thoại không được để trống.");
+        }
 
-        if (branch.getPhone() != null && !branch.getPhone().matches("0\\d{9,10}")) {
+        if (!branch.getPhone().matches("0\\d{9,10}")) {
             throw new IllegalArgumentException("Số điện thoại phải bắt đầu bằng 0 và có 10 đến 11 chữ số.");
         }
 
