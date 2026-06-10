@@ -573,30 +573,76 @@ VALUES
     GETDATE()
 );
 
-INSERT INTO dbo.CINEMA (name, address, phone, logo_url, status)
-VALUES 
-(N'RapViet Cinema', N'Hà Nội, Việt Nam', '02412345678', NULL, 'ACTIVE');
 
-INSERT INTO dbo.BRANCHES 
-(cinema_id, name, address, phone, open_time, close_time, status)
+USE RapVietDB;
+GO
+
+INSERT INTO dbo.MOVIES
+(
+    title,
+    description,
+    duration_min,
+    release_date,
+    status,
+    poster_url,
+    trailer_url,
+    actor,
+    director
+)
 VALUES
-(1, N'RapViet Hoàn Kiếm', N'Hoàn Kiếm, Hà Nội', '0901234567', '08:00', '23:00', 'ACTIVE');
-
-INSERT INTO dbo.STAFF_BRANCH (user_id, branch_id, position)
-SELECT u.id, b.id, N'Branch Manager'
-FROM dbo.[USER] u
-CROSS JOIN dbo.BRANCHES b
-WHERE u.email = 'manager@cinema.com'
-  AND b.name = N'RapViet Hoàn Kiếm';
-
-  SELECT 
-    u.id AS user_id,
-    u.full_name,
-    u.email,
-    u.role,
-    b.id AS branch_id,
-    b.name AS branch_name,
-    sb.position
-FROM dbo.STAFF_BRANCH sb
-JOIN dbo.[USER] u ON sb.user_id = u.id
-JOIN dbo.BRANCHES b ON sb.branch_id = b.id;
+(
+    N'Doraemon: Nobita và Bản Giao Hưởng Địa Cầu',
+    N'Nobita và nhóm bạn bước vào một chuyến phiêu lưu âm nhạc để bảo vệ Trái Đất.',
+    115,
+    '2026-06-01',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Wasabi Mizuta, Megumi Ohara',
+    N'Kazuaki Imai'
+),
+(
+    N'Thám Tử Lừng Danh Conan: Ngôi Sao 5 Cánh Một Triệu Đô',
+    N'Conan tiếp tục phá giải một vụ án bí ẩn liên quan đến kho báu và các manh mối nguy hiểm.',
+    110,
+    '2026-06-05',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Minami Takayama, Wakana Yamazaki',
+    N'Chika Nagaoka'
+),
+(
+    N'Lật Mặt 8: Vòng Tay Nắng',
+    N'Một câu chuyện gia đình Việt Nam xoay quanh tình thân, ước mơ và những lựa chọn trong cuộc sống.',
+    120,
+    '2026-06-10',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Thanh Thức, Đoàn Thế Vinh',
+    N'Lý Hải'
+),
+(
+    N'Inside Out 2',
+    N'Câu chuyện tiếp tục bên trong tâm trí Riley khi những cảm xúc mới xuất hiện.',
+    96,
+    '2026-06-15',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Amy Poehler, Maya Hawke',
+    N'Kelsey Mann'
+),
+(
+    N'Avengers: Secret Wars',
+    N'Một cuộc chiến đa vũ trụ quy mô lớn giữa các siêu anh hùng và những thế lực mới.',
+    150,
+    '2026-07-01',
+    'COMING_SOON',
+    NULL,
+    NULL,
+    N'Robert Downey Jr., Chris Hemsworth',
+    N'Anthony Russo, Joe Russo'
+);
+GO

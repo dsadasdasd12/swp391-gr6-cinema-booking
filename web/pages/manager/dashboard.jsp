@@ -59,7 +59,7 @@
                     <p>Thêm, sửa, xóa, cấu hình sức chứa, loại phòng và trạng thái phòng chiếu.</p>
                 </a>
 
-                <a class="dashboard-card" href="#">
+                <a class="dashboard-card" href="${ctx}/manager/showtimes">
                     <h3>Lịch chiếu</h3>
                     <p>Tạo, chỉnh sửa, hủy suất chiếu và gán phòng chiếu cho suất chiếu.</p>
                 </a>

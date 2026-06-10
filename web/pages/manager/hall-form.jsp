@@ -32,7 +32,7 @@
         <nav class="admin-menu">
             <a href="${ctx}/manager/dashboard">Dashboard</a>
             <a class="active" href="${ctx}/manager/halls">Quản lý phòng chiếu</a>
-            <a href="#">Lịch chiếu</a>
+            <a href="${ctx}/manager/showtimes">Lịch chiếu</a>
             <a href="#">Gán phim</a>
             <a href="#">Cài đặt chi nhánh</a>
             <a href="${ctx}/logout">Đăng xuất</a>
