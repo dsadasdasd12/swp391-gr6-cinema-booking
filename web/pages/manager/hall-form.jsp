@@ -71,6 +71,8 @@
                         <c:if test="${isEdit}">
                             <input type="hidden" name="id" value="${hall.id}">
                         </c:if>
+                            
+                            <input type="hidden" name="branchId" value="${hall.branchId}">
 
                         <div class="form-grid">
                             <div class="form-group">
