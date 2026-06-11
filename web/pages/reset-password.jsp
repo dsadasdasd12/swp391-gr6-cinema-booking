@@ -4,48 +4,77 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Đặt lại mật khẩu</title>
-    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-    <link rel="stylesheet" href="${ctx}/assets/css/auth.css">
-</head>
-<body>
+    <head>
+        <title>Đặt lại mật khẩu</title>
+        <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+        <link rel="stylesheet" href="${ctx}/assets/css/auth.css">
+    </head>
+    <script>
+function togglePassword(inputId, icon) {
+    const input = document.getElementById(inputId);
 
-<jsp:include page="/pages/common/header.jsp">
-    <jsp:param name="active" value="home"/>
-</jsp:include>
+    if (input.type === "password") {
+        input.type = "text";
+        icon.textContent = "🙈";
+    } else {
+        input.type = "password";
+        icon.textContent = "👁";
+    }
+}
+</script>
+    <body>
 
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Đặt lại mật khẩu</h2>
+        <jsp:include page="/pages/common/header.jsp">
+            <jsp:param name="active" value="home"/>
+        </jsp:include>
 
-        <c:if test="${not empty error}">
-            <div class="error-message">${error}</div>
-        </c:if>
+        <div class="auth-container">
+            <div class="auth-card">
+                <h2>Đặt lại mật khẩu</h2>
 
-        <form action="${ctx}/reset-password" method="post">
-            <div class="form-group">
-                <label>Mật khẩu mới</label>
-                <input type="password"
-                       name="newPassword"
-                       minlength="8"
-                       required>
+                <c:if test="${not empty error}">
+                    <div class="error-message">${error}</div>
+                </c:if>
+
+                <form action="${ctx}/reset-password" method="post">
+                    <div class="form-group">
+                        <label>Mật khẩu mới</label>
+
+                        <div class="password-field">
+                            <input type="password"
+                                   id="newPassword"
+                                   name="newPassword"
+                                   >
+
+                            <span class="toggle-password"
+                                  onclick="togglePassword('newPassword', this)">
+                                👁
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+
+                        <div class="password-field">
+                            <input type="password"
+                                   id="confirmPassword"
+                                   name="confirmPassword"
+                                   >
+
+                            <span class="toggle-password"
+                                  onclick="togglePassword('confirmPassword', this)">
+                                👁
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        Đổi mật khẩu
+                    </button>
+                </form>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label>Xác nhận mật khẩu</label>
-                <input type="password"
-                       name="confirmPassword"
-                       minlength="8"
-                       required>
-            </div>
-
-            <button type="submit" class="btn-primary">
-                Đổi mật khẩu
-            </button>
-        </form>
-    </div>
-</div>
-
-</body>
+    </body>
 </html>
