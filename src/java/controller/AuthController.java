@@ -29,6 +29,7 @@ import util.EmailUtil;
     "/register",
     "/logout",
     "/verify-email",
+    "/resend-otp",
     "/forgot-password",
     "/confirm-reset-otp",
     "/reset-password",
@@ -111,6 +112,7 @@ public class AuthController extends HttpServlet {
                 request.getRequestDispatcher("/pages/reset-password.jsp")
                         .forward(request, response);
                 break;
+
         }
     }
 
@@ -154,6 +156,9 @@ public class AuthController extends HttpServlet {
                 break;
             case "/change-password":
                 changePassword(request, response);
+                break;
+            case "/resend-otp":
+                resendOtp(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/home");
@@ -543,6 +548,54 @@ public class AuthController extends HttpServlet {
         session.setAttribute("resetOtpConfirmed", true);
 
         response.sendRedirect(request.getContextPath() + "/reset-password");
+    }
+
+    private void resendOtp(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("verifyUser") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        Long otpExpiredAt = (Long) session.getAttribute("otpExpiredAt");
+
+        if (otpExpiredAt != null && System.currentTimeMillis() < otpExpiredAt) {
+            long remainingSeconds = (otpExpiredAt - System.currentTimeMillis()) / 1000;
+
+            request.setAttribute(
+                    "error",
+                    "OTP cũ vẫn còn hiệu lực. Vui lòng thử lại sau "
+                    + remainingSeconds + " giây."
+            );
+
+            request.getRequestDispatcher("/pages/verify-email.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        User verifyUser = (User) session.getAttribute("verifyUser");
+
+        String newOtp = String.valueOf((int) (Math.random() * 900000) + 100000);
+
+        session.setAttribute("emailOtp", newOtp);
+        session.setAttribute(
+                "otpExpiredAt",
+                System.currentTimeMillis() + 5 * 60 * 1000
+        );
+
+        EmailUtil.sendOtp(verifyUser.getEmail(), newOtp);
+
+        request.setAttribute(
+                "success",
+                "OTP mới đã được gửi tới email của bạn."
+        );
+
+        request.getRequestDispatcher("/pages/verify-email.jsp")
+                .forward(request, response);
     }
 
     private void resetPassword(HttpServletRequest request,
