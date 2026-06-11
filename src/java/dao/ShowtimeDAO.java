@@ -79,6 +79,27 @@ public class ShowtimeDAO {
         return list;
     }
 
+    /**
+     * Một suất chiếu theo id (đã join phim / phòng / chi nhánh), hoặc null nếu
+     * không tồn tại. Dùng để lấy ngữ cảnh hiển thị cho trang sơ đồ ghế.
+     */
+    public Showtime findById(int showtimeId) {
+        String sql = SELECT_BASE + "WHERE s.id = ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, showtimeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findById thất bại", e);
+        }
+        return null;
+    }
+
     /** Phần SELECT + JOIN dùng chung; mỗi method chỉ nối thêm WHERE/ORDER BY. */
     private static final String SELECT_BASE =
             "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
