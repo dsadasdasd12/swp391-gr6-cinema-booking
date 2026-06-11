@@ -1,34 +1,56 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<form action="${pageContext.request.contextPath}/change-password"
-      method="post">
+<form action="${ctx}/change-password"
+      method="post"
+      class="change-password-form">
 
     <div class="form-group">
-        <label for="oldPassword">Mật khẩu hiện tại</label>
+    <label>Mật khẩu hiện tại</label>
+
+    <div class="password-field">
         <input type="password"
                id="oldPassword"
                name="oldPassword"
-               placeholder="Nhập mật khẩu hiện tại"
-               required>
-    </div>
+               >
 
-    <div class="form-group">
-        <label for="newPassword">Mật khẩu mới</label>
+        <span class="toggle-password"
+              onclick="togglePassword('oldPassword', this)">
+            👁
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label>Mật khẩu mới</label>
+
+    <div class="password-field">
         <input type="password"
                id="newPassword"
                name="newPassword"
-               placeholder="Nhập mật khẩu mới"
-               required>
-    </div>
+               >
 
-    <div class="form-group">
-        <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+        <span class="toggle-password"
+              onclick="togglePassword('newPassword', this)">
+            👁
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label>Xác nhận mật khẩu mới</label>
+
+    <div class="password-field">
         <input type="password"
                id="confirmPassword"
                name="confirmPassword"
-               placeholder="Nhập lại mật khẩu mới"
-               required>
+               >
+
+        <span class="toggle-password"
+              onclick="togglePassword('confirmPassword', this)">
+            👁
+        </span>
     </div>
+</div>
 
     <div class="profile-actions">
         <button type="button"
@@ -42,5 +64,18 @@
             Lưu mật khẩu
         </button>
     </div>
+<script>
+    function togglePassword(inputId, icon) {
 
+        const input = document.getElementById(inputId);
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.textContent = "🙈";
+        } else {
+            input.type = "password";
+            icon.textContent = "👁";
+        }
+    }
+</script>
 </form>

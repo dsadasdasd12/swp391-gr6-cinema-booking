@@ -98,10 +98,23 @@
 
                 <div class="profile-actions">
 
-                    <a href="${ctx}/home" class="btn btn-ghost">
-                        Quay lại trang chủ
-                    </a>
+                    <c:set var="backUrl" value="${ctx}/home"/>
 
+                    <c:if test="${sessionScope.user.role == 'ADMIN'}">
+                        <c:set var="backUrl" value="${ctx}/admin/dashboard"/>
+                    </c:if>
+
+                    <c:if test="${sessionScope.user.role == 'MANAGER'}">
+                        <c:set var="backUrl" value="${ctx}/manager/dashboard"/>
+                    </c:if>
+
+                    <c:if test="${sessionScope.user.role == 'STAFF'}">
+                        <c:set var="backUrl" value="${ctx}/staff/dashboard"/>
+                    </c:if>
+
+                    <a href="${backUrl}" class="btn btn-ghost">
+                        Quay lại
+                    </a>
                     <c:if test="${sessionScope.user.role != 'ADMIN'}">
                         <a href="${ctx}/profile/edit" class="btn btn-primary">
                             Chỉnh sửa thông tin

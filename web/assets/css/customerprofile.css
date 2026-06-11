@@ -328,3 +328,40 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     background: rgba(239,68,68,.15);
     color: #fca5a5;
 }
+
+.password-field {
+    position: relative;
+    width: 100%;
+}
+
+.password-field input {
+    width: 100%;
+    padding-right: 48px !important;
+    box-sizing: border-box;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+
+    cursor: pointer;
+    user-select: none;
+
+    color: #cbd5e1;
+    font-size: 18px;
+
+    z-index: 10;
+}
+
+.toggle-password:hover {
+    color: #fff;
+}
+
+/* Tắt icon mắt mặc định của Edge */
+
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}

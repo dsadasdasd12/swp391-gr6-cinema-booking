@@ -150,3 +150,163 @@
         flex-direction: column;
     }
 }
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.password-modal {
+    width: 460px;
+    max-width: 95%;
+    background: #111827;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 25px 60px rgba(0,0,0,.45);
+}
+
+.modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.modal-head h2 {
+    color: #fff;
+    margin: 0;
+    font-size: 26px;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.change-password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.change-password-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.change-password-form label {
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.change-password-form input {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: #0f172a;
+    color: #fff;
+    outline: none;
+}
+
+.change-password-form input:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229,9,20,.18);
+}
+
+.change-password-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.password-modal form {
+    width: 100%;
+}
+
+.password-modal .form-group {
+    margin-bottom: 16px;
+}
+
+.password-modal .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #d1d5db;
+    font-weight: 600;
+}
+
+.password-modal .form-group input {
+    display: block;
+    width: 100% !important;
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: #0f172a;
+    color: #fff;
+    box-sizing: border-box;
+}
+
+.password-modal .form-group input:focus {
+    border-color: #e50914;
+    outline: none;
+}
+
+.password-modal .form-actions,
+.password-modal .change-password-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+.password-field {
+    position: relative;
+    width: 100%;
+}
+
+.password-field input {
+    width: 100%;
+    padding-right: 48px !important;
+    box-sizing: border-box;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+
+    cursor: pointer;
+    user-select: none;
+
+    color: #cbd5e1;
+    font-size: 18px;
+
+    z-index: 10;
+}
+
+.toggle-password:hover {
+    color: #fff;
+}
+
+/* Tắt icon mắt mặc định của Edge */
+
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
