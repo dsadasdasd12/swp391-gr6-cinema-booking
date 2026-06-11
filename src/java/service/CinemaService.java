@@ -4,9 +4,16 @@
  */
 package service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import dao.BranchDAO;
+import dao.ShowtimeDAO;
+import dto.MovieShowtimes;
 import model.Branch;
+import model.Showtime;
 
 /**
  * Tầng nghiệp vụ cho nhóm chức năng liên quan tới rạp: xem chi nhánh, (sau này)
@@ -18,6 +25,7 @@ import model.Branch;
 public class CinemaService {
 
     private final BranchDAO branchDAO = new BranchDAO();
+    private final ShowtimeDAO showtimeDAO = new ShowtimeDAO();
 
     /** Danh sách chi nhánh đang hoạt động cho trang "Hệ thống rạp". */
     public List<Branch> getActiveBranches() {
@@ -30,5 +38,24 @@ public class CinemaService {
             return null;
         }
         return branchDAO.findById(branchId);
+    }
+
+    /**
+     * Suất chiếu của một chi nhánh trong một ngày, đã gom nhóm theo phim để
+     * view chỉ việc lặp. Trả về danh sách rỗng nếu tham số không hợp lệ. Thứ tự
+     * phim theo tên (DAO đã sắp), trong mỗi phim các suất giữ thứ tự thời gian.
+     */
+    public List<MovieShowtimes> getShowtimesByMovie(int branchId, LocalDate date) {
+        if (branchId <= 0 || date == null) {
+            return new ArrayList<>();
+        }
+        List<Showtime> all = showtimeDAO.findByBranchAndDate(branchId, date);
+        Map<Integer, MovieShowtimes> grouped = new LinkedHashMap<>();
+        for (Showtime st : all) {
+            MovieShowtimes ms = grouped.computeIfAbsent(st.getMovieId(),
+                    k -> new MovieShowtimes(st.getMovieId(), st.getMovieTitle(), st.getPosterUrl()));
+            ms.getShowtimes().add(st);
+        }
+        return new ArrayList<>(grouped.values());
     }
 }
