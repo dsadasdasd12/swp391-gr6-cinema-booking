@@ -10,9 +10,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import dao.BranchDAO;
+import dao.SeatDAO;
 import dao.ShowtimeDAO;
 import dto.MovieShowtimes;
+import dto.SeatMap;
+import dto.SeatRow;
 import model.Branch;
+import model.Seat;
 import model.Showtime;
 
 /**
@@ -26,6 +30,7 @@ public class CinemaService {
 
     private final BranchDAO branchDAO = new BranchDAO();
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAO();
+    private final SeatDAO seatDAO = new SeatDAO();
 
     /** Danh sách chi nhánh đang hoạt động cho trang "Hệ thống rạp". */
     public List<Branch> getActiveBranches() {
@@ -57,5 +62,39 @@ public class CinemaService {
             ms.getShowtimes().add(st);
         }
         return new ArrayList<>(grouped.values());
+    }
+
+    /**
+     * Sơ đồ ghế của một suất chiếu: ngữ cảnh suất + các hàng ghế đã gom nhóm +
+     * số ghế còn trống. Trả về {@code null} nếu suất chiếu không tồn tại để
+     * controller hiển thị trang 404 thân thiện.
+     */
+    public SeatMap getSeatMap(int showtimeId) {
+        if (showtimeId <= 0) {
+            return null;
+        }
+        Showtime showtime = showtimeDAO.findById(showtimeId);
+        if (showtime == null) {
+            return null;
+        }
+
+        // Gom ghế theo hàng (DAO đã sắp theo hàng rồi số ghế nên thứ tự đúng)
+        List<Seat> seats = seatDAO.findByShowtime(showtimeId);
+        Map<String, SeatRow> rows = new LinkedHashMap<>();
+        int available = 0;
+        for (Seat seat : seats) {
+            SeatRow row = rows.computeIfAbsent(seat.getSeatRow(), SeatRow::new);
+            row.getSeats().add(seat);
+            if (seat.isSelectable()) {
+                available++;
+            }
+        }
+
+        SeatMap map = new SeatMap();
+        map.setShowtime(showtime);
+        map.setRows(new ArrayList<>(rows.values()));
+        map.setTotalSeats(seats.size());
+        map.setAvailableSeats(available);
+        return map;
     }
 }
