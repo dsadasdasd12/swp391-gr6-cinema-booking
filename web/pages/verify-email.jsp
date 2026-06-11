@@ -41,8 +41,7 @@
                         <label>Mã OTP</label>
                         <input type="text"
                                name="otp"
-                               maxlength="6"
-                               required>
+                               maxlength="6">
                     </div>
 
                     <button type="submit" class="btn-primary">

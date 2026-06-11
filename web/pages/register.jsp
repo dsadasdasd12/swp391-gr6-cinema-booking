@@ -10,24 +10,22 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <title>Đăng ký</title>
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
         <link rel="stylesheet" href="${ctx}/assets/css/auth.css">
 
     </head>
     <script>
-    function togglePassword() {
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
 
-        const password =
-                document.getElementById("password");
-
-        if (password.type === "password") {
-            password.type = "text";
-        } else {
-            password.type = "password";
+            if (input.type === "password") {
+                input.type = "text";
+            } else {
+                input.type = "password";
+            }
         }
-    }
-</script>
+    </script>
     <body>
         <jsp:include page="/pages/common/header.jsp">
             <jsp:param name="active" value="home"/>
@@ -60,11 +58,11 @@
                     <div class="form-group">
                         <label>Mật khẩu</label>
 
-                        <div class="password-wrapper">
+                        <div class="password-field">
                             <input type="password"
                                    id="password"
                                    name="password"
-                                   minlength="8">
+                                   >
 
                             <span class="toggle-password"
                                   onclick="togglePassword('password', this)">
@@ -76,11 +74,11 @@
                     <div class="form-group">
                         <label>Xác nhận mật khẩu</label>
 
-                        <div class="password-wrapper">
+                        <div class="password-field">
                             <input type="password"
                                    id="confirmPassword"
                                    name="confirmPassword"
-                                   minlength="8">
+                                   >
 
                             <span class="toggle-password"
                                   onclick="togglePassword('confirmPassword', this)">

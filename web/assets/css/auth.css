@@ -122,3 +122,35 @@
     justify-content: center;
     margin-top: 12px;
 }
+.password-field {
+    position: relative;
+    width: 100%;
+}
+
+.password-field input {
+    width: 100%;
+    padding-right: 45px;
+    box-sizing: border-box;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 28px;
+    height: 28px;
+
+    cursor: pointer;
+    user-select: none;
+
+    color: #cbd5e1;
+    font-size: 16px;
+
+    z-index: 10;
+}
