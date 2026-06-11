@@ -68,11 +68,12 @@
                     <c:forEach var="row" items="${seatMap.rows}">
                         <div class="seat-row">
                             <span class="row-label"><c:out value="${row.rowLabel}"/></span>
-                            <c:forEach var="seat" items="${row.seats}">
-                                <%-- class = trạng thái + loại ghế; title hiện nhãn + trạng thái --%>
-                                <span class="seat ${seat.statusClass} ${seat.seatType}"
-                                      title="${seat.seatLabel} - ${seat.statusLabel}">
-                                    ${seat.seatNumber}
+                            <%-- sv là dto.SeatView: sv.seat = entity Seat (cột DB),
+                                 sv.statusClass/statusLabel = trạng thái suy theo suất chiếu --%>
+                            <c:forEach var="sv" items="${row.seats}">
+                                <span class="seat ${sv.statusClass} ${sv.seat.seatType}"
+                                      title="${sv.seat.seatLabel} - ${sv.statusLabel}">
+                                    ${sv.seat.seatNumber}
                                 </span>
                             </c:forEach>
                         </div>

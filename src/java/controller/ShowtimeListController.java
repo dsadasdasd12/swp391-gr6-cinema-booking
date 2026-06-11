@@ -14,8 +14,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import dto.BranchView;
 import dto.MovieShowtimes;
-import model.Branch;
 import service.CinemaService;
 
 /**
@@ -40,7 +40,7 @@ public class ShowtimeListController extends HttpServlet {
             throws ServletException, IOException {
 
         // 1) Danh sách chi nhánh để đổ vào ô chọn
-        List<Branch> branches = cinemaService.getActiveBranches();
+        List<BranchView> branches = cinemaService.getActiveBranchViews();
 
         // 2) Xác định chi nhánh đang chọn: ưu tiên tham số, nếu không thì lấy
         //    chi nhánh đầu tiên trong danh sách (nếu có)
@@ -64,7 +64,7 @@ public class ShowtimeListController extends HttpServlet {
      * Đọc branchId từ tham số; nếu thiếu/không hợp lệ thì trả về id chi nhánh
      * đầu tiên trong danh sách, hoặc -1 khi không có chi nhánh nào.
      */
-    private static int parseBranchId(String raw, List<Branch> branches) {
+    private static int parseBranchId(String raw, List<BranchView> branches) {
         if (raw != null && !raw.isBlank()) {
             try {
                 return Integer.parseInt(raw.trim());
@@ -72,7 +72,7 @@ public class ShowtimeListController extends HttpServlet {
                 // rơi xuống dùng mặc định
             }
         }
-        return branches.isEmpty() ? -1 : branches.get(0).getId();
+        return branches.isEmpty() ? -1 : branches.get(0).getBranch().getId();
     }
 
     /** Đọc ngày dạng yyyy-MM-dd; trả về hôm nay nếu thiếu hoặc sai định dạng. */

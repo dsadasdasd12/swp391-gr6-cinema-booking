@@ -6,19 +6,19 @@ package dto;
 
 import java.util.ArrayList;
 import java.util.List;
-import model.Seat;
 
 /**
- * Một hàng ghế (ví dụ hàng "A") gồm nhãn hàng và danh sách ghế thuộc hàng đó,
- * đã sắp theo số ghế. Việc gom nhóm thực hiện ở tầng service để JSP chỉ việc
- * lặp: vòng ngoài theo hàng, vòng trong theo ghế — dựng sơ đồ ghế dạng lưới.
+ * Một hàng ghế (ví dụ hàng "A") gồm nhãn hàng và danh sách ghế (kèm trạng thái
+ * đặt theo suất chiếu) thuộc hàng đó, đã sắp theo số ghế. Việc gom nhóm thực
+ * hiện ở tầng service để JSP chỉ việc lặp: vòng ngoài theo hàng, vòng trong
+ * theo ghế — dựng sơ đồ ghế dạng lưới.
  *
  * @author Group6 - Huy (Module Duyệt phim)
  */
 public class SeatRow {
 
     private String rowLabel;
-    private List<Seat> seats = new ArrayList<>();
+    private List<SeatView> seats = new ArrayList<>();
 
     public SeatRow() {
     }
@@ -35,11 +35,11 @@ public class SeatRow {
         this.rowLabel = rowLabel;
     }
 
-    public List<Seat> getSeats() {
+    public List<SeatView> getSeats() {
         return seats;
     }
 
-    public void setSeats(List<Seat> seats) {
+    public void setSeats(List<SeatView> seats) {
         this.seats = seats;
     }
 }

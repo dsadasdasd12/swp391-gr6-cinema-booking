@@ -5,27 +5,20 @@
 package model;
 
 /**
- * Một ghế ngồi (dbo.SEATS) kèm trạng thái "đã đặt hay chưa" tính riêng cho một
- * suất chiếu cụ thể. Trường {@code booked} không có trong bảng SEATS mà được
- * suy ra ở tầng DAO (ghế đã nằm trong vé đã đặt hoặc đang bị giữ trong giỏ).
- *
- * Lưu ý: mọi xử lý hiển thị (nhãn ghế, lớp CSS theo trạng thái) đặt ở đây để
- * JSP chỉ cần gọi getter, không nhúng code Java.
+ * Một ghế ngồi - ánh xạ đúng các cột của bảng dbo.SEATS, không kèm trạng thái
+ * suy diễn. Trạng thái "đã đặt hay chưa" phụ thuộc từng suất chiếu nên được
+ * tính ở tầng DAO và mang theo bởi DTO {@code dto.SeatView}, không đặt ở đây.
  *
  * @author Group6 - Huy (Module Duyệt phim)
  */
 public class Seat {
 
-    // ── Các cột của bảng dbo.SEATS ──────────────────────────
     private int id;
     private int hallId;
     private String seatRow;         // ví dụ "A", "B"
     private int seatNumber;         // ví dụ 1, 2, 3
     private String seatType;        // STANDARD | VIP | COUPLE
-    private boolean maintenance;    // true = ghế đang khóa để bảo trì
-
-    // ── Trạng thái suy ra theo một suất chiếu ───────────────
-    private boolean booked;         // true = đã có người đặt / đang giữ chỗ
+    private boolean maintenance;    // dbo.SEATS.maintenance: 1 = khóa để bảo trì
 
     public Seat() {
     }
@@ -78,48 +71,8 @@ public class Seat {
         this.maintenance = maintenance;
     }
 
-    public boolean isBooked() {
-        return booked;
-    }
-
-    public void setBooked(boolean booked) {
-        this.booked = booked;
-    }
-
-    // ── Getter hỗ trợ hiển thị ──────────────────────────────
-
-    /** Nhãn ghế dạng "A1", "B12". */
+    /** Nhãn ghế dạng "A1", "B12" (ghép từ cột seat_row + seat_number). */
     public String getSeatLabel() {
         return (seatRow == null ? "" : seatRow) + seatNumber;
-    }
-
-    /**
-     * Có cho chọn ghế này không: chỉ khi ghế còn trống (không bảo trì, chưa đặt).
-     * Phục vụ bước đặt vé sau này và để view tô màu/cho phép click.
-     */
-    public boolean isSelectable() {
-        return !maintenance && !booked;
-    }
-
-    /** Lớp CSS theo trạng thái: ưu tiên bảo trì > đã đặt > trống. */
-    public String getStatusClass() {
-        if (maintenance) {
-            return "maintenance";
-        }
-        if (booked) {
-            return "booked";
-        }
-        return "available";
-    }
-
-    /** Nhãn trạng thái tiếng Việt để hiện tooltip. */
-    public String getStatusLabel() {
-        if (maintenance) {
-            return "Bảo trì";
-        }
-        if (booked) {
-            return "Đã đặt";
-        }
-        return "Còn trống";
     }
 }

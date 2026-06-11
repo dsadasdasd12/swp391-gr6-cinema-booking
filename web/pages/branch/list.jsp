@@ -38,14 +38,16 @@
             <%-- ── Lưới các chi nhánh ── --%>
             <c:otherwise>
                 <div class="branch-grid">
+                    <%-- b là dto.BranchView: b.branch = entity Branch (cột DB),
+                         b.cinemaName/b.hallCount/b.openHoursLabel = dữ liệu ghép để hiển thị --%>
                     <c:forEach var="b" items="${branches}">
                         <div class="branch-card">
-                            <h3><c:out value="${b.name}"/></h3>
+                            <h3><c:out value="${b.branch.name}"/></h3>
                             <div class="branch-chain"><c:out value="${b.cinemaName}"/></div>
                             <ul class="branch-info">
-                                <li>📍 <c:out value="${b.address}"/></li>
-                                <c:if test="${not empty b.phone}">
-                                    <li>📞 <c:out value="${b.phone}"/></li>
+                                <li>📍 <c:out value="${b.branch.address}"/></li>
+                                <c:if test="${not empty b.branch.phone}">
+                                    <li>📞 <c:out value="${b.branch.phone}"/></li>
                                 </c:if>
                                 <c:if test="${not empty b.openHoursLabel}">
                                     <li>🕒 ${b.openHoursLabel}</li>
@@ -53,7 +55,7 @@
                                 <li>🎬 ${b.hallCount} phòng chiếu</li>
                             </ul>
                             <%-- Sang trang suất chiếu, lọc sẵn theo chi nhánh này (Phần 2) --%>
-                            <a class="btn btn-primary" href="${ctx}/showtimes?branchId=${b.id}">Xem suất chiếu</a>
+                            <a class="btn btn-primary" href="${ctx}/showtimes?branchId=${b.branch.id}">Xem suất chiếu</a>
                         </div>
                     </c:forEach>
                 </div>

@@ -32,9 +32,10 @@
             <div class="filter-field">
                 <label for="branchId">Chi nhánh</label>
                 <select id="branchId" name="branchId" onchange="this.form.submit()">
+                    <%-- b là dto.BranchView; id/tên lấy từ entity Branch bên trong --%>
                     <c:forEach var="b" items="${branches}">
-                        <option value="${b.id}" ${selectedBranchId == b.id ? 'selected' : ''}>
-                            <c:out value="${b.name}"/>
+                        <option value="${b.branch.id}" ${selectedBranchId == b.branch.id ? 'selected' : ''}>
+                            <c:out value="${b.branch.name}"/>
                         </option>
                     </c:forEach>
                 </select>

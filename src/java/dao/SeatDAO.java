@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import dto.SeatView;
 import model.Seat;
 import util.DBContext;
 
@@ -31,7 +32,7 @@ public class SeatDAO {
      * Tất cả ghế của phòng chiếu thuộc suất {@code showtimeId}, kèm trạng thái
      * đã đặt/đang giữ, sắp theo hàng rồi số ghế để view dựng sơ đồ dạng lưới.
      */
-    public List<Seat> findByShowtime(int showtimeId) {
+    public List<SeatView> findByShowtime(int showtimeId) {
         // JOIN SHOWTIMES để biết phòng chiếu (hall_id) của suất; LEFT JOIN tới
         // tập ghế "không còn trống" (đã đặt hoặc đang giữ) để gắn cờ booked.
         String sql = "SELECT s.id, s.hall_id, s.seat_row, s.seat_number, s.seat_type, s.maintenance, "
@@ -51,7 +52,7 @@ public class SeatDAO {
                 + ") taken ON taken.seat_id = s.id "
                 + "WHERE s.hall_id = st.hall_id "
                 + "ORDER BY s.seat_row, s.seat_number";
-        List<Seat> list = new ArrayList<>();
+        List<SeatView> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, showtimeId);                 // phòng chiếu của suất
@@ -70,8 +71,8 @@ public class SeatDAO {
         return list;
     }
 
-    /** Ánh xạ một dòng ResultSet sang đối tượng Seat. */
-    private Seat map(ResultSet rs) throws SQLException {
+    /** Ánh xạ một dòng ResultSet sang SeatView (Seat theo cột DB + cờ booked). */
+    private SeatView map(ResultSet rs) throws SQLException {
         Seat s = new Seat();
         s.setId(rs.getInt("id"));
         s.setHallId(rs.getInt("hall_id"));
@@ -79,7 +80,7 @@ public class SeatDAO {
         s.setSeatNumber(rs.getInt("seat_number"));
         s.setSeatType(rs.getString("seat_type"));
         s.setMaintenance(rs.getBoolean("maintenance"));
-        s.setBooked(rs.getInt("booked") == 1);
-        return s;
+        boolean booked = rs.getInt("booked") == 1;
+        return new SeatView(s, booked);
     }
 }

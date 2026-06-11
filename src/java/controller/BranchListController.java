@@ -11,7 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Branch;
+import dto.BranchView;
 import service.CinemaService;
 
 /**
@@ -31,8 +31,8 @@ public class BranchListController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1) Lấy danh sách chi nhánh đang hoạt động từ tầng nghiệp vụ
-        List<Branch> branches = cinemaService.getActiveBranches();
+        // 1) Lấy danh sách chi nhánh đang hoạt động (kèm tên rạp + số phòng)
+        List<BranchView> branches = cinemaService.getActiveBranchViews();
 
         // 2) Đẩy sang view để hiển thị
         request.setAttribute("branches", branches);

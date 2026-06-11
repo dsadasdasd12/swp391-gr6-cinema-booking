@@ -1,6 +1,6 @@
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Xem chi nhánh rạp / Suất chiếu / Sơ đồ ghế
+ * Module: Xem chi nhánh rạp / Suất chiếu / Sơ đồ ghế (phần KHÁCH xem)
  */
 package service;
 
@@ -12,17 +12,21 @@ import java.util.Map;
 import dao.BranchDAO;
 import dao.SeatDAO;
 import dao.ShowtimeDAO;
+import dto.BranchView;
 import dto.MovieShowtimes;
 import dto.SeatMap;
 import dto.SeatRow;
-import model.Branch;
-import model.Seat;
+import dto.SeatView;
 import model.Showtime;
 
 /**
- * Tầng nghiệp vụ cho nhóm chức năng liên quan tới rạp: xem chi nhánh, (sau này)
- * xem suất chiếu theo chi nhánh và sơ đồ ghế. Controller chỉ làm việc với lớp
- * này, không gọi trực tiếp DAO.
+ * Tầng nghiệp vụ cho phần khách xem hệ thống rạp: danh sách chi nhánh, lịch
+ * chiếu theo chi nhánh + ngày, và sơ đồ ghế của một suất chiếu. Controller chỉ
+ * làm việc với lớp này, không gọi trực tiếp DAO.
+ *
+ * Dữ liệu ghép để hiển thị (tên rạp, số phòng, poster, trạng thái ghế) được
+ * mang theo bởi các DTO (BranchView / MovieShowtimes / SeatView) — entity vẫn
+ * bám sát đúng cột bảng trong DB.
  *
  * @author Group6 - Huy (Module Duyệt phim)
  */
@@ -32,36 +36,20 @@ public class CinemaService {
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAO();
     private final SeatDAO seatDAO = new SeatDAO();
 
-    /** Danh sách chi nhánh đang hoạt động cho trang "Hệ thống rạp". */
-    public List<Branch> getActiveBranches() {
-        return branchDAO.findAllActive();
-    }
-
-    /** Chi tiết một chi nhánh, hoặc {@code null} nếu id không hợp lệ / không tồn tại. */
-    public Branch getBranch(int branchId) {
-        if (branchId <= 0) {
-            return null;
-        }
-        return branchDAO.findById(branchId);
+    /** Danh sách chi nhánh đang hoạt động (kèm tên rạp + số phòng) cho trang "Hệ thống rạp". */
+    public List<BranchView> getActiveBranchViews() {
+        return branchDAO.findActiveBranchViews();
     }
 
     /**
-     * Suất chiếu của một chi nhánh trong một ngày, đã gom nhóm theo phim để
-     * view chỉ việc lặp. Trả về danh sách rỗng nếu tham số không hợp lệ. Thứ tự
-     * phim theo tên (DAO đã sắp), trong mỗi phim các suất giữ thứ tự thời gian.
+     * Suất chiếu của một chi nhánh trong một ngày, đã gom nhóm theo phim (DAO trả
+     * sẵn DTO). Trả về danh sách rỗng nếu tham số không hợp lệ.
      */
     public List<MovieShowtimes> getShowtimesByMovie(int branchId, LocalDate date) {
         if (branchId <= 0 || date == null) {
             return new ArrayList<>();
         }
-        List<Showtime> all = showtimeDAO.findByBranchAndDate(branchId, date);
-        Map<Integer, MovieShowtimes> grouped = new LinkedHashMap<>();
-        for (Showtime st : all) {
-            MovieShowtimes ms = grouped.computeIfAbsent(st.getMovieId(),
-                    k -> new MovieShowtimes(st.getMovieId(), st.getMovieTitle(), st.getPosterUrl()));
-            ms.getShowtimes().add(st);
-        }
-        return new ArrayList<>(grouped.values());
+        return showtimeDAO.findByBranchAndDate(branchId, date);
     }
 
     /**
@@ -79,13 +67,13 @@ public class CinemaService {
         }
 
         // Gom ghế theo hàng (DAO đã sắp theo hàng rồi số ghế nên thứ tự đúng)
-        List<Seat> seats = seatDAO.findByShowtime(showtimeId);
+        List<SeatView> seats = seatDAO.findByShowtime(showtimeId);
         Map<String, SeatRow> rows = new LinkedHashMap<>();
         int available = 0;
-        for (Seat seat : seats) {
-            SeatRow row = rows.computeIfAbsent(seat.getSeatRow(), SeatRow::new);
-            row.getSeats().add(seat);
-            if (seat.isSelectable()) {
+        for (SeatView sv : seats) {
+            SeatRow row = rows.computeIfAbsent(sv.getSeat().getSeatRow(), SeatRow::new);
+            row.getSeats().add(sv);
+            if (sv.isSelectable()) {
                 available++;
             }
         }
