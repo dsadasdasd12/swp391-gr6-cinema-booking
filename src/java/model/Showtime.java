@@ -31,6 +31,10 @@ public class Showtime {
     private String branchName;
     private String branchAddress;
 
+    // ── Trường join từ bảng MOVIES (cho trang lịch chiếu theo rạp) ──
+    private String movieTitle;
+    private String posterUrl;
+
     public Showtime() {
     }
 
@@ -128,6 +132,22 @@ public class Showtime {
 
     public void setBranchAddress(String branchAddress) {
         this.branchAddress = branchAddress;
+    }
+
+    public String getMovieTitle() {
+        return movieTitle;
+    }
+
+    public void setMovieTitle(String movieTitle) {
+        this.movieTitle = movieTitle;
+    }
+
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
     }
 
     // ── Getter hỗ trợ hiển thị ──────────────────────────────
