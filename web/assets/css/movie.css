@@ -148,3 +148,18 @@
 
 /* Tên người dùng trên header */
 .user-name { color: #b8bcc4; font-size: 14px; align-self: center; }
+
+/* ── Đánh giá phim (Reviews) ──────────────────── */
+.review-list { display: flex; flex-direction: column; gap: 12px; }
+.review-item { background: #16181d; border: 1px solid #23262d; border-radius: 12px; padding: 14px 16px; }
+.review-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.review-author { font-weight: 600; }
+.review-stars { color: #ffce3a; letter-spacing: 1px; }
+.review-date { color: #7d828c; font-size: 12px; }
+.review-text { margin-top: 8px; color: #b8bcc4; line-height: 1.6; white-space: pre-wrap; }
+
+/* Form đánh giá */
+.review-form textarea {
+    width: 100%; background: #0f1115; border: 1px solid #2c3038; border-radius: 8px;
+    color: #e8e8ea; padding: 10px 12px; font-family: inherit; font-size: 14px; resize: vertical;
+}

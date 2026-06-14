@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Movie;
 import service.MovieService;
+import service.ReviewService;
 
 /**
  * Hiển thị chi tiết đầy đủ của một phim (nội dung, diễn viên, thể loại, ngôn
@@ -25,6 +26,7 @@ import service.MovieService;
 public class MovieDetailController extends HttpServlet {
 
     private final MovieService movieService = new MovieService();
+    private final ReviewService reviewService = new ReviewService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -43,6 +45,7 @@ public class MovieDetailController extends HttpServlet {
 
         request.setAttribute("movie", movie);
         request.setAttribute("branchShowtimes", movieService.getShowtimesByBranch(id));
+        request.setAttribute("reviews", reviewService.getMovieReviews(id));
         request.getRequestDispatcher("/pages/movie/detail.jsp").forward(request, response);
     }
 
