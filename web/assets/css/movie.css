@@ -118,3 +118,33 @@
 .seat.maintenance { background: #23262d; color: #5a606b; cursor: not-allowed; }/* bảo trì */
 .seat.VIP    { border-color: #ffce3a; }     /* ghế VIP: viền vàng */
 .seat.COUPLE { border-color: #ff79c6; }     /* ghế đôi: viền hồng */
+
+/* ── Đặt vé: lịch sử + chi tiết (Booking) ─────── */
+.booking-list { display: flex; flex-direction: column; gap: 12px; }
+.booking-row {
+    display: flex; justify-content: space-between; gap: 16px;
+    background: #16181d; border: 1px solid #23262d; border-radius: 12px; padding: 16px 18px;
+    transition: border-color .15s ease;
+}
+.booking-row:hover { border-color: #e50914; }
+.booking-main h3 { margin: 0 0 6px; font-size: 17px; }
+.booking-meta { font-size: 13px; color: #9aa0aa; line-height: 1.7; }
+.booking-side { text-align: right; min-width: 120px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.booking-total { font-weight: 700; color: #ffce3a; }
+.booking-code { font-size: 12px; color: #7d828c; }
+
+.booking-detail { background: #16181d; border: 1px solid #23262d; border-radius: 12px; padding: 20px 22px; }
+.bd-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.bd-head h1 { margin: 0; font-size: 24px; }
+.bd-actions { display: flex; gap: 12px; margin-top: 18px; }
+.bd-actions form { margin: 0; }
+.qr-box { margin-top: 16px; font-size: 14px; color: #b8bcc4; word-break: break-all; }
+.qr-box code { color: #e8e8ea; }
+
+/* Thông báo kết quả thao tác */
+.notice { border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.notice.ok  { background: rgba(31,157,85,.15);  border: 1px solid #1f9d55; color: #6ee7a8; }
+.notice.err { background: rgba(229,9,20,.12);   border: 1px solid #e50914; color: #ff8e95; }
+
+/* Tên người dùng trên header */
+.user-name { color: #b8bcc4; font-size: 14px; align-self: center; }

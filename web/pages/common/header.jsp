@@ -35,6 +35,8 @@
 
             <c:otherwise>
 
+                <a href="${ctx}/my-bookings" class="btn btn-ghost">Vé của tôi</a>
+
                 <span class="user-name">
                     Xin chào, ${sessionScope.user.fullName}
                 </span>
