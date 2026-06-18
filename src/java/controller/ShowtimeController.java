@@ -2,17 +2,20 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package controller;
 
 import dao.HallDAO;
-import dao.MovieDAO;
+import dao.MovieAssignmentDAO;
 import dao.StaffBranchDAO;
 import dto.BranchHallGroup;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -34,16 +37,31 @@ import service.ShowtimeService;
 })
 public class ShowtimeController extends HttpServlet {
 
-    private static final String SHOWTIME_LIST_PAGE = "/pages/manager/showtime-list.jsp";
-    private static final String SHOWTIME_FORM_PAGE = "/pages/manager/showtime-form.jsp";
+    private static final String SHOWTIME_LIST_PAGE
+            = "/pages/manager/showtime-list.jsp";
 
-    private final ShowtimeService showtimeService = new ShowtimeService();
-    private final StaffBranchDAO staffBranchDAO = new StaffBranchDAO();
-    private final HallDAO hallDAO = new HallDAO();
-    private final MovieDAO movieDAO = new MovieDAO();
+    private static final String SHOWTIME_FORM_PAGE
+            = "/pages/manager/showtime-form.jsp";
+
+    private final ShowtimeService showtimeService
+            = new ShowtimeService();
+
+    private final StaffBranchDAO staffBranchDAO
+            = new StaffBranchDAO();
+
+    private final HallDAO hallDAO
+            = new HallDAO();
+
+    /*
+     * Dùng để lấy phim đã được phân bổ cho từng phòng.
+     */
+    private final MovieAssignmentDAO movieAssignmentDAO
+            = new MovieAssignmentDAO();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         String path = request.getServletPath();
@@ -65,7 +83,9 @@ public class ShowtimeController extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
@@ -86,12 +106,21 @@ public class ShowtimeController extends HttpServlet {
                 break;
 
             default:
-                response.sendRedirect(request.getContextPath() + "/manager/showtimes");
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/showtimes"
+                );
                 break;
         }
     }
 
-    private void listShowtimes(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Hiển thị danh sách suất chiếu thuộc các chi nhánh
+     * mà Manager được phân công.
+     */
+    private void listShowtimes(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         User user = getCurrentManager(request, response);
@@ -100,13 +129,23 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        List<Showtime> showtimes = showtimeService.getShowtimesByManagerId(user.getId());
+        List<Showtime> showtimes
+                = showtimeService.getShowtimesByManagerId(
+                        user.getId()
+                );
 
         request.setAttribute("showtimes", showtimes);
-        request.getRequestDispatcher(SHOWTIME_LIST_PAGE).forward(request, response);
+
+        request.getRequestDispatcher(SHOWTIME_LIST_PAGE)
+                .forward(request, response);
     }
 
-    private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Hiển thị form tạo suất chiếu.
+     */
+    private void showCreateForm(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         User user = getCurrentManager(request, response);
@@ -116,18 +155,32 @@ public class ShowtimeController extends HttpServlet {
         }
 
         Showtime showtime = new Showtime();
+
         showtime.setStatus("SCHEDULED");
         showtime.setBasePrice(new BigDecimal("80000"));
 
-        prepareFormData(request, user);
+        /*
+         * Khi tạo mới thì chưa chọn phòng.
+         */
+        prepareFormData(
+                request,
+                user,
+                showtime.getHallId()
+        );
 
         request.setAttribute("showtime", showtime);
         request.setAttribute("formMode", "create");
 
-        request.getRequestDispatcher(SHOWTIME_FORM_PAGE).forward(request, response);
+        request.getRequestDispatcher(SHOWTIME_FORM_PAGE)
+                .forward(request, response);
     }
 
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Hiển thị form cập nhật suất chiếu.
+     */
+    private void showEditForm(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         User user = getCurrentManager(request, response);
@@ -136,24 +189,53 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        int id = parseInt(request.getParameter("id"));
-        Showtime showtime = showtimeService.getShowtimeByIdAndManagerId(id, user.getId());
+        int id = parseInt(
+                request.getParameter("id")
+        );
+
+        Showtime showtime
+                = showtimeService.getShowtimeByIdAndManagerId(
+                        id,
+                        user.getId()
+                );
 
         if (showtime == null) {
-            setFlash(request, "error", "Không tìm thấy suất chiếu hoặc bạn không có quyền chỉnh sửa.");
-            response.sendRedirect(request.getContextPath() + "/manager/showtimes");
+            setFlash(
+                    request,
+                    "error",
+                    "Không tìm thấy suất chiếu hoặc bạn không có quyền chỉnh sửa."
+            );
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/manager/showtimes"
+            );
             return;
         }
 
-        prepareFormData(request, user);
+        /*
+         * Lấy danh sách phim đã phân bổ cho phòng
+         * của suất chiếu đang chỉnh sửa.
+         */
+        prepareFormData(
+                request,
+                user,
+                showtime.getHallId()
+        );
 
         request.setAttribute("showtime", showtime);
         request.setAttribute("formMode", "edit");
 
-        request.getRequestDispatcher(SHOWTIME_FORM_PAGE).forward(request, response);
+        request.getRequestDispatcher(SHOWTIME_FORM_PAGE)
+                .forward(request, response);
     }
 
-    private void createShowtime(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Xử lý tạo suất chiếu.
+     */
+    private void createShowtime(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         User user = getCurrentManager(request, response);
@@ -162,41 +244,87 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        Showtime showtime = buildShowtimeFromRequest(request);
+        Showtime showtime
+                = buildShowtimeFromRequest(request);
 
-        if (!isHallAllowed(user.getId(), showtime.getHallId())) {
-            request.setAttribute("error", "Bạn không có quyền tạo suất chiếu cho phòng chiếu này.");
-            prepareFormData(request, user);
+        /*
+         * Kiểm tra Manager có quyền quản lý phòng hay không.
+         */
+        if (!isHallAllowed(
+                user.getId(),
+                showtime.getHallId())) {
+
+            request.setAttribute(
+                    "error",
+                    "Bạn không có quyền tạo suất chiếu cho phòng chiếu này."
+            );
+
+            prepareFormData(
+                    request,
+                    user,
+                    showtime.getHallId()
+            );
+
             request.setAttribute("showtime", showtime);
             request.setAttribute("formMode", "create");
-            request.getRequestDispatcher(SHOWTIME_FORM_PAGE).forward(request, response);
+
+            request.getRequestDispatcher(SHOWTIME_FORM_PAGE)
+                    .forward(request, response);
             return;
         }
 
         try {
-            boolean success = showtimeService.createShowtime(showtime);
+            boolean success
+                    = showtimeService.createShowtime(showtime);
 
             if (success) {
-                setFlash(request, "success", "Tạo suất chiếu thành công.");
-                response.sendRedirect(request.getContextPath() + "/manager/showtimes");
+                setFlash(
+                        request,
+                        "success",
+                        "Tạo suất chiếu thành công."
+                );
+
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/showtimes"
+                );
                 return;
             }
 
-            request.setAttribute("error", "Không thể tạo suất chiếu. Vui lòng thử lại.");
+            request.setAttribute(
+                    "error",
+                    "Không thể tạo suất chiếu. Vui lòng thử lại."
+            );
 
         } catch (IllegalArgumentException e) {
-            request.setAttribute("error", e.getMessage());
+            request.setAttribute(
+                    "error",
+                    e.getMessage()
+            );
         }
 
-        prepareFormData(request, user);
+        /*
+         * Khi có lỗi, giữ lại phòng và phim người dùng đã chọn.
+         */
+        prepareFormData(
+                request,
+                user,
+                showtime.getHallId()
+        );
 
         request.setAttribute("showtime", showtime);
         request.setAttribute("formMode", "create");
 
-        request.getRequestDispatcher(SHOWTIME_FORM_PAGE).forward(request, response);
+        request.getRequestDispatcher(SHOWTIME_FORM_PAGE)
+                .forward(request, response);
     }
 
-    private void updateShowtime(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Xử lý cập nhật suất chiếu.
+     */
+    private void updateShowtime(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         User user = getCurrentManager(request, response);
@@ -205,50 +333,111 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        Showtime showtime = buildShowtimeFromRequest(request);
-        showtime.setId(parseInt(request.getParameter("id")));
+        Showtime showtime
+                = buildShowtimeFromRequest(request);
 
-        Showtime current = showtimeService.getShowtimeByIdAndManagerId(showtime.getId(), user.getId());
+        showtime.setId(
+                parseInt(request.getParameter("id"))
+        );
+
+        /*
+         * Kiểm tra suất chiếu có thuộc quyền Manager không.
+         */
+        Showtime current
+                = showtimeService.getShowtimeByIdAndManagerId(
+                        showtime.getId(),
+                        user.getId()
+                );
 
         if (current == null) {
-            setFlash(request, "error", "Không tìm thấy suất chiếu hoặc bạn không có quyền chỉnh sửa.");
-            response.sendRedirect(request.getContextPath() + "/manager/showtimes");
+            setFlash(
+                    request,
+                    "error",
+                    "Không tìm thấy suất chiếu hoặc bạn không có quyền chỉnh sửa."
+            );
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/manager/showtimes"
+            );
             return;
         }
 
-        if (!isHallAllowed(user.getId(), showtime.getHallId())) {
-            request.setAttribute("error", "Bạn không có quyền gán suất chiếu cho phòng chiếu này.");
-            prepareFormData(request, user);
+        /*
+         * Kiểm tra phòng mới được chọn có thuộc quyền Manager không.
+         */
+        if (!isHallAllowed(
+                user.getId(),
+                showtime.getHallId())) {
+
+            request.setAttribute(
+                    "error",
+                    "Bạn không có quyền gán suất chiếu cho phòng chiếu này."
+            );
+
+            prepareFormData(
+                    request,
+                    user,
+                    showtime.getHallId()
+            );
+
             request.setAttribute("showtime", showtime);
             request.setAttribute("formMode", "edit");
-            request.getRequestDispatcher(SHOWTIME_FORM_PAGE).forward(request, response);
+
+            request.getRequestDispatcher(SHOWTIME_FORM_PAGE)
+                    .forward(request, response);
             return;
         }
 
         try {
-            boolean success = showtimeService.updateShowtime(showtime);
+            boolean success
+                    = showtimeService.updateShowtime(showtime);
 
             if (success) {
-                setFlash(request, "success", "Cập nhật suất chiếu thành công.");
-                response.sendRedirect(request.getContextPath() + "/manager/showtimes");
+                setFlash(
+                        request,
+                        "success",
+                        "Cập nhật suất chiếu thành công."
+                );
+
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/showtimes"
+                );
                 return;
             }
 
-            request.setAttribute("error", "Không thể cập nhật suất chiếu. Vui lòng thử lại.");
+            request.setAttribute(
+                    "error",
+                    "Không thể cập nhật suất chiếu. Vui lòng thử lại."
+            );
 
         } catch (IllegalArgumentException e) {
-            request.setAttribute("error", e.getMessage());
+            request.setAttribute(
+                    "error",
+                    e.getMessage()
+            );
         }
 
-        prepareFormData(request, user);
+        prepareFormData(
+                request,
+                user,
+                showtime.getHallId()
+        );
 
         request.setAttribute("showtime", showtime);
         request.setAttribute("formMode", "edit");
 
-        request.getRequestDispatcher(SHOWTIME_FORM_PAGE).forward(request, response);
+        request.getRequestDispatcher(SHOWTIME_FORM_PAGE)
+                .forward(request, response);
     }
 
-    private void cancelShowtime(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Xử lý hủy suất chiếu.
+     */
+    private void cancelShowtime(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws IOException {
 
         User user = getCurrentManager(request, response);
@@ -257,78 +446,220 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        int id = parseInt(request.getParameter("id"));
-        boolean success = showtimeService.cancelShowtime(id, user.getId());
+        int id = parseInt(
+                request.getParameter("id")
+        );
+
+        boolean success
+                = showtimeService.cancelShowtime(
+                        id,
+                        user.getId()
+                );
 
         if (success) {
-            setFlash(request, "success", "Hủy suất chiếu thành công.");
+            setFlash(
+                    request,
+                    "success",
+                    "Hủy suất chiếu thành công."
+            );
         } else {
-            setFlash(request, "error", "Không thể hủy suất chiếu hoặc bạn không có quyền thao tác.");
+            setFlash(
+                    request,
+                    "error",
+                    "Không thể hủy suất chiếu hoặc bạn không có quyền thao tác."
+            );
         }
 
-        response.sendRedirect(request.getContextPath() + "/manager/showtimes");
+        response.sendRedirect(
+                request.getContextPath()
+                + "/manager/showtimes"
+        );
     }
 
-    private Showtime buildShowtimeFromRequest(HttpServletRequest request) {
+    /**
+     * Tạo đối tượng Showtime từ dữ liệu người dùng nhập trên form.
+     */
+    private Showtime buildShowtimeFromRequest(
+            HttpServletRequest request) {
+
         Showtime showtime = new Showtime();
 
-        showtime.setMovieId(parseInt(request.getParameter("movieId")));
-        showtime.setHallId(parseInt(request.getParameter("hallId")));
-        showtime.setStartTime(parseDateTime(request.getParameter("startTime")));
-        showtime.setBasePrice(parseBigDecimal(request.getParameter("basePrice")));
-        showtime.setStatus(request.getParameter("status"));
+        showtime.setMovieId(
+                parseInt(request.getParameter("movieId"))
+        );
+
+        showtime.setHallId(
+                parseInt(request.getParameter("hallId"))
+        );
+
+        showtime.setStartTime(
+                parseDateTime(
+                        request.getParameter("startTime")
+                )
+        );
+
+        showtime.setBasePrice(
+                parseBigDecimal(
+                        request.getParameter("basePrice")
+                )
+        );
+
+        showtime.setStatus(
+                request.getParameter("status")
+        );
 
         return showtime;
     }
 
-    private void prepareFormData(HttpServletRequest request, User user) {
-        List<Movie> movies = movieDAO.findAllForShowtime();
-        List<Branch> branches = staffBranchDAO.findBranchesByUserId(user.getId());
-        List<BranchHallGroup> branchHallGroups = new ArrayList<>();
+    /**
+     * Chuẩn bị dữ liệu cho form tạo hoặc cập nhật suất chiếu.
+     *
+     * moviesByHall có cấu trúc:
+     *
+     * hallId -> danh sách phim đã được phân bổ cho phòng đó.
+     */
+    private void prepareFormData(
+            HttpServletRequest request,
+            User user,
+            int selectedHallId) {
+
+        List<Branch> branches
+                = staffBranchDAO.findBranchesByUserId(
+                        user.getId()
+                );
+
+        List<BranchHallGroup> branchHallGroups
+                = new ArrayList<>();
+
+        Map<Integer, List<Movie>> moviesByHall
+                = new LinkedHashMap<>();
 
         for (Branch branch : branches) {
-            List<Hall> halls = hallDAO.findByBranchId(branch.getId());
-            branchHallGroups.add(new BranchHallGroup(branch, halls));
-        }
+            List<Hall> halls
+                    = hallDAO.findByBranchId(
+                            branch.getId()
+                    );
 
-        request.setAttribute("movies", movies);
-        request.setAttribute("branchHallGroups", branchHallGroups);
-    }
+            branchHallGroups.add(
+                    new BranchHallGroup(
+                            branch,
+                            halls
+                    )
+            );
 
-    private boolean isHallAllowed(int userId, int hallId) {
-        if (hallId <= 0) {
-            return false;
-        }
-
-        List<Branch> branches = staffBranchDAO.findBranchesByUserId(userId);
-
-        for (Branch branch : branches) {
-            List<Hall> halls = hallDAO.findByBranchId(branch.getId());
-
+            /*
+             * Lấy danh sách phim đã được gán cho từng phòng.
+             */
             for (Hall hall : halls) {
-                if (hall.getId() == hallId) {
-                    return true;
-                }
+                List<Movie> assignedMovies
+                        = movieAssignmentDAO
+                                .findMoviesAssignedToHall(
+                                        hall.getId()
+                                );
+
+                moviesByHall.put(
+                        hall.getId(),
+                        assignedMovies
+                );
             }
         }
 
-        return false;
+        /*
+         * Danh sách phim của phòng đang được chọn.
+         *
+         * Thuộc tính movies vẫn được giữ lại để JSP hiện tại
+         * chưa bị lỗi trước khi sửa JavaScript.
+         */
+        List<Movie> selectedHallMovies
+                = new ArrayList<>();
+
+        if (selectedHallId > 0
+                && moviesByHall.containsKey(selectedHallId)) {
+
+            selectedHallMovies
+                    = moviesByHall.get(selectedHallId);
+        }
+
+        request.setAttribute(
+                "branchHallGroups",
+                branchHallGroups
+        );
+
+        request.setAttribute(
+                "moviesByHall",
+                moviesByHall
+        );
+
+        request.setAttribute(
+                "movies",
+                selectedHallMovies
+        );
+
+        request.setAttribute(
+                "selectedHallId",
+                selectedHallId
+        );
     }
 
-    private User getCurrentManager(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Kiểm tra phòng có thuộc chi nhánh mà Manager quản lý không.
+     */
+    private boolean isHallAllowed(
+            int userId,
+            int hallId) {
+
+        if (userId <= 0 || hallId <= 0) {
+            return false;
+        }
+
+        int branchId
+                = movieAssignmentDAO.findBranchIdByHallId(
+                        hallId
+                );
+
+        if (branchId <= 0) {
+            return false;
+        }
+
+        return staffBranchDAO.isManagerAssignedToBranch(
+                userId,
+                branchId
+        );
+    }
+
+    /**
+     * Lấy tài khoản Manager đang đăng nhập.
+     */
+    private User getCurrentManager(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws IOException {
 
-        HttpSession session = request.getSession(false);
+        HttpSession session
+                = request.getSession(false);
 
-        if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        if (session == null
+                || session.getAttribute("user") == null) {
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/login"
+            );
+
             return null;
         }
 
-        User user = (User) session.getAttribute("user");
+        User user
+                = (User) session.getAttribute("user");
 
-        if (!"MANAGER".equalsIgnoreCase(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/home");
+        if (!"MANAGER".equalsIgnoreCase(
+                user.getRole())) {
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/home"
+            );
+
             return null;
         }
 
@@ -336,44 +667,79 @@ public class ShowtimeController extends HttpServlet {
     }
 
     private int parseInt(String value) {
-        if (value == null || value.trim().isEmpty()) {
+        if (value == null
+                || value.trim().isEmpty()) {
+
             return 0;
         }
 
         try {
-            return Integer.parseInt(value.trim());
+            return Integer.parseInt(
+                    value.trim()
+            );
+
         } catch (NumberFormatException e) {
             return 0;
         }
     }
 
-    private LocalDateTime parseDateTime(String value) {
-        if (value == null || value.trim().isEmpty()) {
+    private LocalDateTime parseDateTime(
+            String value) {
+
+        if (value == null
+                || value.trim().isEmpty()) {
+
             return null;
         }
 
         try {
-            return LocalDateTime.parse(value.trim());
+            return LocalDateTime.parse(
+                    value.trim()
+            );
+
         } catch (Exception e) {
             return null;
         }
     }
 
-    private BigDecimal parseBigDecimal(String value) {
-        if (value == null || value.trim().isEmpty()) {
+    private BigDecimal parseBigDecimal(
+            String value) {
+
+        if (value == null
+                || value.trim().isEmpty()) {
+
             return null;
         }
 
         try {
-            return new BigDecimal(value.trim());
+            return new BigDecimal(
+                    value.trim()
+            );
+
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
-    private void setFlash(HttpServletRequest request, String type, String message) {
-        HttpSession session = request.getSession();
-        session.setAttribute("flashType", type);
-        session.setAttribute("flashMessage", message);
+    /**
+     * Lưu thông báo tạm thời trong session.
+     */
+    private void setFlash(
+            HttpServletRequest request,
+            String type,
+            String message) {
+
+        HttpSession session
+                = request.getSession();
+
+        session.setAttribute(
+                "flashType",
+                type
+        );
+
+        session.setAttribute(
+                "flashMessage",
+                message
+        );
     }
 }
