@@ -3,17 +3,39 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/dto/BranchShowtimes.java</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/web/pages/movie/list.jsp</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/controller/MovieListController.java</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/dto/PageResult.java</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/filter/AuthenticationFilter.java</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/web/pages/movie/detail.jsp</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/service/MovieService.java</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/dto/MovieFilter.java</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/web/index.jsp</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/dao/ShowtimeDAO.java</file>
-            <file>file:/D:/repo/Du%20an%20cua%20Huy/swp391-gr6-cinema-booking/swp391-gr6-cinema-booking/src/java/util/DBContext.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/dao/UserDAO.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/UserController.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/manager/dashboard.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/home.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/staffprofile.css</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/change-password.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/profile.css</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/confirm-reset-otp.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/style.css</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/verify-email.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/profile.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/listaccount</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/customer/favoritefilms.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/customer/editprofile.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/model/User.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/AuthController.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/reset-password.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/admin/dashboard.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/customer/transactionhistory.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/MovieListController.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/movie.css</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/common/header.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/auth.css</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/register.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/filter/AuthenticationFilter.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/AdminController.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/customer/customerprofile.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/forgot-password.jsp</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/customerprofile.css</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/controller/HomeController.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/src/java/dao/CategoryDAO.java</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/assets/css/admin.css</file>
+            <file>file:/D:/SWP/swp391-gr6-cinema-booking-main/swp391-gr6-cinema-booking/web/pages/login.jsp</file>
         </group>
     </open-files>
 </project-private>
