@@ -41,12 +41,12 @@
                 <form action="${ctx}/register" method="post">
 
                     <div class="form-group">
-                        <label>Họ tên</label>
+                        <label>Họ tên*</label>
                         <input type="text" name="fullname" value="${fullname}">
                     </div>
 
                     <div class="form-group">
-                        <label>Email</label>
+                        <label>Email*</label>
                         <input type="email" name="email" value="${email}">
                     </div>
 
@@ -56,7 +56,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Mật khẩu</label>
+                        <label>Mật khẩu*</label>
 
                         <div class="password-field">
                             <input type="password"
@@ -72,7 +72,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Xác nhận mật khẩu</label>
+                        <label>Xác nhận mật khẩu*</label>
 
                         <div class="password-field">
                             <input type="password"
