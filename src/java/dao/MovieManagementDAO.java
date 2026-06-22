@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package dao;
 
 import dto.MovieAssignmentItem;
@@ -10,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.Set;
 import model.Movie;
 import util.DBContext;
 
-public class MovieAssignmentDAO {
+public class MovieManagementDAO {
 
     /**
      * Lấy toàn bộ phim để hiển thị trên màn hình
@@ -522,5 +522,122 @@ public class MovieAssignmentDAO {
                 rs.getString("status"),
                 rs.getBoolean("assigned")
         );
+    }
+    /**
+     * Lấy toàn bộ phim để hiển thị trên màn hình quản lý thời lượng.
+     */
+    public List<Movie> findAllForDurationManagement() {
+        String sql = "SELECT id, title, duration_min, status, "
+                + "poster_url, last_update "
+                + "FROM dbo.MOVIES "
+                + "ORDER BY title ASC";
+
+        List<Movie> movies = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+
+        if (conn == null) {
+            return movies;
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                movies.add(mapMovieForDurationManagement(rs));
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(MovieManagementDAO.class.getName()).log(
+                    System.Logger.Level.ERROR,
+                    "Không thể lấy danh sách thời lượng phim.",
+                    e
+            );
+        }
+
+        return movies;
+    }
+
+    /**
+     * Tìm một phim theo ID để kiểm tra trước khi cập nhật thời lượng.
+     */
+    public Movie findMovieById(int movieId) {
+        String sql = "SELECT id, title, duration_min, status, "
+                + "poster_url, last_update "
+                + "FROM dbo.MOVIES "
+                + "WHERE id = ?";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        if (conn == null) {
+            return null;
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapMovieForDurationManagement(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(MovieManagementDAO.class.getName()).log(
+                    System.Logger.Level.ERROR,
+                    "Không thể tìm phim theo ID.",
+                    e
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * Cập nhật MOVIES.duration_min và last_update.
+     */
+    public boolean updateDuration(int movieId, int durationMin) {
+        String sql = "UPDATE dbo.MOVIES "
+                + "SET duration_min = ?, "
+                + "last_update = GETDATE() "
+                + "WHERE id = ?";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        if (conn == null) {
+            return false;
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, durationMin);
+            ps.setInt(2, movieId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.getLogger(MovieManagementDAO.class.getName()).log(
+                    System.Logger.Level.ERROR,
+                    "Không thể cập nhật thời lượng phim.",
+                    e
+            );
+        }
+
+        return false;
+    }
+
+    /**
+     * Chuyển dòng ResultSet thành Movie cho màn hình quản lý thời lượng.
+     */
+    private Movie mapMovieForDurationManagement(ResultSet rs)
+            throws SQLException {
+
+        Movie movie = new Movie();
+        movie.setId(rs.getInt("id"));
+        movie.setTitle(rs.getString("title"));
+        movie.setDurationMin(rs.getInt("duration_min"));
+        movie.setStatus(rs.getString("status"));
+        movie.setPosterUrl(rs.getString("poster_url"));
+        movie.setLastUpdate(rs.getObject("last_update", LocalDateTime.class));
+
+        return movie;
     }
 }

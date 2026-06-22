@@ -2,11 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package service;
 
 import dao.HallDAO;
-import dao.MovieAssignmentDAO;
+import dao.MovieManagementDAO;
 import dao.MovieDAO;
 import dao.StaffBranchDAO;
 import dto.MovieAssignmentItem;
@@ -18,10 +17,13 @@ import model.Branch;
 import model.Hall;
 import model.Movie;
 
-public class MovieAssignmentService {
+public class MovieManagementService {
 
-    private final MovieAssignmentDAO movieAssignmentDAO
-            = new MovieAssignmentDAO();
+    private static final int MIN_DURATION_MIN = 1;
+    private static final int MAX_DURATION_MIN = 600;
+
+    private final MovieManagementDAO movieManagementDAO
+            = new MovieManagementDAO();
 
     private final StaffBranchDAO staffBranchDAO
             = new StaffBranchDAO();
@@ -65,7 +67,7 @@ public class MovieAssignmentService {
         validateManagerId(managerId);
         validateBranchPermission(managerId, branchId);
 
-        return movieAssignmentDAO.findItemsForBranch(branchId);
+        return movieManagementDAO.findItemsForBranch(branchId);
     }
 
     /**
@@ -91,7 +93,7 @@ public class MovieAssignmentService {
             );
         }
 
-        return movieAssignmentDAO.findItemsForHall(hallId);
+        return movieManagementDAO.findItemsForHall(hallId);
     }
 
     /**
@@ -108,7 +110,7 @@ public class MovieAssignmentService {
         List<Integer> validMovieIds
                 = validateAndCleanMovieIds(selectedMovieIds);
 
-        return movieAssignmentDAO.saveBranchAssignments(
+        return movieManagementDAO.saveBranchAssignments(
                 branchId,
                 validMovieIds
         );
@@ -137,7 +139,7 @@ public class MovieAssignmentService {
          */
         for (int movieId : validMovieIds) {
             boolean assignedToBranch
-                    = movieAssignmentDAO.isMovieAssignedToBranch(
+                    = movieManagementDAO.isMovieAssignedToBranch(
                             branchId,
                             movieId
                     );
@@ -156,7 +158,7 @@ public class MovieAssignmentService {
             }
         }
 
-        return movieAssignmentDAO.saveHallAssignments(
+        return movieManagementDAO.saveHallAssignments(
                 hallId,
                 validMovieIds
         );
@@ -174,7 +176,7 @@ public class MovieAssignmentService {
         validateManagerId(managerId);
         getAuthorizedBranchIdByHallId(managerId, hallId);
 
-        return movieAssignmentDAO.findMoviesAssignedToHall(hallId);
+        return movieManagementDAO.findMoviesAssignedToHall(hallId);
     }
 
     /**
@@ -196,7 +198,7 @@ public class MovieAssignmentService {
 
         getAuthorizedBranchIdByHallId(managerId, hallId);
 
-        return movieAssignmentDAO.isMovieAssignedToHall(
+        return movieManagementDAO.isMovieAssignedToHall(
                 hallId,
                 movieId
         );
@@ -232,7 +234,7 @@ public class MovieAssignmentService {
         }
 
         int branchId
-                = movieAssignmentDAO.findBranchIdByHallId(hallId);
+                = movieManagementDAO.findBranchIdByHallId(hallId);
 
         if (branchId <= 0) {
             return false;
@@ -258,7 +260,7 @@ public class MovieAssignmentService {
         }
 
         int branchId
-                = movieAssignmentDAO.findBranchIdByHallId(hallId);
+                = movieManagementDAO.findBranchIdByHallId(hallId);
 
         if (branchId <= 0) {
             throw new IllegalArgumentException(
@@ -347,4 +349,89 @@ public class MovieAssignmentService {
 
         return validIds;
     }
+    /**
+     * Lấy toàn bộ phim để hiển thị trên màn hình quản lý thời lượng.
+     */
+    public List<Movie> getAllMovies() {
+        return movieManagementDAO.findAllForDurationManagement();
+    }
+
+    /**
+     * Tìm phim theo ID để quản lý thời lượng.
+     */
+    public Movie getMovieById(int movieId) {
+        if (movieId <= 0) {
+            throw new IllegalArgumentException("Phim không hợp lệ.");
+        }
+
+        Movie movie = movieManagementDAO.findMovieById(movieId);
+
+        if (movie == null) {
+            throw new IllegalArgumentException(
+                    "Không tìm thấy phim cần cập nhật."
+            );
+        }
+
+        return movie;
+    }
+
+    /**
+     * Cập nhật thời lượng phim.
+     */
+    public boolean updateDuration(
+            int movieId,
+            int durationMin) {
+
+        if (movieId <= 0) {
+            throw new IllegalArgumentException("Phim không hợp lệ.");
+        }
+
+        if (durationMin < MIN_DURATION_MIN) {
+            throw new IllegalArgumentException(
+                    "Thời lượng phim phải lớn hơn 0 phút."
+            );
+        }
+
+        if (durationMin > MAX_DURATION_MIN) {
+            throw new IllegalArgumentException(
+                    "Thời lượng phim không được vượt quá "
+                    + MAX_DURATION_MIN
+                    + " phút."
+            );
+        }
+
+        Movie currentMovie = movieManagementDAO.findMovieById(movieId);
+
+        if (currentMovie == null) {
+            throw new IllegalArgumentException(
+                    "Không tìm thấy phim cần cập nhật."
+            );
+        }
+
+        if (currentMovie.getDurationMin() == durationMin) {
+            return true;
+        }
+
+        return movieManagementDAO.updateDuration(movieId, durationMin);
+    }
+
+    /**
+     * Chuyển chuỗi thời lượng người dùng nhập thành số nguyên.
+     */
+    public int parseDuration(String durationValue) {
+        if (durationValue == null || durationValue.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Vui lòng nhập thời lượng phim."
+            );
+        }
+
+        try {
+            return Integer.parseInt(durationValue.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "Thời lượng phim phải là số nguyên."
+            );
+        }
+    }
+
 }

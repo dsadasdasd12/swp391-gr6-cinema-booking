@@ -16,17 +16,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Branch;
 import model.Hall;
+import model.Movie;
 import model.User;
-import service.MovieAssignmentService;
+import service.MovieManagementService;
 
 @WebServlet(
-        name = "MovieAssignmentController",
+        name = "MovieManagementController",
         urlPatterns = {
             "/manager/movie-assignments/branches",
-            "/manager/movie-assignments/halls"
+            "/manager/movie-assignments/halls",
+            "/manager/movie-durations",
+            "/manager/movie-durations/update"
         }
 )
-public class MovieAssignmentController extends HttpServlet {
+public class MovieManagementController extends HttpServlet {
 
     private static final String BRANCH_ASSIGNMENT_PAGE
             = "/pages/manager/branch-movie-assignment.jsp";
@@ -34,8 +37,11 @@ public class MovieAssignmentController extends HttpServlet {
     private static final String HALL_ASSIGNMENT_PAGE
             = "/pages/manager/hall-movie-assignment.jsp";
 
-    private final MovieAssignmentService movieAssignmentService
-            = new MovieAssignmentService();
+    private static final String MOVIE_DURATION_PAGE
+            = "/pages/manager/movie-duration-list.jsp";
+
+    private final MovieManagementService movieManagementService
+            = new MovieManagementService();
 
     @Override
     protected void doGet(
@@ -52,6 +58,10 @@ public class MovieAssignmentController extends HttpServlet {
 
             case "/manager/movie-assignments/halls":
                 showHallAssignmentPage(request, response);
+                break;
+
+            case "/manager/movie-durations":
+                showDurationList(request, response);
                 break;
 
             default:
@@ -82,6 +92,10 @@ public class MovieAssignmentController extends HttpServlet {
                 saveHallAssignments(request, response);
                 break;
 
+            case "/manager/movie-durations/update":
+                updateDuration(request, response);
+                break;
+
             default:
                 response.sendRedirect(
                         request.getContextPath()
@@ -107,7 +121,7 @@ public class MovieAssignmentController extends HttpServlet {
 
         try {
             List<Branch> branches
-                    = movieAssignmentService.getBranchesByManagerId(
+                    = movieManagementService.getBranchesByManagerId(
                             manager.getId()
                     );
 
@@ -126,7 +140,7 @@ public class MovieAssignmentController extends HttpServlet {
              * Chặn trường hợp truyền branchId không thuộc quyền Manager.
              */
             if (selectedBranchId > 0
-                    && !movieAssignmentService.isManagerAllowedBranch(
+                    && !movieManagementService.isManagerAllowedBranch(
                             manager.getId(),
                             selectedBranchId)) {
 
@@ -148,7 +162,7 @@ public class MovieAssignmentController extends HttpServlet {
 
             if (selectedBranchId > 0) {
                 movieItems
-                        = movieAssignmentService.getItemsForBranch(
+                        = movieManagementService.getItemsForBranch(
                                 manager.getId(),
                                 selectedBranchId
                         );
@@ -196,7 +210,7 @@ public class MovieAssignmentController extends HttpServlet {
 
         try {
             boolean success
-                    = movieAssignmentService.saveBranchAssignments(
+                    = movieManagementService.saveBranchAssignments(
                             manager.getId(),
                             branchId,
                             selectedMovieIds
@@ -247,7 +261,7 @@ public class MovieAssignmentController extends HttpServlet {
 
         try {
             List<Branch> branches
-                    = movieAssignmentService.getBranchesByManagerId(
+                    = movieManagementService.getBranchesByManagerId(
                             manager.getId()
                     );
 
@@ -259,7 +273,7 @@ public class MovieAssignmentController extends HttpServlet {
             }
 
             if (selectedBranchId > 0
-                    && !movieAssignmentService.isManagerAllowedBranch(
+                    && !movieManagementService.isManagerAllowedBranch(
                             manager.getId(),
                             selectedBranchId)) {
 
@@ -279,7 +293,7 @@ public class MovieAssignmentController extends HttpServlet {
             List<Hall> halls = new ArrayList<>();
 
             if (selectedBranchId > 0) {
-                halls = movieAssignmentService.getHallsByBranchId(
+                halls = movieManagementService.getHallsByBranchId(
                         manager.getId(),
                         selectedBranchId
                 );
@@ -306,7 +320,7 @@ public class MovieAssignmentController extends HttpServlet {
 
             if (selectedHallId > 0) {
                 movieItems
-                        = movieAssignmentService.getItemsForHall(
+                        = movieManagementService.getItemsForHall(
                                 manager.getId(),
                                 selectedHallId
                         );
@@ -362,7 +376,7 @@ public class MovieAssignmentController extends HttpServlet {
 
         try {
             boolean success
-                    = movieAssignmentService.saveHallAssignments(
+                    = movieManagementService.saveHallAssignments(
                             manager.getId(),
                             hallId,
                             selectedMovieIds
@@ -395,6 +409,77 @@ public class MovieAssignmentController extends HttpServlet {
                 + "/manager/movie-assignments/halls"
                 + "?branchId=" + branchId
                 + "&hallId=" + hallId
+        );
+    }
+
+    /**
+     * Hiển thị danh sách phim và thời lượng hiện tại.
+     */
+    private void showDurationList(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User manager = getCurrentManager(request, response);
+
+        if (manager == null) {
+            return;
+        }
+
+        List<Movie> movies = movieManagementService.getAllMovies();
+
+        request.setAttribute("movies", movies);
+
+        request.getRequestDispatcher(MOVIE_DURATION_PAGE)
+                .forward(request, response);
+    }
+
+    /**
+     * Cập nhật thời lượng của một phim.
+     */
+    private void updateDuration(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        User manager = getCurrentManager(request, response);
+
+        if (manager == null) {
+            return;
+        }
+
+        int movieId = parseInt(request.getParameter("movieId"));
+        String durationValue = request.getParameter("durationMin");
+
+        try {
+            int durationMin = movieManagementService.parseDuration(durationValue);
+
+            boolean success = movieManagementService.updateDuration(
+                    movieId,
+                    durationMin
+            );
+
+            if (success) {
+                setFlash(
+                        request,
+                        "success",
+                        "Cập nhật thời lượng phim thành công."
+                );
+            } else {
+                setFlash(
+                        request,
+                        "error",
+                        "Không thể cập nhật thời lượng phim."
+                );
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
+        }
+
+        response.sendRedirect(
+                request.getContextPath()
+                + "/manager/movie-durations"
         );
     }
 

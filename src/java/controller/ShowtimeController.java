@@ -6,7 +6,7 @@
 package controller;
 
 import dao.HallDAO;
-import dao.MovieAssignmentDAO;
+import dao.MovieManagementDAO;
 import dao.StaffBranchDAO;
 import dto.BranchHallGroup;
 import java.io.IOException;
@@ -55,8 +55,8 @@ public class ShowtimeController extends HttpServlet {
     /*
      * Dùng để lấy phim đã được phân bổ cho từng phòng.
      */
-    private final MovieAssignmentDAO movieAssignmentDAO
-            = new MovieAssignmentDAO();
+    private final MovieManagementDAO movieManagementDAO
+        = new MovieManagementDAO();
 
     @Override
     protected void doGet(
@@ -552,7 +552,7 @@ public class ShowtimeController extends HttpServlet {
              */
             for (Hall hall : halls) {
                 List<Movie> assignedMovies
-                        = movieAssignmentDAO
+                        = movieManagementDAO
                                 .findMoviesAssignedToHall(
                                         hall.getId()
                                 );
@@ -613,7 +613,7 @@ public class ShowtimeController extends HttpServlet {
         }
 
         int branchId
-                = movieAssignmentDAO.findBranchIdByHallId(
+                = movieManagementDAO.findBranchIdByHallId(
                         hallId
                 );
 
