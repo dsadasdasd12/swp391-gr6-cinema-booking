@@ -169,7 +169,9 @@ public class AuthService {
     user.setFullName(dto.getFullName().trim());
     user.setEmail(dto.getEmail().trim());
     user.setPhone(dto.getPhone());
-
+    
+    user.setGoogleId("local_"+dto.getEmail().trim());
+    
     user.setPasswordHash(
             PasswordUtil.hashPassword(dto.getPassword())
     );

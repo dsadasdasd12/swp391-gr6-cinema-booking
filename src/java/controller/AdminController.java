@@ -17,13 +17,6 @@ import service.UserService;
 @WebServlet({
     "/admin/dashboard",
     "/admin/accounts",
-
-    "/admin/branches",
-    "/admin/branches/create",
-    "/admin/branches/edit",
-    "/admin/branches/delete",
-    "/admin/branches/status",
-
     "/admin/user/save",
     "/admin/user/toggle-active"
 })
