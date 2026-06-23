@@ -5,7 +5,7 @@
 
 package service;
 
-import dao.MovieAssignmentDAO;
+import dao.MovieManagementDAO;
 import dao.MovieDAO;
 import dao.ShowtimeDAO;
 import java.math.BigDecimal;
@@ -29,8 +29,8 @@ public class ShowtimeService {
      * Dùng để kiểm tra phim đã được phân bổ
      * cho phòng chiếu hay chưa.
      */
-    private final MovieAssignmentDAO movieAssignmentDAO
-            = new MovieAssignmentDAO();
+    private final MovieManagementDAO movieManagementDAO
+        = new MovieManagementDAO();
 
     /**
      * Lấy các suất chiếu thuộc những chi nhánh
@@ -229,10 +229,10 @@ public class ShowtimeService {
          * Đây là phần mới được thêm.
          */
         boolean assignedToHall
-                = movieAssignmentDAO.isMovieAssignedToHall(
-                        showtime.getHallId(),
-                        showtime.getMovieId()
-                );
+        = movieManagementDAO.isMovieAssignedToHall(
+                showtime.getHallId(),
+                showtime.getMovieId()
+        );
 
         if (!assignedToHall) {
             throw new IllegalArgumentException(
