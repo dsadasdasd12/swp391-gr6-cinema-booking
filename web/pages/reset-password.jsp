@@ -6,8 +6,8 @@
 <html>
     <head>
         <title>Đặt lại mật khẩu</title>
-        <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-        <link rel="stylesheet" href="${ctx}/assets/css/auth.css">
+       <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+<link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
     </head>
     <script>
 function togglePassword(inputId, icon) {

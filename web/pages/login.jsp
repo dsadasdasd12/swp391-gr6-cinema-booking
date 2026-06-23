@@ -13,7 +13,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Đăng nhập</title>
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-        <link rel="stylesheet" href="${ctx}/assets/css/auth.css"> 
+<link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
     </head>
     <script>
     function togglePassword() {
