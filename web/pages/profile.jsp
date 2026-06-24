@@ -109,7 +109,7 @@
                     </c:if>
 
                     <c:if test="${sessionScope.user.role == 'STAFF'}">
-                        <c:set var="backUrl" value="${ctx}/staff/dashboard"/>
+                        <c:set var="backUrl" value="${ctx}/CounterBooking"/>
                     </c:if>
 
                     <a href="${backUrl}" class="btn btn-ghost">

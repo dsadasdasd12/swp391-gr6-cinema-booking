@@ -90,4 +90,8 @@ public class UserService {
             user.getPhone()
     );
 }
+
+    public int getBranchIdOfStaff(int userId) {
+        return userDAO.getBranchIdOfStaff(userId);
+    }
 }

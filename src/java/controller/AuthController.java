@@ -554,7 +554,7 @@ public class AuthController extends HttpServlet {
                 break;
 
             case "STAFF":
-                response.sendRedirect(ctx + "/staff/dashboard");
+                response.sendRedirect(ctx + "/CounterBooking");
                 break;
 
             case "CUSTOMER":

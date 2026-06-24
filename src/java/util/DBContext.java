@@ -1,11 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -28,11 +27,24 @@ public class DBContext {
         PASSWORD = (envPass != null) ? envPass : "123"; // default to 123 for local environment
         }
 
-    private static DBContext instance = new DBContext();
-    Connection connection;
+    private static final DBContext instance = new DBContext();
+    
+    // Dynamic connection pool to reuse active physical connections
+    private static final List<Connection> pool = new ArrayList<>();
+
+    static {
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static DBContext getInstance() {
         return instance;
+    }
+
+    public DBContext() {
     }
 
     public Connection getConnection() {
@@ -59,18 +71,31 @@ public class DBContext {
     public static void main(String[] args) {
         System.out.println("Đang thử kết nối: " + URL);
         try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
-                System.out.println("==> KET NOI THANH CONG!");
-                System.out.println("    DBMS   : " + c.getMetaData().getDatabaseProductName()
-                        + " " + c.getMetaData().getDatabaseProductVersion());
-                System.out.println("    Catalog: " + c.getCatalog());
-            }
-        } catch (ClassNotFoundException e) {
-            System.out.println("==> THIEU DRIVER SQL Server tren classpath: " + e.getMessage());
+            Connection physicalConn = DriverManager.getConnection(URL, USER, PASSWORD);
+            return createConnectionProxy(physicalConn);
         } catch (Exception e) {
-            System.out.println("==> KET NOI THAT BAI: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
+    }
+
+    // Dynamic proxy to intercept close() calls and return connections back to the pool
+    private Connection createConnectionProxy(final Connection physicalConn) {
+        return (Connection) Proxy.newProxyInstance(
+            DBContext.class.getClassLoader(),
+            new Class<?>[]{Connection.class},
+            (proxy, method, args) -> {
+                if ("close".equals(method.getName())) {
+                    synchronized (pool) {
+                        // Recycle the connection instead of physically closing it
+                        if (!physicalConn.isClosed() && pool.size() < 15) {
+                            pool.add(physicalConn);
+                            return null;
+                        }
+                    }
+                }
+                return method.invoke(physicalConn, args);
+            }
+        );
     }
 }
