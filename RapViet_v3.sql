@@ -483,6 +483,73 @@ CREATE INDEX IX_FAV_user        ON dbo.FAVORITE_MOVIES(user_id);
 CREATE INDEX IX_ATT_checked     ON dbo.ATTENDANCE     (checked_at DESC);
 
 GO
+-- ============================================================
+-- MANAGER - ONE BRANCH RULE
+-- A MANAGER account may have 0 or 1 assigned branch only.
+-- Zero branch is allowed before Admin assigns a branch.
+-- ============================================================
+
+CREATE OR ALTER TRIGGER dbo.TR_STAFF_BRANCH_OneBranchPerManager
+ON dbo.STAFF_BRANCH
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    /*
+      Check only the Manager accounts affected by the current
+      INSERT or UPDATE statement.
+    */
+    IF EXISTS (
+        SELECT sb.user_id
+        FROM dbo.STAFF_BRANCH sb
+        INNER JOIN inserted i
+            ON i.user_id = sb.user_id
+        INNER JOIN dbo.[USER] u
+            ON u.id = sb.user_id
+        WHERE u.role = 'MANAGER'
+        GROUP BY sb.user_id
+        HAVING COUNT(*) > 1
+    )
+    BEGIN
+        THROW 51000,
+              'A Manager account can be assigned to only one Branch.',
+              1;
+    END
+END;
+GO
+
+CREATE OR ALTER TRIGGER dbo.TR_USER_OneBranchWhenRoleIsManager
+ON dbo.[USER]
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    /*
+      This protects the case where a STAFF account was already
+      assigned to multiple branches and is later changed to MANAGER.
+    */
+    IF NOT UPDATE(role)
+        RETURN;
+
+    IF EXISTS (
+        SELECT u.id
+        FROM inserted u
+        INNER JOIN dbo.STAFF_BRANCH sb
+            ON sb.user_id = u.id
+        WHERE u.role = 'MANAGER'
+        GROUP BY u.id
+        HAVING COUNT(*) > 1
+    )
+    BEGIN
+        THROW 51001,
+              'A user with multiple Branch assignments cannot be changed to MANAGER.',
+              1;
+    END
+END;
+GO
+
 PRINT 'RapVietDB v3.0 — 22 tables created successfully.';
 
 INSERT INTO [USER]
@@ -665,5 +732,106 @@ VALUES
     N'Robert Downey Jr., Chris Hemsworth',
     N'Anthony Russo, Joe Russo'
 );
+
+-- ============================================================
+-- BASE DATA FOR BRANCH MANAGER TESTING
+-- ============================================================
+
+INSERT INTO dbo.CINEMA
+(
+    name,
+    address,
+    phone,
+    status
+)
+VALUES
+(
+    N'RapViet Cinema',
+    N'Hà Nội',
+    '0240000000',
+    'ACTIVE'
+);
+
+DECLARE @CinemaId INT = SCOPE_IDENTITY();
+
+INSERT INTO dbo.BRANCHES
+(
+    cinema_id,
+    name,
+    address,
+    phone,
+    open_time,
+    close_time,
+    status
+)
+VALUES
+(
+    @CinemaId,
+    N'RapViet Cầu Giấy',
+    N'Cầu Giấy, Hà Nội',
+    '0241111111',
+    '08:00:00',
+    '23:00:00',
+    'ACTIVE'
+),
+(
+    @CinemaId,
+    N'RapViet Hoàn Kiếm',
+    N'Hoàn Kiếm, Hà Nội',
+    '0242222222',
+    '08:00:00',
+    '23:00:00',
+    'ACTIVE'
+);
+
+DECLARE @ManagerId INT = (
+    SELECT id
+    FROM dbo.[USER]
+    WHERE email = 'manager@cinema.com'
+);
+
+DECLARE @ManagerBranchId INT = (
+    SELECT id
+    FROM dbo.BRANCHES
+    WHERE name = N'RapViet Cầu Giấy'
+);
+
+INSERT INTO dbo.STAFF_BRANCH
+(
+    user_id,
+    branch_id,
+    position
+)
+VALUES
+(
+    @ManagerId,
+    @ManagerBranchId,
+    N'Branch Manager'
+);
+
+INSERT INTO dbo.HALLS
+(
+    branch_id,
+    name,
+    total_seats,
+    hall_type,
+    status
+)
+VALUES
+(
+    @ManagerBranchId,
+    N'Phòng 01',
+    80,
+    'STANDARD',
+    'ACTIVE'
+),
+(
+    @ManagerBranchId,
+    N'Phòng VIP 01',
+    40,
+    'VIP',
+    'ACTIVE'
+);
+
 GO
 

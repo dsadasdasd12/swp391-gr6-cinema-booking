@@ -141,7 +141,7 @@
                 </strong>
 
                 <span>
-                    Chọn phòng, phim và thời gian bắt đầu
+                    Chọn phòng, phim và thời gian bắt đầu trong chi nhánh được phân công
                 </span>
             </div>
 
@@ -206,6 +206,25 @@
 
                         <div class="form-grid">
 
+                            <!-- CHI NHÁNH ĐƯỢC PHÂN CÔNG -->
+                            <div class="form-group">
+
+                                <label>
+                                    Chi nhánh được phân công
+                                </label>
+
+                                <input type="text"
+                                       class="input-field"
+                                       value="${branch.name}"
+                                       readonly>
+
+                                <span class="field-note">
+                                    Manager chỉ có thể tạo suất chiếu cho các phòng
+                                    thuộc chi nhánh này.
+                                </span>
+
+                            </div>
+
                             <!-- PHÒNG CHIẾU -->
                             <div class="form-group">
 
@@ -222,31 +241,21 @@
                                         -- Chọn phòng chiếu --
                                     </option>
 
-                                    <c:forEach var="group"
-                                               items="${branchHallGroups}">
+                                    <c:forEach var="hall"
+                                               items="${halls}">
 
-                                        <optgroup label="${group.branch.name}">
+                                        <option value="${hall.id}"
+                                            ${showtime.hallId == hall.id
+                                              ? 'selected'
+                                              : ''}>
 
-                                            <c:forEach var="hall"
-                                                       items="${group.halls}">
+                                            <c:out value="${hall.name}" />
 
-                                                <option value="${hall.id}"
-                                                        data-branch-id="${group.branch.id}"
-                                                    ${showtime.hallId == hall.id
-                                                      ? 'selected'
-                                                      : ''}>
+                                            -
 
-                                                    <c:out value="${hall.name}" />
+                                            <c:out value="${hall.hallType}" />
 
-                                                    -
-
-                                                    <c:out value="${hall.hallType}" />
-
-                                                </option>
-
-                                            </c:forEach>
-
-                                        </optgroup>
+                                        </option>
 
                                     </c:forEach>
 
@@ -254,7 +263,7 @@
 
                                 <span class="field-note">
                                     Chỉ hiển thị các phòng thuộc chi nhánh
-                                    mà Manager đang quản lý.
+                                    được Admin phân công cho Manager.
                                 </span>
 
                             </div>
@@ -561,17 +570,10 @@
             movieNote.textContent
                     = "Chưa có phim nào được phân bổ cho phòng này.";
 
-            const selectedHallOption
-                    = hallSelect.options[hallSelect.selectedIndex];
-
-            const branchId
-                    = selectedHallOption.dataset.branchId || "";
-
             assignmentLink.href
                     = contextPath
                     + "/manager/movie-assignments/halls"
-                    + "?branchId=" + encodeURIComponent(branchId)
-                    + "&hallId=" + encodeURIComponent(hallId);
+                    + "?hallId=" + encodeURIComponent(hallId);
 
         } else {
             movieSelect.disabled = false;
@@ -688,7 +690,8 @@
                 + "/" + year
                 + " "
                 + hour
-                + ":" + minute;
+                + ":"
+                + minute;
     }
 
     hallSelect.addEventListener(

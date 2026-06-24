@@ -169,7 +169,7 @@
                 </strong>
 
                 <span>
-                    Chọn những phim được phép hoạt động tại từng chi nhánh
+                    Quản lý danh sách phim được phép hoạt động tại chi nhánh được phân công
                 </span>
             </div>
 
@@ -183,8 +183,7 @@
                     <h1>Phim tại chi nhánh</h1>
 
                     <p>
-                        Manager chỉ có thể phân bổ phim cho các chi nhánh
-                        được Admin phân công quản lý.
+                        Manager chỉ có thể phân bổ phim cho chi nhánh được Admin phân công quản lý.
                     </p>
                 </div>
 
@@ -222,7 +221,7 @@
             <c:choose>
 
                 <%-- MANAGER CHƯA ĐƯỢC PHÂN CÔNG CHI NHÁNH --%>
-                <c:when test="${empty branches}">
+                <c:when test="${empty branch}">
 
                     <div class="panel">
 
@@ -233,8 +232,8 @@
                         <div class="panel-body">
 
                             <div class="empty-admin">
-                                Tài khoản Manager này chưa được
-                                phân công quản lý chi nhánh nào.
+                                Tài khoản Manager này chưa được Admin phân công chi nhánh.
+                                Không thể phân bổ phim cho đến khi có một Branch được gán.
                             </div>
 
                         </div>
@@ -244,68 +243,36 @@
                 </c:when>
 
                 <c:otherwise>
-
-                    <%-- CHỌN CHI NHÁNH --%>
+                    
                     <div class="panel"
                          style="margin-bottom: 24px;">
-
+                        
                         <div class="panel-header">
-                            Chọn chi nhánh
+                            Chi nhánh được phân công
                         </div>
-
+                        
                         <div class="panel-body">
-
-                            <form id="branchFilterForm"
-                                  method="get"
-                                  action="${ctx}/manager/movie-assignments/branches"
-                                  class="assignment-filter"
-                                  autocomplete="off">
-
-                                <div class="form-group">
-
-                                    <label for="branchId">
-                                        Chi nhánh
-                                    </label>
-
-                                    <select id="branchId"
-                                            name="branchId"
-                                            class="select-field"
-                                            required
-                                            onchange="changeBranch()">
-
-                                        <c:forEach var="branch"
-                                                   items="${branches}">
-
-                                            <option value="${branch.id}"
-                                                ${selectedBranchId == branch.id
-                                                  ? 'selected'
-                                                  : ''}>
-
-                                                <c:out value="${branch.name}" />
-
-                                            </option>
-
-                                        </c:forEach>
-
-                                    </select>
-
+                            <div class="assignment-summary">
+                                <div>
+                                    <strong style="font-size: 18px;">
+                                        <c:out value="${branch.name}" />
+                                    </strong>
+                                    
+                                    <div class="assignment-note"
+                                         style="margin-top: 6px;">
+                                        
+                                        <c:out value="${branch.address}" />
+                                    </div>
+                                
                                 </div>
-
-                                <noscript>
-
-                                    <button type="submit"
-                                            class="btn btn-ghost">
-
-                                        Xem danh sách phim
-
-                                    </button>
-
-                                </noscript>
-
-                            </form>
-
+                                    
+                                    <span class="badge-status badge-active">
+                                        Branch của bạn
+                                    </span>
+                            
+                            </div>
+                        
                         </div>
-
                     </div>
 
                     <%-- DANH SÁCH PHIM --%>
@@ -336,28 +303,23 @@
                                           action="${ctx}/manager/movie-assignments/branches"
                                           autocomplete="off"
                                           onsubmit="return confirmSaveAssignment()">
-
-                                        <input type="hidden"
-                                               name="branchId"
-                                               value="${selectedBranchId}">
-
+                                        
                                         <div class="assignment-summary">
 
                                             <div class="assignment-note">
-
-                                                Đánh dấu những phim được phân bổ
-                                                cho chi nhánh đang chọn.
-
+                                                Đánh dấu những phim được phép hoạt động tại
+                                                <strong>
+                                                    <c:out value="${branch.name}" />
+                                                </strong>.
+                                                
                                                 <br>
-
-                                                Những lựa chọn chỉ được ghi nhận
-                                                sau khi nhấn nút Lưu phân bổ.
-
+                                                Những lựa chọn chỉ được ghi nhận sau khi nhấn
+                                                nút Lưu phân bổ.
+                                                
                                                 <br>
-
-                                                Khi quay lại chi nhánh này,
-                                                hệ thống sẽ hiển thị các phim
-                                                đã lưu trong database.
+                                                
+                                                Khi quay lại trang này, hệ thống sẽ hiển thị
+                                                các phim đã được lưu cho Branch của bạn.
 
                                             </div>
 
@@ -532,45 +494,6 @@
 </div>
 
 <script>
-    /*
-     * Khi chuyển sang chi nhánh khác:
-     *
-     * 1. Bỏ trạng thái checkbox đang hiển thị của chi nhánh cũ.
-     * 2. Gửi GET branchId lên Controller.
-     * 3. Controller tải dữ liệu BRANCH_MOVIES của chi nhánh mới.
-     */
-    function changeBranch() {
-        const assignmentForm = document.getElementById(
-                "branchAssignmentForm"
-        );
-
-        if (assignmentForm) {
-            const movieCheckboxes
-                    = assignmentForm.querySelectorAll(
-                            ".movie-item-checkbox"
-                    );
-
-            movieCheckboxes.forEach(function (checkbox) {
-                checkbox.checked = false;
-            });
-        }
-
-        const selectAllCheckbox
-                = document.getElementById("selectAll");
-
-        if (selectAllCheckbox) {
-            selectAllCheckbox.checked = false;
-            selectAllCheckbox.indeterminate = false;
-        }
-
-        const filterForm
-                = document.getElementById("branchFilterForm");
-
-        if (filterForm) {
-            filterForm.submit();
-        }
-    }
-
     /*
      * Gán lại checkbox đúng theo dữ liệu được Controller
      * tải từ database.
