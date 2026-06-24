@@ -1,28 +1,39 @@
-/*
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
-*/
-/* 
-    Created on : Jun 5, 2026, 8:43:12 PM
-    Author     : MSI
-*/
-
 /* ============================================================
-   RapViet Cinema - Admin Layout
+   RapViet Cinema - Admin CSS
    File: web/assets/css/admin.css
-   Dùng cho:
-   - /pages/admin/dashboard.jsp
-   - /pages/admin/branch/list.jsp
-   - /pages/admin/branch/form.jsp
    ============================================================ */
 
-.admin-shell {
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body.admin-page {
     min-height: 100vh;
-    display: grid;
-    grid-template-columns: 270px 1fr;
     background: #0f1115;
     color: #e8e8ea;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
 }
+
+/* =========================
+   ADMIN LAYOUT
+
+.admin-shell {
+    width: 100%;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    background: #0f1115;
+}
+
+/* =========================
+   SIDEBAR
 
 .admin-sidebar {
     background: #16181d;
@@ -71,12 +82,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 }
 
 .admin-menu a {
+    display: block;
     color: #b8bcc4;
     padding: 12px 13px;
     border-radius: 9px;
     border: 1px solid transparent;
     text-decoration: none;
     transition: 0.15s ease;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .admin-menu a:hover,
@@ -86,8 +100,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     border-color: #303541;
 }
 
+/* =========================
+   MAIN
+
 .admin-main {
     min-width: 0;
+    background: #0f1115;
 }
 
 .admin-topbar {
@@ -103,9 +121,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 .admin-topbar strong {
     display: block;
     font-size: 18px;
+    color: #ffffff;
 }
 
 .admin-topbar span {
+    display: block;
+    margin-top: 4px;
     color: #9aa0aa;
     font-size: 14px;
 }
@@ -125,6 +146,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 .page-heading h1 {
     margin: 0 0 7px;
     font-size: 30px;
+    color: #ffffff;
 }
 
 .page-heading p {
@@ -133,8 +155,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 }
 
 /* =========================
-   Dashboard Cards
-   ========================= */
+   DASHBOARD CARDS
 
 .dashboard-grid {
     display: grid;
@@ -144,6 +165,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 
 .dashboard-card {
     display: block;
+    min-height: 170px;
     background: #16181d;
     border: 1px solid #252832;
     border-radius: 14px;
@@ -156,22 +178,37 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 .dashboard-card:hover {
     transform: translateY(-2px);
     border-color: #e50914;
+    background: #1a1d24;
+}
+
+.card-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    background: #101217;
+    border: 1px solid #272b35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
 }
 
 .dashboard-card h3 {
     margin: 0 0 8px;
     color: #ffffff;
+    font-size: 18px;
 }
 
 .dashboard-card p {
     margin: 0;
     color: #9aa0aa;
     line-height: 1.5;
+    font-size: 14px;
 }
 
 /* =========================
-   Panel
-   ========================= */
+   PANEL
 
 .panel {
     background: #16181d;
@@ -191,8 +228,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 }
 
 /* =========================
-   Table
-   ========================= */
+   TABLE
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
 
 .admin-table {
     width: 100%;
@@ -215,17 +255,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     letter-spacing: .04em;
 }
 
+.admin-table tr:hover {
+    background: rgba(255,255,255,.02);
+}
+
 .admin-table tr:last-child td {
     border-bottom: 0;
 }
 
 /* =========================
-   Badge Status
-   ========================= */
+   BADGES
 
-.badge-status {
-    display: inline-block;
-    padding: 5px 10px;
+.badge-status,
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 90px;
+    padding: 6px 12px;
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
@@ -241,11 +288,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     color: #ff8a8a;
 }
 
-/* =========================
-   Actions / Buttons
-   ========================= */
+.role-customer {
+    background: rgba(59, 130, 246, .18);
+    color: #93c5fd;
+}
 
-.action-inline {
+.role-manager {
+    background: rgba(250, 204, 21, .18);
+    color: #fde68a;
+}
+
+.role-staff {
+    background: rgba(34, 197, 94, .18);
+    color: #86efac;
+}
+
+/* =========================
+   BUTTONS / ACTIONS
+
+.action-inline,
+.admin-actions {
     display: inline-flex;
     gap: 8px;
     align-items: center;
@@ -319,9 +381,30 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     font-size: 13px;
 }
 
+.action-edit {
+    color: #60a5fa;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.action-edit:hover {
+    color: #93c5fd;
+}
+
+.action-lock {
+    color: #ef4444;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.action-unlock {
+    color: #22c55e;
+    text-decoration: none;
+    font-weight: 600;
+}
+
 /* =========================
-   Form
-   ========================= */
+   FORM
 
 .form-grid {
     display: grid;
@@ -329,7 +412,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     gap: 18px;
 }
 
-.form-group {
+.form-group,
+.admin-form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -339,14 +423,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     grid-column: 1 / -1;
 }
 
-.form-group label {
+.form-group label,
+.admin-form-group label {
     color: #d2d5db;
     font-size: 14px;
     font-weight: 600;
 }
 
 .input-field,
-.select-field {
+.select-field,
+.admin-form-group input,
+.admin-form-group select {
     width: 100%;
     box-sizing: border-box;
     background: #0f1115;
@@ -359,11 +446,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 }
 
 .input-field:focus,
-.select-field:focus {
+.select-field:focus,
+.admin-form-group input:focus,
+.admin-form-group select:focus {
     border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .15);
 }
 
-.form-actions {
+.form-actions,
+.admin-form-actions {
     margin-top: 22px;
     padding-top: 18px;
     border-top: 1px solid #252832;
@@ -373,8 +464,53 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 }
 
 /* =========================
-   Alert / Empty state
-   ========================= */
+   MODAL
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.admin-modal {
+    width: 550px;
+    max-width: 95%;
+    background: #111827;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.08);
+    padding: 30px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: white;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+/* =========================
+   ALERT / EMPTY
 
 .alert {
     padding: 12px 14px;
@@ -402,18 +538,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
 }
 
 /* =========================
-   Responsive
-   ========================= */
+   RESPONSIVE
 
 @media (max-width: 900px) {
     .admin-shell {
         grid-template-columns: 1fr;
     }
 
-    .dashboard-grid {
-        grid-template-columns: 1fr;
+    .admin-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid #252832;
     }
 
+    .dashboard-grid,
     .form-grid {
         grid-template-columns: 1fr;
     }
