@@ -13,10 +13,46 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import dto.BranchView;
 import model.Branch;
 import util.DBContext;
 
 public class BranchDAO {
+
+    /**
+     * (Phần KHÁCH xem) Danh sách chi nhánh đang hoạt động kèm tên rạp và số
+     * phòng chiếu đang hoạt động, sắp theo tên. Dữ liệu ghép từ CINEMA/HALLS
+     * được trả qua DTO BranchView để entity Branch chỉ giữ đúng cột bảng BRANCHES.
+     */
+    public List<BranchView> findActiveBranchViews() {
+        String sql = "SELECT b.id, b.cinema_id, b.name, b.address, b.phone, "
+                + "b.open_time, b.close_time, b.status, b.last_update, "
+                + "c.name AS cinema_name, "
+                + "(SELECT COUNT(*) FROM dbo.HALLS h "
+                + "   WHERE h.branch_id = b.id AND h.status = 'ACTIVE') AS hall_count "
+                + "FROM dbo.BRANCHES b "
+                + "JOIN dbo.CINEMA c ON c.id = b.cinema_id "
+                + "WHERE b.status = 'ACTIVE' "
+                + "ORDER BY b.name";
+
+        List<BranchView> list = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Branch branch = mapRow(rs);
+                list.add(new BranchView(branch, rs.getString("cinema_name"), rs.getInt("hall_count")));
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(BranchDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findActiveBranchViews thất bại", e);
+        }
+
+        return list;
+    }
 
     public List<Branch> findAll() {
         String sql = "SELECT id, cinema_id, name, address, phone, open_time, close_time, status, last_update "

@@ -17,6 +17,8 @@
         <a href="${ctx}/movies" class="${param.active == 'movies' ? 'active' : ''}">Phim</a>
         <a href="${ctx}/movies?status=NOW_SHOWING">Đang chiếu</a>
         <a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a>
+        <a href="${ctx}/showtimes" class="${param.active == 'showtimes' ? 'active' : ''}">Lịch chiếu</a>
+        <a href="${ctx}/branches" class="${param.active == 'branches' ? 'active' : ''}">Hệ thống rạp</a>
     </nav>
     <div class="header-actions">
         <c:choose>

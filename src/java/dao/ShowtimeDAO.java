@@ -8,9 +8,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import dto.MovieShowtimes;
 import model.Showtime;
 import util.DBContext;
 
@@ -156,6 +160,131 @@ public class ShowtimeDAO {
         return list;
     }
 
+    /**
+     * (Phần KHÁCH xem) Suất chiếu của một chi nhánh trong một ngày, chỉ lấy suất
+     * còn bán vé (SCHEDULED/ON_SALE), đã gom nhóm theo phim. Poster phim
+     * (MOVIES.poster_url) được mang theo bởi DTO MovieShowtimes nên entity
+     * Showtime không cần thêm cột ngoài bảng SHOWTIMES.
+     */
+    public List<MovieShowtimes> findByBranchAndDate(int branchId, LocalDate date) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, m.poster_url AS poster_url, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE b.id = ? "
+                + "AND CAST(s.start_time AS DATE) = ? "
+                + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                + "ORDER BY m.title, s.start_time";
+
+        // Gom theo phim ngay khi đọc; LinkedHashMap giữ thứ tự tên phim (đã ORDER BY)
+        Map<Integer, MovieShowtimes> grouped = new LinkedHashMap<>();
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, branchId);
+            ps.setObject(2, date);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int movieId = rs.getInt("movie_id");
+                    MovieShowtimes ms = grouped.get(movieId);
+                    if (ms == null) {
+                        ms = new MovieShowtimes(movieId,
+                                rs.getString("movie_title"), rs.getString("poster_url"));
+                        grouped.put(movieId, ms);
+                    }
+                    ms.getShowtimes().add(mapRow(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findByBranchAndDate thất bại", e);
+        }
+
+        return new ArrayList<>(grouped.values());
+    }
+
+    /**
+     * (Phần KHÁCH xem) Một suất chiếu theo id (join phim/phòng/chi nhánh) để lấy
+     * ngữ cảnh cho trang sơ đồ ghế; trả null nếu không tồn tại.
+     */
+    public Showtime findById(int showtimeId) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE s.id = ?";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, showtimeId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findById thất bại", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Manager xem các suất chiếu thuộc các branch được phân công.
+     */
+    public List<Showtime> findByManagerId(int managerId) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "JOIN dbo.STAFF_BRANCH sb ON sb.branch_id = b.id "
+                + "WHERE sb.user_id = ? "
+                + "ORDER BY s.start_time DESC, s.id DESC";
+
+        List<Showtime> list = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findByManagerId thất bại", e);
+        }
+
+        return list;
+    }
+
+    /**
+     * Lấy 1 suất chiếu theo id, đồng thời check suất đó có thuộc branch của manager không.
+     */
     public Showtime findByIdAndManagerId(int id, int managerId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "

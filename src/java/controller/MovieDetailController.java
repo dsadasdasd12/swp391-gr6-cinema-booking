@@ -25,6 +25,7 @@ import model.Language;
 import model.Movie;
 import model.User;
 import service.MovieService;
+import service.ReviewService;
 
 
 @WebServlet(
@@ -57,6 +58,7 @@ public class MovieDetailController extends HttpServlet {
 
     /** Single service for all Movie functions: browse, detail, assignment and duration. */
     private final MovieService movieService = new MovieService();
+    private final ReviewService reviewService = new ReviewService();
 
     @Override
     protected void doGet(
@@ -175,6 +177,9 @@ public class MovieDetailController extends HttpServlet {
         }
 
         request.setAttribute("movie", movie);
+        request.setAttribute("branchShowtimes", movieService.getShowtimesByBranch(id));
+        request.setAttribute("reviews", reviewService.getMovieReviews(id));
+        request.getRequestDispatcher("/pages/movie/detail.jsp").forward(request, response);
         request.setAttribute(
                 "branchShowtimes",
                 movieService.getShowtimesByBranch(movieId)
