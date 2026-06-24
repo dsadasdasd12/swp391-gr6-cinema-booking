@@ -8,7 +8,7 @@ package model;
  * Ngôn ngữ phim được hỗ trợ. Khi nạp theo ngữ cảnh của một phim cụ thể
  * (qua bảng dbo.MOVIE_LANGUAGES) thì cờ {@code subtitle} cũng được gán.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class Language {
 

@@ -1,6 +1,6 @@
-<%--
+﻿<%--
     RapViet Cinema - Chi tiết phim (Xem chi tiết + Suất chiếu)
-    Module: Duyệt phim - UC06 / UC12   (Group6 - DuyThai)
+    Module: Duyệt phim /    (Group6 - DuyThai)
     Được phục vụ bởi controller.MovieDetailController  ->  URL /movie?id=N
     View chỉ dùng JSTL + EL + component, KHÔNG nhúng code Java.
 --%>

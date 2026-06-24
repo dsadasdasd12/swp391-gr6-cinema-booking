@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
  * Một suất chiếu (dbo.SHOWTIMES) đã được join sẵn với phòng chiếu và chi nhánh
  * để trang chi tiết phim hiển thị "ở đâu & khi nào" mà không cần truy vấn thêm.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class Showtime {
 

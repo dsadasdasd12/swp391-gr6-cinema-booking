@@ -19,7 +19,7 @@ import service.MovieService;
  * <p>
  * URL: {@code /home} (GET).
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 @WebServlet(name = "HomeController", urlPatterns = {"/home"})
 public class HomeController extends HttpServlet {

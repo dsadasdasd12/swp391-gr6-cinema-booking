@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Showtime;
 import util.DBContext;
+import util.EncodingUtil;
 
 /**
  * DAO xử lý suất chiếu.
@@ -51,7 +52,20 @@ public class ShowtimeDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapRow(rs));
+                    Showtime st = new Showtime();
+                    st.setId(rs.getInt("id"));
+                    st.setMovieId(rs.getInt("movie_id"));
+                    st.setHallId(rs.getInt("hall_id"));
+                    st.setStartTime(rs.getObject("start_time", LocalDateTime.class));
+                    st.setEndTime(rs.getObject("end_time", LocalDateTime.class));
+                    st.setBasePrice(rs.getBigDecimal("base_price"));
+                    st.setStatus(rs.getString("status"));
+                    st.setHallName(EncodingUtil.getString(rs, "hall_name"));
+                    st.setHallType(rs.getString("hall_type"));
+                    st.setBranchId(rs.getInt("branch_id"));
+                    st.setBranchName(EncodingUtil.getString(rs, "branch_name"));
+                    st.setBranchAddress(EncodingUtil.getString(rs, "branch_address"));
+                    list.add(st);
                 }
             }
 

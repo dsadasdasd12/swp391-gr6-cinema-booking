@@ -1,6 +1,6 @@
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Duyệt phim (Browse / Search / Filter / Xem chi tiết) - UC06
+ * Module: Duyệt phim + Quản lý phim Admin (Long)
  */
 package dao;
 
@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,8 +17,10 @@ import dto.MovieFilter;
 import dto.PageResult;
 import java.sql.Statement;
 import model.Category;
+import model.Language;
 import model.Movie;
 import util.DBContext;
+import util.EncodingUtil;
 
 /**
  * DAO cho danh mục phim (bảng dbo.MOVIES).
@@ -31,7 +34,7 @@ import util.DBContext;
  * {@link PreparedStatement}; chuỗi duy nhất được ghép thẳng vào SQL là mệnh đề
  * ORDER BY và đã nằm trong danh sách trắng (whitelist).
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class MovieDAO {
 
@@ -197,15 +200,15 @@ public class MovieDAO {
     private Movie mapRow(ResultSet rs) throws SQLException {
         Movie m = new Movie();
         m.setId(rs.getInt("id"));
-        m.setTitle(rs.getString("title"));
+        m.setTitle(EncodingUtil.getString(rs, "title"));
         m.setDurationMin(rs.getInt("duration_min"));
-        m.setDescription(rs.getString("description"));
+        m.setDescription(EncodingUtil.getString(rs, "description"));
         m.setReleaseDate(rs.getObject("release_date", LocalDate.class));
         m.setStatus(rs.getString("status"));
-        m.setPosterUrl(rs.getString("poster_url"));
+        m.setPosterUrl(Movie.normalizePosterPath(rs.getString("poster_url")));
         m.setTrailerUrl(rs.getString("trailer_url"));
-        m.setActor(rs.getString("actor"));
-        m.setDirector(rs.getString("director"));
+        m.setActor(EncodingUtil.getString(rs, "actor"));
+        m.setDirector(EncodingUtil.getString(rs, "director"));
         m.setLastUpdate(rs.getObject("last_update", LocalDateTime.class));
         m.setAvgRating(rs.getDouble("avg_rating"));   // = 0.0 khi NULL
         m.setReviewCount(rs.getInt("review_count"));
@@ -221,10 +224,10 @@ public class MovieDAO {
         for (int k = 0; k < movies.size(); k++) {
             in.append(k == 0 ? "?" : ",?");
         }
-        String sql = "SELECT mc.movie_id, c.id, c.name, c.status "
+        String sql = "SELECT mc.movie_id, c.id, c.name(), c.status "
                 + "FROM dbo.MOVIES_CATEGORY mc "
                 + "JOIN dbo.CATEGORY c ON c.id = mc.category_id "
-                + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name";
+                + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name()";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (int k = 0; k < movies.size(); k++) {
@@ -235,7 +238,7 @@ public class MovieDAO {
                     int movieId = rs.getInt("movie_id");
                     Category c = new Category();
                     c.setId(rs.getInt("id"));
-                    c.setName(rs.getString("name"));
+                    c.setName(EncodingUtil.getString(rs, "name"));
                     c.setStatus(rs.getString("status"));
                     for (Movie m : movies) {
                         if (m.getId() == movieId) {

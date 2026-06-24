@@ -1,2 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/cinema"/>
+<Context path="/cinema" useHttpOnly="true">
+    <Resources cachingAllowed="true" cacheMaxSize="10240"/>
+</Context>

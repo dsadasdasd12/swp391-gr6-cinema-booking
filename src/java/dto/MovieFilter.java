@@ -9,7 +9,7 @@ package dto;
  * từ màn hình danh sách phim. Controller đổ dữ liệu từ request vào đây, Service
  * kiểm tra hợp lệ, còn DAO biến nó thành câu truy vấn SQL động.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class MovieFilter {
 

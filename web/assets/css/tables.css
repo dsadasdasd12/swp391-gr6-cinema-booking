@@ -1,0 +1,284 @@
+/*
+ * Rạp Việt CMS — Tables & Pagination
+ * Requires: variables.css
+ */
+
+/* ══════════════════════════════════════
+   DATA TABLE
+   ══════════════════════════════════════ */
+.rv-table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.rv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-base);
+}
+
+/* Head */
+.rv-table thead th {
+  background: var(--n-50);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--n-600);
+  padding: var(--s-3) var(--s-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.rv-table thead th.center { text-align: center; }
+.rv-table thead th.right  { text-align: right; }
+
+/* Sort indicator */
+.rv-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--ease);
+}
+.rv-table thead th.sortable:hover { color: var(--primary); }
+.rv-table thead th .sort-icon {
+  font-size: 10px;
+  margin-left: var(--s-1);
+  opacity: 0.4;
+}
+.rv-table thead th.sorted .sort-icon { opacity: 1; color: var(--primary); }
+
+/* Body */
+.rv-table tbody td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--n-800);
+}
+.rv-table tbody td.center { text-align: center; }
+.rv-table tbody td.right  { text-align: right; }
+.rv-table tbody td.muted  { color: var(--n-500); }
+
+/* Zebra striping */
+.rv-table tbody tr:nth-child(odd) { background: var(--surface); }
+.rv-table tbody tr:nth-child(even){ background: #FAFAFA; }
+
+/* Hover */
+.rv-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+/* Last row no border */
+.rv-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Row height */
+.rv-table tbody tr {
+  height: 52px;
+}
+
+/* No. column */
+.rv-table .col-no {
+  width: 50px;
+  text-align: center;
+  color: var(--n-500);
+  font-size: var(--text-sm);
+}
+
+/* Poster column */
+.rv-table .col-poster img {
+  width: 48px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--n-100);
+}
+
+/* Actions column */
+.rv-table .col-actions {
+  white-space: nowrap;
+}
+.rv-table .col-actions .rv-btn--icon {
+  margin-right: var(--s-1);
+}
+.rv-table .col-actions .rv-btn--icon:last-child {
+  margin-right: 0;
+}
+
+/* Total row */
+.rv-table tfoot td {
+  padding: var(--s-3) var(--s-4);
+  font-weight: 700;
+  color: var(--n-900);
+  background: var(--n-50);
+  border-top: 2px solid var(--border);
+}
+
+/* ══════════════════════════════════════
+   PAGINATION
+   ══════════════════════════════════════ */
+.rv-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-6);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+.rv-pagination__info {
+  font-size: var(--text-sm);
+  color: var(--n-500);
+}
+
+.rv-pagination__pages {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.rv-pagination__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--s-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--n-700);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--ease);
+}
+.rv-pagination__btn:hover {
+  background: var(--n-50);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.rv-pagination__btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.rv-pagination__btn:disabled,
+.rv-pagination__btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.rv-pagination__ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  color: var(--n-400);
+  font-size: var(--text-sm);
+}
+
+/* ══════════════════════════════════════
+   TABLE ACTION BUTTONS
+   ══════════════════════════════════════ */
+
+/* View */
+.rv-btn-view {
+  color: var(--primary-light);
+  border-color: transparent;
+  background: transparent;
+}
+.rv-btn-view:hover {
+  background: rgba(var(--primary-rgb), 0.06);
+  color: var(--primary);
+}
+
+/* Edit */
+.rv-btn-edit {
+  color: var(--warning);
+  border-color: transparent;
+  background: transparent;
+}
+.rv-btn-edit:hover {
+  background: rgba(217, 119, 6, 0.06);
+  color: #B45309;
+}
+
+/* Delete */
+.rv-btn-delete {
+  color: var(--danger);
+  border-color: transparent;
+  background: transparent;
+}
+.rv-btn-delete:hover {
+  background: rgba(220, 38, 38, 0.06);
+  color: #B91C1C;
+}
+
+/* Reset Password */
+.rv-btn-reset {
+  color: var(--info);
+  border-color: transparent;
+  background: transparent;
+}
+.rv-btn-reset:hover {
+  background: rgba(8, 145, 178, 0.06);
+  color: #0E7490;
+}
+
+/* Block/Unblock */
+.rv-btn-block {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: transparent;
+}
+.rv-btn-block:hover {
+  background: var(--danger-bg);
+}
+.rv-btn-unblock {
+  color: var(--success);
+  border-color: var(--success);
+  background: transparent;
+}
+.rv-btn-unblock:hover {
+  background: var(--success-bg);
+}
+
+/* Booking History (text+icon) */
+.rv-btn-history {
+  color: var(--primary-light);
+  border-color: var(--border);
+  background: transparent;
+}
+.rv-btn-history:hover {
+  background: rgba(var(--primary-rgb), 0.04);
+  border-color: var(--primary-light);
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE TABLE
+   ══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .rv-table-wrapper {
+    overflow-x: auto;
+  }
+  .rv-table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rv-pagination {
+    flex-direction: column;
+    align-items: center;
+  }
+}
