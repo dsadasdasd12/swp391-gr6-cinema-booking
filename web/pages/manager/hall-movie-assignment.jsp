@@ -184,7 +184,7 @@
                 </strong>
 
                 <span>
-                    Manager chỉ quản lý Hall thuộc chi nhánh được Admin phân công.
+                    Mỗi phòng chiếu có danh sách phim phân bổ riêng
                 </span>
             </div>
 
@@ -198,8 +198,8 @@
                     <h1>Phim tại phòng chiếu</h1>
 
                     <p>
-                        Phim phải được phân bổ cho chi nhánh trước
-                        khi được phân bổ cho từng phòng chiếu.
+                        Khi chuyển phòng, hệ thống sẽ tải lại những phim
+                        đã được lưu riêng cho phòng đó.
                     </p>
                 </div>
 
@@ -236,26 +236,21 @@
 
             <c:choose>
 
-                <%-- MANAGER CHƯA ĐƯỢC ADMIN GÁN BRANCH --%>
-                <c:when test="${empty branch}">
+                <%-- MANAGER CHƯA ĐƯỢC GÁN CHI NHÁNH --%>
+                <c:when test="${empty branches}">
 
                     <div class="panel">
 
                         <div class="panel-header">
-                            Chưa được phân công chi nhánh
+                            Không có chi nhánh
                         </div>
 
                         <div class="panel-body">
 
                             <div class="empty-admin">
 
-                                Tài khoản Manager này chưa được Admin
-                                phân công chi nhánh.
-
-                                <br><br>
-
-                                Không thể phân bổ phim cho phòng chiếu
-                                cho đến khi có một Branch được gán.
+                                Tài khoản Manager này chưa được
+                                phân công quản lý chi nhánh nào.
 
                             </div>
 
@@ -267,12 +262,12 @@
 
                 <c:otherwise>
 
-                    <%-- HIỂN THỊ BRANCH ĐƯỢC GÁN VÀ CHỌN HALL --%>
+                    <%-- BỘ LỌC CHI NHÁNH VÀ PHÒNG --%>
                     <div class="panel"
                          style="margin-bottom: 24px;">
 
                         <div class="panel-header">
-                            Chi nhánh và phòng chiếu
+                            Chọn chi nhánh và phòng chiếu
                         </div>
 
                         <div class="panel-body">
@@ -283,21 +278,38 @@
                                   class="assignment-filter"
                                   autocomplete="off">
 
-                                <%-- BRANCH CHỈ HIỂN THỊ, KHÔNG CHO MANAGER ĐỔI --%>
+                                <%-- CHỌN CHI NHÁNH --%>
                                 <div class="form-group">
 
-                                    <label>
-                                        Chi nhánh được phân công
+                                    <label for="branchId">
+                                        Chi nhánh
                                     </label>
 
-                                    <input type="text"
-                                           class="input-field"
-                                           value="${branch.name}"
-                                           readonly>
+                                    <select id="branchId"
+                                            name="branchId"
+                                            class="select-field"
+                                            required
+                                            onchange="changeBranch()">
+
+                                        <c:forEach var="branch"
+                                                   items="${branches}">
+
+                                            <option value="${branch.id}"
+                                                ${selectedBranchId == branch.id
+                                                  ? 'selected'
+                                                  : ''}>
+
+                                                <c:out value="${branch.name}" />
+
+                                            </option>
+
+                                        </c:forEach>
+
+                                    </select>
 
                                 </div>
 
-                                <%-- MANAGER ĐƯỢC CHỌN HALL TRONG BRANCH CỦA MÌNH --%>
+                                <%-- CHỌN PHÒNG --%>
                                 <div class="form-group">
 
                                     <label for="hallId">
@@ -369,7 +381,7 @@
 
                     <c:choose>
 
-                        <%-- BRANCH CHƯA CÓ HALL --%>
+                        <%-- CHI NHÁNH CHƯA CÓ PHÒNG --%>
                         <c:when test="${empty halls}">
 
                             <div class="panel">
@@ -382,8 +394,7 @@
 
                                     <div class="empty-admin">
 
-                                        Chi nhánh được phân công
-                                        chưa có phòng chiếu.
+                                        Chi nhánh đang chọn chưa có phòng chiếu.
 
                                         <br><br>
 
@@ -400,7 +411,7 @@
 
                         <c:otherwise>
 
-                            <%-- DANH SÁCH PHIM CỦA HALL ĐANG CHỌN --%>
+                            <%-- DANH SÁCH PHIM --%>
                             <div class="panel">
 
                                 <div class="panel-header">
@@ -414,7 +425,18 @@
                                         Chi nhánh:
 
                                         <strong>
-                                            <c:out value="${branch.name}" />
+
+                                            <c:forEach var="branch"
+                                                       items="${branches}">
+
+                                                <c:if test="${branch.id == selectedBranchId}">
+
+                                                    <c:out value="${branch.name}" />
+
+                                                </c:if>
+
+                                            </c:forEach>
+
                                         </strong>
 
                                         <br>
@@ -444,7 +466,7 @@
 
                                     <c:choose>
 
-                                        <%-- BRANCH CHƯA CÓ MOVIE ĐỂ GÁN CHO HALL --%>
+                                        <%-- CHI NHÁNH CHƯA CÓ PHIM --%>
                                         <c:when test="${empty movieItems}">
 
                                             <div class="empty-admin">
@@ -455,7 +477,7 @@
                                                 <br><br>
 
                                                 <a class="btn btn-primary"
-                                                   href="${ctx}/manager/movie-assignments/branches">
+                                                   href="${ctx}/manager/movie-assignments/branches?branchId=${selectedBranchId}">
 
                                                     Phân bổ phim cho chi nhánh
 
@@ -473,10 +495,13 @@
                                                   autocomplete="off"
                                                   onsubmit="return confirmSaveAssignment()">
 
+                                                <input type="hidden"
+                                                       name="branchId"
+                                                       value="${selectedBranchId}">
+
                                                 <%--
-                                                    Giữ hallId vì Manager có nhiều Hall.
-                                                    Không gửi branchId.
-                                                    Server tự lấy Branch từ Manager login.
+                                                    hallId này là phòng đang được
+                                                    hiển thị từ Controller.
                                                 --%>
                                                 <input type="hidden"
                                                        name="hallId"
@@ -683,8 +708,10 @@
     const contextPath = "${ctx}";
 
     /*
-     * Reset checkbox đang hiển thị trên giao diện trước khi đổi Hall.
-     * Không thay đổi dữ liệu trong database.
+     * Bỏ trạng thái checkbox đang hiển thị.
+     *
+     * Hàm này chỉ reset trên giao diện,
+     * không thay đổi dữ liệu trong database.
      */
     function clearVisibleCheckboxes() {
         const movieCheckboxes = document.querySelectorAll(
@@ -704,24 +731,69 @@
         }
     }
 
-    function changeHall() {
+    /*
+     * Khi đổi chi nhánh:
+     *
+     * Không gửi hallId cũ.
+     * Controller sẽ lấy danh sách phòng của chi nhánh mới
+     * và chọn phòng đầu tiên.
+     */
+    function changeBranch() {
         clearVisibleCheckboxes();
 
-        const hallSelect
-                = document.getElementById("hallId");
+        const branchSelect
+                = document.getElementById("branchId");
 
-        if (!hallSelect || !hallSelect.value) {
+        if (!branchSelect || !branchSelect.value) {
             return;
         }
 
         window.location.href
                 = contextPath
                 + "/manager/movie-assignments/halls"
-                + "?hallId="
+                + "?branchId="
+                + encodeURIComponent(branchSelect.value);
+    }
+
+    /*
+     * Khi đổi phòng:
+     *
+     * Gửi cả branchId và hallId mới lên Controller.
+     * Trang được tải lại hoàn toàn và DAO đọc dữ liệu
+     * HALL_MOVIES riêng theo hallId.
+     */
+    function changeHall() {
+        clearVisibleCheckboxes();
+
+        const branchSelect
+                = document.getElementById("branchId");
+
+        const hallSelect
+                = document.getElementById("hallId");
+
+        if (!branchSelect
+                || !hallSelect
+                || !branchSelect.value
+                || !hallSelect.value) {
+
+            return;
+        }
+
+        window.location.href
+                = contextPath
+                + "/manager/movie-assignments/halls"
+                + "?branchId="
+                + encodeURIComponent(branchSelect.value)
+                + "&hallId="
                 + encodeURIComponent(hallSelect.value);
     }
 
-
+    /*
+     * Khôi phục checkbox theo dữ liệu do DAO tải từ database.
+     *
+     * data-assigned=true:
+     * phim đã có trong HALL_MOVIES của phòng hiện tại.
+     */
     function restoreSavedCheckboxState() {
         const movieCheckboxes = document.querySelectorAll(
                 ".movie-item-checkbox"
@@ -735,6 +807,10 @@
         updateSelectAllState();
     }
 
+    /*
+     * Chọn hoặc bỏ chọn toàn bộ phim
+     * trong phòng đang hiển thị.
+     */
     function toggleAllMovies(selectAllCheckbox) {
         const movieCheckboxes = document.querySelectorAll(
                 ".movie-item-checkbox"
@@ -747,6 +823,9 @@
         updateSelectAllState();
     }
 
+    /*
+     * Cập nhật trạng thái Chọn tất cả.
+     */
     function updateSelectAllState() {
         const selectAllCheckbox
                 = document.getElementById("selectAll");
@@ -781,6 +860,9 @@
                 && checkedCount < movieCheckboxes.length;
     }
 
+    /*
+     * Xác nhận trước khi lưu.
+     */
     function confirmSaveAssignment() {
         return confirm(
                 "Bạn có chắc muốn lưu danh sách phim "
@@ -788,6 +870,9 @@
         );
     }
 
+    /*
+     * Khi trang được tải, luôn lấy trạng thái từ database.
+     */
     document.addEventListener(
             "DOMContentLoaded",
             function () {
@@ -795,6 +880,10 @@
             }
     );
 
+    /*
+     * Trường hợp trình duyệt khôi phục trang từ bộ nhớ,
+     * vẫn ép checkbox về đúng trạng thái từ server.
+     */
     window.addEventListener(
             "pageshow",
             function () {

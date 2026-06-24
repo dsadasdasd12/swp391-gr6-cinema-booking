@@ -129,10 +129,15 @@ CREATE TABLE dbo.[USER] (
     last_update     DATETIME2       NOT NULL CONSTRAINT DF_USER_lu     DEFAULT GETDATE(),
     CONSTRAINT PK_USER              PRIMARY KEY (id),
     CONSTRAINT UQ_USER_email        UNIQUE (email),
-    CONSTRAINT UQ_USER_google       UNIQUE (google_id),
     CONSTRAINT CK_USER_role         CHECK (role IN ('GUEST','CUSTOMER','STAFF','MANAGER','ADMIN')),
     CONSTRAINT CK_USER_auth         CHECK (password_hash IS NOT NULL OR google_id IS NOT NULL)
 );
+GO
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+CREATE UNIQUE NONCLUSTERED INDEX UQ_USER_google ON dbo.[USER](google_id) WHERE google_id IS NOT NULL;
+GO
 
 -- ============================================================
 -- GROUP 3 — Cinema & Branch

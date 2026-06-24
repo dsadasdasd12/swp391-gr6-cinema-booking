@@ -1,6 +1,6 @@
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Duyệt phim (Browse / Search / Filter / Xem chi tiết) - UC06
+ * Module: Duyệt phim (Browse / Search / Filter / Xem chi tiết)
  */
 package model;
 
@@ -17,7 +17,7 @@ import java.util.List;
  * Lưu ý: mọi xử lý định dạng để hiển thị đều đặt ở đây (tầng model) để JSP chỉ
  * cần gọi getter, không phải nhúng code Java.
  *
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class Movie {
 
@@ -254,6 +254,55 @@ public class Movie {
     public String getReleaseDateLabel() {
         return releaseDate == null ? ""
                 : releaseDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    /** Giá trị cho input type="date" (yyyy-MM-dd). */
+    public String getReleaseDateForInput() {
+        return releaseDate == null ? ""
+                : releaseDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+
+    /** Chuẩn hóa đường dẫn lưu DB / hiển thị (bỏ dấu / đầu). */
+    public static String normalizePosterPath(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        String p = url.trim();
+        while (p.startsWith("/")) {
+            p = p.substring(1);
+        }
+        return p.isEmpty() ? null : p;
+    }
+
+    /** Đường dẫn poster tương đối (không có dấu / đầu) để ghép với contextPath. */
+    public String getPosterWebPath() {
+        String p = normalizePosterPath(posterUrl);
+        return p == null ? "" : p;
+    }
+
+    /**
+     * Giá trị form select ngôn ngữ (Vietnamese, English, …) từ ngôn ngữ đầu tiên của phim.
+     */
+    public String getPrimaryLanguageFormValue() {
+        if (languages == null || languages.isEmpty()) {
+            return "";
+        }
+        Language l = languages.get(0);
+        String name = l.getName() != null ? l.getName().toLowerCase() : "";
+        String code = l.getCode() != null ? l.getCode().toLowerCase() : "";
+        if (name.contains("việt") || "vi".equals(code)) {
+            return "Vietnamese";
+        }
+        if (name.contains("anh") || "en".equals(code)) {
+            return "English";
+        }
+        if (name.contains("hàn") || "ko".equals(code)) {
+            return "Korean";
+        }
+        if (name.contains("nhật") || "ja".equals(code)) {
+            return "Japanese";
+        }
+        return "Mixed";
     }
 
     /**

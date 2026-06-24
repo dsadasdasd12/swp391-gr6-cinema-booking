@@ -9,7 +9,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="model.User" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="currentUser" value="${sessionScope.user}"/>
 <header class="site-header">
     <a href="${ctx}/home" class="brand">🎬 RapViet</a>
     <nav class="main-nav">

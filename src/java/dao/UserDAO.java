@@ -1,8 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dao;
+import java.sql.*;
+import model.User;
+import util.DBContext;
+import util.EncodingUtil;
+import util.PasswordUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -420,6 +421,21 @@ public class UserDAO {
         e.printStackTrace();
     }
 
-    return false;
-}
+        return false;
+    }
+
+    public int getBranchIdOfStaff(int userId) {
+        String sql = "SELECT branch_id FROM STAFF_BRANCH WHERE user_id = ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("branch_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 1; // Mặc định trả về chi nhánh 1 nếu chưa phân công
+    }
 }

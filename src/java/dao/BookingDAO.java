@@ -1,132 +1,402 @@
-/*
- * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Đặt vé - truy xuất đơn đặt vé cho KHÁCH (lịch sử / chi tiết / hủy)
- */
 package dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import dto.BookingView;
-import model.Booking;
 import util.DBContext;
 
-/**
- * Truy xuất đơn đặt vé phục vụ phần KHÁCH: xem lịch sử, xem chi tiết và tự hủy
- * đơn của chính mình. Mỗi đơn được join sẵn với phim/suất chiếu/chi nhánh/phòng
- * và gom danh sách ghế (STRING_AGG) để trả về DTO {@link BookingView} — entity
- * Booking giữ nguyên đúng cột bảng dbo.BOOKINGS.
- *
- * Lưu ý: DBContext của nhánh này dùng chung một Connection (singleton) nên chỉ
- * đóng PreparedStatement/ResultSet, KHÔNG đóng Connection.
- *
- * @author Group6 - Huy (Module Đặt vé)
- */
 public class BookingDAO {
 
-    /** SELECT + JOIN dùng chung cho truy vấn hiển thị đơn của khách. */
-    private static final String SELECT_VIEW =
-            "SELECT bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, "
-            + "bk.total_price, bk.qr_code, bk.booked_at, "
-            + "m.id AS movie_id, m.title AS movie_title, s.start_time, "
-            + "b.name AS branch_name, h.name AS hall_name, "
-            + "(SELECT COUNT(*) FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = bk.id) AS seat_count, "
-            + "(SELECT STRING_AGG(CONCAT(se.seat_row, se.seat_number), ', ') "
-            + "   WITHIN GROUP (ORDER BY se.seat_row, se.seat_number) "
-            + "   FROM dbo.BOOKING_SEATS bs JOIN dbo.SEATS se ON se.id = bs.seat_id "
-            + "   WHERE bs.booking_id = bk.id) AS seat_labels "
-            + "FROM dbo.BOOKINGS bk "
-            + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
-            + "JOIN dbo.MOVIES m   ON m.id = s.movie_id "
-            + "JOIN dbo.HALLS h    ON h.id = s.hall_id "
-            + "JOIN dbo.BRANCHES b ON b.id = h.branch_id ";
+    // 1. WRITE: Tạo hóa đơn bán vé tại quầy (WALK-IN TRANSACTION)
+    public int createWalkinBooking(int userId, int showtimeId, List<Integer> seatIds, List<Double> seatPrices,
+                                   double totalPrice, String paymentMethod, double discountAmount, 
+                                   String discountReason, int staffId) {
+        
+        String insertBookingSql = "INSERT INTO dbo.BOOKINGS (user_id, showtime_id, source, status, total_price, qr_code, booked_at, last_update) "
+                                + "VALUES (?, ?, 'WALKIN', ?, ?, NULL, GETDATE(), GETDATE())";
+        
+        String updateQrSql = "UPDATE dbo.BOOKINGS SET qr_code = ? WHERE id = ?";
+        
+        String insertBookingSeatsSql = "INSERT INTO dbo.BOOKING_SEATS (booking_id, seat_id, price, last_update) "
+                                     + "VALUES (?, ?, ?, GETDATE())";
+        
+        String insertPaymentSql = "INSERT INTO dbo.PAYMENTS (booking_id, type, method, transaction_id, status, amount, paid_at, gateway, last_update) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+        
+        String insertDiscountSql = "INSERT INTO dbo.COUNTER_DISCOUNTS (booking_id, applied_by, reason, amount, applied_at) "
+                                 + "VALUES (?, ?, ?, ?, GETDATE())";
 
-    /** Lịch sử đặt vé của một khách, mới nhất lên đầu (booking history). */
-    public List<BookingView> findByUserId(int userId) {
-        String sql = SELECT_VIEW + "WHERE bk.user_id = ? ORDER BY bk.booked_at DESC";
-        List<BookingView> list = new ArrayList<>();
-        Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapRow(rs));
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false); // Bắt đầu Transaction
+
+            // Kiểm tra trùng lặp ghế trước khi chèn để ngăn double booking tuyệt đối
+            StringBuilder checkSeatSql = new StringBuilder("SELECT COUNT(*) FROM dbo.BOOKING_SEATS bs ")
+                .append("JOIN dbo.BOOKINGS b ON bs.booking_id = b.id ")
+                .append("WHERE b.showtime_id = ? AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'USED') ")
+                .append("AND bs.seat_id IN (");
+            for (int i = 0; i < seatIds.size(); i++) {
+                checkSeatSql.append("?");
+                if (i < seatIds.size() - 1) {
+                    checkSeatSql.append(",");
                 }
             }
-        } catch (SQLException e) {
-            System.getLogger(BookingDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findByUserId thất bại", e);
-        }
-        return list;
-    }
-
-    /**
-     * Chi tiết một đơn của chính khách đó (kiểm tra quyền sở hữu qua user_id);
-     * trả null nếu không tồn tại hoặc không phải đơn của khách.
-     */
-    public BookingView findDetailByIdAndUser(int bookingId, int userId) {
-        String sql = SELECT_VIEW + "WHERE bk.id = ? AND bk.user_id = ?";
-        Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, bookingId);
-            ps.setInt(2, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapRow(rs);
+            checkSeatSql.append(")");
+            
+            try (PreparedStatement ps = conn.prepareStatement(checkSeatSql.toString())) {
+                ps.setInt(1, showtimeId);
+                for (int i = 0; i < seatIds.size(); i++) {
+                    ps.setInt(i + 2, seatIds.get(i));
+                }
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        conn.rollback();
+                        return -1; // Ghế đã có người đặt trước
+                    }
                 }
             }
-        } catch (SQLException e) {
-            System.getLogger(BookingDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findDetailByIdAndUser thất bại", e);
+
+            int bookingId = -1;
+            // A. Chèn đơn đặt vé
+            try (PreparedStatement ps = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, userId);
+                ps.setInt(2, showtimeId);
+                String bStatus = "BANKING".equalsIgnoreCase(paymentMethod) ? "PENDING" : "CONFIRMED";
+                ps.setString(3, bStatus);
+                ps.setDouble(4, totalPrice);
+                ps.executeUpdate();
+                
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        bookingId = rs.getInt(1);
+                    }
+                }
+            }
+
+            if (bookingId == -1) {
+                conn.rollback();
+                return -1;
+            }
+
+            // B. Cập nhật mã QR dạng mã đặt vé (Ví dụ: RV-WALK-10024)
+            String qrCode = "RV-WALK-" + bookingId;
+            try (PreparedStatement ps = conn.prepareStatement(updateQrSql)) {
+                ps.setString(1, qrCode);
+                ps.setInt(2, bookingId);
+                ps.executeUpdate();
+            }
+
+            // C. Chèn từng ghế ngồi vào BOOKING_SEATS
+            try (PreparedStatement ps = conn.prepareStatement(insertBookingSeatsSql)) {
+                for (int i = 0; i < seatIds.size(); i++) {
+                    int seatId = seatIds.get(i);
+                    double seatPrice = seatPrices.get(i);
+                    ps.setInt(1, bookingId);
+                    ps.setInt(2, seatId);
+                    ps.setDouble(3, seatPrice);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+
+            // D. Chèn bản ghi thanh toán PAYMENTS
+            String transId;
+            String payStatus;
+            java.sql.Timestamp paidAt;
+            String payType = "BANKING".equalsIgnoreCase(paymentMethod) ? "ONLINE" : "CASH";
+            String payMethod = "BANKING".equalsIgnoreCase(paymentMethod) ? "BANKING" : "CASH";
+
+            if ("BANKING".equalsIgnoreCase(paymentMethod)) {
+                transId = "PENDING-TX-" + System.currentTimeMillis() + "-" + bookingId;
+                payStatus = "PENDING";
+                paidAt = null;
+            } else {
+                transId = "CASH-TX-" + System.currentTimeMillis() + "-" + bookingId;
+                payStatus = "SUCCESS";
+                paidAt = new java.sql.Timestamp(System.currentTimeMillis());
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(insertPaymentSql)) {
+                ps.setInt(1, bookingId);
+                ps.setString(2, payType); // type: CASH hoặc ONLINE
+                ps.setString(3, payMethod); // method: CASH hoặc BANKING
+                ps.setString(4, transId);
+                ps.setString(5, payStatus);
+                ps.setDouble(6, totalPrice);
+                ps.setTimestamp(7, paidAt);
+                ps.setNull(8, java.sql.Types.VARCHAR);
+                ps.executeUpdate();
+            }
+
+            // E. Nếu có giảm giá tại quầy, chèn vào COUNTER_DISCOUNTS
+            if (discountAmount > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(insertDiscountSql)) {
+                    ps.setInt(1, bookingId);
+                    ps.setInt(2, staffId);
+                    ps.setString(3, discountReason);
+                    ps.setDouble(4, discountAmount);
+                    ps.executeUpdate();
+                }
+            }
+
+            conn.commit(); // Hoàn thành Transaction thành công
+            return bookingId;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback(); // Rollback nếu xảy ra bất kỳ lỗi nào
+                } catch (Exception rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
         }
-        return null;
+        return -1;
     }
 
-    /**
-     * Khách tự hủy đơn của mình: chỉ hủy được khi đơn đang ở trạng thái
-     * PENDING hoặc CONFIRMED và đúng là đơn của khách. Trả về true nếu hủy thành công.
-     */
-    public boolean cancelByUser(int bookingId, int userId) {
-        String sql = "UPDATE dbo.BOOKINGS "
-                + "SET status = 'CANCELLED', last_update = GETDATE() "
-                + "WHERE id = ? AND user_id = ? AND status IN ('PENDING','CONFIRMED')";
-        Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, bookingId);
-            ps.setInt(2, userId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.getLogger(BookingDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "cancelByUser thất bại", e);
+    // 2. WRITE: Hỗ trợ đổi ghế ngồi (chỉ khi vé ở trạng thái PENDING hoặc trước khi check-in)
+    public boolean changeBookingSeats(int bookingId, List<Integer> oldSeatIds, List<Integer> newSeatIds, List<Double> newPrices) {
+        String deleteSql = "DELETE FROM dbo.BOOKING_SEATS WHERE booking_id = ? AND seat_id = ?";
+        String insertSql = "INSERT INTO dbo.BOOKING_SEATS (booking_id, seat_id, price, last_update) VALUES (?, ?, ?, GETDATE())";
+        
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false);
+            
+            // Xóa ghế cũ
+            try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+                for (int oldId : oldSeatIds) {
+                    ps.setInt(1, bookingId);
+                    ps.setInt(2, oldId);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+            
+            // Thêm ghế mới
+            try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+                for (int i = 0; i < newSeatIds.size(); i++) {
+                    ps.setInt(1, bookingId);
+                    ps.setInt(2, newSeatIds.get(i));
+                    ps.setDouble(3, newPrices.get(i));
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+            
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (Exception re) { re.printStackTrace(); }
+            }
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (Exception ce) { ce.printStackTrace(); }
+            }
         }
         return false;
     }
 
-    /** Ánh xạ một dòng ResultSet sang BookingView (Booking theo cột DB + dữ liệu ghép). */
-    private BookingView mapRow(ResultSet rs) throws SQLException {
-        Booking bk = new Booking();
-        bk.setId(rs.getInt("id"));
-        bk.setUserId(rs.getInt("user_id"));
-        bk.setShowtimeId(rs.getInt("showtime_id"));
-        bk.setSource(rs.getString("source"));
-        bk.setStatus(rs.getString("status"));
-        bk.setTotalPrice(rs.getDouble("total_price"));
-        bk.setQrCode(rs.getString("qr_code"));
-        bk.setBookedAt(rs.getTimestamp("booked_at"));
+    // 3. READ: Lấy danh sách ID ghế đã bán hoặc đang bị khóa tạm thời trong giỏ hàng
+    public List<Integer> getBookedSeatIds(int showtimeId) {
+        List<Integer> list = new ArrayList<>();
+        
+        // SQL lấy ghế đã bán chính thức (Trạng thái đặt vé không phải CANCELLED)
+        String bookedSql = "SELECT bs.seat_id "
+                         + "FROM dbo.BOOKING_SEATS bs "
+                         + "JOIN dbo.BOOKINGS b ON bs.booking_id = b.id "
+                         + "WHERE b.showtime_id = ? AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'USED')";
+        
+        // SQL lấy ghế đang bị khóa tạm thời trong giỏ hàng (Expires/Locked chưa hết hạn)
+        String lockedSql = "SELECT ci.seat_id "
+                         + "FROM dbo.CART_ITEMS ci "
+                         + "JOIN dbo.CART c ON ci.cart_id = c.id "
+                         + "WHERE c.showtime_id = ? AND ci.locked_until > GETDATE()";
 
-        BookingView v = new BookingView();
-        v.setBooking(bk);
-        v.setMovieId(rs.getInt("movie_id"));
-        v.setMovieTitle(rs.getString("movie_title"));
-        v.setBranchName(rs.getString("branch_name"));
-        v.setHallName(rs.getString("hall_name"));
-        v.setShowStart(rs.getObject("start_time", LocalDateTime.class));
-        v.setSeatLabels(rs.getString("seat_labels"));
-        v.setSeatCount(rs.getInt("seat_count"));
-        return v;
+        try (Connection conn = new DBContext().getConnection()) {
+            // A. Lấy ghế đã đặt chính thức
+            try (PreparedStatement ps = conn.prepareStatement(bookedSql)) {
+                ps.setInt(1, showtimeId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        list.add(rs.getInt("seat_id"));
+                    }
+                }
+            }
+            // B. Lấy ghế đang khóa trong giỏ hàng
+            try (PreparedStatement ps = conn.prepareStatement(lockedSql)) {
+                ps.setInt(1, showtimeId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        int seatId = rs.getInt("seat_id");
+                        if (!list.contains(seatId)) {
+                            list.add(seatId);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // 4. READ SINGLE: Lấy thông tin chi tiết một hóa đơn đặt vé
+    public model.Booking getBookingById(int id) {
+        String sql = "SELECT * FROM dbo.BOOKINGS WHERE id = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new model.Booking(
+                        rs.getInt("id"),
+                        rs.getInt("user_id"),
+                        rs.getInt("showtime_id"),
+                        rs.getString("source"),
+                        rs.getString("status"),
+                        rs.getDouble("total_price"),
+                        rs.getString("qr_code"),
+                        rs.getTimestamp("booked_at")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // 5. READ RECENT: Lấy danh sách hóa đơn đặt vé gần đây cho trình giả lập
+    public List<model.Booking> getRecentBookings(int limit) {
+        List<model.Booking> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) * FROM dbo.BOOKINGS ORDER BY id DESC";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new model.Booking(
+                        rs.getInt("id"),
+                        rs.getInt("user_id"),
+                        rs.getInt("showtime_id"),
+                        rs.getString("source"),
+                        rs.getString("status"),
+                        rs.getDouble("total_price"),
+                        rs.getString("qr_code"),
+                        rs.getTimestamp("booked_at")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // confirmPayment: Webhook cập nhật đơn hàng thành CONFIRMED và thanh toán thành SUCCESS
+    public boolean confirmPayment(int bookingId, String transactionId, double amount, String gateway) {
+        String updateBookingSql = "UPDATE dbo.BOOKINGS SET status = 'CONFIRMED', last_update = GETDATE() WHERE id = ?";
+        String updatePaymentSql = "UPDATE dbo.PAYMENTS SET status = 'SUCCESS', transaction_id = ?, amount = ?, gateway = ?, paid_at = GETDATE(), last_update = GETDATE() WHERE booking_id = ?";
+        
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false);
+            
+            try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
+                ps.setString(1, transactionId);
+                ps.setDouble(2, amount);
+                ps.setString(3, gateway);
+                ps.setInt(4, bookingId);
+                ps.executeUpdate();
+            }
+            
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (Exception ex) { ex.printStackTrace(); }
+            }
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            }
+        }
+        return false;
+    }
+
+    // getBookingStatus: Trả về trạng thái của booking
+    public String getBookingStatus(int bookingId) {
+        String sql = "SELECT status FROM dbo.BOOKINGS WHERE id = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("status");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "NOT_FOUND";
+    }
+
+    // cancelBooking: Cập nhật booking thành CANCELLED và thanh toán thành FAILED để giải phóng ghế
+    public boolean cancelBooking(int bookingId) {
+        String updateBookingSql = "UPDATE dbo.BOOKINGS SET status = 'CANCELLED', last_update = GETDATE() WHERE id = ?";
+        String updatePaymentSql = "UPDATE dbo.PAYMENTS SET status = 'FAILED', last_update = GETDATE() WHERE booking_id = ?";
+        
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false);
+            
+            try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
+            
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (Exception ex) { ex.printStackTrace(); }
+            }
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (Exception ex) { ex.printStackTrace(); }
+            }
+        }
+        return false;
     }
 }

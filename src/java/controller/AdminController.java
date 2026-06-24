@@ -15,7 +15,7 @@ import service.BranchService;
 import service.UserService;
 
 @WebServlet({
-    "/admin/dashboard",
+    
     "/admin/accounts",
     "/admin/user/save",
     "/admin/user/toggle-active"
@@ -59,10 +59,6 @@ public class AdminController extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-
-            case "/admin/dashboard":
-                showDashboard(request, response);
-                break;
 
             case "/admin/accounts":
                 showAccountManagement(request, response);
@@ -130,14 +126,6 @@ public class AdminController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard");
                 break;
         }
-    }
-
-    private void showDashboard(HttpServletRequest request,
-                               HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.getRequestDispatcher("/pages/admin/dashboard.jsp")
-                .forward(request, response);
     }
 
     private void showAccountManagement(HttpServletRequest request,

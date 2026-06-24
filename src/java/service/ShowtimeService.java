@@ -19,7 +19,6 @@ import model.Branch;
 import model.Hall;
 import model.Movie;
 import model.Showtime;
-
 public class ShowtimeService {
 
     private static final List<String> VALID_STATUS = Arrays.asList(
@@ -109,12 +108,15 @@ public class ShowtimeService {
 
         validateAndPrepare(showtime, false);
 
-        boolean conflict = showtimeDAO.hasScheduleConflict(
-                showtime.getHallId(),
-                showtime.getStartTime(),
-                showtime.getEndTime(),
-                0
-        );
+        /*
+         * Kiểm tra phòng có bị trùng lịch không.
+         */
+       boolean conflict = showtimeDAO.hasScheduleConflict(
+        showtime.getHallId(),
+        showtime.getStartTime().toLocalDateTime(),
+        showtime.getEndTime().toLocalDateTime(),
+        0
+);
 
         if (conflict) {
             throw new IllegalArgumentException(
@@ -177,12 +179,16 @@ public class ShowtimeService {
 
         validateAndPrepare(showtime, true);
 
+        /*
+         * Khi kiểm tra trùng lịch, bỏ qua chính suất chiếu
+         * đang được chỉnh sửa.
+         */
         boolean conflict = showtimeDAO.hasScheduleConflict(
-                showtime.getHallId(),
-                showtime.getStartTime(),
-                showtime.getEndTime(),
-                showtime.getId()
-        );
+        showtime.getHallId(),
+        showtime.getStartTime().toLocalDateTime(),
+        showtime.getEndTime().toLocalDateTime(),
+        showtime.getId()
+);
 
         if (conflict) {
             throw new IllegalArgumentException(
@@ -300,19 +306,11 @@ public class ShowtimeService {
             );
         }
 
-        if (showtime.getBasePrice() == null) {
-            throw new IllegalArgumentException(
-                    "Vui lòng nhập giá vé cơ bản."
-            );
-        }
-
-        if (showtime.getBasePrice()
-                .compareTo(BigDecimal.ZERO) < 0) {
-
-            throw new IllegalArgumentException(
-                    "Giá vé cơ bản không được nhỏ hơn 0."
-            );
-        }
+        if (showtime.getBasePrice() < 0) {
+    throw new IllegalArgumentException(
+            "Giá vé cơ bản không được nhỏ hơn 0."
+    );
+}
 
         Movie movie = movieDAO.findById(
                 showtime.getMovieId()
@@ -358,8 +356,14 @@ public class ShowtimeService {
 
         showtime.setStatus(status);
 
-        LocalDateTime endTime = showtime.getStartTime()
-                .plusMinutes(movie.getDurationMin());
+        /*
+         * Tự động tính giờ kết thúc:
+         *
+         * endTime = startTime + durationMin
+         */
+       LocalDateTime endTime = showtime.getStartTime()
+        .toLocalDateTime()
+        .plusMinutes(movie.getDurationMin());
 
         showtime.setEndTime(endTime);
     }
@@ -376,5 +380,37 @@ public class ShowtimeService {
         }
 
         return result;
+    }
+
+    public List<Showtime> getActiveShowtimesByBranch(int branchId) {
+        return showtimeDAO.getActiveShowtimesByBranch(branchId);
+    }
+
+    public Showtime getShowtimeById(int id) {
+        return showtimeDAO.getShowtimeById(id);
+    }
+
+    public boolean setSeatPricing(int showtimeId, String seatType, double price) {
+        return showtimeDAO.setSeatPricing(showtimeId, seatType, price);
+    }
+
+    public double getSeatPrice(int showtimeId, String seatType, double basePrice) {
+        return showtimeDAO.getSeatPrice(showtimeId, seatType, basePrice);
+    }
+
+    public int getBookedSeatsCount(int showtimeId) {
+        return showtimeDAO.getBookedSeatsCount(showtimeId);
+    }
+
+    public int getTotalSeatsInHall(int showtimeId) {
+        return showtimeDAO.getTotalSeatsInHall(showtimeId);
+    }
+
+    public double getOccupancyRate(int showtimeId) {
+        return showtimeDAO.getOccupancyRate(showtimeId);
+    }
+
+    public List<Showtime> getShowtimesByBranchAndDate(int branchId, String dateStr) {
+        return showtimeDAO.getShowtimesByBranchAndDate(branchId, dateStr);
     }
 }

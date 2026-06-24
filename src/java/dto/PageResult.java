@@ -11,7 +11,7 @@ import java.util.List;
  * Mọi tính toán phân trang đặt ở đây để JSP chỉ việc đọc getter.
  *
  * @param <T> kiểu phần tử trong trang
- * @author Group6 - DuyThai (Module Duyệt phim)
+ * @author LONG
  */
 public class PageResult<T> {
 

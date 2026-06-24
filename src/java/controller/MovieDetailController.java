@@ -1,6 +1,6 @@
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Duyệt phim (Xem chi tiết phim + Suất chiếu) - UC06 / UC12
+ * Module: Duyệt phim (Xem chi tiết phim + Suất chiếu) / 
  */
 package controller;
 

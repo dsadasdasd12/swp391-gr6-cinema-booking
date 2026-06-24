@@ -1,8 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -133,4 +130,9 @@ public class User {
     public void setLastUpdate(LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
+    
+    public boolean isAdmin()      { return "ADMIN".equals(role); }
+    public boolean isManager()    { return "MANAGER".equals(role); }
+    public boolean isStaff()      { return "STAFF".equals(role); }
+    public boolean isCustomer()   { return "CUSTOMER".equals(role); }
 }

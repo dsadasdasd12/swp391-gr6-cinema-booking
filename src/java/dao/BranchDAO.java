@@ -16,44 +16,73 @@ import java.util.List;
 import dto.BranchView;
 import model.Branch;
 import util.DBContext;
+import util.EncodingUtil;
 
 public class BranchDAO {
 
-    /**
-     * (Phần KHÁCH xem) Danh sách chi nhánh đang hoạt động kèm tên rạp và số
-     * phòng chiếu đang hoạt động, sắp theo tên. Dữ liệu ghép từ CINEMA/HALLS
-     * được trả qua DTO BranchView để entity Branch chỉ giữ đúng cột bảng BRANCHES.
-     */
-    public List<BranchView> findActiveBranchViews() {
-        String sql = "SELECT b.id, b.cinema_id, b.name, b.address, b.phone, "
-                + "b.open_time, b.close_time, b.status, b.last_update, "
-                + "c.name AS cinema_name, "
-                + "(SELECT COUNT(*) FROM dbo.HALLS h "
-                + "   WHERE h.branch_id = b.id AND h.status = 'ACTIVE') AS hall_count "
-                + "FROM dbo.BRANCHES b "
-                + "JOIN dbo.CINEMA c ON c.id = b.cinema_id "
-                + "WHERE b.status = 'ACTIVE' "
-                + "ORDER BY b.name";
-
-        List<BranchView> list = new ArrayList<>();
-        Connection conn = DBContext.getInstance().getConnection();
-
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
+    public List<Branch> getAllBranches() {
+        List<Branch> list = new ArrayList<>();
+        String sql = "SELECT id, name, address, phone FROM dbo.BRANCHES WHERE status = 'ACTIVE' ORDER BY name ASC";
+        try (Connection conn = DBContext.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Branch branch = mapRow(rs);
-                list.add(new BranchView(branch, rs.getString("cinema_name"), rs.getInt("hall_count")));
+                Branch b = new Branch(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("address"),
+                    rs.getString("phone")
+                );
+                list.add(b);
             }
-
-        } catch (SQLException e) {
-            System.getLogger(BranchDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findActiveBranchViews thất bại", e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
         return list;
     }
 
+    public Branch getBranchById(int id) {
+        String sql = "SELECT id, name, address, phone FROM dbo.BRANCHES WHERE id = ?";
+        try (Connection conn = DBContext.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Branch(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("address"),
+                        rs.getString("phone")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Branch> findAllActive() {
+        List<Branch> list = new ArrayList<>();
+        String sql = "SELECT id, name, address, phone, status FROM dbo.BRANCHES WHERE status = 'ACTIVE' ORDER BY name";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Branch b = new Branch();
+                b.setId(rs.getInt("id"));
+                b.setName(EncodingUtil.getString(rs, "name"));
+                b.setAddress(EncodingUtil.getString(rs, "address"));
+                b.setPhone(rs.getString("phone"));
+                b.setStatus(rs.getString("status"));
+                list.add(b);
+            }
+        } catch (SQLException e) {
+            System.getLogger(BranchDAO.class.getName())
+                  .log(System.Logger.Level.ERROR, "findAllActive branches thất bại", e);
+        }
+        return list;
+    }
     public List<Branch> findAll() {
         String sql = "SELECT id, cinema_id, name, address, phone, open_time, close_time, status, last_update "
                 + "FROM dbo.BRANCHES "
