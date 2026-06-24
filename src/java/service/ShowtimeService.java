@@ -5,13 +5,18 @@
 
 package service;
 
+import dao.HallDAO;
 import dao.MovieManagementDAO;
 import dao.MovieDAO;
 import dao.ShowtimeDAO;
+import dao.StaffBranchDAO;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import model.Branch;
+import model.Hall;
 import model.Movie;
 import model.Showtime;
 public class ShowtimeService {
@@ -23,55 +28,84 @@ public class ShowtimeService {
 
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAO();
     private final MovieDAO movieDAO = new MovieDAO();
-
-    /*
-     * Dùng để kiểm tra phim đã được phân bổ
-     * cho phòng chiếu hay chưa.
-     */
     private final MovieManagementDAO movieManagementDAO
-        = new MovieManagementDAO();
+            = new MovieManagementDAO();
 
-    /**
-     * Lấy các suất chiếu thuộc những chi nhánh
-     * mà Manager đang quản lý.
-     */
-    public List<Showtime> getShowtimesByManagerId(int managerId) {
+    private final StaffBranchDAO staffBranchDAO
+            = new StaffBranchDAO();
 
+    private final HallDAO hallDAO = new HallDAO();
+
+    public Branch getAssignedBranch(int managerId) {
         if (managerId <= 0) {
-            throw new IllegalArgumentException(
-                    "Tài khoản Manager không hợp lệ."
-            );
+            return null;
         }
 
-        return showtimeDAO.findByManagerId(managerId);
+        return staffBranchDAO.findBranchByManagerId(managerId);
     }
 
-    /**
-     * Lấy một suất chiếu thuộc quyền quản lý của Manager.
-     */
+    public List<Showtime> getShowtimesByManagerId(int managerId) {
+        Branch branch = getAssignedBranch(managerId);
+
+        if (branch == null) {
+            return Collections.emptyList();
+        }
+
+        return showtimeDAO.findByBranchId(branch.getId());
+    }
+
     public Showtime getShowtimeByIdAndManagerId(
             int id,
-            int managerId) {
-
+            int managerId
+    ) {
         if (id <= 0 || managerId <= 0) {
             return null;
         }
 
-        return showtimeDAO.findByIdAndManagerId(
+        Branch branch = getAssignedBranch(managerId);
+
+        if (branch == null) {
+            return null;
+        }
+
+        return showtimeDAO.findByIdAndBranchId(
                 id,
-                managerId
+                branch.getId()
         );
     }
 
-    /**
-     * Tạo suất chiếu mới.
-     */
+    @Deprecated
     public boolean createShowtime(Showtime showtime) {
+        validateAndPrepare(showtime, false);
 
-        /*
-         * Kiểm tra dữ liệu, kiểm tra phân bổ phim
-         * và tự động tính giờ kết thúc.
-         */
+        boolean conflict = showtimeDAO.hasScheduleConflict(
+                showtime.getHallId(),
+                showtime.getStartTime(),
+                showtime.getEndTime(),
+                0
+        );
+
+        if (conflict) {
+            throw new IllegalArgumentException(
+                    "Phòng chiếu này đã có suất chiếu "
+                    + "trong khoảng thời gian đã chọn."
+            );
+        }
+
+        return showtimeDAO.insert(showtime);
+    }
+
+    public boolean createShowtime(
+            int managerId,
+            Showtime showtime
+    ) {
+        Branch branch = requireAssignedBranch(managerId);
+
+        ensureHallBelongsToBranch(
+                showtime == null ? 0 : showtime.getHallId(),
+                branch.getId()
+        );
+
         validateAndPrepare(showtime, false);
 
         /*
@@ -94,14 +128,55 @@ public class ShowtimeService {
         return showtimeDAO.insert(showtime);
     }
 
-    /**
-     * Cập nhật suất chiếu.
-     */
+    @Deprecated
     public boolean updateShowtime(Showtime showtime) {
+        validateAndPrepare(showtime, true);
 
-        /*
-         * requireId = true vì cập nhật phải có ID.
-         */
+        boolean conflict = showtimeDAO.hasScheduleConflict(
+                showtime.getHallId(),
+                showtime.getStartTime(),
+                showtime.getEndTime(),
+                showtime.getId()
+        );
+
+        if (conflict) {
+            throw new IllegalArgumentException(
+                    "Phòng chiếu này đã có suất chiếu "
+                    + "trong khoảng thời gian đã chọn."
+            );
+        }
+
+        return showtimeDAO.update(showtime);
+    }
+
+    public boolean updateShowtime(
+            int managerId,
+            Showtime showtime
+    ) {
+        Branch branch = requireAssignedBranch(managerId);
+
+        if (showtime == null || showtime.getId() <= 0) {
+            throw new IllegalArgumentException(
+                    "Không xác định được suất chiếu cần cập nhật."
+            );
+        }
+
+        Showtime current = showtimeDAO.findByIdAndBranchId(
+                showtime.getId(),
+                branch.getId()
+        );
+
+        if (current == null) {
+            throw new IllegalArgumentException(
+                    "Bạn không có quyền cập nhật suất chiếu này."
+            );
+        }
+
+        ensureHallBelongsToBranch(
+                showtime.getHallId(),
+                branch.getId()
+        );
+
         validateAndPrepare(showtime, true);
 
         /*
@@ -125,43 +200,82 @@ public class ShowtimeService {
         return showtimeDAO.update(showtime);
     }
 
-    /**
-     * Hủy suất chiếu.
-     */
     public boolean cancelShowtime(
             int id,
-            int managerId) {
-
+            int managerId
+    ) {
         if (id <= 0 || managerId <= 0) {
             return false;
         }
 
-        Showtime current
-                = showtimeDAO.findByIdAndManagerId(
-                        id,
-                        managerId
-                );
+        Branch branch = getAssignedBranch(managerId);
+
+        if (branch == null) {
+            return false;
+        }
+
+        Showtime current = showtimeDAO.findByIdAndBranchId(
+                id,
+                branch.getId()
+        );
 
         if (current == null) {
             return false;
         }
 
         if ("CANCELLED".equalsIgnoreCase(
-                current.getStatus())) {
-
+                current.getStatus()
+        )) {
             return false;
         }
 
         return showtimeDAO.cancel(id);
     }
 
-    /**
-     * Kiểm tra dữ liệu và chuẩn bị giờ kết thúc.
-     */
+    private Branch requireAssignedBranch(int managerId) {
+        if (managerId <= 0) {
+            throw new IllegalArgumentException(
+                    "Tài khoản Manager không hợp lệ."
+            );
+        }
+
+        Branch branch = staffBranchDAO.findBranchByManagerId(managerId);
+
+        if (branch == null) {
+            throw new IllegalArgumentException(
+                    "Tài khoản Manager chưa được Admin phân công chi nhánh."
+            );
+        }
+
+        return branch;
+    }
+
+    private void ensureHallBelongsToBranch(
+            int hallId,
+            int branchId
+    ) {
+        if (hallId <= 0) {
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn phòng chiếu."
+            );
+        }
+
+        Hall hall = hallDAO.findByIdAndBranchId(
+                hallId,
+                branchId
+        );
+
+        if (hall == null) {
+            throw new IllegalArgumentException(
+                    "Bạn không có quyền sử dụng phòng chiếu này."
+            );
+        }
+    }
+
     private void validateAndPrepare(
             Showtime showtime,
-            boolean requireId) {
-
+            boolean requireId
+    ) {
         if (showtime == null) {
             throw new IllegalArgumentException(
                     "Dữ liệu suất chiếu không hợp lệ."
@@ -198,13 +312,9 @@ public class ShowtimeService {
     );
 }
 
-        /*
-         * Kiểm tra phim có tồn tại hay không.
-         */
-        Movie movie
-                = movieDAO.findById(
-                        showtime.getMovieId()
-                );
+        Movie movie = movieDAO.findById(
+                showtime.getMovieId()
+        );
 
         if (movie == null) {
             throw new IllegalArgumentException(
@@ -212,16 +322,11 @@ public class ShowtimeService {
             );
         }
 
-        /*
-         * Kiểm tra phim đã được phân bổ cho phòng chiếu.
-         *
-         * Đây là phần mới được thêm.
-         */
         boolean assignedToHall
-        = movieManagementDAO.isMovieAssignedToHall(
-                showtime.getHallId(),
-                showtime.getMovieId()
-        );
+                = movieManagementDAO.isMovieAssignedToHall(
+                        showtime.getHallId(),
+                        showtime.getMovieId()
+                );
 
         if (!assignedToHall) {
             throw new IllegalArgumentException(
@@ -229,19 +334,12 @@ public class ShowtimeService {
             );
         }
 
-        /*
-         * Thời lượng phim phải hợp lệ để hệ thống
-         * tự tính giờ kết thúc.
-         */
         if (movie.getDurationMin() <= 0) {
             throw new IllegalArgumentException(
                     "Phim chưa có thời lượng hợp lệ."
             );
         }
 
-        /*
-         * Kiểm tra trạng thái.
-         */
         String status = normalize(
                 showtime.getStatus()
         );
@@ -270,17 +368,12 @@ public class ShowtimeService {
         showtime.setEndTime(endTime);
     }
 
-    /**
-     * Chuẩn hóa chuỗi trạng thái.
-     */
     private String normalize(String value) {
-
         if (value == null) {
             return null;
         }
 
-        String result
-                = value.trim().toUpperCase();
+        String result = value.trim().toUpperCase();
 
         if (result.isEmpty()) {
             return null;

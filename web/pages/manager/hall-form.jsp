@@ -71,20 +71,25 @@
                         <c:if test="${isEdit}">
                             <input type="hidden" name="id" value="${hall.id}">
                         </c:if>
-                            
-                            <input type="hidden" name="branchId" value="${hall.branchId}">
 
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="name">Tên phòng chiếu *</label>
-                                <input id="name"
+                                <label>Chi nhánh quản lý</label>
+                                <input class="input-field"
+                                       type="text"
+                                       value="${branch.name}"
+                                       readonly>
+                            </div>
+                                       <div class="form-group">
+                                           <label for="name">Tên phòng chiếu *</label>
+                                           <input id="name"
                                        name="name"
                                        class="input-field"
                                        type="text"
                                        required
                                        placeholder="Ví dụ: Phòng 01"
                                        value="${hall.name}">
-                            </div>
+                                       </div>
 
                             <div class="form-group">
                                 <label for="totalSeats">Tổng số ghế *</label>
