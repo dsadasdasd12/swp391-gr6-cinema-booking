@@ -111,6 +111,7 @@ public class AuthController extends HttpServlet {
 
             default:
                 response.sendRedirect(request.getContextPath() + "/home");
+                break;
         }
     }
 
@@ -141,7 +142,9 @@ public class AuthController extends HttpServlet {
 
         if (!user.isEmailVerified()) {
 
+        if (!user.isEmailVerified()) {
             HttpSession session = request.getSession();
+            session.setAttribute("verifyUser", user);
 
             authService.sendVerifyOtp(getServletContext(), session, user);
 

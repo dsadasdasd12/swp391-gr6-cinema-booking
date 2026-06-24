@@ -5,16 +5,14 @@
 package controller;
 
 import dao.StaffBranchDAO;
-import dto.BranchHallGroup;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.List;
 import model.Branch;
 import model.Hall;
 import model.User;
@@ -39,9 +37,7 @@ public class HallController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
-
-        switch (path) {
+        switch (request.getServletPath()) {
             case "/manager/halls/create":
                 showCreateForm(request, response);
                 break;
@@ -50,7 +46,6 @@ public class HallController extends HttpServlet {
                 showEditForm(request, response);
                 break;
 
-            case "/manager/halls":
             default:
                 listHalls(request, response);
                 break;
@@ -58,15 +53,12 @@ public class HallController extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request,
-            HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
 
-        String path = request.getServletPath();
-
-        switch (path) {
+        switch (request.getServletPath()) {
             case "/manager/halls/create":
                 createHall(request, response);
                 break;
@@ -92,51 +84,47 @@ public class HallController extends HttpServlet {
     private void listHalls(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        User user = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
 
-        if (user == null) {
+        if (manager == null) {
             return;
         }
 
-        List<Branch> branches = staffBranchDAO.findBranchesByUserId(user.getId());
-        List<BranchHallGroup> branchHallGroups = new ArrayList<>();
+        Branch branch = staffBranchDAO.findBranchByManagerId(manager.getId());
 
-        for (Branch branch : branches) {
-            List<Hall> halls = hallService.getHallsByBranchId(branch.getId());
-            branchHallGroups.add(new BranchHallGroup(branch, halls));
-        }
+        List<Hall> halls = branch == null
+                ? List.of()
+                : hallService.getHallsByBranchId(branch.getId());
 
-        request.setAttribute("branchHallGroups", branchHallGroups);
+        request.setAttribute("branch", branch);
+        request.setAttribute("halls", halls);
+
         request.getRequestDispatcher(HALL_LIST_PAGE).forward(request, response);
     }
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        User user = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
 
-        if (user == null) {
+        if (manager == null) {
             return;
         }
 
-        int branchId = parseInt(request.getParameter("branchId"));
+        Branch branch = getAssignedBranchOrRedirect(manager, request, response);
 
-        if (!isAllowedBranch(user.getId(), branchId)) {
-            setFlash(request, "error", "Bạn không có quyền thêm phòng chiếu cho chi nhánh này.");
-            response.sendRedirect(request.getContextPath() + "/manager/halls");
+        if (branch == null) {
             return;
         }
-
-        Branch branch = findBranchForManager(user.getId(), branchId);
 
         Hall hall = new Hall();
-        hall.setBranchId(branchId);
+        hall.setBranchId(branch.getId());
         hall.setBranchName(branch.getName());
         hall.setHallType("STANDARD");
         hall.setStatus("ACTIVE");
 
-        request.setAttribute("hall", hall);
         request.setAttribute("branch", branch);
+        request.setAttribute("hall", hall);
         request.setAttribute("formMode", "create");
 
         request.getRequestDispatcher(HALL_FORM_PAGE).forward(request, response);
@@ -145,32 +133,38 @@ public class HallController extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        User user = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
 
-        if (user == null) {
+        if (manager == null) {
             return;
         }
 
-        int id = parseInt(request.getParameter("id"));
-        int branchId = parseInt(request.getParameter("branchId"));
+        Branch branch = getAssignedBranchOrRedirect(manager, request, response);
 
-        if (!isAllowedBranch(user.getId(), branchId)) {
-            setFlash(request, "error", "Bạn không có quyền sửa phòng chiếu của chi nhánh này.");
-            response.sendRedirect(request.getContextPath() + "/manager/halls");
+        if (branch == null) {
             return;
         }
 
-        Branch branch = findBranchForManager(user.getId(), branchId);
-        Hall hall = hallService.getHallByIdAndBranchId(id, branchId);
+        int hallId = parseInt(request.getParameter("id"));
+
+        Hall hall = hallService.getHallByIdAndBranchId(
+                hallId,
+                branch.getId()
+        );
 
         if (hall == null) {
-            setFlash(request, "error", "Không tìm thấy phòng chiếu trong chi nhánh này.");
+            setFlash(
+                    request,
+                    "error",
+                    "Không tìm thấy phòng chiếu thuộc chi nhánh của bạn."
+            );
+
             response.sendRedirect(request.getContextPath() + "/manager/halls");
             return;
         }
 
-        request.setAttribute("hall", hall);
         request.setAttribute("branch", branch);
+        request.setAttribute("hall", hall);
         request.setAttribute("formMode", "edit");
 
         request.getRequestDispatcher(HALL_FORM_PAGE).forward(request, response);
@@ -179,42 +173,42 @@ public class HallController extends HttpServlet {
     private void createHall(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        User user = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
 
-        if (user == null) {
+        if (manager == null) {
             return;
         }
 
-        int branchId = parseInt(request.getParameter("branchId"));
+        Branch branch = getAssignedBranchOrRedirect(manager, request, response);
 
-        if (!isAllowedBranch(user.getId(), branchId)) {
-            setFlash(request, "error", "Bạn không có quyền thêm phòng chiếu cho chi nhánh này.");
-            response.sendRedirect(request.getContextPath() + "/manager/halls");
+        if (branch == null) {
             return;
         }
 
-        Branch branch = findBranchForManager(user.getId(), branchId);
         Hall hall = buildHallFromRequest(request);
-        hall.setBranchId(branchId);
+
+        hall.setBranchId(branch.getId());
         hall.setBranchName(branch.getName());
 
         try {
-            boolean success = hallService.createHall(hall);
-
-            if (success) {
+            if (hallService.createHall(hall)) {
                 setFlash(request, "success", "Thêm phòng chiếu mới thành công.");
+
                 response.sendRedirect(request.getContextPath() + "/manager/halls");
                 return;
             }
 
-            request.setAttribute("error", "Không thể thêm phòng chiếu. Vui lòng thử lại.");
+            request.setAttribute(
+                    "error",
+                    "Không thể thêm phòng chiếu. Vui lòng thử lại."
+            );
 
         } catch (IllegalArgumentException e) {
             request.setAttribute("error", e.getMessage());
         }
 
-        request.setAttribute("hall", hall);
         request.setAttribute("branch", branch);
+        request.setAttribute("hall", hall);
         request.setAttribute("formMode", "create");
 
         request.getRequestDispatcher(HALL_FORM_PAGE).forward(request, response);
@@ -223,43 +217,61 @@ public class HallController extends HttpServlet {
     private void updateHall(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        User user = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
 
-        if (user == null) {
+        if (manager == null) {
             return;
         }
 
-        int branchId = parseInt(request.getParameter("branchId"));
+        Branch branch = getAssignedBranchOrRedirect(manager, request, response);
 
-        if (!isAllowedBranch(user.getId(), branchId)) {
-            setFlash(request, "error", "Bạn không có quyền cập nhật phòng chiếu của chi nhánh này.");
+        if (branch == null) {
+            return;
+        }
+
+        int hallId = parseInt(request.getParameter("id"));
+
+        Hall existingHall = hallService.getHallByIdAndBranchId(
+                hallId,
+                branch.getId()
+        );
+
+        if (existingHall == null) {
+            setFlash(
+                    request,
+                    "error",
+                    "Bạn không có quyền cập nhật phòng chiếu này."
+            );
+
             response.sendRedirect(request.getContextPath() + "/manager/halls");
             return;
         }
 
-        Branch branch = findBranchForManager(user.getId(), branchId);
         Hall hall = buildHallFromRequest(request);
-        hall.setId(parseInt(request.getParameter("id")));
-        hall.setBranchId(branchId);
+
+        hall.setId(hallId);
+        hall.setBranchId(branch.getId());
         hall.setBranchName(branch.getName());
 
         try {
-            boolean success = hallService.updateHall(hall);
-
-            if (success) {
+            if (hallService.updateHall(hall)) {
                 setFlash(request, "success", "Cập nhật phòng chiếu thành công.");
+
                 response.sendRedirect(request.getContextPath() + "/manager/halls");
                 return;
             }
 
-            request.setAttribute("error", "Không thể cập nhật phòng chiếu. Vui lòng thử lại.");
+            request.setAttribute(
+                    "error",
+                    "Không thể cập nhật phòng chiếu. Vui lòng thử lại."
+            );
 
         } catch (IllegalArgumentException e) {
             request.setAttribute("error", e.getMessage());
         }
 
-        request.setAttribute("hall", hall);
         request.setAttribute("branch", branch);
+        request.setAttribute("hall", hall);
         request.setAttribute("formMode", "edit");
 
         request.getRequestDispatcher(HALL_FORM_PAGE).forward(request, response);
@@ -268,28 +280,41 @@ public class HallController extends HttpServlet {
     private void deleteHall(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        User user = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
 
-        if (user == null) {
+        if (manager == null) {
             return;
         }
 
-        int id = parseInt(request.getParameter("id"));
-        int branchId = parseInt(request.getParameter("branchId"));
+        Branch branch = getAssignedBranchOrRedirect(manager, request, response);
 
-        if (!isAllowedBranch(user.getId(), branchId)) {
-            setFlash(request, "error", "Bạn không có quyền xóa phòng chiếu của chi nhánh này.");
-            response.sendRedirect(request.getContextPath() + "/manager/halls");
+        if (branch == null) {
             return;
         }
 
-        boolean success = hallService.deleteHall(id, branchId);
+        int hallId = parseInt(request.getParameter("id"));
 
-        if (success) {
+        Hall hall = hallService.getHallByIdAndBranchId(
+                hallId,
+                branch.getId()
+        );
+
+        if (hall == null) {
+            setFlash(
+                    request,
+                    "error",
+                    "Bạn không có quyền xóa phòng chiếu này."
+            );
+
+        } else if (hallService.deleteHall(hallId, branch.getId())) {
             setFlash(request, "success", "Xóa phòng chiếu thành công.");
+
         } else {
-            setFlash(request, "error",
-                    "Không thể xóa phòng chiếu. Phòng chiếu có thể đang có ghế hoặc suất chiếu liên quan.");
+            setFlash(
+                    request,
+                    "error",
+                    "Không thể xóa phòng chiếu. Phòng có thể đang có ghế hoặc suất chiếu liên quan."
+            );
         }
 
         response.sendRedirect(request.getContextPath() + "/manager/halls");
@@ -298,28 +323,50 @@ public class HallController extends HttpServlet {
     private void updateStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        User user = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
 
-        if (user == null) {
+        if (manager == null) {
             return;
         }
 
-        int id = parseInt(request.getParameter("id"));
-        int branchId = parseInt(request.getParameter("branchId"));
+        Branch branch = getAssignedBranchOrRedirect(manager, request, response);
+
+        if (branch == null) {
+            return;
+        }
+
+        int hallId = parseInt(request.getParameter("id"));
         String status = request.getParameter("status");
 
-        if (!isAllowedBranch(user.getId(), branchId)) {
-            setFlash(request, "error", "Bạn không có quyền đổi trạng thái phòng chiếu của chi nhánh này.");
-            response.sendRedirect(request.getContextPath() + "/manager/halls");
-            return;
-        }
+        Hall hall = hallService.getHallByIdAndBranchId(
+                hallId,
+                branch.getId()
+        );
 
-        boolean success = hallService.changeHallStatus(id, branchId, status);
+        if (hall == null) {
+            setFlash(
+                    request,
+                    "error",
+                    "Bạn không có quyền đổi trạng thái phòng chiếu này."
+            );
 
-        if (success) {
-            setFlash(request, "success", "Cập nhật trạng thái phòng chiếu thành công.");
+        } else if (hallService.changeHallStatus(
+                hallId,
+                branch.getId(),
+                status
+        )) {
+            setFlash(
+                    request,
+                    "success",
+                    "Cập nhật trạng thái phòng chiếu thành công."
+            );
+
         } else {
-            setFlash(request, "error", "Không thể cập nhật trạng thái phòng chiếu.");
+            setFlash(
+                    request,
+                    "error",
+                    "Không thể cập nhật trạng thái phòng chiếu."
+            );
         }
 
         response.sendRedirect(request.getContextPath() + "/manager/halls");
@@ -329,15 +376,38 @@ public class HallController extends HttpServlet {
         Hall hall = new Hall();
 
         hall.setName(request.getParameter("name"));
-        hall.setTotalSeats(parseIntWithDefault(request.getParameter("totalSeats"), 0));
+        hall.setTotalSeats(parseInt(request.getParameter("totalSeats")));
         hall.setHallType(request.getParameter("hallType"));
         hall.setStatus(request.getParameter("status"));
 
         return hall;
     }
 
-    private User getCurrentManager(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+    private Branch getAssignedBranchOrRedirect(
+            User manager,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
+
+        Branch branch = staffBranchDAO.findBranchByManagerId(manager.getId());
+
+        if (branch == null) {
+            setFlash(
+                    request,
+                    "error",
+                    "Tài khoản Manager chưa được Admin phân công một chi nhánh."
+            );
+
+            response.sendRedirect(request.getContextPath() + "/manager/halls");
+        }
+
+        return branch;
+    }
+
+    private User getCurrentManager(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
 
         HttpSession session = request.getSession(false);
 
@@ -356,44 +426,24 @@ public class HallController extends HttpServlet {
         return user;
     }
 
-    private boolean isAllowedBranch(int userId, int branchId) {
-        if (branchId <= 0) {
-            return false;
-        }
-
-        return staffBranchDAO.isManagerAssignedToBranch(userId, branchId);
-    }
-
-    private Branch findBranchForManager(int userId, int branchId) {
-        List<Branch> branches = staffBranchDAO.findBranchesByUserId(userId);
-
-        for (Branch branch : branches) {
-            if (branch.getId() == branchId) {
-                return branch;
-            }
-        }
-
-        return null;
-    }
-
     private int parseInt(String value) {
-        return parseIntWithDefault(value, 0);
-    }
-
-    private int parseIntWithDefault(String value, int defaultValue) {
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-
         try {
-            return Integer.parseInt(value.trim());
+            return value == null || value.trim().isEmpty()
+                    ? 0
+                    : Integer.parseInt(value.trim());
+
         } catch (NumberFormatException e) {
-            return defaultValue;
+            return 0;
         }
     }
 
-    private void setFlash(HttpServletRequest request, String type, String message) {
+    private void setFlash(
+            HttpServletRequest request,
+            String type,
+            String message
+    ) {
         HttpSession session = request.getSession();
+
         session.setAttribute("flashType", type);
         session.setAttribute("flashMessage", message);
     }

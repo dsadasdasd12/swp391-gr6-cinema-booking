@@ -42,7 +42,7 @@ public class HallService {
 
         if (hallDAO.existsByNameAndBranchId(hall.getName(), hall.getBranchId())) {
             throw new IllegalArgumentException("Phòng chiếu này đã tồn tại trong chi nhánh này.");
-        }
+        }  
 
         return hallDAO.insert(hall);
     }

@@ -18,19 +18,8 @@ import dto.MovieShowtimes;
 import model.Showtime;
 import util.DBContext;
 
-/**
- * DAO xử lý suất chiếu.
- * 
- * Gồm 2 phần:
- * 1. findUpcomingByMovie(): phục vụ trang chi tiết phim của khách.
- * 2. Các hàm Manager dùng cho Showtime Management.
- */
 public class ShowtimeDAO {
 
-    /**
-     * Các suất chiếu sắp tới, còn bán vé của một phim.
-     * Giữ lại hàm cũ để không ảnh hưởng module Browse Movie.
-     */
     public List<Showtime> findUpcomingByMovie(int movieId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "
@@ -61,15 +50,81 @@ public class ShowtimeDAO {
 
         } catch (SQLException e) {
             System.getLogger(ShowtimeDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findUpcomingByMovie thất bại", e);
+                    .log(System.Logger.Level.ERROR,
+                            "findUpcomingByMovie thất bại", e);
         }
 
         return list;
     }
 
-    /**
-     * Manager xem các suất chiếu thuộc các branch được phân công.
-     */
+    public List<Showtime> findByBranchId(int branchId) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE h.branch_id = ? "
+                + "ORDER BY s.start_time DESC, s.id DESC";
+
+        List<Showtime> list = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, branchId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR,
+                            "findByBranchId thất bại", e);
+        }
+
+        return list;
+    }
+
+    public Showtime findByIdAndBranchId(int id, int branchId) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE s.id = ? "
+                + "AND h.branch_id = ?";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.setInt(2, branchId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR,
+                            "findByIdAndBranchId thất bại", e);
+        }
+
+        return null;
+    }
+
     public List<Showtime> findByManagerId(int managerId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "
@@ -98,7 +153,8 @@ public class ShowtimeDAO {
 
         } catch (SQLException e) {
             System.getLogger(ShowtimeDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findByManagerId thất bại", e);
+                    .log(System.Logger.Level.ERROR,
+                            "findByManagerId thất bại", e);
         }
 
         return list;
@@ -256,43 +312,39 @@ public class ShowtimeDAO {
 
         } catch (SQLException e) {
             System.getLogger(ShowtimeDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findByIdAndManagerId thất bại", e);
+                    .log(System.Logger.Level.ERROR,
+                            "findByIdAndManagerId thất bại", e);
         }
 
         return null;
     }
 
-    /**
-     * Thêm suất chiếu mới.
-     */
-   public boolean insert(Showtime showtime) {
-    String sql = "INSERT INTO dbo.SHOWTIMES "
-            + "(hall_id, movie_id, start_time, end_time, base_price, status) "
-            + "VALUES (?, ?, ?, ?, ?, ?)";
+    public boolean insert(Showtime showtime) {
+        String sql = "INSERT INTO dbo.SHOWTIMES "
+                + "(hall_id, movie_id, start_time, end_time, base_price, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
 
-    Connection conn = DBContext.getInstance().getConnection();
+        Connection conn = DBContext.getInstance().getConnection();
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, showtime.getHallId());
-        ps.setInt(2, showtime.getMovieId());
-        ps.setObject(3, showtime.getStartTime());
-        ps.setObject(4, showtime.getEndTime());
-        ps.setBigDecimal(5, showtime.getBasePrice());
-        ps.setString(6, showtime.getStatus());
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, showtime.getHallId());
+            ps.setInt(2, showtime.getMovieId());
+            ps.setObject(3, showtime.getStartTime());
+            ps.setObject(4, showtime.getEndTime());
+            ps.setBigDecimal(5, showtime.getBasePrice());
+            ps.setString(6, showtime.getStatus());
 
-        return ps.executeUpdate() > 0;
+            return ps.executeUpdate() > 0;
 
-    } catch (SQLException e) {
-        System.getLogger(ShowtimeDAO.class.getName())
-                .log(System.Logger.Level.ERROR, "insert showtime thất bại", e);
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR,
+                            "insert showtime thất bại", e);
+        }
+
+        return false;
     }
 
-    return false;
-}
-
-    /**
-     * Cập nhật suất chiếu.
-     */
     public boolean update(Showtime showtime) {
         String sql = "UPDATE dbo.SHOWTIMES "
                 + "SET hall_id = ?, movie_id = ?, start_time = ?, end_time = ?, "
@@ -314,15 +366,13 @@ public class ShowtimeDAO {
 
         } catch (SQLException e) {
             System.getLogger(ShowtimeDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "update showtime thất bại", e);
+                    .log(System.Logger.Level.ERROR,
+                            "update showtime thất bại", e);
         }
 
         return false;
     }
 
-    /**
-     * Hủy suất chiếu, không xóa cứng.
-     */
     public boolean cancel(int id) {
         String sql = "UPDATE dbo.SHOWTIMES "
                 + "SET status = 'CANCELLED', last_update = GETDATE() "
@@ -332,27 +382,24 @@ public class ShowtimeDAO {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
             System.getLogger(ShowtimeDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "cancel showtime thất bại", e);
+                    .log(System.Logger.Level.ERROR,
+                            "cancel showtime thất bại", e);
         }
 
         return false;
     }
 
-    /**
-     * Check trùng lịch trong cùng một Hall.
-     * 
-     * Điều kiện trùng:
-     * newStart < oldEnd AND newEnd > oldStart
-     */
-    public boolean hasScheduleConflict(int hallId,
+    public boolean hasScheduleConflict(
+            int hallId,
             LocalDateTime startTime,
             LocalDateTime endTime,
-            int exceptShowtimeId) {
-
+            int exceptShowtimeId
+    ) {
         String sql = "SELECT COUNT(*) "
                 + "FROM dbo.SHOWTIMES "
                 + "WHERE hall_id = ? "
@@ -378,7 +425,8 @@ public class ShowtimeDAO {
 
         } catch (SQLException e) {
             System.getLogger(ShowtimeDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "hasScheduleConflict thất bại", e);
+                    .log(System.Logger.Level.ERROR,
+                            "hasScheduleConflict thất bại", e);
         }
 
         return false;
