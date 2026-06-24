@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Showtime implements Serializable {
     private int id;
@@ -141,8 +142,19 @@ public class Showtime implements Serializable {
      * Format cho input type="datetime-local".
      */
     public String getStartInputValue() {
-        return startTime == null
-                ? ""
-                : startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
-    }
+    if (this.startTime == null) return "";
+
+    LocalDateTime ldt = this.startTime.toLocalDateTime();
+    return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+}
+
+    private int movieDurationMin;
+
+public int getMovieDurationMin() {
+    return movieDurationMin;
+}
+
+public void setMovieDurationMin(int movieDurationMin) {
+    this.movieDurationMin = movieDurationMin;
+}
 }

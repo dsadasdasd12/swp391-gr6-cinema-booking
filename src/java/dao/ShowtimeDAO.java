@@ -10,6 +10,7 @@ import java.util.List;
 import model.Showtime;
 import util.DBContext;
 import util.EncodingUtil;
+import java.sql.SQLException;
 
 /**
  * DAO xử lý suất chiếu.
@@ -375,7 +376,7 @@ public class ShowtimeDAO {
         ps.setInt(2, showtime.getMovieId());
         ps.setObject(3, showtime.getStartTime());
         ps.setObject(4, showtime.getEndTime());
-        ps.setBigDecimal(5, showtime.getBasePrice());
+        ps.setDouble(5, showtime.getBasePrice());
         ps.setString(6, showtime.getStatus());
 
         return ps.executeUpdate() > 0;
@@ -404,7 +405,7 @@ public class ShowtimeDAO {
             ps.setInt(2, showtime.getMovieId());
             ps.setObject(3, showtime.getStartTime());
             ps.setObject(4, showtime.getEndTime());
-            ps.setBigDecimal(5, showtime.getBasePrice());
+            ps.setDouble(5, showtime.getBasePrice());
             ps.setString(6, showtime.getStatus());
             ps.setInt(7, showtime.getId());
 

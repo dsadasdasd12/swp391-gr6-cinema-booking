@@ -33,6 +33,10 @@ public class Hall {
         this.lastUpdate = lastUpdate;
     }
 
+    public Hall(int aInt, int aInt0, String string, int aInt1) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
     public int getId() {
         return id;
     }

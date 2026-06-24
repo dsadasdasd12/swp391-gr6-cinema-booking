@@ -77,13 +77,12 @@ public class ShowtimeService {
         /*
          * Kiểm tra phòng có bị trùng lịch không.
          */
-        boolean conflict
-                = showtimeDAO.hasScheduleConflict(
-                        showtime.getHallId(),
-                        showtime.getStartTime(),
-                        showtime.getEndTime(),
-                        0
-                );
+       boolean conflict = showtimeDAO.hasScheduleConflict(
+        showtime.getHallId(),
+        showtime.getStartTime().toLocalDateTime(),
+        showtime.getEndTime().toLocalDateTime(),
+        0
+);
 
         if (conflict) {
             throw new IllegalArgumentException(
@@ -109,13 +108,12 @@ public class ShowtimeService {
          * Khi kiểm tra trùng lịch, bỏ qua chính suất chiếu
          * đang được chỉnh sửa.
          */
-        boolean conflict
-                = showtimeDAO.hasScheduleConflict(
-                        showtime.getHallId(),
-                        showtime.getStartTime(),
-                        showtime.getEndTime(),
-                        showtime.getId()
-                );
+        boolean conflict = showtimeDAO.hasScheduleConflict(
+        showtime.getHallId(),
+        showtime.getStartTime().toLocalDateTime(),
+        showtime.getEndTime().toLocalDateTime(),
+        showtime.getId()
+);
 
         if (conflict) {
             throw new IllegalArgumentException(
@@ -194,19 +192,11 @@ public class ShowtimeService {
             );
         }
 
-        if (showtime.getBasePrice() == null) {
-            throw new IllegalArgumentException(
-                    "Vui lòng nhập giá vé cơ bản."
-            );
-        }
-
-        if (showtime.getBasePrice()
-                .compareTo(BigDecimal.ZERO) < 0) {
-
-            throw new IllegalArgumentException(
-                    "Giá vé cơ bản không được nhỏ hơn 0."
-            );
-        }
+        if (showtime.getBasePrice() < 0) {
+    throw new IllegalArgumentException(
+            "Giá vé cơ bản không được nhỏ hơn 0."
+    );
+}
 
         /*
          * Kiểm tra phim có tồn tại hay không.
@@ -273,11 +263,9 @@ public class ShowtimeService {
          *
          * endTime = startTime + durationMin
          */
-        LocalDateTime endTime
-                = showtime.getStartTime()
-                        .plusMinutes(
-                                movie.getDurationMin()
-                        );
+       LocalDateTime endTime = showtime.getStartTime()
+        .toLocalDateTime()
+        .plusMinutes(movie.getDurationMin());
 
         showtime.setEndTime(endTime);
     }
