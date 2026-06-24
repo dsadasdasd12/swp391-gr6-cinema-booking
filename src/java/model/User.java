@@ -130,4 +130,9 @@ public class User {
     public void setLastUpdate(LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
+    
+    public boolean isAdmin()      { return "ADMIN".equals(role); }
+    public boolean isManager()    { return "MANAGER".equals(role); }
+    public boolean isStaff()      { return "STAFF".equals(role); }
+    public boolean isCustomer()   { return "CUSTOMER".equals(role); }
 }

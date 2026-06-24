@@ -25,6 +25,7 @@ import dto.BranchShowtimes;
 import dto.MovieDTO;
 import dto.MovieFilter;
 import dto.PageResult;
+import java.time.LocalDate;
 import model.Category;
 import model.Language;
 import model.Movie;
@@ -86,11 +87,7 @@ public class MovieService {
         return showtimeDAO.findUpcomingByMovie(movieId);
     }
 
-    /**
-     * Các suất chiếu sắp tới đã gom nhóm theo chi nhánh để view chỉ việc lặp.
-     * Thứ tự chi nhánh theo suất chiếu sớm nhất; trong mỗi chi nhánh các suất
-     * vẫn giữ thứ tự thời gian do DAO trả về.
-     */
+
     public List<BranchShowtimes> getShowtimesByBranch(int movieId) {
         List<Showtime> all = showtimeDAO.findUpcomingByMovie(movieId);
         Map<Integer, BranchShowtimes> grouped = new LinkedHashMap<>();
@@ -513,15 +510,12 @@ public class MovieService {
                     "Thời lượng phim phải là số nguyên."
             );
         }
-    // ════════════════════════════════════════════════════════
+    }
+   // ════════════════════════════════════════════════════════
     // ADMIN METHODS — Long
     // ════════════════════════════════════════════════════════
 
-    /**
-     * Trả về toàn bộ phim dưới dạng DTO cho trang quản lý admin.
-     * Kiểm tra có suất chiếu đang hoạt động để JSP thiết lập trạng thái nút xóa.
-     */
-    public List<MovieDTO> getAllMoviesForAdmin() {
+     public List<MovieDTO> getAllMoviesForAdmin() {
         return getAllMoviesForAdmin(null, null);
     }
 
@@ -683,11 +677,6 @@ public class MovieService {
     /** Cập nhật chỉ đường dẫn trailer (gọi sau upload). */
     public boolean updateTrailer(int movieId, String url) {
         return movieDAO.updateTrailer(movieId, url);
-    }
-
-    /** Lấy chi tiết một phim theo id (alias cho admin form). */
-    public Movie getMovieById(int id) {
-        return movieDAO.findById(id);
     }
 
     /** Kiểm tra hợp lệ và đưa mọi trường của bộ lọc về giá trị an toàn. */
