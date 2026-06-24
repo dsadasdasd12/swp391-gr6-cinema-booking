@@ -2,11 +2,11 @@
 -- RapViet Cinema Management System
 -- MS SQL Server DDL Script — Version 3.0
 -- Schema aligned with UC List v3 (Group 6, Iteration Plan)
--- Tables: 22 total
+-- Tables: 27 total
 -- Changes from v2.1:
 --   REMOVED : PROMOTIONS, BOOKING_PROMOTIONS, CITIES
 --   ADDED   : LANGUAGES, MOVIE_LANGUAGES, CART, CART_ITEMS,
---             FAVORITE_MOVIES, ATTENDANCE, COUNTER_DISCOUNTS
+--             FAVORITE_MOVIES, ATTENDANCE, COUNTER_DISCOUNTS, BRANCH_MOVIES, HALL_MOVIES
 --   MODIFIED: MOVIES (language→FK), BRANCHES (no city_id),
 --             BOOKINGS (source), PAYMENTS (type), SEATS (maintenance)
 -- ============================================================
@@ -35,6 +35,8 @@ IF OBJECT_ID('dbo.FAVORITE_MOVIES',    'U') IS NOT NULL DROP TABLE dbo.FAVORITE_
 IF OBJECT_ID('dbo.SEAT_PRICING',       'U') IS NOT NULL DROP TABLE dbo.SEAT_PRICING;
 IF OBJECT_ID('dbo.SEATS',              'U') IS NOT NULL DROP TABLE dbo.SEATS;
 IF OBJECT_ID('dbo.SHOWTIMES',          'U') IS NOT NULL DROP TABLE dbo.SHOWTIMES;
+IF OBJECT_ID('dbo.HALL_MOVIES',        'U') IS NOT NULL DROP TABLE dbo.HALL_MOVIES;
+IF OBJECT_ID('dbo.BRANCH_MOVIES',      'U') IS NOT NULL DROP TABLE dbo.BRANCH_MOVIES;
 IF OBJECT_ID('dbo.HALLS',              'U') IS NOT NULL DROP TABLE dbo.HALLS;
 IF OBJECT_ID('dbo.STAFF_BRANCH',       'U') IS NOT NULL DROP TABLE dbo.STAFF_BRANCH;
 IF OBJECT_ID('dbo.BRANCHES',           'U') IS NOT NULL DROP TABLE dbo.BRANCHES;
@@ -185,6 +187,24 @@ CREATE TABLE dbo.HALLS (
     CONSTRAINT FK_HALL_branch   FOREIGN KEY (branch_id) REFERENCES dbo.BRANCHES(id),
     CONSTRAINT CK_HALL_type     CHECK (hall_type IN ('STANDARD','VIP','IMAX','4DX','PREMIUM')),
     CONSTRAINT CK_HALL_status   CHECK (status IN ('ACTIVE','MAINTENANCE','INACTIVE'))
+);
+
+CREATE TABLE dbo.BRANCH_MOVIES (
+	branch_id	INT NOT NULL,
+	movie_id	INT NOT NULL,
+
+	CONSTRAINT PK_BRANCH_MOVIES			PRIMARY KEY (branch_id, movie_id),
+	CONSTRAINT FK_BRANCH_MOVIES_BRANCH	FOREIGN KEY ( branch_id) REFERENCES dbo.BRANCHES(id),
+	CONSTRAINT FK_BRANCH_MOVIES_MOVIE	FOREIGN KEY (movie_id) REFERENCES dbo.MOVIES(id)
+);
+
+CREATE TABLE dbo.HALL_MOVIES (
+	hall_id		INT NOT NULL,
+	movie_id	INT NOT NULL,
+
+	CONSTRAINT PK_HALL_MOVIES		PRIMARY KEY (hall_id, movie_id),
+	CONSTRAINT FK_HALL_MOVIES_HALL	FOREIGN KEY (hall_id) REFERENCES dbo.HALLS (id),
+	CONSTRAINT FK_HALL_MOVIES_MOVIE FOREIGN KEY (movie_id) REFERENCES dbo.MOVIES(id)
 );
 
 CREATE TABLE dbo.SEATS (
@@ -463,4 +483,355 @@ CREATE INDEX IX_FAV_user        ON dbo.FAVORITE_MOVIES(user_id);
 CREATE INDEX IX_ATT_checked     ON dbo.ATTENDANCE     (checked_at DESC);
 
 GO
+-- ============================================================
+-- MANAGER - ONE BRANCH RULE
+-- A MANAGER account may have 0 or 1 assigned branch only.
+-- Zero branch is allowed before Admin assigns a branch.
+-- ============================================================
+
+CREATE OR ALTER TRIGGER dbo.TR_STAFF_BRANCH_OneBranchPerManager
+ON dbo.STAFF_BRANCH
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    /*
+      Check only the Manager accounts affected by the current
+      INSERT or UPDATE statement.
+    */
+    IF EXISTS (
+        SELECT sb.user_id
+        FROM dbo.STAFF_BRANCH sb
+        INNER JOIN inserted i
+            ON i.user_id = sb.user_id
+        INNER JOIN dbo.[USER] u
+            ON u.id = sb.user_id
+        WHERE u.role = 'MANAGER'
+        GROUP BY sb.user_id
+        HAVING COUNT(*) > 1
+    )
+    BEGIN
+        THROW 51000,
+              'A Manager account can be assigned to only one Branch.',
+              1;
+    END
+END;
+GO
+
+CREATE OR ALTER TRIGGER dbo.TR_USER_OneBranchWhenRoleIsManager
+ON dbo.[USER]
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    /*
+      This protects the case where a STAFF account was already
+      assigned to multiple branches and is later changed to MANAGER.
+    */
+    IF NOT UPDATE(role)
+        RETURN;
+
+    IF EXISTS (
+        SELECT u.id
+        FROM inserted u
+        INNER JOIN dbo.STAFF_BRANCH sb
+            ON sb.user_id = u.id
+        WHERE u.role = 'MANAGER'
+        GROUP BY u.id
+        HAVING COUNT(*) > 1
+    )
+    BEGIN
+        THROW 51001,
+              'A user with multiple Branch assignments cannot be changed to MANAGER.',
+              1;
+    END
+END;
+GO
+
 PRINT 'RapVietDB v3.0 — 22 tables created successfully.';
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'System Admin',
+    'admin@cinema.com',
+    '123456',
+    'local_admin',
+    '0900000001',
+    'ADMIN',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Branch Manager',
+    'manager@cinema.com',
+    '123456',
+    'local_manager',
+    '0900000002',
+    'MANAGER',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Branch Staff',
+    'staff@cinema.com',
+    '123456',
+    'local_staff',
+    '0900000003',
+    'STAFF',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+INSERT INTO [USER]
+(
+    full_name,
+    email,
+    password_hash,
+    google_id,
+    phone,
+    role,
+    active,
+    email_verified,
+    created_at,
+    last_update
+)
+VALUES
+(
+    'Customer Test',
+    'customer@cinema.com',
+    '123456',
+    'local_customer',
+    '0900000004',
+    'CUSTOMER',
+    1,
+    1,
+    GETDATE(),
+    GETDATE()
+);
+
+
+USE RapVietDB;
+GO
+
+INSERT INTO dbo.MOVIES
+(
+    title,
+    description,
+    duration_min,
+    release_date,
+    status,
+    poster_url,
+    trailer_url,
+    actor,
+    director
+)
+VALUES
+(
+    N'Doraemon: Nobita và Bản Giao Hưởng Địa Cầu',
+    N'Nobita và nhóm bạn bước vào một chuyến phiêu lưu âm nhạc để bảo vệ Trái Đất.',
+    115,
+    '2026-06-01',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Wasabi Mizuta, Megumi Ohara',
+    N'Kazuaki Imai'
+),
+(
+    N'Thám Tử Lừng Danh Conan: Ngôi Sao 5 Cánh Một Triệu Đô',
+    N'Conan tiếp tục phá giải một vụ án bí ẩn liên quan đến kho báu và các manh mối nguy hiểm.',
+    110,
+    '2026-06-05',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Minami Takayama, Wakana Yamazaki',
+    N'Chika Nagaoka'
+),
+(
+    N'Lật Mặt 8: Vòng Tay Nắng',
+    N'Một câu chuyện gia đình Việt Nam xoay quanh tình thân, ước mơ và những lựa chọn trong cuộc sống.',
+    120,
+    '2026-06-10',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Thanh Thức, Đoàn Thế Vinh',
+    N'Lý Hải'
+),
+(
+    N'Inside Out 2',
+    N'Câu chuyện tiếp tục bên trong tâm trí Riley khi những cảm xúc mới xuất hiện.',
+    96,
+    '2026-06-15',
+    'NOW_SHOWING',
+    NULL,
+    NULL,
+    N'Amy Poehler, Maya Hawke',
+    N'Kelsey Mann'
+),
+(
+    N'Avengers: Secret Wars',
+    N'Một cuộc chiến đa vũ trụ quy mô lớn giữa các siêu anh hùng và những thế lực mới.',
+    150,
+    '2026-07-01',
+    'COMING_SOON',
+    NULL,
+    NULL,
+    N'Robert Downey Jr., Chris Hemsworth',
+    N'Anthony Russo, Joe Russo'
+);
+
+-- ============================================================
+-- BASE DATA FOR BRANCH MANAGER TESTING
+-- ============================================================
+
+INSERT INTO dbo.CINEMA
+(
+    name,
+    address,
+    phone,
+    status
+)
+VALUES
+(
+    N'RapViet Cinema',
+    N'Hà Nội',
+    '0240000000',
+    'ACTIVE'
+);
+
+DECLARE @CinemaId INT = SCOPE_IDENTITY();
+
+INSERT INTO dbo.BRANCHES
+(
+    cinema_id,
+    name,
+    address,
+    phone,
+    open_time,
+    close_time,
+    status
+)
+VALUES
+(
+    @CinemaId,
+    N'RapViet Cầu Giấy',
+    N'Cầu Giấy, Hà Nội',
+    '0241111111',
+    '08:00:00',
+    '23:00:00',
+    'ACTIVE'
+),
+(
+    @CinemaId,
+    N'RapViet Hoàn Kiếm',
+    N'Hoàn Kiếm, Hà Nội',
+    '0242222222',
+    '08:00:00',
+    '23:00:00',
+    'ACTIVE'
+);
+
+DECLARE @ManagerId INT = (
+    SELECT id
+    FROM dbo.[USER]
+    WHERE email = 'manager@cinema.com'
+);
+
+DECLARE @ManagerBranchId INT = (
+    SELECT id
+    FROM dbo.BRANCHES
+    WHERE name = N'RapViet Cầu Giấy'
+);
+
+INSERT INTO dbo.STAFF_BRANCH
+(
+    user_id,
+    branch_id,
+    position
+)
+VALUES
+(
+    @ManagerId,
+    @ManagerBranchId,
+    N'Branch Manager'
+);
+
+INSERT INTO dbo.HALLS
+(
+    branch_id,
+    name,
+    total_seats,
+    hall_type,
+    status
+)
+VALUES
+(
+    @ManagerBranchId,
+    N'Phòng 01',
+    80,
+    'STANDARD',
+    'ACTIVE'
+),
+(
+    @ManagerBranchId,
+    N'Phòng VIP 01',
+    40,
+    'VIP',
+    'ACTIVE'
+);
+
+GO
+
