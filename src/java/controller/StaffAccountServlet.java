@@ -84,10 +84,13 @@ public class StaffAccountServlet extends HttpServlet {
             String email = req.getParameter("email");
             int rId = Integer.parseInt(req.getParameter("roleId"));
             int bId = Integer.parseInt(req.getParameter("branchId"));
+            
+            String google= "local_" + email;
 
             User u = new User();
             u.setFullName(fullName);
-            u.setEmail(email != null ? email.trim().toLowerCase() : null);
+            u.setEmail(email != null ? email.trim().toLowerCase() : null);    
+            u.setGoogleId(email);
             u.setRole(mapRoleIdToName(rId));
             u.setPhone("");
 

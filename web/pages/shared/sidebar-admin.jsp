@@ -137,13 +137,26 @@
     <!-- ── ACCOUNTS & SECURITY ── -->
     <div class="rv-nav__label">Tài khoản &amp; Bảo mật</div>
 
-   <div class="rv-nav__group">
-    <a href="${ctx}/admin/accounts"
-       class="rv-nav__item ${isAccount ? 'active' : ''}">
-        <i class="bi bi-people-fill"></i>
-        Quản trị tài khoản
-    </a>
-</div>
+   <div class="rv-nav__group ${isAccount ? 'open' : ''}">
+        <div class="rv-nav__item ${isAccount ? 'active' : ''}">
+            <i class="bi bi-people-fill"></i>
+            Quản trị tài khoản
+            <i class="bi bi-chevron-right rv-nav__arrow"></i>
+        </div>
+        <div class="rv-nav__sub">
+            <a href="${ctx}/admin/accounts/customers" class="rv-nav__sub-item ${uri.contains('/admin/accounts/customers') ? 'active' : ''}">
+                Khách hàng
+            </a>
+            <c:if test="${isAdminRole}">
+                <a href="${ctx}/admin/accounts/staff" class="rv-nav__sub-item ${uri.contains('/admin/accounts/staff') ? 'active' : ''}">
+                    Nhân viên &amp; Quản lý
+                </a>
+                <a href="${ctx}/admin/accounts/roles" class="rv-nav__sub-item ${uri.contains('/admin/accounts/roles') ? 'active' : ''}">
+                    Vai trò &amp; Quyền hạn
+                </a>
+            </c:if>
+        </div>
+    </div>
 
     <div class="rv-nav__spacer"></div>
     <div class="rv-nav__divider"></div>

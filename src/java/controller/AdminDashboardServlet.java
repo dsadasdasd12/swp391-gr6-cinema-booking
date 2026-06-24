@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet("/admin/dashboard")
-public class DashboardServlet extends HttpServlet {
+public class AdminDashboardServlet extends HttpServlet {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
