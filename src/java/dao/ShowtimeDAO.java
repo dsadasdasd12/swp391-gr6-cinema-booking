@@ -68,6 +68,43 @@ public class ShowtimeDAO {
     }
 
     /**
+     * Manager xem các suất chiếu thuộc các branch được phân công.
+     */
+    public List<Showtime> findByManagerId(int managerId) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "JOIN dbo.STAFF_BRANCH sb ON sb.branch_id = b.id "
+                + "WHERE sb.user_id = ? "
+                + "ORDER BY s.start_time DESC, s.id DESC";
+
+        List<Showtime> list = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findByManagerId thất bại", e);
+        }
+
+        return list;
+    }
+
+    /**
      * (Phần KHÁCH xem) Suất chiếu của một chi nhánh trong một ngày, chỉ lấy suất
      * còn bán vé (SCHEDULED/ON_SALE), đã gom nhóm theo phim. Poster phim
      * (MOVIES.poster_url) được mang theo bởi DTO MovieShowtimes nên entity

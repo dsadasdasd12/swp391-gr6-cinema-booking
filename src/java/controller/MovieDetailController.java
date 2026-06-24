@@ -4,42 +4,175 @@
  */
 package controller;
 
+import dto.MovieAssignmentItem;
+import dto.MovieFilter;
+import dto.PageResult;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import model.Branch;
+import model.Category;
+import model.Hall;
+import model.Language;
 import model.Movie;
+import model.User;
 import service.MovieService;
 import service.ReviewService;
 
-/**
- * Hiển thị chi tiết đầy đủ của một phim (nội dung, diễn viên, thể loại, ngôn
- * ngữ, đánh giá, trailer) cùng các suất chiếu sắp tới.
- * <p>
- * URL: {@code /movie?id=<movieId>} (GET).
- *
- * @author Group6 - DuyThai (Module Duyệt phim)
- */
-@WebServlet(name = "MovieDetailController", urlPatterns = {"/movie"})
+
+@WebServlet(
+        name = "MovieDetailController",
+        urlPatterns = {
+            "/movies",
+            "/movie",
+            "/manager/movie-assignments/branches",
+            "/manager/movie-assignments/halls",
+            "/manager/movie-durations",
+            "/manager/movie-durations/update"
+        }
+)
 public class MovieDetailController extends HttpServlet {
 
+    private static final String MOVIE_LIST_PAGE
+            = "/pages/movie/list.jsp";
+
+    private static final String MOVIE_DETAIL_PAGE
+            = "/pages/movie/detail.jsp";
+
+    private static final String BRANCH_ASSIGNMENT_PAGE
+            = "/pages/manager/branch-movie-assignment.jsp";
+
+    private static final String HALL_ASSIGNMENT_PAGE
+            = "/pages/manager/hall-movie-assignment.jsp";
+
+    private static final String MOVIE_DURATION_PAGE
+            = "/pages/manager/movie-duration-list.jsp";
+
+    /** Single service for all Movie functions: browse, detail, assignment and duration. */
     private final MovieService movieService = new MovieService();
     private final ReviewService reviewService = new ReviewService();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
-        int id = parseId(request.getParameter("id"));
-        Movie movie = movieService.getMovieDetail(id);
+        String path = request.getServletPath();
+
+        switch (path) {
+            case "/movies":
+                showMovieList(request, response);
+                break;
+
+            case "/movie":
+                showMovieDetail(request, response);
+                break;
+
+            case "/manager/movie-assignments/branches":
+                showBranchAssignmentPage(request, response);
+                break;
+
+            case "/manager/movie-assignments/halls":
+                showHallAssignmentPage(request, response);
+                break;
+
+            case "/manager/movie-durations":
+                showDurationList(request, response);
+                break;
+
+            default:
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                break;
+        }
+    }
+
+    @Override
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+
+        String path = request.getServletPath();
+
+        switch (path) {
+            case "/manager/movie-assignments/branches":
+                saveBranchAssignments(request, response);
+                break;
+
+            case "/manager/movie-assignments/halls":
+                saveHallAssignments(request, response);
+                break;
+
+            case "/manager/movie-durations/update":
+                updateDuration(request, response);
+                break;
+
+            default:
+                response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                break;
+        }
+    }
+
+    /**
+     * Hiển thị danh sách phim công khai: search, filter, sort và pagination.
+     */
+    private void showMovieList(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        MovieFilter filter = new MovieFilter();
+        filter.setKeyword(request.getParameter("q"));
+        filter.setStatus(emptyToNull(request.getParameter("status")));
+        filter.setFormat(emptyToNull(request.getParameter("format")));
+        filter.setSortBy(emptyToNull(request.getParameter("sort")));
+        filter.setCategoryId(parseNullableInt(request.getParameter("category")));
+        filter.setLanguageId(parseNullableInt(request.getParameter("language")));
+
+        Integer page = parseNullableInt(request.getParameter("page"));
+        if (page != null) {
+            filter.setPage(page);
+        }
+
+        PageResult<Movie> result = movieService.browseMovies(filter);
+        List<Category> categories = movieService.getCategories();
+        List<Language> languages = movieService.getLanguages();
+
+        request.setAttribute("result", result);
+        request.setAttribute("filter", filter);
+        request.setAttribute("categories", categories);
+        request.setAttribute("languages", languages);
+        request.setAttribute("queryString", buildQueryString(filter));
+
+        request.getRequestDispatcher(MOVIE_LIST_PAGE).forward(request, response);
+    }
+
+    /**
+     * Hiển thị chi tiết phim và các suất chiếu sắp tới theo chi nhánh.
+     */
+    private void showMovieDetail(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        int movieId = parseMovieId(request.getParameter("id"));
+        Movie movie = movieService.getMovieDetail(movieId);
 
         if (movie == null) {
-            // id không hợp lệ / không tồn tại -> hiển thị thông báo 404 thân thiện
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             request.setAttribute("notFound", Boolean.TRUE);
-            request.getRequestDispatcher("/pages/movie/detail.jsp").forward(request, response);
+            request.getRequestDispatcher(MOVIE_DETAIL_PAGE).forward(request, response);
             return;
         }
 
@@ -47,17 +180,480 @@ public class MovieDetailController extends HttpServlet {
         request.setAttribute("branchShowtimes", movieService.getShowtimesByBranch(id));
         request.setAttribute("reviews", reviewService.getMovieReviews(id));
         request.getRequestDispatcher("/pages/movie/detail.jsp").forward(request, response);
+        request.setAttribute(
+                "branchShowtimes",
+                movieService.getShowtimesByBranch(movieId)
+        );
+
+        request.getRequestDispatcher(MOVIE_DETAIL_PAGE).forward(request, response);
     }
 
-    /** Đọc id từ tham số request, trả về -1 nếu thiếu hoặc sai định dạng. */
-    private static int parseId(String s) {
-        if (s == null || s.isBlank()) {
-            return -1;
+    /**
+     * Hiển thị màn hình phân bổ phim cho chi nhánh.
+     */
+    private void showBranchAssignmentPage(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
         }
+
         try {
-            return Integer.parseInt(s.trim());
-        } catch (NumberFormatException e) {
-            return -1;
+            List<Branch> branches = movieService.getBranchesByManagerId(
+                    manager.getId()
+            );
+
+            int selectedBranchId = parsePositiveInt(
+                    request.getParameter("branchId")
+            );
+
+            if (selectedBranchId <= 0 && !branches.isEmpty()) {
+                selectedBranchId = branches.get(0).getId();
+            }
+
+            if (selectedBranchId > 0
+                    && !movieService.isManagerAllowedBranch(
+                            manager.getId(),
+                            selectedBranchId)) {
+
+                setFlash(
+                        request,
+                        "error",
+                        "Bạn không có quyền quản lý chi nhánh này."
+                );
+
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/movie-assignments/branches"
+                );
+                return;
+            }
+
+            List<MovieAssignmentItem> movieItems = new ArrayList<>();
+            if (selectedBranchId > 0) {
+                movieItems = movieService.getItemsForBranch(
+                        manager.getId(),
+                        selectedBranchId
+                );
+            }
+
+            request.setAttribute("branches", branches);
+            request.setAttribute("selectedBranchId", selectedBranchId);
+            request.setAttribute("movieItems", movieItems);
+
+            request.getRequestDispatcher(BRANCH_ASSIGNMENT_PAGE)
+                    .forward(request, response);
+
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("error", e.getMessage());
+            request.getRequestDispatcher(BRANCH_ASSIGNMENT_PAGE)
+                    .forward(request, response);
         }
+    }
+
+    /**
+     * Lưu danh sách phim được gán cho chi nhánh.
+     */
+    private void saveBranchAssignments(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
+
+        int branchId = parsePositiveInt(request.getParameter("branchId"));
+        List<Integer> selectedMovieIds = parseMovieIds(
+                request.getParameterValues("movieIds")
+        );
+
+        try {
+            boolean success = movieService.saveBranchAssignments(
+                    manager.getId(),
+                    branchId,
+                    selectedMovieIds
+            );
+
+            if (success) {
+                setFlash(
+                        request,
+                        "success",
+                        "Lưu phân bổ phim cho chi nhánh thành công."
+                );
+            } else {
+                setFlash(
+                        request,
+                        "error",
+                        "Không thể lưu phân bổ phim cho chi nhánh."
+                );
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
+        }
+
+        response.sendRedirect(
+                request.getContextPath()
+                + "/manager/movie-assignments/branches"
+                + "?branchId=" + branchId
+        );
+    }
+
+    /**
+     * Hiển thị màn hình phân bổ phim cho phòng chiếu.
+     */
+    private void showHallAssignmentPage(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
+
+        try {
+            List<Branch> branches = movieService.getBranchesByManagerId(
+                    manager.getId()
+            );
+
+            int selectedBranchId = parsePositiveInt(
+                    request.getParameter("branchId")
+            );
+
+            if (selectedBranchId <= 0 && !branches.isEmpty()) {
+                selectedBranchId = branches.get(0).getId();
+            }
+
+            if (selectedBranchId > 0
+                    && !movieService.isManagerAllowedBranch(
+                            manager.getId(),
+                            selectedBranchId)) {
+
+                setFlash(
+                        request,
+                        "error",
+                        "Bạn không có quyền quản lý chi nhánh này."
+                );
+
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/movie-assignments/halls"
+                );
+                return;
+            }
+
+            List<Hall> halls = new ArrayList<>();
+            if (selectedBranchId > 0) {
+                halls = movieService.getHallsByBranchId(
+                        manager.getId(),
+                        selectedBranchId
+                );
+            }
+
+            int selectedHallId = parsePositiveInt(
+                    request.getParameter("hallId")
+            );
+
+            if (!containsHall(halls, selectedHallId)) {
+                selectedHallId = halls.isEmpty()
+                        ? 0
+                        : halls.get(0).getId();
+            }
+
+            List<MovieAssignmentItem> movieItems = new ArrayList<>();
+            if (selectedHallId > 0) {
+                movieItems = movieService.getItemsForHall(
+                        manager.getId(),
+                        selectedHallId
+                );
+            }
+
+            request.setAttribute("branches", branches);
+            request.setAttribute("halls", halls);
+            request.setAttribute("selectedBranchId", selectedBranchId);
+            request.setAttribute("selectedHallId", selectedHallId);
+            request.setAttribute("movieItems", movieItems);
+
+            request.getRequestDispatcher(HALL_ASSIGNMENT_PAGE)
+                    .forward(request, response);
+
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("error", e.getMessage());
+            request.getRequestDispatcher(HALL_ASSIGNMENT_PAGE)
+                    .forward(request, response);
+        }
+    }
+
+    /**
+     * Lưu danh sách phim được gán cho phòng chiếu.
+     */
+    private void saveHallAssignments(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
+
+        int branchId = parsePositiveInt(request.getParameter("branchId"));
+        int hallId = parsePositiveInt(request.getParameter("hallId"));
+        List<Integer> selectedMovieIds = parseMovieIds(
+                request.getParameterValues("movieIds")
+        );
+
+        try {
+            boolean success = movieService.saveHallAssignments(
+                    manager.getId(),
+                    hallId,
+                    selectedMovieIds
+            );
+
+            if (success) {
+                setFlash(
+                        request,
+                        "success",
+                        "Lưu phân bổ phim cho phòng chiếu thành công."
+                );
+            } else {
+                setFlash(
+                        request,
+                        "error",
+                        "Không thể lưu phân bổ phim cho phòng chiếu."
+                );
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
+        }
+
+        response.sendRedirect(
+                request.getContextPath()
+                + "/manager/movie-assignments/halls"
+                + "?branchId=" + branchId
+                + "&hallId=" + hallId
+        );
+    }
+
+    /**
+     * Hiển thị danh sách phim cùng thời lượng hiện tại để Manager chỉnh sửa.
+     */
+    private void showDurationList(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
+
+        List<Movie> movies = movieService.getAllMovies();
+        request.setAttribute("movies", movies);
+
+        request.getRequestDispatcher(MOVIE_DURATION_PAGE)
+                .forward(request, response);
+    }
+
+    /**
+     * Cập nhật thời lượng của một phim.
+     */
+    private void updateDuration(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
+
+        int movieId = parsePositiveInt(request.getParameter("movieId"));
+        String durationValue = request.getParameter("durationMin");
+
+        try {
+            int durationMin = movieService.parseDuration(durationValue);
+
+            boolean success = movieService.updateDuration(
+                    movieId,
+                    durationMin
+            );
+
+            if (success) {
+                setFlash(
+                        request,
+                        "success",
+                        "Cập nhật thời lượng phim thành công."
+                );
+            } else {
+                setFlash(
+                        request,
+                        "error",
+                        "Không thể cập nhật thời lượng phim."
+                );
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
+        }
+
+        response.sendRedirect(
+                request.getContextPath() + "/manager/movie-durations"
+        );
+    }
+
+    /**
+     * Lấy tài khoản Manager đang đăng nhập.
+     */
+    private User getCurrentManager(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return null;
+        }
+
+        User user = (User) session.getAttribute("user");
+
+        if (!"MANAGER".equalsIgnoreCase(user.getRole())) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return null;
+        }
+
+        return user;
+    }
+
+    /**
+     * Chuyển mảng checkbox movieIds thành danh sách ID không trùng lặp.
+     */
+    private List<Integer> parseMovieIds(String[] values) {
+        List<Integer> movieIds = new ArrayList<>();
+
+        if (values == null) {
+            return movieIds;
+        }
+
+        for (String value : values) {
+            int movieId = parsePositiveInt(value);
+            if (movieId > 0 && !movieIds.contains(movieId)) {
+                movieIds.add(movieId);
+            }
+        }
+
+        return movieIds;
+    }
+
+    /**
+     * Kiểm tra hallId có thuộc danh sách Hall của Branch đang chọn hay không.
+     */
+    private boolean containsHall(List<Hall> halls, int hallId) {
+        if (halls == null || hallId <= 0) {
+            return false;
+        }
+
+        for (Hall hall : halls) {
+            if (hall.getId() == hallId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Dựng query-string giữ lại các tiêu chí lọc, trừ tham số page.
+     */
+    private String buildQueryString(MovieFilter filter) {
+        StringBuilder sb = new StringBuilder();
+
+        if (filter.getKeyword() != null) {
+            sb.append("q=").append(encode(filter.getKeyword())).append("&");
+        }
+        if (filter.getCategoryId() != null) {
+            sb.append("category=").append(filter.getCategoryId()).append("&");
+        }
+        if (filter.getLanguageId() != null) {
+            sb.append("language=").append(filter.getLanguageId()).append("&");
+        }
+        if (filter.getStatus() != null) {
+            sb.append("status=").append(encode(filter.getStatus())).append("&");
+        }
+        if (filter.getFormat() != null) {
+            sb.append("format=").append(encode(filter.getFormat())).append("&");
+        }
+
+        sb.append("sort=").append(encode(filter.getSortBy())).append("&");
+        return sb.toString();
+    }
+
+    private static String encode(String value) {
+        return URLEncoder.encode(
+                value == null ? "" : value,
+                StandardCharsets.UTF_8
+        );
+    }
+
+    private static String emptyToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
+    private static Integer parseNullableInt(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Integer.valueOf(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Trả về ID dương, hoặc 0 khi thiếu/sai định dạng.
+     */
+    private static int parsePositiveInt(String value) {
+        if (value == null || value.isBlank()) {
+            return 0;
+        }
+
+        try {
+            int parsedValue = Integer.parseInt(value.trim());
+            return parsedValue > 0 ? parsedValue : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Đọc movie ID cho URL detail; trả về -1 để MovieService xử lý not-found.
+     */
+    private static int parseMovieId(String value) {
+        int movieId = parsePositiveInt(value);
+        return movieId > 0 ? movieId : -1;
+    }
+
+    /**
+     * Lưu thông báo tạm thời trong session để hiển thị sau redirect.
+     */
+    private void setFlash(
+            HttpServletRequest request,
+            String type,
+            String message) {
+
+        HttpSession session = request.getSession();
+        session.setAttribute("flashType", type);
+        session.setAttribute("flashMessage", message);
     }
 }

@@ -1,5 +1,6 @@
 package controller;
 
+import dto.RegisterDTO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -140,13 +141,9 @@ public class AuthController extends HttpServlet {
 
         if (!user.isEmailVerified()) {
 
-            String otp = authService.generateOtp();
-
             HttpSession session = request.getSession();
 
-            authService.createVerifyOtpSession(session, user, otp);
-
-            authService.sendOtp(user.getEmail(), otp);
+            authService.sendVerifyOtp(getServletContext(), session, user);
 
             response.sendRedirect(request.getContextPath() + "/verify-email");
             return;
@@ -162,85 +159,60 @@ public class AuthController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        String fullName = request.getParameter("fullname");
-        String email = request.getParameter("email");
-        String phone = request.getParameter("phone");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
+        RegisterDTO dto = new RegisterDTO(
+                request.getParameter("fullname"),
+                request.getParameter("email"),
+                request.getParameter("phone"),
+                request.getParameter("password"),
+                request.getParameter("confirmPassword")
+        );
 
-        fullName = fullName == null ? "" : fullName.trim();
-        email = email == null ? "" : email.trim();
-        phone = phone == null ? "" : phone.trim();
+        String error = authService.validateRegister(dto);
 
-        String nameRegex = "^[\\p{L}]+(?:\\s+[\\p{L}]+)*$";
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-        String phoneRegex = "^0\\d{9}$";
+        if (error != null) {
+            request.setAttribute("error", error);
+            keepRegisterInput(
+                    request,
+                    dto.getFullName(),
+                    dto.getEmail(),
+                    dto.getPhone()
+            );
 
-        if (fullName.length() < 2 || fullName.length() > 50 || !fullName.matches(nameRegex)) {
-            request.setAttribute("error", "Họ tên phải từ 2-50 ký tự và chỉ chứa chữ cái");
-            keepRegisterInput(request, fullName, email, phone);
-            request.getRequestDispatcher("/pages/register.jsp").forward(request, response);
+            request.getRequestDispatcher("/pages/register.jsp")
+                    .forward(request, response);
             return;
         }
 
-        if (!email.matches(emailRegex)) {
-            request.setAttribute("error", "Email không đúng định dạng");
-            keepRegisterInput(request, fullName, email, phone);
-            request.getRequestDispatcher("/pages/register.jsp").forward(request, response);
-            return;
-        }
-
-        if (!phone.matches(phoneRegex)) {
-            request.setAttribute("error", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0");
-            keepRegisterInput(request, fullName, email, phone);
-            request.getRequestDispatcher("/pages/register.jsp").forward(request, response);
-            return;
-        }
-
-        if (password == null || password.length() < 8) {
-            request.setAttribute("error", "Mật khẩu phải có ít nhất 8 ký tự");
-            keepRegisterInput(request, fullName, email, phone);
-            request.getRequestDispatcher("/pages/register.jsp").forward(request, response);
-            return;
-        }
-
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu xác nhận không khớp");
-            keepRegisterInput(request, fullName, email, phone);
-            request.getRequestDispatcher("/pages/register.jsp").forward(request, response);
-            return;
-        }
-
-        if (authService.emailExists(email)) {
-            request.setAttribute("error", "Email đã tồn tại");
-            keepRegisterInput(request, fullName, email, phone);
-            request.getRequestDispatcher("/pages/register.jsp").forward(request, response);
-            return;
-        }
-
-        User user = new User();
-        user.setFullName(fullName);
-        user.setEmail(email);
-        user.setPhone(phone);
-        user.setPasswordHash(PasswordUtil.hashPassword(password));
-        user.setGoogleId("local_" + email);
+        User user = authService.buildUser(dto);
 
         boolean success = authService.register(user);
 
         if (!success) {
             request.setAttribute("error", "Đăng ký thất bại");
-            keepRegisterInput(request, fullName, email, phone);
-            request.getRequestDispatcher("/pages/register.jsp").forward(request, response);
+            keepRegisterInput(
+                    request,
+                    dto.getFullName(),
+                    dto.getEmail(),
+                    dto.getPhone()
+            );
+
+            request.getRequestDispatcher("/pages/register.jsp")
+                    .forward(request, response);
             return;
         }
 
-        User createdUser = authService.login(email, password);
-
-        String otp = authService.generateOtp();
+        User createdUser = authService.login(
+                dto.getEmail(),
+                dto.getPassword()
+        );
 
         HttpSession session = request.getSession();
-        authService.createVerifyOtpSession(session, createdUser, otp);
-        authService.sendOtp(email, otp);
+
+        authService.sendVerifyOtp(
+                getServletContext(),
+                session,
+                createdUser
+        );
 
         response.sendRedirect(request.getContextPath() + "/verify-email");
     }
@@ -365,7 +337,7 @@ public class AuthController extends HttpServlet {
             session.setAttribute("emailOtp", newOtp);
             session.setAttribute("otpExpiredAt", System.currentTimeMillis() + 5 * 60 * 1000);
 
-            authService.sendOtp(verifyUser.getEmail(), newOtp);
+            authService.sendOtp(getServletContext(), verifyUser.getEmail(), newOtp);
 
             request.setAttribute("success", "OTP mới đã được gửi tới email của bạn");
             request.getRequestDispatcher("/pages/verify-email.jsp").forward(request, response);
@@ -383,7 +355,7 @@ public class AuthController extends HttpServlet {
             session.setAttribute("resetOtp", newOtp);
             session.setAttribute("resetOtpExpiredAt", System.currentTimeMillis() + 5 * 60 * 1000);
 
-            authService.sendOtp(resetEmail, newOtp);
+            authService.sendOtp(getServletContext(), resetEmail, newOtp);
 
             request.setAttribute("success", "OTP mới đã được gửi tới email của bạn");
             request.getRequestDispatcher("/pages/confirm-reset-otp.jsp").forward(request, response);
@@ -418,11 +390,9 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        String otp = authService.generateOtp();
-
         HttpSession session = request.getSession();
-        authService.createResetOtpSession(session, user, email, otp);
-        authService.sendOtp(email, otp);
+
+        authService.sendResetOtp(getServletContext(), session, user, email);
 
         response.sendRedirect(request.getContextPath() + "/confirm-reset-otp");
     }
