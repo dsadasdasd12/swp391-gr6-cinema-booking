@@ -15,6 +15,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Seat;
 import model.Showtime;
+import model.User;
+import jakarta.servlet.http.HttpSession;
+import service.UserService;
 
 @WebServlet(name = "CounterBookingController", urlPatterns = {"/CounterBooking"})
 public class CounterBookingController extends HttpServlet {
@@ -24,12 +27,26 @@ public class CounterBookingController extends HttpServlet {
     private final SeatService seatService = new SeatService();
     private final DiscountService discountService = new DiscountService();
     private final TicketService ticketService = new TicketService();
+    private final UserService userService = new UserService();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
 
-        int branchId = 1; // Mặc định chi nhánh 1 để test nhanh
+        HttpSession session = request.getSession(false);
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        String role = user.getRole();
+        if (!"STAFF".equalsIgnoreCase(role) && !"MANAGER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+
+        int staffId = user.getId();
+        int branchId = userService.getBranchIdOfStaff(staffId);
         String action = request.getParameter("action");
 
         // API CHECK PAYMENT STATUS: Truy vấn trạng thái đơn hàng (PENDING / CONFIRMED) phục vụ AJAX polling
@@ -182,9 +199,8 @@ public class CounterBookingController extends HttpServlet {
                 String paymentMethod = request.getParameter("paymentMethod"); // CASH hoặc BANKING
                 if (paymentMethod == null) paymentMethod = "CASH";
 
-                // Giả định Staff đăng nhập là UserID 10 (theo seed_data.sql)
-                int staffId = 10;
-                int customerUserId = 10; // Đặt vé tại quầy có thể gắn với tài khoản khách hoặc tài khoản mặc định
+                // Đặt vé tại quầy có thể gắn với tài khoản khách hoặc tài khoản mặc định
+                int customerUserId = 10;
 
                 int bookingId = bookingService.createWalkinBooking(customerUserId, showtimeId, seatIds, seatPrices, 
                                                                  finalPrice, paymentMethod, discountAmount, 

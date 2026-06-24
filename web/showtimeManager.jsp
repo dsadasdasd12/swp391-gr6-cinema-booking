@@ -364,10 +364,15 @@
     <header class="navbar">
         <h1 id="logo">RAPVIET CONSOLE</h1>
         <nav class="nav-links">
-            <a href="ShowtimeManager" class="active">Suất Chiếu & Giá Vé</a>
+            <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
+                <a href="ShowtimeManager" class="active">Suất Chiếu & Giá Vé</a>
+            </c:if>
             <a href="CounterBooking">Quầy Bán Vé (POS)</a>
             <a href="TicketValidation">Soát Vé Cổng</a>
-            <a href="DiscountManager" style="margin-left: 20px;">Mã Giảm Giá</a>
+            <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
+                <a href="DiscountManager" style="margin-left: 20px;">Mã Giảm Giá</a>
+            </c:if>
+            <a href="logout" style="margin-left: 20px; color: #ff3366; font-weight: bold;">Đăng Xuất</a>
         </nav>
     </header>
 
@@ -397,6 +402,24 @@
         <!-- Sleek Filter Bar -->
         <div style="background: var(--glass-bg); border: 1px solid var(--border-color); padding: 18px 24px; border-radius: 12px; margin-bottom: 30px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; justify-content: space-between; backdrop-filter: blur(12px);">
             <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
+                <!-- Chọn Chi Nhánh -->
+                <div style="display: flex; flex-direction: column; gap: 6px; min-width: 200px;">
+                    <label style="font-size: 11px; font-weight: 700; color: var(--muted-text); text-transform: uppercase; letter-spacing: 0.5px;">Chi Nhánh</label>
+                    <c:choose>
+                        <c:when test="${sessionScope.user.role == 'ADMIN'}">
+                            <select id="selectedBranch" onchange="window.location.href='ShowtimeManager?date=${selectedDate}&branchId=' + this.value" style="padding: 10px 12px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--border-color); border-radius: 6px; outline: none; cursor: pointer; font-size: 13px; transition: border-color 0.2s;">
+                                <c:forEach items="${branchList}" var="b">
+                                    <option value="${b.id}" ${b.id == currentBranchId ? 'selected' : ''}>${b.name}</option>
+                                </c:forEach>
+                            </select>
+                        </c:when>
+                        <c:otherwise>
+                            <div style="padding: 10px 12px; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; font-weight: 600;">
+                                ${currentBranchName}
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
                 <!-- Lọc theo Phim -->
                 <div style="display: flex; flex-direction: column; gap: 6px; min-width: 220px;">
                     <label style="font-size: 11px; font-weight: 700; color: var(--muted-text); text-transform: uppercase; letter-spacing: 0.5px;">Phim</label>

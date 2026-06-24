@@ -233,10 +233,15 @@
     <header class="navbar">
         <h1>RAPVIET CONSOLE</h1>
         <nav class="nav-links">
-            <a href="ShowtimeManager">Suất Chiếu & Giá Vé</a>
+            <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
+                <a href="ShowtimeManager">Suất Chiếu & Giá Vé</a>
+            </c:if>
             <a href="CounterBooking">Quầy Bán Vé (POS)</a>
             <a href="TicketValidation" class="active">Soát Vé Cổng</a>
-            <a href="DiscountManager" style="margin-left: 20px;">Mã Giảm Giá</a>
+            <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
+                <a href="DiscountManager" style="margin-left: 20px;">Mã Giảm Giá</a>
+            </c:if>
+            <a href="logout" style="margin-left: 20px; color: #ff3366; font-weight: bold;">Đăng Xuất</a>
         </nav>
     </header>
 

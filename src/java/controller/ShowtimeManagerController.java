@@ -1,32 +1,59 @@
 package controller;
 
 import service.ShowtimeService;
+import service.UserService;
+import dao.BranchDAO;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import model.Showtime;
+import model.User;
+import model.Branch;
 
 @WebServlet(name = "ShowtimeManagerController", urlPatterns = {"/ShowtimeManager"})
 public class ShowtimeManagerController extends HttpServlet {
 
     private final ShowtimeService showtimeService = new ShowtimeService();
+    private final UserService userService = new UserService();
+    private final BranchDAO branchDAO = new BranchDAO();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        
-        int branchId = 1; // Mặc định chi nhánh 1 để test nhanh
-        String branchIdStr = request.getParameter("branchId");
-        if (branchIdStr != null) {
-            try {
-                branchId = Integer.parseInt(branchIdStr);
-            } catch (NumberFormatException e) {
-                // Keep default
+
+        HttpSession session = request.getSession(false);
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String role = user.getRole();
+        if (!"MANAGER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+
+        int branchId = 1;
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            List<Branch> branchList = branchDAO.getAllBranches();
+            request.setAttribute("branchList", branchList);
+            if (branchList != null && !branchList.isEmpty()) {
+                branchId = branchList.get(0).getId();
             }
+            String branchIdStr = request.getParameter("branchId");
+            if (branchIdStr != null) {
+                try {
+                    branchId = Integer.parseInt(branchIdStr);
+                } catch (NumberFormatException e) {
+                    // Keep default
+                }
+            }
+        } else {
+            // MANAGER role is locked to their assigned branch from database assignment
+            branchId = userService.getBranchIdOfStaff(user.getId());
         }
 
         String dateStr = request.getParameter("date");
@@ -53,6 +80,10 @@ public class ShowtimeManagerController extends HttpServlet {
             response.sendRedirect("ShowtimeManager?branchId=" + branchId + "&date=" + dateStr);
             return;
         }
+
+        Branch currentBranch = branchDAO.getBranchById(branchId);
+        String currentBranchName = (currentBranch != null) ? currentBranch.getName() : "Chi nhánh " + branchId;
+        request.setAttribute("currentBranchName", currentBranchName);
 
         // Đọc danh sách suất chiếu của chi nhánh theo ngày chọn
         List<Showtime> showtimeList = showtimeService.getShowtimesByBranchAndDate(branchId, dateStr);

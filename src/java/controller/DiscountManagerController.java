@@ -7,10 +7,9 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import model.DiscountCode;
+import model.User;
 
 @WebServlet(name = "DiscountManagerController", urlPatterns = {"/DiscountManager"})
 public class DiscountManagerController extends HttpServlet {
@@ -20,6 +19,19 @@ public class DiscountManagerController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+
+        HttpSession session = request.getSession(false);
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String role = user.getRole();
+        if (!"MANAGER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
 
         String action = request.getParameter("action");
 
