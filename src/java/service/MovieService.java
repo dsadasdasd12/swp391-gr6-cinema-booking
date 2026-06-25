@@ -39,8 +39,10 @@ public class MovieService {
 
     private static final List<String> VALID_STATUS =
             List.of("COMING_SOON", "NOW_SHOWING", "ENDED");
+
     private static final List<String> VALID_FORMAT =
             List.of("STANDARD", "VIP", "IMAX", "4DX", "PREMIUM");
+
     private static final List<String> VALID_SORT =
             List.of("newest", "title_asc", "title_desc", "rating_desc");
 
@@ -67,6 +69,7 @@ public class MovieService {
         if (movieId <= 0) {
             return null;
         }
+
         return movieDAO.findById(movieId);
     }
 
@@ -77,11 +80,20 @@ public class MovieService {
     public List<BranchShowtimes> getShowtimesByBranch(int movieId) {
         List<Showtime> all = showtimeDAO.findUpcomingByMovie(movieId);
         Map<Integer, BranchShowtimes> grouped = new LinkedHashMap<>();
+
         for (Showtime st : all) {
-            BranchShowtimes b = grouped.computeIfAbsent(st.getBranchId(),
-                    k -> new BranchShowtimes(st.getBranchId(), st.getBranchName(), st.getBranchAddress()));
+            BranchShowtimes b = grouped.computeIfAbsent(
+                    st.getBranchId(),
+                    k -> new BranchShowtimes(
+                            st.getBranchId(),
+                            st.getBranchName(),
+                            st.getBranchAddress()
+                    )
+            );
+
             b.getShowtimes().add(st);
         }
+
         return new ArrayList<>(grouped.values());
     }
 
@@ -92,53 +104,58 @@ public class MovieService {
     public List<Language> getLanguages() {
         return languageDAO.findAllActive();
     }
-    
+
     public Branch getAssignedBranch(int managerId) {
         validateManagerId(managerId);
-        
+
         return staffBranchDAO.findBranchByManagerId(managerId);
     }
-    
+
     @Deprecated
     public List<Branch> getBranchesByManagerId(int managerId) {
         Branch assignedBranch = getAssignedBranch(managerId);
-        
+
         List<Branch> branches = new ArrayList<>();
-        
+
         if (assignedBranch != null) {
             branches.add(assignedBranch);
         }
-        
+
         return branches;
     }
 
-
     public List<Hall> getHallsByBranchId(
             int managerId,
-            int branchId) {
-
+            int branchId
+    ) {
         validateManagerId(managerId);
         validateBranchPermission(managerId, branchId);
 
-        return hallDAO.findByBranchId(branchId);
-    }
+        List<Hall> activeHalls = new ArrayList<>();
 
+        for (Hall hall : hallDAO.findByBranchId(branchId)) {
+            if (isHallActive(hall)) {
+                activeHalls.add(hall);
+            }
+        }
+
+        return activeHalls;
+    }
 
     public List<MovieAssignmentItem> getItemsForBranch(
             int managerId,
-            int branchId) {
-
+            int branchId
+    ) {
         validateManagerId(managerId);
         validateBranchPermission(managerId, branchId);
 
         return movieManagementDAO.findItemsForBranch(branchId);
     }
 
-
     public List<MovieAssignmentItem> getItemsForHall(
             int managerId,
-            int hallId) {
-
+            int hallId
+    ) {
         validateManagerId(managerId);
 
         int branchId = getAuthorizedBranchIdByHallId(
@@ -155,12 +172,11 @@ public class MovieService {
         return movieManagementDAO.findItemsForHall(hallId);
     }
 
-
     public boolean saveBranchAssignments(
             int managerId,
             int branchId,
-            List<Integer> selectedMovieIds) {
-
+            List<Integer> selectedMovieIds
+    ) {
         validateManagerId(managerId);
         validateBranchPermission(managerId, branchId);
 
@@ -173,18 +189,19 @@ public class MovieService {
         );
     }
 
-
     public boolean saveHallAssignments(
             int managerId,
             int hallId,
-            List<Integer> selectedMovieIds) {
-
+            List<Integer> selectedMovieIds
+    ) {
         validateManagerId(managerId);
 
         int branchId = getAuthorizedBranchIdByHallId(
                 managerId,
                 hallId
         );
+
+        ensureHallIsActive(hallId, branchId);
 
         List<Integer> validMovieIds
                 = validateAndCleanMovieIds(selectedMovieIds);
@@ -216,30 +233,35 @@ public class MovieService {
         );
     }
 
-
     public List<Movie> getMoviesAssignedToHall(
             int managerId,
-            int hallId) {
-
+            int hallId
+    ) {
         validateManagerId(managerId);
-        getAuthorizedBranchIdByHallId(managerId, hallId);
+
+        getAuthorizedBranchIdByHallId(
+                managerId,
+                hallId
+        );
 
         return movieManagementDAO.findMoviesAssignedToHall(hallId);
     }
 
-
     public boolean isMovieAssignedToHall(
             int managerId,
             int hallId,
-            int movieId) {
-
+            int movieId
+    ) {
         validateManagerId(managerId);
 
         if (movieId <= 0) {
             return false;
         }
 
-        getAuthorizedBranchIdByHallId(managerId, hallId);
+        getAuthorizedBranchIdByHallId(
+                managerId,
+                hallId
+        );
 
         return movieManagementDAO.isMovieAssignedToHall(
                 hallId,
@@ -249,8 +271,8 @@ public class MovieService {
 
     public boolean isManagerAllowedBranch(
             int managerId,
-            int branchId) {
-
+            int branchId
+    ) {
         if (managerId <= 0 || branchId <= 0) {
             return false;
         }
@@ -261,11 +283,10 @@ public class MovieService {
         );
     }
 
-
     public boolean isManagerAllowedHall(
             int managerId,
-            int hallId) {
-
+            int hallId
+    ) {
         if (managerId <= 0 || hallId <= 0) {
             return false;
         }
@@ -283,11 +304,10 @@ public class MovieService {
         );
     }
 
-
     private int getAuthorizedBranchIdByHallId(
             int managerId,
-            int hallId) {
-
+            int hallId
+    ) {
         if (hallId <= 0) {
             throw new IllegalArgumentException(
                     "Phòng chiếu không hợp lệ."
@@ -308,11 +328,39 @@ public class MovieService {
         return branchId;
     }
 
+    private void ensureHallIsActive(
+            int hallId,
+            int branchId
+    ) {
+        Hall hall = hallDAO.findByIdAndBranchId(
+                hallId,
+                branchId
+        );
+
+        if (hall == null) {
+            throw new IllegalArgumentException(
+                    "Không tìm thấy phòng chiếu."
+            );
+        }
+
+        if (!isHallActive(hall)) {
+            throw new IllegalArgumentException(
+                    "Chỉ có thể phân bổ phim cho phòng chiếu đang hoạt động."
+            );
+        }
+    }
+
+    private boolean isHallActive(Hall hall) {
+        return hall != null
+                && "ACTIVE".equalsIgnoreCase(
+                        hall.getStatus()
+                );
+    }
 
     private void validateBranchPermission(
             int managerId,
-            int branchId) {
-
+            int branchId
+    ) {
         if (branchId <= 0) {
             throw new IllegalArgumentException(
                     "Chi nhánh không hợp lệ."
@@ -332,7 +380,6 @@ public class MovieService {
         }
     }
 
-
     private void validateManagerId(int managerId) {
         if (managerId <= 0) {
             throw new IllegalArgumentException(
@@ -341,10 +388,9 @@ public class MovieService {
         }
     }
 
-
     private List<Integer> validateAndCleanMovieIds(
-            List<Integer> selectedMovieIds) {
-
+            List<Integer> selectedMovieIds
+    ) {
         if (selectedMovieIds == null) {
             return new ArrayList<>();
         }
@@ -383,7 +429,9 @@ public class MovieService {
      */
     public Movie getMovieById(int movieId) {
         if (movieId <= 0) {
-            throw new IllegalArgumentException("Phim không hợp lệ.");
+            throw new IllegalArgumentException(
+                    "Phim không hợp lệ."
+            );
         }
 
         Movie movie = movieManagementDAO.findMovieById(movieId);
@@ -399,10 +447,12 @@ public class MovieService {
 
     public boolean updateDuration(
             int movieId,
-            int durationMin) {
-
+            int durationMin
+    ) {
         if (movieId <= 0) {
-            throw new IllegalArgumentException("Phim không hợp lệ.");
+            throw new IllegalArgumentException(
+                    "Phim không hợp lệ."
+            );
         }
 
         if (durationMin < MIN_DURATION_MIN) {
@@ -431,18 +481,26 @@ public class MovieService {
             return true;
         }
 
-        return movieManagementDAO.updateDuration(movieId, durationMin);
+        return movieManagementDAO.updateDuration(
+                movieId,
+                durationMin
+        );
     }
 
     public int parseDuration(String durationValue) {
-        if (durationValue == null || durationValue.trim().isEmpty()) {
+        if (durationValue == null
+                || durationValue.trim().isEmpty()) {
+
             throw new IllegalArgumentException(
                     "Vui lòng nhập thời lượng phim."
             );
         }
 
         try {
-            return Integer.parseInt(durationValue.trim());
+            return Integer.parseInt(
+                    durationValue.trim()
+            );
+
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
                     "Thời lượng phim phải là số nguyên."
@@ -451,30 +509,50 @@ public class MovieService {
     }
 
     private void normalize(MovieFilter f) {
-        // keyword: cắt khoảng trắng, bỏ nếu rỗng
         if (f.getKeyword() != null) {
             String kw = f.getKeyword().trim();
-            f.setKeyword(kw.isEmpty() ? null : kw);
+            f.setKeyword(
+                    kw.isEmpty() ? null : kw
+            );
         }
-        if (f.getStatus() != null && !VALID_STATUS.contains(f.getStatus())) {
+
+        if (f.getStatus() != null
+                && !VALID_STATUS.contains(f.getStatus())) {
+
             f.setStatus(null);
         }
-        if (f.getFormat() != null && !VALID_FORMAT.contains(f.getFormat())) {
+
+        if (f.getFormat() != null
+                && !VALID_FORMAT.contains(f.getFormat())) {
+
             f.setFormat(null);
         }
-        if (f.getSortBy() == null || !VALID_SORT.contains(f.getSortBy())) {
+
+        if (f.getSortBy() == null
+                || !VALID_SORT.contains(f.getSortBy())) {
+
             f.setSortBy("newest");
         }
-        if (f.getCategoryId() != null && f.getCategoryId() <= 0) {
+
+        if (f.getCategoryId() != null
+                && f.getCategoryId() <= 0) {
+
             f.setCategoryId(null);
         }
-        if (f.getLanguageId() != null && f.getLanguageId() <= 0) {
+
+        if (f.getLanguageId() != null
+                && f.getLanguageId() <= 0) {
+
             f.setLanguageId(null);
         }
+
         if (f.getPage() < 1) {
             f.setPage(1);
         }
-        if (f.getPageSize() < 1 || f.getPageSize() > MAX_PAGE_SIZE) {
+
+        if (f.getPageSize() < 1
+                || f.getPageSize() > MAX_PAGE_SIZE) {
+
             f.setPageSize(MovieFilter.DEFAULT_PAGE_SIZE);
         }
     }

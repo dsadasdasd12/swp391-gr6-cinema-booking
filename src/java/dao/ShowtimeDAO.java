@@ -64,6 +64,7 @@ public class ShowtimeDAO {
                 + "JOIN dbo.HALLS h ON h.id = s.hall_id "
                 + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
                 + "WHERE h.branch_id = ? "
+                + "AND s.status <> 'CANCELLED' " 
                 + "ORDER BY s.start_time DESC, s.id DESC";
 
         List<Showtime> list = new ArrayList<>();

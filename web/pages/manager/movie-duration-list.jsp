@@ -504,7 +504,7 @@
                                                 </span>
 
                                                 <span class="duration-hours">
-                                                    
+
                                                     <c:out value="${movie.durationHours}" />
                                                     giờ
                                                     <c:out value="${movie.durationRemainingMinutes}" />
@@ -595,15 +595,31 @@
 
 <script>
     /*
+     * Chuẩn hóa chữ để tìm được có dấu hoặc không dấu.
+     * Ví dụ: "Lật Mặt" và "lat mat" đều thành "lat mat".
+     */
+    function normalizeMovieSearchText(value) {
+        return (value || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/đ/g, "d")
+                .replace(/[^a-z0-9]+/g, " ")
+                .trim()
+                .replace(/\s+/g, " ");
+    }
+
+    /*
      * Lọc danh sách phim theo tên.
      */
     function filterMovies() {
         const searchInput
                 = document.getElementById("movieSearch");
 
-        const keyword = searchInput.value
-                .trim()
-                .toLowerCase();
+        const keyword
+                = normalizeMovieSearchText(
+                        searchInput.value
+                );
 
         const rows = Array.from(
                 document.querySelectorAll(
@@ -615,11 +631,24 @@
 
         rows.forEach(function (row) {
             const movieTitle
-                    = (row.dataset.movieTitle || "")
-                            .toLowerCase();
+                    = normalizeMovieSearchText(
+                            row.dataset.movieTitle || ""
+                    );
 
-            const matched
-                    = movieTitle.includes(keyword);
+            let matched = !keyword
+                    || movieTitle.includes(keyword);
+
+            /*
+             * Cho phép gõ các từ không cần theo đúng thứ tự.
+             * Ví dụ: "thanh tran" vẫn tìm được "Mai - Trấn Thành".
+             */
+            if (!matched) {
+                const searchWords = keyword.split(" ");
+
+                matched = searchWords.every(function (word) {
+                    return movieTitle.includes(word);
+                });
+            }
 
             row.style.display
                     = matched ? "" : "none";
