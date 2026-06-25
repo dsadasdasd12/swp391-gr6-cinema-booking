@@ -224,10 +224,10 @@ public class MovieDAO {
         for (int k = 0; k < movies.size(); k++) {
             in.append(k == 0 ? "?" : ",?");
         }
-        String sql = "SELECT mc.movie_id, c.id, c.name(), c.status "
-                + "FROM dbo.MOVIES_CATEGORY mc "
-                + "JOIN dbo.CATEGORY c ON c.id = mc.category_id "
-                + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name()";
+        String sql = "SELECT mc.movie_id, c.id, c.name AS name, c.status "
+        + "FROM dbo.MOVIES_CATEGORY mc "
+        + "JOIN dbo.CATEGORY c ON c.id = mc.category_id "
+        + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (int k = 0; k < movies.size(); k++) {
