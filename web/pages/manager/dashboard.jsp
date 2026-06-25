@@ -219,7 +219,7 @@
     <main class="container">
         
         <h2 class="logo-title">MANAGER CONSOLE</h2>
-        <p class="sub-text">Hệ thống điều hành và phân phối suất chiếu, kiểm soát quầy vé POS toàn diện dành cho Quản lý chi nhánh.</p>
+        <p class="sub-text">Hệ thống quản lý suất chiếu, cấu hình phòng chiếu và phân phối mã giảm giá dành cho Quản lý chi nhánh.</p>
 
         <!-- Lựa chọn phân hệ quản trị -->
         <section class="portal-grid">
@@ -249,28 +249,19 @@
                 <p class="card-desc">Cấu hình mã giảm giá (vouchers), thiết lập hạn mức và áp dụng trực tiếp cho các hóa đơn bán tại quầy.</p>
             </a>
 
-            <!-- 3. Quầy bán vé tại chỗ -->
-            <a href="${ctx}/CounterBooking" class="portal-card">
+            <!-- 3. Cấu hình phòng chiếu -->
+            <a href="${ctx}/SeatConfigController" class="portal-card">
                 <div class="icon-box">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                        <line x1="12" y1="4" x2="12" y2="20"></line>
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <line x1="15" y1="3" x2="15" y2="21"></line>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="3" y1="15" x2="21" y2="15"></line>
                     </svg>
                 </div>
-                <h3 class="card-title">Quầy Vé POS</h3>
-                <p class="card-desc">Bán vé tại chỗ nhanh chóng, chọn ghế trực quan cho khách hàng và xuất in vé nhiệt tức thời.</p>
-            </a>
-
-            <!-- 4. Soát vé cổng tự động -->
-            <a href="${ctx}/TicketValidation" class="portal-card">
-                <div class="icon-box">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                </div>
-                <h3 class="card-title">Soát Vé Cổng</h3>
-                <p class="card-desc">Quét mã vạch soát vé khách hàng vào phòng chiếu, tự động kiểm tra và khóa các vé sử dụng sai lệch.</p>
+                <h3 class="card-title">Cấu Hinh Phòng Chiếu</h3>
+                <p class="card-desc">Thiết lập sơ đồ ghế, trạng thái vận hành, loại ghế Standard/VIP/Couple và khóa bảo trì.</p>
             </a>
 
         </section>

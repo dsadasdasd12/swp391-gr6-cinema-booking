@@ -427,10 +427,13 @@
             <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
                 <a href="ShowtimeManager">Suất Chiếu & Giá Vé</a>
             </c:if>
-            <a href="CounterBooking" class="active">Quầy Bán Vé (POS)</a>
-            <a href="TicketValidation">Soát Vé Cổng</a>
+            <c:if test="${sessionScope.user.role == 'STAFF' || sessionScope.user.role == 'ADMIN'}">
+                <a href="CounterBooking" class="active">Quầy Bán Vé (POS)</a>
+                <a href="TicketValidation">Soát Vé Cổng</a>
+            </c:if>
             <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
                 <a href="DiscountManager" style="margin-left: 20px;">Mã Giảm Giá</a>
+                <a href="SeatConfigController" style="margin-left: 20px;">Cấu Hình Phòng</a>
             </c:if>
             <a href="logout" style="margin-left: 20px; color: #ff3366; font-weight: bold;">Đăng Xuất</a>
         </nav>
