@@ -226,6 +226,14 @@ public class Movie {
         }
         return m + "m";
     }
+    
+    public int getDurationHours() {
+        return durationMin / 60;
+    }
+    
+    public int getDurationRemainingMinutes() {
+        return durationMin % 60;
+    }
 
     /** Điểm đánh giá làm tròn 1 chữ số thập phân để hiển thị. */
     public double getRatingRounded() {
