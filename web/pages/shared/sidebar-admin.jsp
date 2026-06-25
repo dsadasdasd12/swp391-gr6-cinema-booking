@@ -48,14 +48,6 @@
         </div>
     </div>
 
-    <!-- 📅 Showtime Management -->
-    <div class="rv-nav__group">
-        <a href="${ctx}/admin/showtimes?action=list" class="rv-nav__item ${uri.contains('/admin/showtimes') ? 'active' : ''}">
-            <i class="bi bi-calendar-event"></i>
-            Quản lý suất chiếu
-        </a>
-    </div>
-
     <!-- 🎫 Booking Management -->
     <div class="rv-nav__group">
         <a href="${ctx}/admin/tickets?action=list" class="rv-nav__item ${isTicket ? 'active' : ''}">
