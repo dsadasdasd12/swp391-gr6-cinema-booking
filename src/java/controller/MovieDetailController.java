@@ -30,8 +30,7 @@ import service.MovieService;
 @WebServlet(
         name = "MovieDetailController",
         urlPatterns = {
-            "/movies",
-            "/movie",
+            
             "/manager/movie-assignments/branches",
             "/manager/movie-assignments/halls",
             "/manager/movie-durations",
