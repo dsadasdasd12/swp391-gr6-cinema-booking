@@ -25,7 +25,6 @@ import model.Language;
 import model.Movie;
 import model.User;
 import service.MovieService;
-import service.ReviewService;
 
 
 @WebServlet(
@@ -58,7 +57,6 @@ public class MovieDetailController extends HttpServlet {
 
     /** Single service for all Movie functions: browse, detail, assignment and duration. */
     private final MovieService movieService = new MovieService();
-    private final ReviewService reviewService = new ReviewService();
 
     @Override
     protected void doGet(
@@ -177,9 +175,6 @@ public class MovieDetailController extends HttpServlet {
         }
 
         request.setAttribute("movie", movie);
-        request.setAttribute("branchShowtimes", movieService.getShowtimesByBranch(id));
-        request.setAttribute("reviews", reviewService.getMovieReviews(id));
-        request.getRequestDispatcher("/pages/movie/detail.jsp").forward(request, response);
         request.setAttribute(
                 "branchShowtimes",
                 movieService.getShowtimesByBranch(movieId)
@@ -189,246 +184,258 @@ public class MovieDetailController extends HttpServlet {
     }
 
     /**
- * Hiển thị màn hình phân bổ phim cho Branch duy nhất của Manager.
- */
+     * Hiển thị màn hình phân bổ phim cho chi nhánh.
+     */
     private void showBranchAssignmentPage(
-        HttpServletRequest request,
-        HttpServletResponse response)
-        throws ServletException, IOException {
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
 
-    User manager = getCurrentManager(request, response);
-
-    if (manager == null) {
-        return;
-    }
-
-    try {
-        Branch branch = movieService.getAssignedBranch(manager.getId());
-
-        List<MovieAssignmentItem> movieItems = new ArrayList<>();
-
-        if (branch != null) {
-            movieItems = movieService.getItemsForBranch(
-                    manager.getId(),
-                    branch.getId()
-            );
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
         }
 
-        request.setAttribute("branch", branch);
-        request.setAttribute("movieItems", movieItems);
+        try {
+            List<Branch> branches = movieService.getBranchesByManagerId(
+                    manager.getId()
+            );
 
-        request.getRequestDispatcher(BRANCH_ASSIGNMENT_PAGE)
-                .forward(request, response);
+            int selectedBranchId = parsePositiveInt(
+                    request.getParameter("branchId")
+            );
 
-    } catch (IllegalArgumentException e) {
-        request.setAttribute("error", e.getMessage());
+            if (selectedBranchId <= 0 && !branches.isEmpty()) {
+                selectedBranchId = branches.get(0).getId();
+            }
 
-        request.getRequestDispatcher(BRANCH_ASSIGNMENT_PAGE)
-                .forward(request, response);
+            if (selectedBranchId > 0
+                    && !movieService.isManagerAllowedBranch(
+                            manager.getId(),
+                            selectedBranchId)) {
+
+                setFlash(
+                        request,
+                        "error",
+                        "Bạn không có quyền quản lý chi nhánh này."
+                );
+
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/movie-assignments/branches"
+                );
+                return;
+            }
+
+            List<MovieAssignmentItem> movieItems = new ArrayList<>();
+            if (selectedBranchId > 0) {
+                movieItems = movieService.getItemsForBranch(
+                        manager.getId(),
+                        selectedBranchId
+                );
+            }
+
+            request.setAttribute("branches", branches);
+            request.setAttribute("selectedBranchId", selectedBranchId);
+            request.setAttribute("movieItems", movieItems);
+
+            request.getRequestDispatcher(BRANCH_ASSIGNMENT_PAGE)
+                    .forward(request, response);
+
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("error", e.getMessage());
+            request.getRequestDispatcher(BRANCH_ASSIGNMENT_PAGE)
+                    .forward(request, response);
+        }
     }
-}
 
     /**
- * Lưu Movie Assignment cho Branch duy nhất của Manager.
- * branchId không được đọc từ request.
- */
+     * Lưu danh sách phim được gán cho chi nhánh.
+     */
     private void saveBranchAssignments(
-        HttpServletRequest request,
-        HttpServletResponse response)
-        throws IOException {
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
 
-    User manager = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
 
-    if (manager == null) {
-        return;
-    }
-
-    Branch branch = movieService.getAssignedBranch(manager.getId());
-
-    if (branch == null) {
-        setFlash(
-                request,
-                "error",
-                "Tài khoản Manager chưa được Admin phân công chi nhánh."
+        int branchId = parsePositiveInt(request.getParameter("branchId"));
+        List<Integer> selectedMovieIds = parseMovieIds(
+                request.getParameterValues("movieIds")
         );
+
+        try {
+            boolean success = movieService.saveBranchAssignments(
+                    manager.getId(),
+                    branchId,
+                    selectedMovieIds
+            );
+
+            if (success) {
+                setFlash(
+                        request,
+                        "success",
+                        "Lưu phân bổ phim cho chi nhánh thành công."
+                );
+            } else {
+                setFlash(
+                        request,
+                        "error",
+                        "Không thể lưu phân bổ phim cho chi nhánh."
+                );
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
+        }
 
         response.sendRedirect(
                 request.getContextPath()
                 + "/manager/movie-assignments/branches"
+                + "?branchId=" + branchId
         );
-        return;
     }
-
-    List<Integer> selectedMovieIds = parseMovieIds(
-            request.getParameterValues("movieIds")
-    );
-
-    try {
-        boolean success = movieService.saveBranchAssignments(
-                manager.getId(),
-                branch.getId(),
-                selectedMovieIds
-        );
-
-        if (success) {
-            setFlash(
-                    request,
-                    "success",
-                    "Lưu phân bổ phim cho chi nhánh thành công."
-            );
-        } else {
-            setFlash(
-                    request,
-                    "error",
-                    "Không thể lưu phân bổ phim cho chi nhánh."
-            );
-        }
-
-    } catch (IllegalArgumentException e) {
-        setFlash(request, "error", e.getMessage());
-    }
-
-    response.sendRedirect(
-            request.getContextPath()
-            + "/manager/movie-assignments/branches"
-    );
-}
 
     /**
- * Hiển thị màn hình phân bổ phim cho Hall.
- * Manager chỉ thấy Hall thuộc Branch được Admin phân công.
- */
+     * Hiển thị màn hình phân bổ phim cho phòng chiếu.
+     */
     private void showHallAssignmentPage(
-        HttpServletRequest request,
-        HttpServletResponse response)
-        throws ServletException, IOException {
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
 
-    User manager = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
 
-    if (manager == null) {
-        return;
-    }
-
-    try {
-        Branch branch = movieService.getAssignedBranch(manager.getId());
-
-        List<Hall> halls = new ArrayList<>();
-        List<MovieAssignmentItem> movieItems = new ArrayList<>();
-
-        int selectedHallId = parsePositiveInt(
-                request.getParameter("hallId")
-        );
-
-        if (branch != null) {
-            halls = movieService.getHallsByBranchId(
-                    manager.getId(),
-                    branch.getId()
+        try {
+            List<Branch> branches = movieService.getBranchesByManagerId(
+                    manager.getId()
             );
 
-            /*
-             * Nếu hallId trên URL không thuộc Branch của Manager,
-             * tự chọn Hall đầu tiên trong Branch đó.
-             */
+            int selectedBranchId = parsePositiveInt(
+                    request.getParameter("branchId")
+            );
+
+            if (selectedBranchId <= 0 && !branches.isEmpty()) {
+                selectedBranchId = branches.get(0).getId();
+            }
+
+            if (selectedBranchId > 0
+                    && !movieService.isManagerAllowedBranch(
+                            manager.getId(),
+                            selectedBranchId)) {
+
+                setFlash(
+                        request,
+                        "error",
+                        "Bạn không có quyền quản lý chi nhánh này."
+                );
+
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/movie-assignments/halls"
+                );
+                return;
+            }
+
+            List<Hall> halls = new ArrayList<>();
+            if (selectedBranchId > 0) {
+                halls = movieService.getHallsByBranchId(
+                        manager.getId(),
+                        selectedBranchId
+                );
+            }
+
+            int selectedHallId = parsePositiveInt(
+                    request.getParameter("hallId")
+            );
+
             if (!containsHall(halls, selectedHallId)) {
                 selectedHallId = halls.isEmpty()
                         ? 0
                         : halls.get(0).getId();
             }
 
+            List<MovieAssignmentItem> movieItems = new ArrayList<>();
             if (selectedHallId > 0) {
                 movieItems = movieService.getItemsForHall(
                         manager.getId(),
                         selectedHallId
                 );
             }
+
+            request.setAttribute("branches", branches);
+            request.setAttribute("halls", halls);
+            request.setAttribute("selectedBranchId", selectedBranchId);
+            request.setAttribute("selectedHallId", selectedHallId);
+            request.setAttribute("movieItems", movieItems);
+
+            request.getRequestDispatcher(HALL_ASSIGNMENT_PAGE)
+                    .forward(request, response);
+
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("error", e.getMessage());
+            request.getRequestDispatcher(HALL_ASSIGNMENT_PAGE)
+                    .forward(request, response);
         }
-
-        request.setAttribute("branch", branch);
-        request.setAttribute("halls", halls);
-        request.setAttribute("selectedHallId", selectedHallId);
-        request.setAttribute("movieItems", movieItems);
-
-        request.getRequestDispatcher(HALL_ASSIGNMENT_PAGE)
-                .forward(request, response);
-
-    } catch (IllegalArgumentException e) {
-        request.setAttribute("error", e.getMessage());
-
-        request.getRequestDispatcher(HALL_ASSIGNMENT_PAGE)
-                .forward(request, response);
     }
-}
 
     /**
- * Lưu Movie Assignment cho Hall thuộc Branch của Manager.
- */
+     * Lưu danh sách phim được gán cho phòng chiếu.
+     */
     private void saveHallAssignments(
-        HttpServletRequest request,
-        HttpServletResponse response)
-        throws IOException {
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
 
-    User manager = getCurrentManager(request, response);
+        User manager = getCurrentManager(request, response);
+        if (manager == null) {
+            return;
+        }
 
-    if (manager == null) {
-        return;
-    }
-
-    Branch branch = movieService.getAssignedBranch(manager.getId());
-
-    if (branch == null) {
-        setFlash(
-                request,
-                "error",
-                "Tài khoản Manager chưa được Admin phân công chi nhánh."
+        int branchId = parsePositiveInt(request.getParameter("branchId"));
+        int hallId = parsePositiveInt(request.getParameter("hallId"));
+        List<Integer> selectedMovieIds = parseMovieIds(
+                request.getParameterValues("movieIds")
         );
+
+        try {
+            boolean success = movieService.saveHallAssignments(
+                    manager.getId(),
+                    hallId,
+                    selectedMovieIds
+            );
+
+            if (success) {
+                setFlash(
+                        request,
+                        "success",
+                        "Lưu phân bổ phim cho phòng chiếu thành công."
+                );
+            } else {
+                setFlash(
+                        request,
+                        "error",
+                        "Không thể lưu phân bổ phim cho phòng chiếu."
+                );
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
+        }
 
         response.sendRedirect(
                 request.getContextPath()
                 + "/manager/movie-assignments/halls"
+                + "?branchId=" + branchId
+                + "&hallId=" + hallId
         );
-        return;
     }
-
-    int hallId = parsePositiveInt(request.getParameter("hallId"));
-
-    List<Integer> selectedMovieIds = parseMovieIds(
-            request.getParameterValues("movieIds")
-    );
-
-    try {
-        /*
-         * MovieService sẽ kiểm tra Hall có thuộc Branch của Manager hay không.
-         */
-        boolean success = movieService.saveHallAssignments(
-                manager.getId(),
-                hallId,
-                selectedMovieIds
-        );
-
-        if (success) {
-            setFlash(
-                    request,
-                    "success",
-                    "Lưu phân bổ phim cho phòng chiếu thành công."
-            );
-        } else {
-            setFlash(
-                    request,
-                    "error",
-                    "Không thể lưu phân bổ phim cho phòng chiếu."
-            );
-        }
-
-    } catch (IllegalArgumentException e) {
-        setFlash(request, "error", e.getMessage());
-    }
-
-    response.sendRedirect(
-            request.getContextPath()
-            + "/manager/movie-assignments/halls"
-            + "?hallId=" + hallId
-    );
-}
 
     /**
      * Hiển thị danh sách phim cùng thời lượng hiện tại để Manager chỉnh sửa.

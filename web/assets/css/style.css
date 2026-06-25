@@ -129,22 +129,6 @@ img { display: block; max-width: 100%; }
 .feature-card h3 { margin: 12px 0 6px; font-size: 17px; }
 .feature-card p { margin: 0; font-size: 14px; color: #9aa0aa; line-height: 1.6; }
 
-/* ── Danh sách chi nhánh (View cinema branches) ─ */
-.branch-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
-}
-.branch-card {
-    background: #16181d; border: 1px solid #23262d; border-radius: 12px;
-    padding: 20px; display: flex; flex-direction: column; gap: 10px;
-    transition: border-color .15s ease;
-}
-.branch-card:hover { border-color: #e50914; }
-.branch-card h3 { margin: 0; font-size: 18px; }
-.branch-chain { font-size: 13px; color: #e50914; font-weight: 600; }
-.branch-info { list-style: none; padding: 0; margin: 4px 0 8px; }
-.branch-info li { font-size: 14px; color: #b8bcc4; line-height: 1.7; }
-.branch-card .btn { align-self: flex-start; margin-top: auto; }
-
 @media (max-width: 720px) {
     .footer-grid { grid-template-columns: 1fr 1fr; }
     .hero h1 { font-size: 32px; }

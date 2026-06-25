@@ -45,47 +45,15 @@ public class StaffBranchDAO {
         return branches;
     }
 
-    public Branch findBranchByManagerId(int managerId) {
-        String sql = "SELECT TOP 1 "
-                + "b.id, b.cinema_id, b.name, b.address, b.phone, "
-                + "b.open_time, b.close_time, b.status, b.last_update "
-                + "FROM dbo.STAFF_BRANCH sb "
-                + "JOIN dbo.[USER] u ON u.id = sb.user_id "
-                + "JOIN dbo.BRANCHES b ON b.id = sb.branch_id "
-                + "WHERE sb.user_id = ? "
-                + "AND u.role = 'MANAGER' "
-                + "ORDER BY sb.assigned_at ASC, b.id ASC";
-
-        Connection conn = DBContext.getInstance().getConnection();
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, managerId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapBranch(rs);
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public boolean isManagerAssignedToBranch(int managerId, int branchId) {
+    public boolean isManagerAssignedToBranch(int userId, int branchId) {
         String sql = "SELECT COUNT(*) "
-                + "FROM dbo.STAFF_BRANCH sb "
-                + "JOIN dbo.[USER] u ON u.id = sb.user_id "
-                + "WHERE sb.user_id = ? "
-                + "AND sb.branch_id = ? "
-                + "AND u.role = 'MANAGER'";
+                + "FROM dbo.STAFF_BRANCH "
+                + "WHERE user_id = ? AND branch_id = ?";
 
         Connection conn = DBContext.getInstance().getConnection();
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, managerId);
+            ps.setInt(1, userId);
             ps.setInt(2, branchId);
 
             try (ResultSet rs = ps.executeQuery()) {

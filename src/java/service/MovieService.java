@@ -33,10 +33,13 @@ import model.Showtime;
 
 public class MovieService {
 
+    /** Giới hạn trên cho số phim mỗi trang (chặn lạm dụng tham số). */
     private static final int MAX_PAGE_SIZE = 48;
 
+    /** Minimum valid duration in minutes. */
     private static final int MIN_DURATION_MIN = 1;
 
+    /** Maximum valid duration in minutes. */
     private static final int MAX_DURATION_MIN = 600;
 
     private static final List<String> VALID_STATUS =
@@ -51,20 +54,27 @@ public class MovieService {
     private final LanguageDAO languageDAO = new LanguageDAO();
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAO();
 
+    /* DAO for Movie-Branch/Hall assignments. */
     private final MovieManagementDAO movieManagementDAO
             = new MovieManagementDAO();
 
+    /* DAOs used to validate Manager permissions and hall ownership. */
     private final StaffBranchDAO staffBranchDAO
             = new StaffBranchDAO();
 
     private final HallDAO hallDAO
             = new HallDAO();
 
+    /**
+     * Duyệt / tìm kiếm / lọc phim. Bộ lọc được chuẩn hóa tại chỗ để view có thể
+     * hiển thị lại đúng các giá trị đã được áp dụng.
+     */
     public PageResult<Movie> browseMovies(MovieFilter filter) {
         normalize(filter);
         return movieDAO.search(filter);
     }
 
+    /** Chi tiết đầy đủ của một phim, hoặc {@code null} nếu phim không tồn tại. */
     public Movie getMovieDetail(int movieId) {
         if (movieId <= 0) {
             return null;
@@ -72,6 +82,7 @@ public class MovieService {
         return movieDAO.findById(movieId);
     }
 
+    /** Các suất chiếu sắp tới cho trang chi tiết. */
     public List<Showtime> getShowtimes(int movieId) {
         return showtimeDAO.findUpcomingByMovie(movieId);
     }
@@ -88,34 +99,31 @@ public class MovieService {
         return new ArrayList<>(grouped.values());
     }
 
+    /** Danh sách thể loại đang hoạt động cho ô lọc. */
     public List<Category> getCategories() {
         return categoryDAO.findAllActive();
     }
 
+    /** Danh sách ngôn ngữ đang hoạt động cho ô lọc. */
     public List<Language> getLanguages() {
         return languageDAO.findAllActive();
     }
-    
-    public Branch getAssignedBranch(int managerId) {
-        validateManagerId(managerId);
-        
-        return staffBranchDAO.findBranchByManagerId(managerId);
-    }
-    
-    @Deprecated
+
+
+    // ── Manager movie assignment and duration management ──────────────
+
+/**
+     * Lấy các chi nhánh mà Manager đang được phân công quản lý.
+     */
     public List<Branch> getBranchesByManagerId(int managerId) {
-        Branch assignedBranch = getAssignedBranch(managerId);
-        
-        List<Branch> branches = new ArrayList<>();
-        
-        if (assignedBranch != null) {
-            branches.add(assignedBranch);
-        }
-        
-        return branches;
+        validateManagerId(managerId);
+
+        return staffBranchDAO.findBranchesByUserId(managerId);
     }
 
-
+    /**
+     * Lấy các phòng thuộc một chi nhánh mà Manager quản lý.
+     */
     public List<Hall> getHallsByBranchId(
             int managerId,
             int branchId) {
@@ -126,7 +134,10 @@ public class MovieService {
         return hallDAO.findByBranchId(branchId);
     }
 
-
+    /**
+     * Lấy danh sách phim và trạng thái phân bổ
+     * của một chi nhánh.
+     */
     public List<MovieAssignmentItem> getItemsForBranch(
             int managerId,
             int branchId) {
@@ -137,7 +148,12 @@ public class MovieService {
         return movieManagementDAO.findItemsForBranch(branchId);
     }
 
-
+    /**
+     * Lấy danh sách phim để phân bổ cho một phòng.
+     *
+     * Chỉ những phim đã được phân bổ cho chi nhánh
+     * mới xuất hiện trong danh sách.
+     */
     public List<MovieAssignmentItem> getItemsForHall(
             int managerId,
             int hallId) {
@@ -158,7 +174,9 @@ public class MovieService {
         return movieManagementDAO.findItemsForHall(hallId);
     }
 
-
+    /**
+     * Lưu danh sách phim được phân bổ cho chi nhánh.
+     */
     public boolean saveBranchAssignments(
             int managerId,
             int branchId,
@@ -176,7 +194,9 @@ public class MovieService {
         );
     }
 
-
+    /**
+     * Lưu danh sách phim được phân bổ cho phòng.
+     */
     public boolean saveHallAssignments(
             int managerId,
             int hallId,
@@ -192,6 +212,9 @@ public class MovieService {
         List<Integer> validMovieIds
                 = validateAndCleanMovieIds(selectedMovieIds);
 
+        /*
+         * Kiểm tra phim đã được gán cho chi nhánh trước chưa.
+         */
         for (int movieId : validMovieIds) {
             boolean assignedToBranch
                     = movieManagementDAO.isMovieAssignedToBranch(
@@ -219,7 +242,11 @@ public class MovieService {
         );
     }
 
-
+    /**
+     * Lấy các phim đã được phân bổ cho phòng.
+     *
+     * Phương thức này sẽ được dùng trong form tạo suất chiếu.
+     */
     public List<Movie> getMoviesAssignedToHall(
             int managerId,
             int hallId) {
@@ -230,7 +257,12 @@ public class MovieService {
         return movieManagementDAO.findMoviesAssignedToHall(hallId);
     }
 
-
+    /**
+     * Kiểm tra phim đã được phân bổ cho phòng chưa.
+     *
+     * Sau này ShowtimeService sẽ gọi phương thức này
+     * trước khi tạo hoặc cập nhật suất chiếu.
+     */
     public boolean isMovieAssignedToHall(
             int managerId,
             int hallId,
@@ -250,6 +282,9 @@ public class MovieService {
         );
     }
 
+    /**
+     * Kiểm tra Manager có được quản lý chi nhánh không.
+     */
     public boolean isManagerAllowedBranch(
             int managerId,
             int branchId) {
@@ -264,7 +299,10 @@ public class MovieService {
         );
     }
 
-
+    /**
+     * Kiểm tra một phòng có thuộc quyền quản lý
+     * của Manager hay không.
+     */
     public boolean isManagerAllowedHall(
             int managerId,
             int hallId) {
@@ -286,7 +324,9 @@ public class MovieService {
         );
     }
 
-
+    /**
+     * Lấy branch_id của phòng và kiểm tra quyền Manager.
+     */
     private int getAuthorizedBranchIdByHallId(
             int managerId,
             int hallId) {
@@ -311,7 +351,9 @@ public class MovieService {
         return branchId;
     }
 
-
+    /**
+     * Kiểm tra Manager có quyền với chi nhánh không.
+     */
     private void validateBranchPermission(
             int managerId,
             int branchId) {
@@ -335,7 +377,9 @@ public class MovieService {
         }
     }
 
-
+    /**
+     * Kiểm tra tài khoản Manager.
+     */
     private void validateManagerId(int managerId) {
         if (managerId <= 0) {
             throw new IllegalArgumentException(
@@ -344,7 +388,14 @@ public class MovieService {
         }
     }
 
-
+    /**
+     * Làm sạch danh sách ID phim:
+     *
+     * - Cho phép danh sách null khi Manager bỏ chọn toàn bộ.
+     * - Loại bỏ ID trùng.
+     * - Loại bỏ ID nhỏ hơn hoặc bằng 0.
+     * - Kiểm tra phim có tồn tại trong database.
+     */
     private List<Integer> validateAndCleanMovieIds(
             List<Integer> selectedMovieIds) {
 
@@ -376,7 +427,9 @@ public class MovieService {
 
         return validIds;
     }
-
+    /**
+     * Lấy toàn bộ phim để hiển thị trên màn hình quản lý thời lượng.
+     */
     public List<Movie> getAllMovies() {
         return movieManagementDAO.findAllForDurationManagement();
     }
@@ -400,6 +453,9 @@ public class MovieService {
         return movie;
     }
 
+    /**
+     * Cập nhật thời lượng phim.
+     */
     public boolean updateDuration(
             int movieId,
             int durationMin) {
@@ -437,6 +493,9 @@ public class MovieService {
         return movieManagementDAO.updateDuration(movieId, durationMin);
     }
 
+    /**
+     * Chuyển chuỗi thời lượng người dùng nhập thành số nguyên.
+     */
     public int parseDuration(String durationValue) {
         if (durationValue == null || durationValue.trim().isEmpty()) {
             throw new IllegalArgumentException(
@@ -620,12 +679,14 @@ public class MovieService {
         return movieDAO.updateTrailer(movieId, url);
     }
 
+    /** Kiểm tra hợp lệ và đưa mọi trường của bộ lọc về giá trị an toàn. */
     private void normalize(MovieFilter f) {
         // keyword: cắt khoảng trắng, bỏ nếu rỗng
         if (f.getKeyword() != null) {
             String kw = f.getKeyword().trim();
             f.setKeyword(kw.isEmpty() ? null : kw);
         }
+        // status / format / sort: chỉ chấp nhận giá trị trong danh sách trắng
         if (f.getStatus() != null && !VALID_STATUS.contains(f.getStatus())) {
             f.setStatus(null);
         }
@@ -635,12 +696,14 @@ public class MovieService {
         if (f.getSortBy() == null || !VALID_SORT.contains(f.getSortBy())) {
             f.setSortBy("newest");
         }
+        // id thể loại / ngôn ngữ phải dương
         if (f.getCategoryId() != null && f.getCategoryId() <= 0) {
             f.setCategoryId(null);
         }
         if (f.getLanguageId() != null && f.getLanguageId() <= 0) {
             f.setLanguageId(null);
         }
+        // giới hạn phân trang
         if (f.getPage() < 1) {
             f.setPage(1);
         }
