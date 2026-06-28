@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Cinema - Chi tiết phim (Xem chi tiết + Suất chiếu)
     Module: Duyệt phim /    (Group6 - DuyThai)
     Được phục vụ bởi controller.MovieDetailController  ->  URL /movie?id=N
@@ -125,6 +125,37 @@
                             </div>
                         </div>
                     </c:forEach>
+                </c:otherwise>
+            </c:choose>
+
+            <%-- ── Đánh giá từ khán giả (danh sách review ACTIVE của phim) ── --%>
+            <h2 class="section-title">Đánh giá từ khán giả</h2>
+            <c:if test="${param.msg == 'review_ok'}">
+                <div class="notice ok">Đã lưu đánh giá của bạn.</div>
+            </c:if>
+            <c:if test="${param.msg == 'review_failed'}">
+                <div class="notice err">Không thể lưu/xóa đánh giá (kiểm tra điều kiện hoặc thử lại).</div>
+            </c:if>
+            <c:choose>
+                <c:when test="${empty reviews}">
+                    <div class="empty">Chưa có đánh giá nào cho phim này.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="review-list">
+                        <%-- rv là dto.ReviewView: rv.review = entity Review, rv.userFullName = tên người --%>
+                        <c:forEach var="rv" items="${reviews}">
+                            <div class="review-item">
+                                <div class="review-head">
+                                    <span class="review-author"><c:out value="${rv.userFullName}"/></span>
+                                    <span class="review-stars">${rv.stars}</span>
+                                    <span class="review-date">${rv.createdAtLabel}</span>
+                                </div>
+                                <c:if test="${not empty rv.review.comment}">
+                                    <div class="review-text"><c:out value="${rv.review.comment}"/></div>
+                                </c:if>
+                            </div>
+                        </c:forEach>
+                    </div>
                 </c:otherwise>
             </c:choose>
         </c:otherwise>

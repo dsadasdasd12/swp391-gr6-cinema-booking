@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Cinema - Danh sách phim (Duyệt / Tìm kiếm / Lọc)
     Module: Duyệt phim   (Group6 - DuyThai)
     Được phục vụ bởi controller.MovieListController  ->  URL /movies
