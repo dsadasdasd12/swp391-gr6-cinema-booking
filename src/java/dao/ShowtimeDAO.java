@@ -73,9 +73,19 @@ public class ShowtimeDAO {
         return list;
     }
 
-    // ==========================================
-    // 2. Showtime Manager & Booking Modules (Workspace Methods)
-    // ==========================================
+    public List<Showtime> findByBranchId(int branchId) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE h.branch_id = ? "
+                + "AND s.status <> 'CANCELLED' " 
+                + "ORDER BY s.start_time DESC, s.id DESC";
 
     // READ: Lấy danh sách suất chiếu của chi nhánh
     public List<Showtime> getActiveShowtimesByBranch(int branchId) {

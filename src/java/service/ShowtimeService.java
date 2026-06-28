@@ -61,6 +61,20 @@ public class ShowtimeService {
                 id,
                 managerId
         );
+
+        if (hall == null) {
+            throw new IllegalArgumentException(
+                    "Bạn không có quyền sử dụng phòng chiếu này."
+            );
+        }
+
+        if (!"ACTIVE".equalsIgnoreCase(
+                hall.getStatus()
+        )) {
+            throw new IllegalArgumentException(
+                    "Chỉ có thể tạo hoặc cập nhật suất chiếu cho phòng chiếu đang hoạt động."
+            );
+        }
     }
 
     /**

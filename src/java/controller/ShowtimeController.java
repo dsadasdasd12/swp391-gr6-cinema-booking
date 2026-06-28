@@ -213,10 +213,25 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        /*
-         * Lấy danh sách phim đã phân bổ cho phòng
-         * của suất chiếu đang chỉnh sửa.
-         */
+        Hall hall = hallDAO.findByIdAndBranchId(
+                showtime.getHallId(),
+                branch.getId()
+        );
+
+        if (!isHallActive(hall)) {
+            setFlash(
+                    request,
+                    "error",
+                    "Không thể chỉnh sửa suất chiếu vì phòng chiếu không ở trạng thái hoạt động."
+            );
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/manager/showtimes"
+            );
+            return;
+        }
+
         prepareFormData(
                 request,
                 user,
@@ -540,16 +555,26 @@ public class ShowtimeController extends HttpServlet {
                             branch.getId()
                     );
 
-            branchHallGroups.add(
-                    new BranchHallGroup(
-                            branch,
-                            halls
-                    )
+        int selectedHallId = 0;
+
+        if (branch != null) {
+            List<Hall> branchHalls = hallDAO.findByBranchId(
+                    branch.getId()
             );
 
-            /*
-             * Lấy danh sách phim đã được gán cho từng phòng.
-             */
+            for (Hall hall : branchHalls) {
+                if (isHallActive(hall)) {
+                    halls.add(hall);
+                }
+            }
+
+            if (containsHall(halls, requestedHallId)) {
+                selectedHallId = requestedHallId;
+
+            } else if (!halls.isEmpty()) {
+                selectedHallId = halls.get(0).getId();
+            }
+
             for (Hall hall : halls) {
                 List<Movie> assignedMovies
                         = movieManagementDAO
@@ -601,14 +626,18 @@ public class ShowtimeController extends HttpServlet {
         );
     }
 
-    /**
-     * Kiểm tra phòng có thuộc chi nhánh mà Manager quản lý không.
-     */
-    private boolean isHallAllowed(
-            int userId,
-            int hallId) {
+    private boolean isHallActive(Hall hall) {
+        return hall != null
+                && "ACTIVE".equalsIgnoreCase(
+                        hall.getStatus()
+                );
+    }
 
-        if (userId <= 0 || hallId <= 0) {
+    private boolean containsHall(
+            List<Hall> halls,
+            int hallId
+    ) {
+        if (hallId <= 0 || halls == null) {
             return false;
         }
 

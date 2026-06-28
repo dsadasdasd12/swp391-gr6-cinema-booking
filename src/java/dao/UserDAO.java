@@ -6,60 +6,51 @@ import util.EncodingUtil;
 import util.PasswordUtil;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import model.User;
 import util.DBContext;
-import util.PasswordUtil;
 
 public class UserDAO {
 
     public User login(String email, String password) {
 
-    String sql = """
-        SELECT *
-        FROM [USER]
-        WHERE email = ?
-        AND active = 1
-    """;
+        String sql = """
+            SELECT *
+            FROM [USER]
+            WHERE email = ?
+            AND password_hash = ?
+            AND active = 1
+        """;
 
-    Connection conn = DBContext.getInstance().getConnection();
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setString(2, password);
 
-        ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
 
-        ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
 
-        if (rs.next()) {
+                User user = new User();
 
-            String storedHash = rs.getString("password_hash");
-
-            if (!PasswordUtil.verifyPassword(password, storedHash)) {
-                return null;
+                user.setId(rs.getInt("id"));
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setGoogleId(rs.getString("google_id"));
+                user.setPhone(rs.getString("phone"));
+                user.setRole(rs.getString("role"));
+                user.setActive(rs.getBoolean("active"));
+                user.setEmailVerified(rs.getBoolean("email_verified"));
+                return user;
             }
 
-            User user = new User();
-
-            user.setId(rs.getInt("id"));
-            user.setFullName(rs.getString("full_name"));
-            user.setEmail(rs.getString("email"));
-            user.setPasswordHash(storedHash);
-            user.setGoogleId(rs.getString("google_id"));
-            user.setPhone(rs.getString("phone"));
-            user.setRole(rs.getString("role"));
-            user.setActive(rs.getBoolean("active"));
-            user.setEmailVerified(rs.getBoolean("email_verified"));
-
-            return user;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return null;
     }
-
-    return null;
-}
 
     public boolean emailExists(String email) {
 

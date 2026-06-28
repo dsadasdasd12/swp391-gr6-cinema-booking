@@ -93,24 +93,141 @@
                                     </a>
                             </div>
 
-                            <div class="panel-body">
-                                <c:choose>
-                                    <c:when test="${empty group.halls}">
-                                        <div class="empty-admin">
-                                            Chi nhánh này chưa có phòng chiếu nào.
-                                        </div>
-                                    </c:when>
+                            <a class="btn btn-primary btn-small"
+                               href="${ctx}/manager/halls/create">
+                                + Thêm phòng chiếu
+                            </a>
+                        </div>
 
-                                    <c:otherwise>
-                                        <table class="admin-table">
-                                            <thead>
+                        <div class="panel-body">
+
+                            <c:choose>
+
+                                <c:when test="${empty halls}">
+                                    <div class="empty-admin">
+                                        Chi nhánh này chưa có phòng chiếu nào.
+                                    </div>
+                                </c:when>
+
+                                <c:otherwise>
+
+                                    <table class="admin-table">
+                                        <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Tên phòng</th>
+                                            <th>Cấu hình ghế</th>
+                                            <th>Loại phòng</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        <c:forEach var="h" items="${halls}">
                                             <tr>
-                                                <th>ID</th>
-                                                <th>Tên phòng</th>
-                                                <th>Số ghế</th>
-                                                <th>Loại phòng</th>
-                                                <th>Trạng thái</th>
-                                                <th>Thao tác</th>
+                                                <td>
+                                                    #<c:out value="${h.id}" />
+                                                </td>
+
+                                                <td>
+                                                    <strong>
+                                                        <c:out value="${h.name}" />
+                                                    </strong>
+                                                </td>
+
+                                                <td>
+                                                    <strong>
+                                                        <c:out value="${h.seatRows}" />
+                                                        hàng ×
+                                                        <c:out value="${h.seatsPerRow}" />
+                                                        ghế
+                                                    </strong>
+
+                                                    <div style="margin-top: 4px;
+                                                                color: #94a3b8;
+                                                                font-size: 12px;">
+
+                                                        Tổng:
+                                                        <c:out value="${h.totalSeats}" />
+                                                        ghế
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    <c:out value="${h.hallType}" />
+                                                </td>
+
+                                                <td>
+                                                    <span class="badge-status
+                                                        ${h.status eq 'ACTIVE'
+                                                            ? 'badge-active'
+                                                            : h.status eq 'MAINTENANCE'
+                                                                ? 'badge-warning'
+                                                                : 'badge-inactive'}">
+
+                                                        <c:out value="${h.status}" />
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    <div class="action-inline">
+
+                                                        <a class="btn btn-ghost btn-small"
+                                                           href="${ctx}/manager/halls/edit?id=${h.id}">
+                                                            Sửa
+                                                        </a>
+
+                                                        <%-- Đổi trạng thái Hall --%>
+                                                        <form method="post"
+                                                              action="${ctx}/manager/halls/status">
+
+                                                            <input type="hidden"
+                                                                   name="id"
+                                                                   value="${h.id}">
+
+                                                            <c:choose>
+                                                                <c:when test="${h.status eq 'ACTIVE'}">
+                                                                    <input type="hidden"
+                                                                           name="status"
+                                                                           value="MAINTENANCE">
+
+                                                                    <button type="submit"
+                                                                            class="btn btn-warning btn-small">
+                                                                        Bảo trì
+                                                                    </button>
+                                                                </c:when>
+
+                                                                <c:otherwise>
+                                                                    <input type="hidden"
+                                                                           name="status"
+                                                                           value="ACTIVE">
+
+                                                                    <button type="submit"
+                                                                            class="btn btn-success btn-small">
+                                                                        Mở lại
+                                                                    </button>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </form>
+
+                                                        <%-- Xóa Hall --%>
+                                                        <form method="post"
+                                                              action="${ctx}/manager/halls/delete"
+                                                              onsubmit="return confirm('Bạn có chắc muốn xóa phòng chiếu này?');">
+
+                                                            <input type="hidden"
+                                                                   name="id"
+                                                                   value="${h.id}">
+
+                                                            <button type="submit"
+                                                                    class="btn btn-danger btn-small">
+                                                                Xóa
+                                                            </button>
+                                                        </form>
+
+                                                    </div>
+                                                </td>
                                             </tr>
                                             </thead>
 

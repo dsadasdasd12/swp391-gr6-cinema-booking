@@ -328,8 +328,18 @@ public class HallController extends HttpServlet {
     private Hall buildHallFromRequest(HttpServletRequest request) {
         Hall hall = new Hall();
 
+        int seatRows = parseInt(
+                request.getParameter("seatRows")
+        );
+
+        int seatsPerRow = parseInt(
+                request.getParameter("seatsPerRow")
+        );
+
         hall.setName(request.getParameter("name"));
-        hall.setTotalSeats(parseIntWithDefault(request.getParameter("totalSeats"), 0));
+        hall.setSeatRows(seatRows);
+        hall.setSeatsPerRow(seatsPerRow);
+        hall.setTotalSeats(seatRows * seatsPerRow);
         hall.setHallType(request.getParameter("hallType"));
         hall.setStatus(request.getParameter("status"));
 

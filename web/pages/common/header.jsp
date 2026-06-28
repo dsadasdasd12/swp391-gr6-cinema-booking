@@ -34,46 +34,13 @@
 
             <c:otherwise>
 
-                <div style="
-                     display:flex;
-                     align-items:center;
-                     gap:12px;
-                     ">
+                <span class="user-name">
+                    Xin chào, ${sessionScope.user.fullName}
+                </span>
 
-                    <span style="
-                          display:flex;
-                          align-items:center;
-                          gap:6px;
-
-                          padding:8px 14px;
-
-                          background:#16181d;
-                          border:1px solid #2c3038;
-
-                          border-radius:999px;
-
-                          color:#fff;
-                          font-size:14px;
-                          ">
-                        <span style="color:#cbd5e1;">
-                            Xin chào,
-                        </span>
-
-                        <a href="${ctx}/profile"
-                           style="
-                           color:#e50914 !important;
-                           font-weight:700;
-                           text-decoration:none;
-                           ">
-                            ${sessionScope.user.fullName}
-                        </a>
-                    </span>
-
-                    <a href="${ctx}/logout" class="btn btn-primary">
-                        Đăng xuất
-                    </a>
-
-                </div>
+                <a href="${ctx}/logout" class="btn btn-ghost">
+                    Đăng xuất
+                </a>
 
             </c:otherwise>
 
