@@ -43,13 +43,16 @@
 
         <nav class="admin-menu">
 
-            <a class="active"
-               href="${ctx}/manager/dashboard">
+            <a class="active" href="${ctx}/manager/dashboard">
                 Dashboard
             </a>
 
             <a href="${ctx}/manager/halls">
                 Quản lý phòng chiếu
+            </a>
+
+            <a href="${ctx}/manager/showtimes">
+                Quản lý lịch chiếu
             </a>
 
             <a href="${ctx}/manager/movie-assignments/branches">
@@ -60,12 +63,9 @@
                 Phim tại phòng chiếu
             </a>
 
-            <a href="${ctx}/manager/movie-durations">
+            <a 
+               href="${ctx}/manager/movie-durations">
                 Quản lý thời lượng phim
-            </a>
-
-            <a href="${ctx}/manager/showtimes">
-                Quản lý lịch chiếu
             </a>
 
             <a href="${ctx}/logout">

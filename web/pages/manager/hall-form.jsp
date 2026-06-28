@@ -1,5 +1,4 @@
-
-<%--
+<%-- 
     Document   : hall-form
     Created on : Jun 9, 2026, 10:13:47 PM
     Author     : MSI
@@ -45,30 +44,36 @@
         </div>
 
         <nav class="admin-menu">
-            <a href="${ctx}/manager/dashboard">
+
+            <a  href="${ctx}/manager/dashboard">
                 Dashboard
             </a>
 
-            <a class="active"
-               href="${ctx}/manager/halls">
+            <a class="active" href="${ctx}/manager/halls">
                 Quản lý phòng chiếu
             </a>
 
             <a href="${ctx}/manager/showtimes">
-                Lịch chiếu
+                Quản lý lịch chiếu
             </a>
 
-            <a href="#">
-                Gán phim
+            <a href="${ctx}/manager/movie-assignments/branches">
+                Phim tại chi nhánh
             </a>
 
-            <a href="#">
-                Cài đặt chi nhánh
+            <a href="${ctx}/manager/movie-assignments/halls">
+                Phim tại phòng chiếu
+            </a>
+
+            <a 
+               href="${ctx}/manager/movie-durations">
+                Quản lý thời lượng phim
             </a>
 
             <a href="${ctx}/logout">
                 Đăng xuất
             </a>
+
         </nav>
 
     </aside>

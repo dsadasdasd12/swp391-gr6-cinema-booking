@@ -12,6 +12,7 @@
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
 
@@ -136,11 +137,16 @@
         }
     </style>
 </head>
+
 <body>
+
 <div class="admin-shell">
 
     <aside class="admin-sidebar">
-        <div class="admin-brand">RAPVIET SYSTEM</div>
+
+        <div class="admin-brand">
+            RAPVIET SYSTEM
+        </div>
 
         <div class="admin-role">
             <p>Phân hệ</p>
@@ -149,28 +155,73 @@
         </div>
 
         <nav class="admin-menu">
-            <a href="${ctx}/manager/dashboard">Dashboard</a>
-            <a href="${ctx}/manager/halls">Quản lý phòng chiếu</a>
-            <a class="active" href="${ctx}/manager/showtimes">Lịch chiếu</a>
-            <a href="#">Gán phim</a>
-            <a href="#">Cài đặt chi nhánh</a>
-            <a href="${ctx}/logout">Đăng xuất</a>
+
+            <a href="${ctx}/manager/dashboard">
+                Dashboard
+            </a>
+
+            <a href="${ctx}/manager/halls">
+                Quản lý phòng chiếu
+            </a>
+
+            <a class="active" href="${ctx}/manager/showtimes">
+                Quản lý lịch chiếu
+            </a>
+
+            <a href="${ctx}/manager/movie-assignments/branches">
+                Phim tại chi nhánh
+            </a>
+
+            <a href="${ctx}/manager/movie-assignments/halls">
+                Phim tại phòng chiếu
+            </a>
+
+            <a 
+               href="${ctx}/manager/movie-durations">
+                Quản lý thời lượng phim
+            </a>
+
+            <a href="${ctx}/logout">
+                Đăng xuất
+            </a>
+
         </nav>
+
     </aside>
 
     <main class="admin-main">
+
         <div class="admin-topbar">
+
             <div>
-                <strong>${isEdit ? 'Cập nhật suất chiếu' : 'Tạo suất chiếu mới'}</strong>
-                <span>Chọn phim, phòng chiếu và thời gian chiếu</span>
+                <strong>
+                    ${isEdit
+                      ? 'Cập nhật suất chiếu'
+                      : 'Tạo suất chiếu mới'}
+                </strong>
+
+                <span>
+                    Chọn phòng, phim và thời gian bắt đầu trong chi nhánh được phân công
+                </span>
             </div>
+
         </div>
 
         <section class="admin-content">
+
             <div class="page-heading">
+
                 <div>
-                    <h1>${isEdit ? 'Cập nhật suất chiếu' : 'Tạo suất chiếu mới'}</h1>
-                    <p>Hệ thống sẽ tự tính giờ kết thúc theo thời lượng phim và kiểm tra trùng lịch.</p>
+                    <h1>
+                        ${isEdit
+                          ? 'Cập nhật suất chiếu'
+                          : 'Tạo suất chiếu mới'}
+                    </h1>
+
+                    <p>
+                        Hệ thống tự động tính giờ kết thúc theo thời lượng
+                        phim và kiểm tra trùng lịch trong cùng phòng chiếu.
+                    </p>
                 </div>
 
                 <a class="btn btn-ghost"
@@ -181,27 +232,38 @@
             </div>
 
             <c:if test="${not empty error}">
+
                 <div class="alert alert-error">
                     <c:out value="${error}" />
                 </div>
+
             </c:if>
 
             <div class="panel">
-                <div class="panel-header">Thông tin suất chiếu</div>
+
+                <div class="panel-header">
+                    Thông tin suất chiếu
+                </div>
 
                 <div class="panel-body">
-                    <form method="post" action="${ctx}${isEdit ? '/manager/showtimes/edit' : '/manager/showtimes/create'}">
+
+                    <form id="showtimeForm"
+                          method="post"
+                          action="${ctx}${isEdit
+                                  ? '/manager/showtimes/edit'
+                                  : '/manager/showtimes/create'}">
 
                         <c:if test="${isEdit}">
-                            <input type="hidden" name="id" value="${showtime.id}">
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="${showtime.id}">
+
                         </c:if>
 
                         <div class="form-grid">
 
                             <div class="form-group">
-                                <label for="movieId">Phim *</label>
-                                <select id="movieId" name="movieId" class="select-field" required>
-                                    <option value="">-- Chọn phim --</option>
 
                                 <label>
                                     Chi nhánh được phân công
@@ -247,14 +309,19 @@
                                             <c:out value="${hall.hallType}" />
 
                                         </option>
+
                                     </c:forEach>
+
                                 </select>
+
+                                <span class="field-note">
+                                    Chỉ hiển thị các phòng thuộc chi nhánh
+                                    được Admin phân công cho Manager.
+                                </span>
+
                             </div>
 
                             <div class="form-group">
-                                <label for="hallId">Phòng chiếu *</label>
-                                <select id="hallId" name="hallId" class="select-field" required>
-                                    <option value="">-- Chọn phòng chiếu --</option>
 
                                 <label for="movieTitleInput">
                                     Phim *
@@ -310,17 +377,26 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="startTime">Thời gian bắt đầu *</label>
+
+                                <label for="startTime">
+                                    Thời gian bắt đầu *
+                                </label>
+
                                 <input id="startTime"
                                        name="startTime"
                                        class="input-field"
                                        type="datetime-local"
                                        required
                                        value="${showtime.startInputValue}">
+
                             </div>
 
                             <div class="form-group">
-                                <label for="basePrice">Giá vé cơ bản *</label>
+
+                                <label for="basePrice">
+                                    Giá vé cơ bản *
+                                </label>
+
                                 <input id="basePrice"
                                        name="basePrice"
                                        class="input-field"
@@ -329,6 +405,11 @@
                                        step="1000"
                                        required
                                        value="${showtime.basePrice}">
+
+                                <span class="field-note">
+                                    Đơn vị: VNĐ.
+                                </span>
+
                             </div>
 
                             <div class="form-group">
@@ -355,7 +436,9 @@
                                           : ''}>
                                         ON_SALE - Đang bán vé
                                     </option>
+
                                 </select>
+
                             </div>
 
                         </div>
@@ -400,7 +483,9 @@
                                     type="submit">
                                 ${isEdit ? 'Cập nhật' : 'Lưu'}
                             </button>
+
                         </div>
+
                     </form>
 
                     <select id="movieOptionSource"
@@ -430,9 +515,13 @@
                     </select>
 
                 </div>
+
             </div>
+
         </section>
+
     </main>
+
 </div>
 
 <script>
