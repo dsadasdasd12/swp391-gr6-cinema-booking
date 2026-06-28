@@ -24,7 +24,7 @@
         
         <div style="margin: 20px 0; background: #111827; padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 15px; border: 1px solid #374151;">
             <label style="font-weight: bold; font-size: 15px; color: #a5b4fc;">Chọn Phòng Chiếu để xem/cấu hình:</label>
-            <select onchange="location.href='SeatConfigController?hallId=' + this.value" style="padding: 8px 12px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; outline: none;">
+            <select onchange="location.href='${pageContext.request.contextPath}/manager/seat-config?hallId=' + this.value" style="padding: 8px 12px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; outline: none;">
                 <c:forEach items="${hallList}" var="h">
                     <option value="${h.id}" ${h.id == currentHallId ? 'selected' : ''}>
                         ${h.name} (Tổng ${h.totalSeats} ghế)
@@ -57,7 +57,7 @@
 
             <div style="width: 25%; background: #111827; padding: 20px; border-radius: 8px;">
                 <h3>2. SỬA THÔNG TIN GHẾ</h3>
-                <form action="SeatConfigController" method="POST">
+                <form action="${pageContext.request.contextPath}/manager/seat-config" method="POST">
                     <input type="hidden" name="hallId" value="${currentHallId}">
                     
                     <label>Mã Vị Trí Ghế (Ví dụ: B7, C1):</label>
