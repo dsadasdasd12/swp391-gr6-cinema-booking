@@ -34,3 +34,4 @@ secrets.properties
 # Maven/Gradle/Ant extras
 target/
 /nbproject
+nbproject/private/private.properties
