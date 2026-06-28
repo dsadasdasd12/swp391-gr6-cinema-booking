@@ -88,7 +88,7 @@
                         <input type="text"
                                name="phone"
                                value="${sessionScope.user.phone}"
-                               required>
+                               >
                     </div>
 
                     <div class="profile-actions">
