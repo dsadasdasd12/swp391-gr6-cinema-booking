@@ -1,5 +1,6 @@
 package dao;
 
+import dto.MovieShowtimes;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,12 +12,12 @@ import model.Showtime;
 import util.DBContext;
 import util.EncodingUtil;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 /**
  * DAO xử lý suất chiếu.
- * 
- * Gồm 2 phần:
- * 1. findUpcomingByMovie(): phục vụ trang chi tiết phim của khách.
+ *
+ * Gồm 2 phần: 1. findUpcomingByMovie(): phục vụ trang chi tiết phim của khách.
  * 2. Các hàm Manager dùng cho Showtime Management.
  */
 public class ShowtimeDAO {
@@ -24,10 +25,9 @@ public class ShowtimeDAO {
     // ==========================================
     // 1. Movie Browsing Module (Original Git Method)
     // ==========================================
-    
     /**
-     * Các suất chiếu sắp tới, còn bán vé của một phim.
-     * Giữ lại hàm cũ để không ảnh hưởng module Browse Movie.
+     * Các suất chiếu sắp tới, còn bán vé của một phim. Giữ lại hàm cũ để không
+     * ảnh hưởng module Browse Movie.
      */
     public List<Showtime> findUpcomingByMovie(int movieId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
@@ -45,8 +45,7 @@ public class ShowtimeDAO {
                 + "ORDER BY s.start_time, b.name";
 
         List<Showtime> list = new ArrayList<>();
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, movieId);
             ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));   // mốc "hiện tại" để loại suất đã qua
             try (ResultSet rs = ps.executeQuery()) {
@@ -72,7 +71,7 @@ public class ShowtimeDAO {
         }
         return list;
     }
-    
+
     public List<Showtime> findByBranchId(int branchId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "
@@ -84,7 +83,7 @@ public class ShowtimeDAO {
                 + "JOIN dbo.HALLS h ON h.id = s.hall_id "
                 + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
                 + "WHERE h.branch_id = ? "
-                + "AND s.status <> 'CANCELLED' " 
+                + "AND s.status <> 'CANCELLED' "
                 + "ORDER BY s.start_time DESC, s.id DESC";
 
         List<Showtime> list = new ArrayList<>();
@@ -107,28 +106,28 @@ public class ShowtimeDAO {
 
         return list;
     }
+
     public List<Showtime> getActiveShowtimesByBranch(int branchId) {
         List<Showtime> list = new ArrayList<>();
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
-                   + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
-                   + "FROM dbo.SHOWTIMES st "
-                   + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
-                   + "JOIN dbo.HALLS h ON st.hall_id = h.id "
-                   + "WHERE h.branch_id = ? AND st.status IN ('ON_SALE', 'SCHEDULED') AND st.start_time >= GETDATE() "
-                   + "ORDER BY st.start_time ASC";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
+                + "FROM dbo.SHOWTIMES st "
+                + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
+                + "JOIN dbo.HALLS h ON st.hall_id = h.id "
+                + "WHERE h.branch_id = ? AND st.status IN ('ON_SALE', 'SCHEDULED') AND st.start_time >= GETDATE() "
+                + "ORDER BY st.start_time ASC";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, branchId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Showtime st = new Showtime(
-                        rs.getInt("id"),
-                        rs.getInt("hall_id"),
-                        rs.getInt("movie_id"),
-                        rs.getTimestamp("start_time"),
-                        rs.getTimestamp("end_time"),
-                        rs.getDouble("base_price"),
-                        rs.getString("status")
+                            rs.getInt("id"),
+                            rs.getInt("hall_id"),
+                            rs.getInt("movie_id"),
+                            rs.getTimestamp("start_time"),
+                            rs.getTimestamp("end_time"),
+                            rs.getDouble("base_price"),
+                            rs.getString("status")
                     );
                     st.setMovieTitle(rs.getString("movie_title"));
                     st.setMoviePoster(rs.getString("movie_poster"));
@@ -141,7 +140,7 @@ public class ShowtimeDAO {
         }
         return list;
     }
-    
+
     public Showtime findByIdAndBranchId(int id, int branchId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "
@@ -179,24 +178,23 @@ public class ShowtimeDAO {
     // READ SINGLE: Lấy thông tin một suất chiếu cụ thể
     public Showtime getShowtimeById(int id) {
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
-                   + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
-                   + "FROM dbo.SHOWTIMES st "
-                   + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
-                   + "JOIN dbo.HALLS h ON st.hall_id = h.id "
-                   + "WHERE st.id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
+                + "FROM dbo.SHOWTIMES st "
+                + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
+                + "JOIN dbo.HALLS h ON st.hall_id = h.id "
+                + "WHERE st.id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Showtime st = new Showtime(
-                        rs.getInt("id"),
-                        rs.getInt("hall_id"),
-                        rs.getInt("movie_id"),
-                        rs.getTimestamp("start_time"),
-                        rs.getTimestamp("end_time"),
-                        rs.getDouble("base_price"),
-                        rs.getString("status")
+                            rs.getInt("id"),
+                            rs.getInt("hall_id"),
+                            rs.getInt("movie_id"),
+                            rs.getTimestamp("start_time"),
+                            rs.getTimestamp("end_time"),
+                            rs.getDouble("base_price"),
+                            rs.getString("status")
                     );
                     st.setMovieTitle(rs.getString("movie_title"));
                     st.setMoviePoster(rs.getString("movie_poster"));
@@ -215,17 +213,19 @@ public class ShowtimeDAO {
         String checkSql = "SELECT id FROM dbo.SEAT_PRICING WHERE showtime_id = ? AND seat_type = ?";
         String updateSql = "UPDATE dbo.SEAT_PRICING SET price = ?, last_update = GETDATE() WHERE showtime_id = ? AND seat_type = ?";
         String insertSql = "INSERT INTO dbo.SEAT_PRICING (showtime_id, seat_type, price) VALUES (?, ?, ?)";
-        
+
         try (Connection conn = new DBContext().getConnection()) {
             boolean exists = false;
             try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
                 ps.setInt(1, showtimeId);
                 ps.setString(2, seatType);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) exists = true;
+                    if (rs.next()) {
+                        exists = true;
+                    }
                 }
             }
-            
+
             if (exists) {
                 try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
                     ps.setDouble(1, price);
@@ -250,8 +250,7 @@ public class ShowtimeDAO {
     // READ: Lấy giá vé thực tế của ghế cho suất chiếu (Bảng SEAT_PRICING hoặc fallback về SHOWTIMES.base_price)
     public double getSeatPrice(int showtimeId, String seatType, double basePrice) {
         String sql = "SELECT price FROM dbo.SEAT_PRICING WHERE showtime_id = ? AND seat_type = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, showtimeId);
             ps.setString(2, seatType);
             try (ResultSet rs = ps.executeQuery()) {
@@ -268,11 +267,10 @@ public class ShowtimeDAO {
     // CALCULATE: Đếm số ghế đã đặt của suất chiếu
     public int getBookedSeatsCount(int showtimeId) {
         String sql = "SELECT COUNT(bs.seat_id) AS booked_count "
-                   + "FROM dbo.BOOKING_SEATS bs "
-                   + "JOIN dbo.BOOKINGS b ON bs.booking_id = b.id "
-                   + "WHERE b.showtime_id = ? AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED')";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                + "FROM dbo.BOOKING_SEATS bs "
+                + "JOIN dbo.BOOKINGS b ON bs.booking_id = b.id "
+                + "WHERE b.showtime_id = ? AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED')";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, showtimeId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -288,11 +286,10 @@ public class ShowtimeDAO {
     // CALCULATE: Lấy tổng số ghế thiết kế của phòng chiếu cho suất chiếu
     public int getTotalSeatsInHall(int showtimeId) {
         String sql = "SELECT h.total_seats "
-                   + "FROM dbo.SHOWTIMES st "
-                   + "JOIN dbo.HALLS h ON st.hall_id = h.id "
-                   + "WHERE st.id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                + "FROM dbo.SHOWTIMES st "
+                + "JOIN dbo.HALLS h ON st.hall_id = h.id "
+                + "WHERE st.id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, showtimeId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -308,7 +305,9 @@ public class ShowtimeDAO {
     // CALCULATE: Tính tỷ lệ lấp đầy trực tiếp
     public double getOccupancyRate(int showtimeId) {
         int total = getTotalSeatsInHall(showtimeId);
-        if (total == 0) return 0;
+        if (total == 0) {
+            return 0;
+        }
         int booked = getBookedSeatsCount(showtimeId);
         return Math.round(((double) booked / total * 100) * 10.0) / 10.0;
     }
@@ -317,31 +316,30 @@ public class ShowtimeDAO {
     public List<Showtime> getShowtimesByBranchAndDate(int branchId, String dateStr) {
         List<Showtime> list = new ArrayList<>();
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
-                   + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
-                   + "FROM dbo.SHOWTIMES st "
-                   + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
-                   + "JOIN dbo.HALLS h ON st.hall_id = h.id "
-                   + "WHERE h.branch_id = ? AND CONVERT(date, st.start_time) = ? "
-                   + "ORDER BY st.start_time ASC";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
+                + "FROM dbo.SHOWTIMES st "
+                + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
+                + "JOIN dbo.HALLS h ON st.hall_id = h.id "
+                + "WHERE h.branch_id = ? AND CONVERT(date, st.start_time) = ? "
+                + "ORDER BY st.start_time ASC";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, branchId);
             ps.setString(2, dateStr);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Showtime st = new Showtime(
-                        rs.getInt("id"),
-                        rs.getInt("hall_id"),
-                        rs.getInt("movie_id"),
-                        rs.getTimestamp("start_time"),
-                        rs.getTimestamp("end_time"),
-                        rs.getDouble("base_price"),
-                        rs.getString("status")
-                     );
-                     st.setMovieTitle(rs.getString("movie_title"));
-                     st.setMoviePoster(rs.getString("movie_poster"));
-                     st.setHallName(rs.getString("hall_name"));
-                     list.add(st);
+                            rs.getInt("id"),
+                            rs.getInt("hall_id"),
+                            rs.getInt("movie_id"),
+                            rs.getTimestamp("start_time"),
+                            rs.getTimestamp("end_time"),
+                            rs.getDouble("base_price"),
+                            rs.getString("status")
+                    );
+                    st.setMovieTitle(rs.getString("movie_title"));
+                    st.setMoviePoster(rs.getString("movie_poster"));
+                    st.setHallName(rs.getString("hall_name"));
+                    list.add(st);
                 }
             }
         } catch (Exception e) {
@@ -389,7 +387,8 @@ public class ShowtimeDAO {
     }
 
     /**
-     * Lấy 1 suất chiếu theo id, đồng thời check suất đó có thuộc branch của manager không.
+     * Lấy 1 suất chiếu theo id, đồng thời check suất đó có thuộc branch của
+     * manager không.
      */
     public Showtime findByIdAndManagerId(int id, int managerId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
@@ -427,30 +426,30 @@ public class ShowtimeDAO {
     /**
      * Thêm suất chiếu mới.
      */
-   public boolean insert(Showtime showtime) {
-    String sql = "INSERT INTO dbo.SHOWTIMES "
-            + "(hall_id, movie_id, start_time, end_time, base_price, status) "
-            + "VALUES (?, ?, ?, ?, ?, ?)";
+    public boolean insert(Showtime showtime) {
+        String sql = "INSERT INTO dbo.SHOWTIMES "
+                + "(hall_id, movie_id, start_time, end_time, base_price, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
 
-    Connection conn = DBContext.getInstance().getConnection();
+        Connection conn = DBContext.getInstance().getConnection();
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, showtime.getHallId());
-        ps.setInt(2, showtime.getMovieId());
-        ps.setObject(3, showtime.getStartTime());
-        ps.setObject(4, showtime.getEndTime());
-        ps.setDouble(5, showtime.getBasePrice());
-        ps.setString(6, showtime.getStatus());
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, showtime.getHallId());
+            ps.setInt(2, showtime.getMovieId());
+            ps.setObject(3, showtime.getStartTime());
+            ps.setObject(4, showtime.getEndTime());
+            ps.setDouble(5, showtime.getBasePrice());
+            ps.setString(6, showtime.getStatus());
 
-        return ps.executeUpdate() > 0;
+            return ps.executeUpdate() > 0;
 
-    } catch (SQLException e) {
-        System.getLogger(ShowtimeDAO.class.getName())
-                .log(System.Logger.Level.ERROR, "insert showtime thất bại", e);
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "insert showtime thất bại", e);
+        }
+
+        return false;
     }
-
-    return false;
-}
 
     /**
      * Cập nhật suất chiếu.
@@ -506,9 +505,8 @@ public class ShowtimeDAO {
 
     /**
      * Check trùng lịch trong cùng một Hall.
-     * 
-     * Điều kiện trùng:
-     * newStart < oldEnd AND newEnd > oldStart
+     *
+     * Điều kiện trùng: newStart < oldEnd AND newEnd > oldStart
      */
     public boolean hasScheduleConflict(int hallId,
             LocalDateTime startTime,
@@ -567,5 +565,97 @@ public class ShowtimeDAO {
         st.setBranchAddress(rs.getString("branch_address"));
 
         return st;
+    }
+
+    public Showtime findById(int id) {
+        String sql
+                = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "       s.base_price, s.status, "
+                + "       m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "       h.name AS hall_name, h.hall_type, "
+                + "       b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE s.id = ?";
+
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public List<MovieShowtimes> findByBranchAndDate(
+            int branchId,
+            LocalDate date) {
+
+        List<MovieShowtimes> result = new ArrayList<>();
+
+        String sql
+                = "SELECT s.id,s.movie_id,s.hall_id,s.start_time,s.end_time,"
+                + "s.base_price,s.status,"
+                + "m.title AS movie_title,"
+                + "m.poster_url,"
+                + "m.duration_min AS movie_duration_min,"
+                + "h.name AS hall_name,"
+                + "h.hall_type,"
+                + "b.id AS branch_id,"
+                + "b.name AS branch_name,"
+                + "b.address AS branch_address "
+                + "FROM SHOWTIMES s "
+                + "JOIN MOVIES m ON m.id=s.movie_id "
+                + "JOIN HALLS h ON h.id=s.hall_id "
+                + "JOIN BRANCHES b ON b.id=h.branch_id "
+                + "WHERE h.branch_id=? "
+                + "AND CONVERT(date,s.start_time)=? "
+                + "AND s.status IN('SCHEDULED','ON_SALE') "
+                + "ORDER BY m.title,s.start_time";
+
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, branchId);
+            ps.setDate(2, java.sql.Date.valueOf(date));
+
+            ResultSet rs = ps.executeQuery();
+
+            MovieShowtimes current = null;
+            int lastMovie = -1;
+
+            while (rs.next()) {
+
+                Showtime st = mapRow(rs);
+                st.setMoviePoster(rs.getString("poster_url"));
+
+                if (lastMovie != st.getMovieId()) {
+
+                    current = new MovieShowtimes(
+                            st.getMovieId(),
+                            st.getMovieTitle(),
+                            rs.getString("poster_url"));
+
+                    result.add(current);
+                    lastMovie = st.getMovieId();
+                }
+
+                current.getShowtimes().add(st);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 }

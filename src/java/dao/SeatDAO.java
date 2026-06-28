@@ -1,5 +1,6 @@
 package dao;
 
+import dto.SeatView;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -125,4 +126,56 @@ public class SeatDAO {
         }
         return list;
     }
+    
+    public List<SeatView> findByShowtime(int showtimeId){
+
+    List<SeatView> list=new ArrayList<>();
+
+    String sql=
+        "SELECT s.*, "+
+        "CASE WHEN EXISTS("+
+        "SELECT 1 "+
+        "FROM BOOKING_SEATS bs "+
+        "JOIN BOOKINGS b ON b.id=bs.booking_id "+
+        "WHERE bs.seat_id=s.id "+
+        "AND b.showtime_id=? "+
+        "AND b.status IN('CONFIRMED','CHECKED_IN','USED')" +
+        ") THEN 1 ELSE 0 END booked "+
+        "FROM SEATS s "+
+        "JOIN SHOWTIMES st ON st.hall_id=s.hall_id "+
+        "WHERE st.id=? "+
+        "ORDER BY s.seat_row,s.seat_number";
+
+    try(Connection conn=new DBContext().getConnection();
+        PreparedStatement ps=conn.prepareStatement(sql)){
+
+        ps.setInt(1,showtimeId);
+        ps.setInt(2,showtimeId);
+
+        ResultSet rs=ps.executeQuery();
+
+        while(rs.next()){
+
+            Seat seat=new Seat(
+                rs.getInt("id"),
+                rs.getInt("hall_id"),
+                rs.getString("seat_row"),
+                rs.getInt("seat_number"),
+                rs.getString("seat_type"),
+                rs.getBoolean("maintenance")
+            );
+
+            SeatView view=new SeatView();
+            view.setSeat(seat);
+            view.setBooked(rs.getBoolean("booked"));
+
+            list.add(view);
+        }
+
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+
+    return list;
+}
 }
