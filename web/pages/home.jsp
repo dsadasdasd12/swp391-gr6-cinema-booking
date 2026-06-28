@@ -30,7 +30,7 @@
                    nhận vé QR ngay trên điện thoại.</p>
                 <div class="hero-actions">
                     <a href="${ctx}/movies?status=NOW_SHOWING" class="btn btn-primary btn-lg">Đặt vé ngay</a>
-                    <a href="${ctx}/movies" class="btn btn-ghost btn-lg">Xem tất cả phim</a>
+                    <a href="${ctx}/movieslist" class="btn btn-ghost btn-lg">Xem tất cả phim</a>
                 </div>
             </div>
         </section>
