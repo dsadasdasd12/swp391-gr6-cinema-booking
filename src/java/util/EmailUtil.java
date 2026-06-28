@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package util;
 
 import jakarta.mail.Authenticator;
@@ -11,40 +7,20 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.ServletContext;
 
 import java.util.Properties;
 
 public class EmailUtil {
 
-    private static final String FROM_EMAIL = "aare7220@gmail.com";
-    private static final String APP_PASSWORD = "qsrx wbqy udid oqlj";
-
-    public static void sendOtp(String toEmail, String otp) {
-
+    public static void sendOtp(ServletContext ctx, String toEmail, String otp) {
         try {
-            Properties props = new Properties();
-
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.host", "smtp.gmail.com");
-            props.put("mail.smtp.port", "587");
-
-            Session session = Session.getInstance(
-                    props,
-                    new Authenticator() {
-                        @Override
-                        protected PasswordAuthentication getPasswordAuthentication() {
-                            return new PasswordAuthentication(
-                                    FROM_EMAIL,
-                                    APP_PASSWORD
-                            );
-                        }
-                    }
-            );
+            Session session = getMailSession(ctx);
+            String fromEmail = getFromEmail(ctx);
 
             Message message = new MimeMessage(session);
 
-            message.setFrom(new InternetAddress(FROM_EMAIL));
+            message.setFrom(new InternetAddress(fromEmail, "RapViet Cinema"));
             message.setRecipients(
                     Message.RecipientType.TO,
                     InternetAddress.parse(toEmail)
@@ -62,7 +38,7 @@ public class EmailUtil {
             Transport.send(message);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Không thể gửi email OTP.", e);
         }
     }
 

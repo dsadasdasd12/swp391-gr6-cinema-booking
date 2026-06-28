@@ -1,0 +1,304 @@
+/* ===============================
+   Branch Management Page
+   =============================== */
+
+.management-page {
+    padding: 32px 36px;
+    background: #0b0d10;
+    min-height: calc(100vh - 72px);
+}
+
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.management-header h1 {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.management-header p {
+    margin: 0;
+    color: #a1a1aa;
+    font-size: 14px;
+}
+
+/* Card */
+
+.management-card {
+    background: #111318;
+    border: 1px solid #262a33;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.management-card-header {
+    padding: 22px 24px;
+    border-bottom: 1px solid #262a33;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    background: linear-gradient(180deg, #16191f, #111318);
+}
+
+.management-card-header h2 {
+    margin: 0 0 6px;
+    color: #ffffff;
+    font-size: 22px;
+}
+
+.management-card-header span {
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+/* Search */
+
+.management-search {
+    width: 360px;
+    max-width: 100%;
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid #303541;
+    background: #0b0d10;
+    color: #ffffff;
+    outline: none;
+}
+
+.management-search:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229,9,20,.15);
+}
+
+/* Table */
+
+.management-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.management-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+}
+
+.management-table th {
+    padding: 14px 18px;
+    background: #0f1115;
+    border-bottom: 1px solid #262a33;
+    color: #9ca3af;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+}
+
+.management-table td {
+    padding: 18px;
+    border-bottom: 1px solid #20232b;
+    color: #e5e7eb;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.management-table tr:hover {
+    background: rgba(229,9,20,.035);
+}
+
+.management-table tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Branch cell */
+
+.management-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 230px;
+}
+
+.management-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e50914, #7f1d1d);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    box-shadow: 0 0 0 3px rgba(229,9,20,.12);
+}
+
+.management-user strong {
+    display: block;
+    color: #ffffff;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.management-user span {
+    color: #8b8f98;
+    font-size: 12px;
+}
+
+.management-muted {
+    color: #71717a;
+}
+
+/* Status */
+
+.management-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.management-status-active {
+    background: rgba(34,197,94,.14);
+    color: #4ade80;
+    border: 1px solid rgba(34,197,94,.25);
+}
+
+.management-status-blocked {
+    background: rgba(239,68,68,.14);
+    color: #f87171;
+    border: 1px solid rgba(239,68,68,.25);
+}
+
+/* Buttons */
+
+.management-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 14px;
+    transition: .18s ease;
+    font-family: inherit;
+}
+
+.management-btn-primary {
+    background: #e50914;
+    color: #ffffff;
+    padding: 12px 18px;
+}
+
+.management-btn-primary:hover {
+    background: #ff1f2b;
+    transform: translateY(-1px);
+}
+
+.management-btn-small {
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+.management-btn-ghost {
+    background: #242833;
+    color: #ffffff;
+}
+
+.management-btn-ghost:hover {
+    background: #303541;
+}
+
+.management-btn-danger {
+    background: #7f1d1d;
+    color: #ffffff;
+}
+
+.management-btn-danger:hover {
+    background: #991b1b;
+}
+
+.management-btn-success {
+    background: #166534;
+    color: #ffffff;
+}
+
+.management-btn-success:hover {
+    background: #15803d;
+}
+
+.management-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.management-actions form {
+    margin: 0;
+}
+
+/* Alert */
+
+.management-alert {
+    padding: 13px 16px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.management-alert-success {
+    background: rgba(34,197,94,.12);
+    color: #4ade80;
+    border: 1px solid rgba(34,197,94,.25);
+}
+
+.management-alert-error {
+    background: rgba(229,9,20,.12);
+    color: #ff6b6b;
+    border: 1px solid rgba(229,9,20,.25);
+}
+
+/* Empty */
+
+.management-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+    .management-page {
+        padding: 20px;
+    }
+
+    .management-header,
+    .management-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .management-search {
+        width: 100%;
+    }
+}

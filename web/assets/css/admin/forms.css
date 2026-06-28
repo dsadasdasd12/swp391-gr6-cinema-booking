@@ -1,0 +1,608 @@
+/*
+ * Rạp Việt CMS — Forms: Inputs, Selects, Upload Zone, Tag Input, Validation
+ * Requires: variables.css
+ */
+
+/* ══════════════════════════════════════
+   FORM LAYOUT
+   ══════════════════════════════════════ */
+.rv-form-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-6);
+}
+.rv-form-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+}
+.rv-form-panel__title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--n-900);
+  margin-bottom: var(--s-6);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Form footer (full-width action bar) */
+.rv-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin-top: var(--s-4);
+}
+
+/* ══════════════════════════════════════
+   FORM GROUP
+   ══════════════════════════════════════ */
+.rv-form-group {
+  margin-bottom: var(--s-4);
+}
+.rv-form-group:last-child { margin-bottom: 0; }
+
+.rv-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--n-700);
+  margin-bottom: var(--s-2);
+}
+.rv-label .required {
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+/* ══════════════════════════════════════
+   TEXT INPUT / SELECT / TEXTAREA
+   ══════════════════════════════════════ */
+.rv-input,
+.rv-select,
+.rv-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: var(--text-base);
+  color: var(--n-800);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 0 var(--s-3);
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+.rv-input:focus,
+.rv-select:focus,
+.rv-textarea:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.08);
+}
+.rv-input::placeholder,
+.rv-textarea::placeholder {
+  color: var(--n-400);
+}
+
+.rv-input {
+  height: var(--input-h);
+}
+.rv-select {
+  height: var(--input-h);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: var(--s-8);
+  cursor: pointer;
+}
+.rv-textarea {
+  padding: var(--s-3);
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Number input with spinners */
+.rv-input[type="number"] {
+  -moz-appearance: textfield;
+}
+.rv-input-number-wrap {
+  position: relative;
+}
+.rv-input-number-wrap .rv-input {
+  padding-right: 36px;
+}
+
+/* Date input */
+.rv-input[type="date"] {
+  cursor: pointer;
+}
+.rv-input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+/* ══════════════════════════════════════
+   VALIDATION STATES
+   ══════════════════════════════════════ */
+.rv-input.error,
+.rv-select.error,
+.rv-textarea.error {
+  border-color: var(--danger);
+}
+.rv-input.error:focus,
+.rv-select.error:focus,
+.rv-textarea.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+}
+.rv-error-msg {
+  font-size: var(--text-sm);
+  color: var(--danger);
+  margin-top: var(--s-1);
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.rv-error-msg i { font-size: 12px; }
+
+/* Success state */
+.rv-input.success,
+.rv-select.success {
+  border-color: var(--success);
+}
+
+/* ══════════════════════════════════════
+   MULTI-SELECT TAG INPUT (Genre)
+   ══════════════════════════════════════ */
+.rv-tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--input-h);
+  padding: var(--s-1) var(--s-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: text;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+.rv-tag-input:focus-within {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.08);
+}
+.rv-tag-input.error {
+  border-color: var(--danger);
+}
+
+.rv-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 2px var(--s-2) 2px var(--s-3);
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--r-sm);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  animation: rv-tag-in 0.15s ease;
+}
+@keyframes rv-tag-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.rv-tag__remove {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.rv-tag__remove:hover { color: #fff; }
+
+.rv-tag-input__field {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: var(--text-base);
+  font-family: inherit;
+  color: var(--n-800);
+  min-width: 80px;
+  flex: 1;
+  height: 28px;
+}
+.rv-tag-input__field::placeholder { color: var(--n-400); }
+
+/* Tag dropdown (suggestions) */
+.rv-tag-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 20;
+  display: none;
+}
+.rv-tag-dropdown.show { display: block; }
+.rv-tag-dropdown__item {
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--text-base);
+  color: var(--n-700);
+  cursor: pointer;
+  transition: background var(--ease);
+}
+.rv-tag-dropdown__item:hover,
+.rv-tag-dropdown__item.highlighted {
+  background: var(--n-50);
+  color: var(--primary);
+}
+.rv-tag-dropdown__item.selected {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════
+   FILE UPLOAD ZONE
+   ══════════════════════════════════════ */
+.rv-upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-8) var(--s-4);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--ease);
+  background: var(--n-50);
+}
+.rv-upload-zone:hover,
+.rv-upload-zone.dragover {
+  border-color: var(--primary-light);
+  background: rgba(var(--primary-rgb), 0.03);
+}
+.rv-upload-zone.error {
+  border-color: var(--danger);
+}
+.rv-upload-zone__icon {
+  font-size: 32px;
+  color: var(--n-400);
+  margin-bottom: var(--s-3);
+}
+.rv-upload-zone__text {
+  font-size: var(--text-base);
+  color: var(--n-600);
+  margin-bottom: var(--s-1);
+}
+.rv-upload-zone__hint {
+  font-size: var(--text-sm);
+  color: var(--n-400);
+}
+.rv-upload-zone input[type="file"] {
+  display: none;
+}
+
+/* Preview */
+.rv-poster-preview {
+  width: 120px;
+  height: 160px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--n-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rv-poster-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.rv-poster-preview .placeholder-icon {
+  font-size: 24px;
+  color: var(--n-300);
+}
+
+/* ══════════════════════════════════════
+   CHARACTER COUNTER
+   ══════════════════════════════════════ */
+.rv-char-counter {
+  font-size: var(--text-xs);
+  color: var(--n-400);
+  text-align: right;
+  margin-top: var(--s-1);
+}
+.rv-char-counter.warning { color: var(--warning); }
+.rv-char-counter.danger  { color: var(--danger); }
+
+/* ══════════════════════════════════════
+   THREE-PANEL LAYOUT (Roles & Permissions)
+   ══════════════════════════════════════ */
+.rv-three-panel {
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  gap: var(--s-4);
+  min-height: calc(100vh - var(--topbar-h) - var(--page-pad) * 2 - 100px);
+}
+
+/* Panel left: Role list */
+.rv-roles-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+}
+.rv-roles-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--border);
+}
+.rv-roles-panel__title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--n-900);
+}
+.rv-roles-panel__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s-2);
+}
+.rv-roles-panel__footer {
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-sm);
+  color: var(--n-500);
+}
+
+/* Role card */
+.rv-role-card {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all var(--ease);
+  margin-bottom: var(--s-1);
+}
+.rv-role-card:hover {
+  background: var(--n-50);
+}
+.rv-role-card.active {
+  background: rgba(var(--primary-rgb), 0.04);
+  border-color: var(--primary);
+  border-left: 3px solid var(--primary);
+}
+.rv-role-card__icon {
+  width: 36px; height: 36px;
+  background: var(--n-100);
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.rv-role-card.active .rv-role-card__icon {
+  background: rgba(var(--primary-rgb), 0.08);
+}
+.rv-role-card__info { flex: 1; min-width: 0; }
+.rv-role-card__name {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--n-800);
+}
+.rv-role-card__desc {
+  font-size: var(--text-xs);
+  color: var(--n-500);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rv-role-card__arrow {
+  color: var(--n-300);
+  font-size: 12px;
+}
+
+/* Panel middle: Permission matrix */
+.rv-perm-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+}
+.rv-perm-panel__header {
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.rv-perm-panel__title-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.rv-perm-panel__role-name {
+  font-size: var(--text-sm);
+  color: var(--n-500);
+}
+.rv-perm-panel__body {
+  flex: 1;
+  overflow: auto;
+}
+.rv-perm-panel__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--border);
+  background: var(--n-50);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.rv-perm-panel__footer-note {
+  font-size: var(--text-sm);
+  color: var(--n-500);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.rv-perm-panel__footer-note i { font-size: 14px; color: var(--info); }
+
+/* Permission table checkboxes */
+.rv-perm-table th.perm-col,
+.rv-perm-table td.perm-col {
+  width: 70px;
+  text-align: center;
+}
+.rv-perm-check {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* Panel right: Role info */
+.rv-role-info-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+}
+.rv-role-info-panel__header {
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--border);
+}
+.rv-role-info-panel__body {
+  flex: 1;
+  padding: var(--s-4);
+}
+.rv-role-info-panel__footer {
+  padding: var(--s-4);
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE FORMS
+   ══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .rv-form-container {
+    grid-template-columns: 1fr;
+  }
+  .rv-three-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .rv-form-panel {
+    padding: var(--s-4);
+  }
+}
+
+
+/* ============================================================
+   Red & Black Theme Overrides
+   ============================================================ */
+body {
+  background: var(--bg) !important;
+  color: var(--n-800) !important;
+}
+.rv-card,
+.rv-kpi,
+.rv-form-panel,
+.rv-form-footer,
+.rv-table-wrapper,
+.rv-modal,
+.rv-filter-bar,
+.rv-empty,
+.rv-toast,
+.rv-topbar__dropdown {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--n-800) !important;
+}
+.rv-card__header,
+.rv-table thead th,
+.rv-table tfoot td,
+.rv-modal__header,
+.rv-modal__footer,
+.rv-topbar__dropdown-header {
+  background: var(--n-50) !important;
+  border-color: var(--border) !important;
+  color: var(--n-900) !important;
+}
+.rv-table tbody tr:nth-child(odd),
+.rv-table tbody tr:nth-child(even) {
+  background: var(--surface) !important;
+}
+.rv-table tbody tr:hover {
+  background: rgba(229, 9, 20, .08) !important;
+}
+.rv-input,
+.rv-select,
+.rv-textarea,
+.rv-tag-input,
+.rv-search-input,
+.rv-filter-input,
+.rv-filter-select {
+  background: #0F1115 !important;
+  border-color: var(--border) !important;
+  color: var(--n-900) !important;
+}
+.rv-input:focus,
+.rv-select:focus,
+.rv-textarea:focus,
+.rv-tag-input:focus-within {
+  border-color: var(--primary-light) !important;
+  box-shadow: 0 0 0 3px rgba(229,9,20,.16) !important;
+}
+.rv-btn--ghost {
+  background: transparent !important;
+  color: var(--n-700) !important;
+  border-color: var(--border) !important;
+}
+.rv-btn--ghost:hover {
+  background: rgba(229,9,20,.12) !important;
+  color: #fff !important;
+  border-color: var(--primary) !important;
+}
+.rv-topbar,
+.rv-sidebar {
+  box-shadow: var(--shadow-sm);
+}
+.rv-topbar__brand-icon {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+.rv-nav__item.active,
+.rv-nav__sub-item.active {
+  color: #fff !important;
+}
+.rv-nav__item.active::before,
+.rv-nav__sub-item.active::before {
+  background: var(--primary) !important;
+}

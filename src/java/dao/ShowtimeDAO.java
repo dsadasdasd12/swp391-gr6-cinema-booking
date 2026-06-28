@@ -72,7 +72,7 @@ public class ShowtimeDAO {
         }
         return list;
     }
-
+    
     public List<Showtime> findByBranchId(int branchId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "
@@ -87,7 +87,26 @@ public class ShowtimeDAO {
                 + "AND s.status <> 'CANCELLED' " 
                 + "ORDER BY s.start_time DESC, s.id DESC";
 
-    // READ: Lấy danh sách suất chiếu của chi nhánh
+        List<Showtime> list = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, branchId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR,
+                            "findByBranchId thất bại", e);
+        }
+
+        return list;
+    }
     public List<Showtime> getActiveShowtimesByBranch(int branchId) {
         List<Showtime> list = new ArrayList<>();
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
@@ -121,6 +140,40 @@ public class ShowtimeDAO {
             e.printStackTrace();
         }
         return list;
+    }
+    
+    public Showtime findByIdAndBranchId(int id, int branchId) {
+        String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "s.base_price, s.status, "
+                + "m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "h.name AS hall_name, h.hall_type, "
+                + "b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE s.id = ? "
+                + "AND h.branch_id = ?";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.setInt(2, branchId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(ShowtimeDAO.class.getName())
+                    .log(System.Logger.Level.ERROR,
+                            "findByIdAndBranchId thất bại", e);
+        }
+
+        return null;
     }
 
     // READ SINGLE: Lấy thông tin một suất chiếu cụ thể

@@ -1,0 +1,398 @@
+/* ============================================================
+   Account Management - Red Black Theme
+   File: web/assets/css/admin/accountmanagement.css
+   ============================================================ */
+
+.management-page {
+    padding: 30px;
+}
+
+/* HEADER */
+
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.management-header h1 {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 30px;
+}
+
+.management-header p {
+    margin: 0;
+    color: #9aa0aa;
+}
+
+/* CARD */
+
+.management-card {
+    background: #16181d;
+    border: 1px solid #252832;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.management-card-header {
+    padding: 20px;
+    border-bottom: 1px solid #252832;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.management-card-header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.management-card-header span {
+    display: block;
+    margin-top: 4px;
+    color: #9aa0aa;
+    font-size: 14px;
+}
+
+/* SEARCH */
+
+.management-search {
+    width: 340px;
+    max-width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid #303541;
+    background: #0f1115;
+    color: #ffffff;
+    outline: none;
+}
+
+.management-search:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .15);
+}
+
+/* TABLE */
+
+.management-table-wrap {
+    overflow-x: auto;
+}
+
+.management-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.management-table th,
+.management-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #252832;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+.management-table th {
+    color: #9aa0aa;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: #111318;
+}
+
+.management-table tr:hover {
+    background: rgba(229, 9, 20, .04);
+}
+
+.management-table tr:last-child td {
+    border-bottom: 0;
+}
+
+/* USER CELL */
+
+.management-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.management-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e50914, #7f1d1d);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.management-user strong {
+    display: block;
+    color: #ffffff;
+}
+
+.management-user span {
+    display: block;
+    color: #9aa0aa;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+/* BADGES */
+
+.management-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 90px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.management-badge-admin {
+    background: rgba(229, 9, 20, .18);
+    color: #ff6b6b;
+}
+
+.management-badge-manager {
+    background: rgba(255, 77, 77, .14);
+    color: #ff9999;
+}
+
+.management-badge-staff {
+    background: rgba(255, 255, 255, .1);
+    color: #d8d8d8;
+}
+
+.management-badge-customer {
+    background: rgba(120, 120, 120, .16);
+    color: #cbd5e1;
+}
+
+/* STATUS */
+
+.management-status {
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.management-status-active {
+    color: #4ade80;
+}
+
+.management-status-blocked {
+    color: #ef4444;
+}
+
+.management-status-pending {
+    color: #facc15;
+}
+
+.management-muted {
+    color: #7d828c;
+}
+
+/* ACTIONS */
+
+.management-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.management-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: .15s ease;
+    font-family: inherit;
+}
+
+.management-btn-primary {
+    background: #e50914;
+    color: #ffffff;
+}
+
+.management-btn-primary:hover {
+    background: #ff2d38;
+}
+
+.management-btn-ghost {
+    background: #252832;
+    color: #ffffff;
+}
+
+.management-btn-ghost:hover {
+    background: #303541;
+}
+
+.management-btn-danger {
+    background: #7f1d1d;
+    color: #ffffff;
+}
+
+.management-btn-danger:hover {
+    background: #991b1b;
+}
+
+.management-btn-success {
+    background: #166534;
+    color: #ffffff;
+}
+
+.management-btn-success:hover {
+    background: #15803d;
+}
+
+.management-btn-small {
+    padding: 7px 10px;
+    font-size: 13px;
+}
+
+/* ALERT */
+
+.management-alert {
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+
+.management-alert-success {
+    background: rgba(31, 157, 85, .12);
+    border: 1px solid rgba(31, 157, 85, .35);
+    color: #66d19e;
+}
+
+.management-alert-error {
+    background: rgba(229, 9, 20, .12);
+    border: 1px solid rgba(229, 9, 20, .35);
+    color: #ff8a8a;
+}
+
+/* EMPTY */
+
+.management-empty {
+    padding: 46px 16px;
+    text-align: center;
+    color: #9aa0aa;
+}
+
+/* MODAL */
+
+.management-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+.management-modal-overlay.show {
+    display: flex;
+}
+
+.management-modal {
+    width: 540px;
+    max-width: 94%;
+    background: #16181d;
+    border: 1px solid #303541;
+    border-radius: 18px;
+    padding: 26px;
+}
+
+.management-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.management-modal-header h2 {
+    margin: 0;
+    color: #ffffff;
+}
+
+.management-modal-header button {
+    background: transparent;
+    border: 0;
+    color: #ffffff;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+/* FORM */
+
+.management-form-group {
+    margin-bottom: 16px;
+}
+
+.management-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #d2d5db;
+    font-weight: 600;
+}
+
+.management-form-group input,
+.management-form-group select {
+    width: 100%;
+    height: 46px;
+    padding: 0 13px;
+    border-radius: 10px;
+    border: 1px solid #303541;
+    background: #0f1115;
+    color: #ffffff;
+    outline: none;
+}
+
+.management-form-group input:focus,
+.management-form-group select:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .15);
+}
+
+.management-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #252832;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+    .management-header,
+    .management-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .management-search {
+        width: 100%;
+    }
+
+    .management-page {
+        padding: 20px;
+    }
+}

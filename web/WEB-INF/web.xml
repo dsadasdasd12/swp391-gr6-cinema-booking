@@ -1,14 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
-    <servlet>
-        <servlet-name>UserController</servlet-name>
-        <servlet-class>controller.UserController</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>UserController</servlet-name>
-        <url-pattern>/UserController</url-pattern>
-    </servlet-mapping>
-    <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
-    </welcome-file-list>
+    <context-param>
+    <param-name>mail.smtp.host</param-name>
+    <param-value>smtp.gmail.com</param-value>
+</context-param>
+
+<context-param>
+    <param-name>mail.smtp.port</param-name>
+    <param-value>587</param-value>
+</context-param>
+
+<context-param>
+    <param-name>mail.smtp.auth</param-name>
+    <param-value>true</param-value>
+</context-param>
+
+<context-param>
+    <param-name>mail.smtp.user</param-name>
+    <param-value>aare7220@gmail.com</param-value>
+</context-param>
+
+<context-param>
+    <param-name>mail.smtp.password</param-name>
+    <param-value>qsrx wbqy udid oqlj</param-value>
+</context-param>
 </web-app>
