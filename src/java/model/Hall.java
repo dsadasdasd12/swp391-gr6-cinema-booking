@@ -12,7 +12,11 @@ public class Hall {
     private int branchId;
     private String branchName;
     private String name;
+
+    private int seatRows;
+    private int seatsPerRow;
     private int totalSeats;
+
     private String hallType;
     private String status;
     private LocalDateTime lastUpdate;
@@ -20,13 +24,24 @@ public class Hall {
     public Hall() {
     }
 
-    public Hall(int id, int branchId, String branchName, String name,
-                int totalSeats, String hallType, String status,
-                LocalDateTime lastUpdate) {
+    public Hall(
+            int id,
+            int branchId,
+            String branchName,
+            String name,
+            int seatRows,
+            int seatsPerRow,
+            int totalSeats,
+            String hallType,
+            String status,
+            LocalDateTime lastUpdate
+    ) {
         this.id = id;
         this.branchId = branchId;
         this.branchName = branchName;
         this.name = name;
+        this.seatRows = seatRows;
+        this.seatsPerRow = seatsPerRow;
         this.totalSeats = totalSeats;
         this.hallType = hallType;
         this.status = status;
@@ -43,7 +58,7 @@ public class Hall {
 
     public void setId(int id) {
         this.id = id;
-    }   
+    }
 
     public int getBranchId() {
         return branchId;
@@ -67,7 +82,23 @@ public class Hall {
 
     public void setName(String name) {
         this.name = name;
-    }   
+    }
+
+    public int getSeatRows() {
+        return seatRows;
+    }
+
+    public void setSeatRows(int seatRows) {
+        this.seatRows = seatRows;
+    }
+
+    public int getSeatsPerRow() {
+        return seatsPerRow;
+    }
+
+    public void setSeatsPerRow(int seatsPerRow) {
+        this.seatsPerRow = seatsPerRow;
+    }
 
     public int getTotalSeats() {
         return totalSeats;
@@ -75,7 +106,7 @@ public class Hall {
 
     public void setTotalSeats(int totalSeats) {
         this.totalSeats = totalSeats;
-    }   
+    }
 
     public String getHallType() {
         return hallType;
@@ -83,7 +114,7 @@ public class Hall {
 
     public void setHallType(String hallType) {
         this.hallType = hallType;
-    }   
+    }
 
     public String getStatus() {
         return status;
@@ -91,7 +122,7 @@ public class Hall {
 
     public void setStatus(String status) {
         this.status = status;
-    }   
+    }
 
     public LocalDateTime getLastUpdate() {
         return lastUpdate;

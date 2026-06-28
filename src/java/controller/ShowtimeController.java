@@ -221,6 +221,25 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
+        Hall hall = hallDAO.findByIdAndBranchId(
+                showtime.getHallId(),
+                branch.getId()
+        );
+
+        if (!isHallActive(hall)) {
+            setFlash(
+                    request,
+                    "error",
+                    "Không thể chỉnh sửa suất chiếu vì phòng chiếu không ở trạng thái hoạt động."
+            );
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/manager/showtimes"
+            );
+            return;
+        }
+
         prepareFormData(
                 request,
                 branch,
@@ -483,9 +502,15 @@ public class ShowtimeController extends HttpServlet {
         int selectedHallId = 0;
 
         if (branch != null) {
-            halls = hallDAO.findByBranchId(
+            List<Hall> branchHalls = hallDAO.findByBranchId(
                     branch.getId()
             );
+
+            for (Hall hall : branchHalls) {
+                if (isHallActive(hall)) {
+                    halls.add(hall);
+                }
+            }
 
             if (containsHall(halls, requestedHallId)) {
                 selectedHallId = requestedHallId;
@@ -522,6 +547,13 @@ public class ShowtimeController extends HttpServlet {
         request.setAttribute("selectedHallId", selectedHallId);
 
         return selectedHallId;
+    }
+
+    private boolean isHallActive(Hall hall) {
+        return hall != null
+                && "ACTIVE".equalsIgnoreCase(
+                        hall.getStatus()
+                );
     }
 
     private boolean containsHall(

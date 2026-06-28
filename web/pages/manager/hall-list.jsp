@@ -31,12 +31,18 @@
             <span>Quyền: Branch Manager</span>
         </div>
 
-        <nav class="admin-menu">
-            <a href="${ctx}/manager/dashboard">Dashboard</a>
+       <nav class="admin-menu">
 
-            <a class="active"
-               href="${ctx}/manager/halls">
+            <a href="${ctx}/manager/dashboard">
+                Dashboard
+            </a>
+
+            <a class="active" href="${ctx}/manager/halls">
                 Quản lý phòng chiếu
+            </a>
+
+            <a href="${ctx}/manager/showtimes">
+                Quản lý lịch chiếu
             </a>
 
             <a href="${ctx}/manager/movie-assignments/branches">
@@ -47,13 +53,15 @@
                 Phim tại phòng chiếu
             </a>
 
-            <a href="${ctx}/manager/showtimes">
-                Lịch chiếu
+            <a 
+               href="${ctx}/manager/movie-durations">
+                Quản lý thời lượng phim
             </a>
 
             <a href="${ctx}/logout">
                 Đăng xuất
             </a>
+
         </nav>
     </aside>
 
@@ -139,7 +147,6 @@
                                 </div>
                             </div>
 
-                            <%-- Không truyền branchId nữa --%>
                             <a class="btn btn-primary btn-small"
                                href="${ctx}/manager/halls/create">
                                 + Thêm phòng chiếu
@@ -163,7 +170,7 @@
                                         <tr>
                                             <th>ID</th>
                                             <th>Tên phòng</th>
-                                            <th>Số ghế</th>
+                                            <th>Cấu hình ghế</th>
                                             <th>Loại phòng</th>
                                             <th>Trạng thái</th>
                                             <th>Thao tác</th>
@@ -184,7 +191,21 @@
                                                 </td>
 
                                                 <td>
-                                                    <c:out value="${h.totalSeats}" />
+                                                    <strong>
+                                                        <c:out value="${h.seatRows}" />
+                                                        hàng ×
+                                                        <c:out value="${h.seatsPerRow}" />
+                                                        ghế
+                                                    </strong>
+
+                                                    <div style="margin-top: 4px;
+                                                                color: #94a3b8;
+                                                                font-size: 12px;">
+
+                                                        Tổng:
+                                                        <c:out value="${h.totalSeats}" />
+                                                        ghế
+                                                    </div>
                                                 </td>
 
                                                 <td>
@@ -206,7 +227,6 @@
                                                 <td>
                                                     <div class="action-inline">
 
-                                                        <%-- Không có branchId trên URL --%>
                                                         <a class="btn btn-ghost btn-small"
                                                            href="${ctx}/manager/halls/edit?id=${h.id}">
                                                             Sửa

@@ -74,18 +74,15 @@ public class StaffBranchDAO {
         return null;
     }
 
-    public boolean isManagerAssignedToBranch(int managerId, int branchId) {
+    public boolean isManagerAssignedToBranch(int userId, int branchId) {
         String sql = "SELECT COUNT(*) "
-                + "FROM dbo.STAFF_BRANCH sb "
-                + "JOIN dbo.[USER] u ON u.id = sb.user_id "
-                + "WHERE sb.user_id = ? "
-                + "AND sb.branch_id = ? "
-                + "AND u.role = 'MANAGER'";
+                + "FROM dbo.STAFF_BRANCH "
+                + "WHERE user_id = ? AND branch_id = ?";
 
         Connection conn = DBContext.getInstance().getConnection();
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, managerId);
+            ps.setInt(1, userId);
             ps.setInt(2, branchId);
 
             try (ResultSet rs = ps.executeQuery()) {

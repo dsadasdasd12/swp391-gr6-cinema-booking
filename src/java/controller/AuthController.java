@@ -111,7 +111,6 @@ public class AuthController extends HttpServlet {
 
             default:
                 response.sendRedirect(request.getContextPath() + "/home");
-                break;
         }
     }
 
@@ -123,7 +122,9 @@ public class AuthController extends HttpServlet {
         String password = request.getParameter("password");
 
         email = email == null ? "" : email.trim();
-
+        
+        System.out.println(password);
+        
         if (email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập email và mật khẩu");
             request.setAttribute("email", email);
@@ -142,9 +143,7 @@ public class AuthController extends HttpServlet {
 
         if (!user.isEmailVerified()) {
 
-        if (!user.isEmailVerified()) {
             HttpSession session = request.getSession();
-            session.setAttribute("verifyUser", user);
 
             authService.sendVerifyOtp(getServletContext(), session, user);
 

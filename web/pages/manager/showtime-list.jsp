@@ -32,10 +32,17 @@
         </div>
 
         <nav class="admin-menu">
-            <a href="${ctx}/manager/dashboard">Dashboard</a>
+
+            <a href="${ctx}/manager/dashboard">
+                Dashboard
+            </a>
 
             <a href="${ctx}/manager/halls">
                 Quản lý phòng chiếu
+            </a>
+
+            <a class="active" href="${ctx}/manager/showtimes">
+                Quản lý lịch chiếu
             </a>
 
             <a href="${ctx}/manager/movie-assignments/branches">
@@ -46,13 +53,15 @@
                 Phim tại phòng chiếu
             </a>
 
-            <a class="active" href="${ctx}/manager/showtimes">
-                Lịch chiếu
+            <a 
+               href="${ctx}/manager/movie-durations">
+                Quản lý thời lượng phim
             </a>
 
             <a href="${ctx}/logout">
                 Đăng xuất
             </a>
+
         </nav>
     </aside>
 

@@ -21,7 +21,7 @@ VALUES
 (
     'System Admin',
     'admin@cinema.com',
-    '12345678',
+    '123456',
     'local_admin',
     '0900000001',
     'ADMIN',

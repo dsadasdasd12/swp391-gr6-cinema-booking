@@ -23,6 +23,7 @@ body.admin-page {
 
 /* =========================
    ADMIN LAYOUT
+========================= */
 
 .admin-shell {
     width: 100%;
@@ -34,6 +35,7 @@ body.admin-page {
 
 /* =========================
    SIDEBAR
+========================= */
 
 .admin-sidebar {
     background: #16181d;
@@ -102,6 +104,7 @@ body.admin-page {
 
 /* =========================
    MAIN
+========================= */
 
 .admin-main {
     min-width: 0;
@@ -156,6 +159,7 @@ body.admin-page {
 
 /* =========================
    DASHBOARD CARDS
+========================= */
 
 .dashboard-grid {
     display: grid;
@@ -209,6 +213,7 @@ body.admin-page {
 
 /* =========================
    PANEL
+========================= */
 
 .panel {
     background: #16181d;
@@ -229,6 +234,7 @@ body.admin-page {
 
 /* =========================
    TABLE
+========================= */
 
 .admin-table-wrap {
     overflow-x: auto;
@@ -265,6 +271,7 @@ body.admin-page {
 
 /* =========================
    BADGES
+========================= */
 
 .badge-status,
 .role-badge {
@@ -305,6 +312,7 @@ body.admin-page {
 
 /* =========================
    BUTTONS / ACTIONS
+========================= */
 
 .action-inline,
 .admin-actions {
@@ -405,6 +413,7 @@ body.admin-page {
 
 /* =========================
    FORM
+========================= */
 
 .form-grid {
     display: grid;
@@ -465,6 +474,7 @@ body.admin-page {
 
 /* =========================
    MODAL
+========================= */
 
 .modal-overlay {
     position: fixed;
@@ -511,6 +521,7 @@ body.admin-page {
 
 /* =========================
    ALERT / EMPTY
+========================= */
 
 .alert {
     padding: 12px 14px;
@@ -539,6 +550,7 @@ body.admin-page {
 
 /* =========================
    RESPONSIVE
+========================= */
 
 @media (max-width: 900px) {
     .admin-shell {

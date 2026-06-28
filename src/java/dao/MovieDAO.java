@@ -142,37 +142,6 @@ public class MovieDAO {
     }
 
     // ── Các hàm hỗ trợ ──────────────────────────────────────
-    
-    
-    /**
- * Lấy danh sách phim dùng cho form tạo / sửa suất chiếu.
- * Chỉ lấy phim đang chiếu hoặc sắp chiếu.
- */
-    public List<Movie> findAllForShowtime() {
-        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
-            + "m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
-            + RATING_SUBQUERY
-            + "FROM dbo.MOVIES m "
-            + "WHERE m.status IN ('NOW_SHOWING', 'COMING_SOON') "
-            + "ORDER BY m.title ASC";
-
-        List<Movie> movies = new ArrayList<>();
-        Connection conn = DBContext.getInstance().getConnection();
-
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                movies.add(mapRow(rs));
-        }
-
-        }   catch (SQLException e) {
-            System.getLogger(MovieDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findAllForShowtime thất bại", e);
-        }
-
-        return movies;
-    }
 
     /** Dựng mệnh đề WHERE và thêm các giá trị tương ứng vào {@code params}. */
     private String buildWhere(MovieFilter f, List<Object> params) {
@@ -255,10 +224,10 @@ public class MovieDAO {
         for (int k = 0; k < movies.size(); k++) {
             in.append(k == 0 ? "?" : ",?");
         }
-        String sql = "SELECT mc.movie_id, c.id, c.name(), c.status "
-                + "FROM dbo.MOVIES_CATEGORY mc "
-                + "JOIN dbo.CATEGORY c ON c.id = mc.category_id "
-                + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name()";
+        String sql = "SELECT mc.movie_id, c.id, c.name AS name, c.status "
+        + "FROM dbo.MOVIES_CATEGORY mc "
+        + "JOIN dbo.CATEGORY c ON c.id = mc.category_id "
+        + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (int k = 0; k < movies.size(); k++) {

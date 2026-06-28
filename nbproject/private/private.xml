@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/src/java/util/DBContext.java</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/src/java/model/Showtime.java</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/META-INF/context.xml</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/pages/manager/hall-movie-assignment.jsp</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/src/java/dao/StaffBranchDAO.java</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/src/java/controller/HomeController.java</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/src/java/controller/BranchController.java</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/src/java/dao/MovieDAO.java</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/pages/manager/showtime-form.jsp</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/pages/manager/branch-movie-assignment.jsp</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/assets/css/movie.css</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/index.jsp</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/WEB-INF/web.xml</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/pages/manager/dashboard.jsp</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/pages/shared/sidebar-admin.jsp</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/src/java/controller/MovieDetailController.java</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/pages/manager/showtime-list.jsp</file>
+            <file>file:/D:/SWP/final1/swp391-gr6-cinema-booking/web/pages/profile.jsp</file>
+        </group>
+    </open-files>
+</project-private>

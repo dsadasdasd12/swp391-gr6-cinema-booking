@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import model.Seat;
 import model.Hall;
 
-@WebServlet(name = "SeatConfigController", urlPatterns = {"/SeatConfigController"})
+@WebServlet(name = "SeatConfigController", urlPatterns = ("/manager/seat-config"))
 public class SeatConfigController extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -86,13 +86,15 @@ public class SeatConfigController extends HttpServlet {
         request.setAttribute("hallList", hallList);
         request.setAttribute("currentHallId", hallId);
         request.setAttribute("maxSeatNumber", maxSeatNumber);
-        request.getRequestDispatcher("seatConfig.jsp").forward(request, response);
+                request.getRequestDispatcher("/pages/manager/seatConfig.jsp")
+       .forward(request, response);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        request.getRequestDispatcher("/pages/manager/seatConfig.jsp")
+       .forward(request, response);
     }
 
     @Override

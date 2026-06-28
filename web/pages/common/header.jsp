@@ -18,8 +18,6 @@
         <a href="${ctx}/movies" class="${param.active == 'movies' ? 'active' : ''}">Phim</a>
         <a href="${ctx}/movies?status=NOW_SHOWING">Đang chiếu</a>
         <a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a>
-        <a href="${ctx}/showtimes" class="${param.active == 'showtimes' ? 'active' : ''}">Lịch chiếu</a>
-        <a href="${ctx}/branches" class="${param.active == 'branches' ? 'active' : ''}">Hệ thống rạp</a>
     </nav>
     <div class="header-actions">
         <c:choose>
@@ -36,46 +34,13 @@
 
             <c:otherwise>
 
-                <div style="
-                     display:flex;
-                     align-items:center;
-                     gap:12px;
-                     ">
+                <span class="user-name">
+                    Xin chào, ${sessionScope.user.fullName}
+                </span>
 
-                    <span style="
-                          display:flex;
-                          align-items:center;
-                          gap:6px;
-
-                          padding:8px 14px;
-
-                          background:#16181d;
-                          border:1px solid #2c3038;
-
-                          border-radius:999px;
-
-                          color:#fff;
-                          font-size:14px;
-                          ">
-                        <span style="color:#cbd5e1;">
-                            Xin chào,
-                        </span>
-
-                        <a href="${ctx}/profile"
-                           style="
-                           color:#e50914 !important;
-                           font-weight:700;
-                           text-decoration:none;
-                           ">
-                            ${sessionScope.user.fullName}
-                        </a>
-                    </span>
-
-                    <a href="${ctx}/logout" class="btn btn-primary">
-                        Đăng xuất
-                    </a>
-
-                </div>
+                <a href="${ctx}/logout" class="btn btn-ghost">
+                    Đăng xuất
+                </a>
 
             </c:otherwise>
 

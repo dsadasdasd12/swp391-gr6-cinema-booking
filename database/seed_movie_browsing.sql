@@ -29,30 +29,18 @@ DELETE FROM dbo.CATEGORY;
 DELETE FROM dbo.[USER] WHERE email IN ('a@demo.com','b@demo.com','c@demo.com');
 GO
 
--- Reset bộ đếm IDENTITY để mỗi lần chạy lại seed cho ID ổn định (bắt đầu từ 1).
--- Lưu ý quirk của SQL Server: RESEED về 0 trên bảng MỚI TINH (chưa từng insert)
--- sẽ khiến dòng đầu tiên có id = 0. Vì vậy chỉ reseed khi bảng ĐÃ TỪNG có dữ liệu
--- (last_value khác NULL); bảng mới tinh để nguyên nên dòng đầu vẫn bằng 1.
+-- Reset bộ đếm IDENTITY để mỗi lần chạy lại seed cho ID ổn định (1..N).
 -- (Không reseed dbo.[USER] vì bảng này có thể chứa dữ liệu của module khác.)
-DECLARE @tbl SYSNAME, @sql NVARCHAR(200);
-DECLARE tbl_cur CURSOR LOCAL FAST_FORWARD FOR
-    SELECT name FROM (VALUES
-        ('dbo.REVIEWS'),('dbo.BOOKINGS'),('dbo.SHOWTIMES'),('dbo.SEATS'),
-        ('dbo.HALLS'),('dbo.BRANCHES'),('dbo.CINEMA'),('dbo.MOVIES'),
-        ('dbo.LANGUAGES'),('dbo.CATEGORY')) AS t(name);
-OPEN tbl_cur;
-FETCH NEXT FROM tbl_cur INTO @tbl;
-WHILE @@FETCH_STATUS = 0
-BEGIN
-    IF EXISTS (SELECT 1 FROM sys.identity_columns
-               WHERE object_id = OBJECT_ID(@tbl) AND last_value IS NOT NULL)
-    BEGIN
-        SET @sql = N'DBCC CHECKIDENT(''' + @tbl + N''', RESEED, 0) WITH NO_INFOMSGS;';
-        EXEC sp_executesql @sql;
-    END
-    FETCH NEXT FROM tbl_cur INTO @tbl;
-END
-CLOSE tbl_cur; DEALLOCATE tbl_cur;
+DBCC CHECKIDENT('dbo.REVIEWS',       RESEED, 0);
+DBCC CHECKIDENT('dbo.BOOKINGS',      RESEED, 0);
+DBCC CHECKIDENT('dbo.SHOWTIMES',     RESEED, 0);
+DBCC CHECKIDENT('dbo.SEATS',         RESEED, 0);
+DBCC CHECKIDENT('dbo.HALLS',         RESEED, 0);
+DBCC CHECKIDENT('dbo.BRANCHES',      RESEED, 0);
+DBCC CHECKIDENT('dbo.CINEMA',        RESEED, 0);
+DBCC CHECKIDENT('dbo.MOVIES',        RESEED, 0);
+DBCC CHECKIDENT('dbo.LANGUAGES',     RESEED, 0);
+DBCC CHECKIDENT('dbo.CATEGORY',      RESEED, 0);
 GO
 
 -- ── Thể loại (genre) ────────────────────────────────────────

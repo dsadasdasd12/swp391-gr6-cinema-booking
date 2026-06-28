@@ -18,7 +18,8 @@ public class HallDAO {
 
     public List<Hall> findByBranchId(int branchId) {
         String sql = "SELECT h.id, h.branch_id, b.name AS branch_name, "
-                + "h.name, h.total_seats, h.hall_type, h.status, h.last_update "
+                + "h.name, h.seat_rows, h.seats_per_row, h.total_seats, "
+                + "h.hall_type, h.status, h.last_update "
                 + "FROM dbo.HALLS h "
                 + "JOIN dbo.BRANCHES b ON h.branch_id = b.id "
                 + "WHERE h.branch_id = ? "
@@ -45,7 +46,8 @@ public class HallDAO {
 
     public Hall findByIdAndBranchId(int id, int branchId) {
         String sql = "SELECT h.id, h.branch_id, b.name AS branch_name, "
-                + "h.name, h.total_seats, h.hall_type, h.status, h.last_update "
+                + "h.name, h.seat_rows, h.seats_per_row, h.total_seats, "
+                + "h.hall_type, h.status, h.last_update "
                 + "FROM dbo.HALLS h "
                 + "JOIN dbo.BRANCHES b ON h.branch_id = b.id "
                 + "WHERE h.id = ? AND h.branch_id = ?";
@@ -71,17 +73,20 @@ public class HallDAO {
 
     public boolean insert(Hall hall) {
         String sql = "INSERT INTO dbo.HALLS "
-                + "(branch_id, name, total_seats, hall_type, status) "
-                + "VALUES (?, ?, ?, ?, ?)";
+                + "(branch_id, name, seat_rows, seats_per_row, "
+                + "total_seats, hall_type, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         Connection conn = DBContext.getInstance().getConnection();
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hall.getBranchId());
             ps.setString(2, hall.getName());
-            ps.setInt(3, hall.getTotalSeats());
-            ps.setString(4, hall.getHallType());
-            ps.setString(5, hall.getStatus());
+            ps.setInt(3, hall.getSeatRows());
+            ps.setInt(4, hall.getSeatsPerRow());
+            ps.setInt(5, hall.getTotalSeats());
+            ps.setString(6, hall.getHallType());
+            ps.setString(7, hall.getStatus());
 
             return ps.executeUpdate() > 0;
 
@@ -94,7 +99,8 @@ public class HallDAO {
 
     public boolean update(Hall hall) {
         String sql = "UPDATE dbo.HALLS "
-                + "SET name = ?, total_seats = ?, hall_type = ?, "
+                + "SET name = ?, seat_rows = ?, seats_per_row = ?, "
+                + "total_seats = ?, hall_type = ?, "
                 + "status = ?, last_update = GETDATE() "
                 + "WHERE id = ? AND branch_id = ?";
 
@@ -102,11 +108,13 @@ public class HallDAO {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, hall.getName());
-            ps.setInt(2, hall.getTotalSeats());
-            ps.setString(3, hall.getHallType());
-            ps.setString(4, hall.getStatus());
-            ps.setInt(5, hall.getId());
-            ps.setInt(6, hall.getBranchId());
+            ps.setInt(2, hall.getSeatRows());
+            ps.setInt(3, hall.getSeatsPerRow());
+            ps.setInt(4, hall.getTotalSeats());
+            ps.setString(5, hall.getHallType());
+            ps.setString(6, hall.getStatus());
+            ps.setInt(7, hall.getId());
+            ps.setInt(8, hall.getBranchId());
 
             return ps.executeUpdate() > 0;
 
@@ -182,7 +190,11 @@ public class HallDAO {
         return false;
     }
 
-    public boolean existsByNameAndBranchIdExceptId(String name, int branchId, int id) {
+    public boolean existsByNameAndBranchIdExceptId(
+            String name,
+            int branchId,
+            int id
+    ) {
         String sql = "SELECT COUNT(*) "
                 + "FROM dbo.HALLS "
                 + "WHERE branch_id = ? "
@@ -216,10 +228,14 @@ public class HallDAO {
         hall.setBranchId(rs.getInt("branch_id"));
         hall.setBranchName(rs.getString("branch_name"));
         hall.setName(rs.getString("name"));
+        hall.setSeatRows(rs.getInt("seat_rows"));
+        hall.setSeatsPerRow(rs.getInt("seats_per_row"));
         hall.setTotalSeats(rs.getInt("total_seats"));
         hall.setHallType(rs.getString("hall_type"));
         hall.setStatus(rs.getString("status"));
-        hall.setLastUpdate(rs.getObject("last_update", LocalDateTime.class));
+        hall.setLastUpdate(
+                rs.getObject("last_update", LocalDateTime.class)
+        );
 
         return hall;
     }

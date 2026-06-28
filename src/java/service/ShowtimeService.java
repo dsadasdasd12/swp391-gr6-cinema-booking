@@ -19,6 +19,7 @@ import model.Branch;
 import model.Hall;
 import model.Movie;
 import model.Showtime;
+
 public class ShowtimeService {
 
     private static final List<String> VALID_STATUS = Arrays.asList(
@@ -80,8 +81,8 @@ public class ShowtimeService {
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
-                showtime.getStartTime(),
-                showtime.getEndTime(),
+        showtime.getStartTime().toLocalDateTime(),
+        showtime.getEndTime().toLocalDateTime(),
                 0
         );
 
@@ -108,15 +109,12 @@ public class ShowtimeService {
 
         validateAndPrepare(showtime, false);
 
-        /*
-         * Kiểm tra phòng có bị trùng lịch không.
-         */
-       boolean conflict = showtimeDAO.hasScheduleConflict(
-        showtime.getHallId(),
+        boolean conflict = showtimeDAO.hasScheduleConflict(
+                showtime.getHallId(),
         showtime.getStartTime().toLocalDateTime(),
         showtime.getEndTime().toLocalDateTime(),
-        0
-);
+                0
+        );
 
         if (conflict) {
             throw new IllegalArgumentException(
@@ -134,8 +132,8 @@ public class ShowtimeService {
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
-                showtime.getStartTime(),
-                showtime.getEndTime(),
+        showtime.getStartTime().toLocalDateTime(),
+        showtime.getEndTime().toLocalDateTime(),
                 showtime.getId()
         );
 
@@ -179,16 +177,12 @@ public class ShowtimeService {
 
         validateAndPrepare(showtime, true);
 
-        /*
-         * Khi kiểm tra trùng lịch, bỏ qua chính suất chiếu
-         * đang được chỉnh sửa.
-         */
         boolean conflict = showtimeDAO.hasScheduleConflict(
-        showtime.getHallId(),
+               showtime.getHallId(),
         showtime.getStartTime().toLocalDateTime(),
         showtime.getEndTime().toLocalDateTime(),
-        showtime.getId()
-);
+                showtime.getId()
+        );
 
         if (conflict) {
             throw new IllegalArgumentException(
@@ -270,6 +264,14 @@ public class ShowtimeService {
                     "Bạn không có quyền sử dụng phòng chiếu này."
             );
         }
+
+        if (!"ACTIVE".equalsIgnoreCase(
+                hall.getStatus()
+        )) {
+            throw new IllegalArgumentException(
+                    "Chỉ có thể tạo hoặc cập nhật suất chiếu cho phòng chiếu đang hoạt động."
+            );
+        }
     }
 
     private void validateAndPrepare(
@@ -307,10 +309,10 @@ public class ShowtimeService {
         }
 
         if (showtime.getBasePrice() < 0) {
-    throw new IllegalArgumentException(
-            "Giá vé cơ bản không được nhỏ hơn 0."
-    );
-}
+            throw new IllegalArgumentException(
+                    "Giá vé cơ bản không được nhỏ hơn 0."
+            );
+        }
 
         Movie movie = movieDAO.findById(
                 showtime.getMovieId()
@@ -356,12 +358,7 @@ public class ShowtimeService {
 
         showtime.setStatus(status);
 
-        /*
-         * Tự động tính giờ kết thúc:
-         *
-         * endTime = startTime + durationMin
-         */
-       LocalDateTime endTime = showtime.getStartTime()
+        LocalDateTime endTime = showtime.getStartTime()
         .toLocalDateTime()
         .plusMinutes(movie.getDurationMin());
 
@@ -381,8 +378,7 @@ public class ShowtimeService {
 
         return result;
     }
-
-    public List<Showtime> getActiveShowtimesByBranch(int branchId) {
+     public List<Showtime> getActiveShowtimesByBranch(int branchId) {
         return showtimeDAO.getActiveShowtimesByBranch(branchId);
     }
 

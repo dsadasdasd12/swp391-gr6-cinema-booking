@@ -1,16 +1,11 @@
 package dao;
 import java.sql.*;
-import model.User;
-import util.DBContext;
-import util.EncodingUtil;
 import util.PasswordUtil;
 
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.User;
 import util.DBContext;
-import util.PasswordUtil;
 
 public class UserDAO {
 
@@ -32,7 +27,6 @@ public class UserDAO {
         ResultSet rs = ps.executeQuery();
 
         if (rs.next()) {
-
             String storedHash = rs.getString("password_hash");
 
             if (!PasswordUtil.verifyPassword(password, storedHash)) {
@@ -40,7 +34,6 @@ public class UserDAO {
             }
 
             User user = new User();
-
             user.setId(rs.getInt("id"));
             user.setFullName(rs.getString("full_name"));
             user.setEmail(rs.getString("email"));
