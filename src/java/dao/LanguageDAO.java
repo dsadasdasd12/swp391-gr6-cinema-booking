@@ -47,29 +47,36 @@ public class LanguageDAO {
 
     /** Các ngôn ngữ của một phim, kèm cờ phụ đề (subtitle). */
     public List<Language> findByMovieId(int movieId) {
-        String sql = "SELECT l.id, l.name(), l.code, l.status, ml.subtitle "
-                + "FROM dbo.LANGUAGES l "
-                + "JOIN dbo.MOVIE_LANGUAGES ml ON ml.language_id = l.id "
-                + "WHERE ml.movie_id = ? ORDER BY l.name()";
-        List<Language> list = new ArrayList<>();
-        Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, movieId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Language l = new Language();
-                    l.setId(rs.getInt("id"));
-                    l.setName(EncodingUtil.getString(rs, "name"));
-                    l.setCode(rs.getString("code"));
-                    l.setStatus(rs.getString("status"));
-                    l.setSubtitle(rs.getBoolean("subtitle"));
-                    list.add(l);
-                }
+    List<Language> list = new ArrayList<>();
+
+    String sql =
+        "SELECT l.id, l.name, l.code, l.status, l.last_update, ml.subtitle " +
+        "FROM MOVIE_LANGUAGES ml " +
+        "JOIN LANGUAGES l ON l.id = ml.language_id " +
+        "WHERE ml.movie_id = ? " +
+        "ORDER BY l.name";
+
+    try (Connection conn = DBContext.getInstance().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setInt(1, movieId);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Language lang = new Language();
+                lang.setId(rs.getInt("id"));
+                lang.setName(rs.getString("name"));
+                lang.setCode(rs.getString("code"));
+                lang.setStatus(rs.getString("status"));
+
+                list.add(lang);
             }
-        } catch (SQLException e) {
-            System.getLogger(LanguageDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findByMovieId thất bại", e);
         }
-        return list;
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return list;
+}
 }

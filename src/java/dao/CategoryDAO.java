@@ -45,10 +45,10 @@ public class CategoryDAO {
 
     /** Các thể loại gắn với một phim (qua bảng dbo.MOVIES_CATEGORY). */
     public List<Category> findByMovieId(int movieId) {
-        String sql = "SELECT c.id, c.name(), c.description, c.status "
+        String sql = "SELECT c.id, c.name, c.description, c.status "
                 + "FROM dbo.CATEGORY c "
                 + "JOIN dbo.MOVIES_CATEGORY mc ON mc.category_id = c.id "
-                + "WHERE mc.movie_id = ? ORDER BY c.name()";
+                + "WHERE mc.movie_id = ? ORDER BY c.name";
         List<Category> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

@@ -4,6 +4,7 @@
  */
 package controller;
 
+import dao.FavoriteMovieDAO;
 import dto.MovieAssignmentItem;
 import dto.MovieFilter;
 import dto.PageResult;
@@ -26,7 +27,6 @@ import model.Movie;
 import model.User;
 import service.MovieService;
 
-
 @WebServlet(
         name = "MovieDetailController",
         urlPatterns = {
@@ -40,6 +40,7 @@ import service.MovieService;
 )
 public class MovieDetailController extends HttpServlet {
 
+    FavoriteMovieDAO favoriteMovieDAO = new FavoriteMovieDAO();
     private static final String MOVIE_LIST_PAGE
             = "/pages/movie/list.jsp";
 
@@ -55,7 +56,10 @@ public class MovieDetailController extends HttpServlet {
     private static final String MOVIE_DURATION_PAGE
             = "/pages/manager/movie-duration-list.jsp";
 
-    /** Single service for all Movie functions: browse, detail, assignment and duration. */
+    /**
+     * Single service for all Movie functions: browse, detail, assignment and
+     * duration.
+     */
     private final MovieService movieService = new MovieService();
 
     @Override
@@ -174,6 +178,16 @@ public class MovieDetailController extends HttpServlet {
             return;
         }
 
+        User user = (User) request.getSession().getAttribute("user");
+
+        boolean favorite = false;
+
+        if (user != null) {
+            favorite = favoriteMovieDAO.exists(user.getId(), movie.getId());
+        }
+
+        request.setAttribute("favorite", favorite);
+        
         request.setAttribute("movie", movie);
         request.setAttribute(
                 "branchShowtimes",
