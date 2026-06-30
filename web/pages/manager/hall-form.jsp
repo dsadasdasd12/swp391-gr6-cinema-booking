@@ -138,6 +138,10 @@
                           action="${ctx}${isEdit
                                   ? '/manager/halls/edit'
                                   : '/manager/halls/create'}">
+                        
+                        <input type="hidden"
+                               name="branchId"
+                               value="${branch.id}">
 
                         <c:if test="${isEdit}">
 
