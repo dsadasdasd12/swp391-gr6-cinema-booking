@@ -162,7 +162,14 @@ public class Movie {
     public void setReviewCount(int reviewCount) {
         this.reviewCount = reviewCount;
     }
+    
+    public int getDurationHours() {
+    return durationMin / 60;
+}
 
+public int getDurationRemainingMinutes() {
+    return durationMin % 60;
+}
     // ── Các getter hỗ trợ hiển thị (để JSP gọi trực tiếp qua EL) ──
 
     /** Nhãn trạng thái tiếng Việt, ví dụ "Đang chiếu". */
