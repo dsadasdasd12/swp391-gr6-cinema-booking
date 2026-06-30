@@ -141,16 +141,16 @@
                                         <div class="addr"><c:out value="${b.branchAddress}"/></div>
                                         <div class="showtime-chips">
                                             <c:forEach var="st" items="${b.showtimes}">
-                                                <!-- Demo payment -->
+                                                <!-- Demo payment 
                                                 <a class="showtime-chip" href="${ctx}/payment-demo">
                                                     <div class="t">${st.startHour}</div>
                                                     <div class="sub">${st.showDate} &middot; <c:out value="${st.hallType}"/></div>
-                                                </a>
-                                                <!-- Chọn showtime
-                                                 <a class="showtime-chip" href="${ctx}/booking?showtimeId=${st.id}">
+                                                </a>-->
+                                                <!-- Chọn showtime-->
+                                                 <a class="showtime-chip" href="${ctx}/seats?showtimeId=${st.id}">
                                                      <div class="t">${st.startHour}</div>
                                                      <div class="sub">${st.showDate} &middot; <c:out value="${st.hallType}"/></div>
-                                                 </a> -->
+                                                 </a> 
                                             </c:forEach>
                                         </div>
                                     </div>

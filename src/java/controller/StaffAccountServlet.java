@@ -142,7 +142,7 @@ public class StaffAccountServlet extends HttpServlet {
         return "STAFF";
     }
 
-    /** @deprecated dùng {@link PasswordUtil#hashPassword(String)} */
+    
     public static String hashPassword(String password) {
         return PasswordUtil.hashPassword(password);
     }
