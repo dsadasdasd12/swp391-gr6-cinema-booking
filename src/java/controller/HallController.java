@@ -5,7 +5,6 @@
 package controller;
 
 import dao.StaffBranchDAO;
-import dto.BranchHallGroup;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,26 +88,29 @@ public class HallController extends HttpServlet {
         }
     }
 
-    private void listHalls(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private void listHalls(HttpServletRequest request,
+        HttpServletResponse response)
+        throws ServletException, IOException {
 
-        User user = getCurrentManager(request, response);
+    User user = getCurrentManager(request, response);
 
-        if (user == null) {
-            return;
-        }
-
-        List<Branch> branches = staffBranchDAO.findBranchesByUserId(user.getId());
-        List<BranchHallGroup> branchHallGroups = new ArrayList<>();
-
-        for (Branch branch : branches) {
-            List<Hall> halls = hallService.getHallsByBranchId(branch.getId());
-            branchHallGroups.add(new BranchHallGroup(branch, halls));
-        }
-
-        request.setAttribute("branchHallGroups", branchHallGroups);
-        request.getRequestDispatcher(HALL_LIST_PAGE).forward(request, response);
+    if (user == null) {
+        return;
     }
+
+    Branch branch = staffBranchDAO.findBranchByManagerId(user.getId());
+
+    List<Hall> halls = new ArrayList<>();
+
+    if (branch != null) {
+        halls = hallService.getHallsByBranchId(branch.getId());
+    }
+
+    request.setAttribute("branch", branch);
+    request.setAttribute("halls", halls);
+
+    request.getRequestDispatcher(HALL_LIST_PAGE).forward(request, response);
+}
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
