@@ -164,7 +164,7 @@
                 Quản lý phòng chiếu
             </a>
 
-            <a class="active" href="${ctx}/manager/showtimes">
+            <a class="active" href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
 
@@ -225,7 +225,7 @@
                 </div>
 
                 <a class="btn btn-ghost"
-                   href="${ctx}/manager/showtimes">
+                   href="${ctx}/manager/showtimesmanagement">
                     Quay lại
                 </a>
 
@@ -250,8 +250,8 @@
                     <form id="showtimeForm"
                           method="post"
                           action="${ctx}${isEdit
-                                  ? '/manager/showtimes/edit'
-                                  : '/manager/showtimes/create'}">
+                                  ? '/manager/showtimesmanagement/edit'
+                                  : '/manager/showtimesmanagement/create'}">
 
                         <c:if test="${isEdit}">
 
@@ -475,7 +475,7 @@
                         <div class="form-actions">
 
                             <a class="btn btn-ghost"
-                               href="${ctx}/manager/showtimes">
+                               href="${ctx}/manager/showtimesmanagement">
                                 Hủy
                             </a>
 

@@ -53,7 +53,7 @@
                 Quản lý phòng chiếu
             </a>
 
-            <a href="${ctx}/manager/showtimes">
+            <a href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
 

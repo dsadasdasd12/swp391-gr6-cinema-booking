@@ -9,7 +9,7 @@
 <c:set var="uri"    value="${pageContext.request.requestURI}" />
 
 <%-- Helper checks for active menus --%>
-<c:set var="isMovie"        value="${uri.contains('/admin/movies') || uri.contains('/movie')}" />
+<c:set var="isMovie"        value="${uri.contains('/admin/moviesmanagement') || uri.contains('/moviesmanagement')}" />
 <c:set var="isTicket"       value="${uri.contains('/admin/tickets') || uri.contains('/ticket')}" />
 <c:set var="isNotif"        value="${uri.contains('/admin/notifications') || uri.contains('/notification')}" />
 <c:set var="isReport"       value="${uri.contains('/admin/reports') || uri.contains('/report')}" />

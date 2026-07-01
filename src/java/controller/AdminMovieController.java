@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @author LONG
  */
-@WebServlet("/admin/movies")
+@WebServlet("/admin/moviesmanagement")
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,       // 1 MB trước khi ghi ra disk
     maxFileSize       = 20 * 1024 * 1024,  // tối đa 20 MB mỗi file

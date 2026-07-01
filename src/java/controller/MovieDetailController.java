@@ -33,7 +33,6 @@ import service.MovieService;
         urlPatterns = {
             
             "/movie",
-            "/movies",
             "/movieslist",
             "/manager/movie-assignments/branches",
             "/manager/movie-assignments/halls",

@@ -28,10 +28,10 @@ import model.User;
 import service.ShowtimeService;
 
 @WebServlet(name = "ShowtimeController", urlPatterns = {
-    "/manager/showtimes",
-    "/manager/showtimes/create",
-    "/manager/showtimes/edit",
-    "/manager/showtimes/cancel"
+    "/manager/showtimesmanagement",
+    "/manager/showtimesmanagement/create",
+    "/manager/showtimesmanagement/edit",
+    "/manager/showtimesmanagement/cancel"
 })
 public class ShowtimeController extends HttpServlet {
 
@@ -59,15 +59,15 @@ public class ShowtimeController extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            case "/manager/showtimes/create":
+            case "/manager/showtimesmanagement/create":
                 showCreateForm(request, response);
                 break;
 
-            case "/manager/showtimes/edit":
+            case "/manager/showtimesmanagement/edit":
                 showEditForm(request, response);
                 break;
 
-            case "/manager/showtimes":
+            case "/manager/showtimesmanagement":
             default:
                 listShowtimes(request, response);
                 break;
@@ -85,22 +85,22 @@ public class ShowtimeController extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            case "/manager/showtimes/create":
+            case "/manager/showtimesmanagement/create":
                 createShowtime(request, response);
                 break;
 
-            case "/manager/showtimes/edit":
+            case "/manager/showtimesmanagement/edit":
                 updateShowtime(request, response);
                 break;
 
-            case "/manager/showtimes/cancel":
+            case "/manager/showtimesmanagement/cancel":
                 cancelShowtime(request, response);
                 break;
 
             default:
                 response.sendRedirect(
                         request.getContextPath()
-                        + "/manager/showtimes"
+                        + "/manager/showtimesmanagement"
                 );
                 break;
         }
@@ -216,7 +216,7 @@ public class ShowtimeController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/showtimes"
+                    + "/manager/showtimesmanagement"
             );
             return;
         }
@@ -235,7 +235,7 @@ public class ShowtimeController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/showtimes"
+                    + "/manager/showtimesmanagement"
             );
             return;
         }
@@ -291,7 +291,7 @@ public class ShowtimeController extends HttpServlet {
 
                 response.sendRedirect(
                         request.getContextPath()
-                        + "/manager/showtimes"
+                        + "/manager/showtimesmanagement"
                 );
                 return;
             }
@@ -364,7 +364,7 @@ public class ShowtimeController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/showtimes"
+                    + "/manager/showtimesmanagement"
             );
             return;
         }
@@ -384,7 +384,7 @@ public class ShowtimeController extends HttpServlet {
 
                 response.sendRedirect(
                         request.getContextPath()
-                        + "/manager/showtimes"
+                        + "/manager/showtimesmanagement"
                 );
                 return;
             }
@@ -452,7 +452,7 @@ public class ShowtimeController extends HttpServlet {
 
         response.sendRedirect(
                 request.getContextPath()
-                + "/manager/showtimes"
+                + "/manager/showtimesmanagement"
         );
     }
 
@@ -592,7 +592,7 @@ public class ShowtimeController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/showtimes"
+                    + "/manager/showtimesmanagement"
             );
         }
 
