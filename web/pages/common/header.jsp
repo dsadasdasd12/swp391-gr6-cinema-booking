@@ -1,6 +1,6 @@
-<%--
-    Component: Header dùng chung cho toàn site.
-    Cách dùng:
+﻿<%--
+    Component: Header dÃ¹ng chung cho toÃ n site.
+    CÃ¡ch dÃ¹ng:
         <jsp:include page="/pages/common/header.jsp">
             <jsp:param name="active" value="movies"/>   (home | movies)
         </jsp:include>
@@ -12,18 +12,19 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="currentUser" value="${sessionScope.user}"/>
 <header class="site-header">
-    <a href="${ctx}/home" class="brand">🎬 RapViet</a>
+    <a href="${ctx}/home" class="brand">ðŸŽ¬ RapViet</a>
     <nav class="main-nav">
-        <a href="${ctx}/home"   class="${param.active == 'home'   ? 'active' : ''}">Trang chủ</a>
+        <a href="${ctx}/home"   class="${param.active == 'home'   ? 'active' : ''}">Trang chá»§</a>
         <a href="${ctx}/movies" class="${param.active == 'movies' ? 'active' : ''}">Phim</a>
-        <a href="${ctx}/movies?status=NOW_SHOWING">Đang chiếu</a>
-        <a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a>
-        <a href="${ctx}/booking/start" class="${param.active == 'booking' ? 'active' : ''}">Đặt vé</a>
+        <a href="${ctx}/showtimes" class="${param.active == 'showtimes' ? 'active' : ''}">Suat chieu</a>
+        <a href="${ctx}/movies?status=NOW_SHOWING">Äang chiáº¿u</a>
+        <a href="${ctx}/movies?status=COMING_SOON">Sáº¯p chiáº¿u</a>
+        <a href="${ctx}/booking/start" class="${param.active == 'booking' ? 'active' : ''}">Äáº·t vÃ©</a>
         <c:if test="${sessionScope.user != null}">
-            <a href="${ctx}/my-bookings" class="${param.active == 'bookings' ? 'active' : ''}">Vé của tôi</a>
+            <a href="${ctx}/my-bookings" class="${param.active == 'bookings' ? 'active' : ''}">VÃ© cá»§a tÃ´i</a>
         </c:if>
         <c:if test="${sessionScope.user != null and (sessionScope.user.role == 'STAFF' or sessionScope.user.role == 'MANAGER' or sessionScope.user.role == 'ADMIN')}">
-            <a href="${ctx}/staff/bookings" class="${param.active == 'staff-bookings' ? 'active' : ''}">Quản lý booking</a>
+            <a href="${ctx}/staff/bookings" class="${param.active == 'staff-bookings' ? 'active' : ''}">Quáº£n lÃ½ booking</a>
         </c:if>
     </nav>
     <div class="header-actions">
@@ -31,11 +32,11 @@
 
             <c:when test="${sessionScope.user == null}">
                 <a href="${ctx}/login" class="btn btn-ghost">
-                    Đăng nhập
+                    ÄÄƒng nháº­p
                 </a>
 
                 <a href="${ctx}/register" class="btn btn-primary">
-                    Đăng ký
+                    ÄÄƒng kÃ½
                 </a>
             </c:when>
 
@@ -63,7 +64,7 @@
                           font-size:14px;
                           ">
                         <span style="color:#cbd5e1;">
-                            Xin chào,
+                            Xin chÃ o,
                         </span>
 
                         <a href="${ctx}/profile"
@@ -77,7 +78,7 @@
                     </span>
 
                     <a href="${ctx}/logout" class="btn btn-primary">
-                        Đăng xuất
+                        ÄÄƒng xuáº¥t
                     </a>
 
                 </div>
@@ -87,3 +88,5 @@
         </c:choose>
     </div>
 </header>
+
+
