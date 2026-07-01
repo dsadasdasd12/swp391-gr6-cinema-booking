@@ -166,7 +166,23 @@
                                 <span>Phòng</span>
                                 <strong>${payment.hallName}</strong>
                             </div>
+                            <div class="info-row">
+                                <span>Ghế</span>
+                                <strong>
+                                    <c:choose>
+                                        <c:when test="${empty selectedSeats}">
+                                            Chưa có ghế
+                                        </c:when>
 
+                                        <c:otherwise>
+                                            <c:forEach var="s" items="${selectedSeats}" varStatus="loop">
+                                                ${s.seatName}
+                                                <c:if test="${!loop.last}">, </c:if>
+                                            </c:forEach>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </strong>
+                            </div>
                             <div class="info-row">
                                 <span>Mã booking</span>
                                 <strong>#${payment.bookingId}</strong>
