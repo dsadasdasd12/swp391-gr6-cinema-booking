@@ -1,11 +1,14 @@
 package dao;
 
+import dto.BookingView;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import model.Booking;
 import util.DBContext;
 
 public class BookingDAO {
@@ -398,5 +401,479 @@ public class BookingDAO {
             }
         }
         return false;
+    }
+
+    public int createPendingBooking(int userId, int showtimeId, List<Integer> seatIds,
+                                    List<Double> seatPrices, double totalPrice) {
+        if (userId <= 0 || showtimeId <= 0 || seatIds == null || seatIds.isEmpty()
+                || seatPrices == null || seatPrices.size() != seatIds.size()) {
+            return -1;
+        }
+
+        String checkShowtimeSql = "SELECT COUNT(*) FROM dbo.SHOWTIMES "
+                + "WHERE id = ? AND status IN ('SCHEDULED','ON_SALE') AND start_time > GETDATE()";
+
+        String seatPlaceholders = placeholders(seatIds.size());
+
+        String checkSeatsSql = "SELECT COUNT(*) "
+                + "FROM dbo.SEATS se "
+                + "JOIN dbo.SHOWTIMES st ON st.hall_id = se.hall_id "
+                + "WHERE st.id = ? AND se.maintenance = 0 AND se.id IN (" + seatPlaceholders + ")";
+
+        String checkBookedSql = "SELECT COUNT(*) "
+                + "FROM dbo.BOOKING_SEATS bs "
+                + "JOIN dbo.BOOKINGS b ON b.id = bs.booking_id "
+                + "WHERE b.showtime_id = ? "
+                + "AND b.status IN ('PENDING','CONFIRMED','CHECKED_IN','USED') "
+                + "AND bs.seat_id IN (" + seatPlaceholders + ")";
+
+        String checkLockedSql = "SELECT COUNT(*) "
+                + "FROM dbo.CART_ITEMS ci "
+                + "JOIN dbo.CART c ON c.id = ci.cart_id "
+                + "WHERE c.showtime_id = ? AND ci.locked_until > GETDATE() "
+                + "AND ci.seat_id IN (" + seatPlaceholders + ")";
+
+        String insertBookingSql = "INSERT INTO dbo.BOOKINGS "
+                + "(user_id, showtime_id, source, status, total_price, qr_code, booked_at, last_update) "
+                + "VALUES (?, ?, 'ONLINE', 'PENDING', ?, NULL, GETDATE(), GETDATE())";
+
+        String updateQrSql = "UPDATE dbo.BOOKINGS SET qr_code = ? WHERE id = ?";
+
+        String insertSeatSql = "INSERT INTO dbo.BOOKING_SEATS "
+                + "(booking_id, seat_id, price, last_update) VALUES (?, ?, ?, GETDATE())";
+
+        String insertPaymentSql = "INSERT INTO dbo.PAYMENTS "
+                + "(booking_id, type, method, transaction_id, status, amount, paid_at, gateway, last_update) "
+                + "VALUES (?, 'ONLINE', 'BANKING', ?, 'PENDING', ?, NULL, 'MANUAL', GETDATE())";
+
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement ps = conn.prepareStatement(checkShowtimeSql)) {
+                ps.setInt(1, showtimeId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next() || rs.getInt(1) == 0) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(checkSeatsSql)) {
+                ps.setInt(1, showtimeId);
+                bindSeatIds(ps, seatIds, 2);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next() || rs.getInt(1) != seatIds.size()) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(checkBookedSql)) {
+                ps.setInt(1, showtimeId);
+                bindSeatIds(ps, seatIds, 2);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(checkLockedSql)) {
+                ps.setInt(1, showtimeId);
+                bindSeatIds(ps, seatIds, 2);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
+            }
+
+            int bookingId = -1;
+            try (PreparedStatement ps = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, userId);
+                ps.setInt(2, showtimeId);
+                ps.setDouble(3, totalPrice);
+                ps.executeUpdate();
+
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        bookingId = rs.getInt(1);
+                    }
+                }
+            }
+
+            if (bookingId <= 0) {
+                conn.rollback();
+                return -1;
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(updateQrSql)) {
+                ps.setString(1, "RV-ONLINE-" + bookingId);
+                ps.setInt(2, bookingId);
+                ps.executeUpdate();
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(insertSeatSql)) {
+                for (int i = 0; i < seatIds.size(); i++) {
+                    ps.setInt(1, bookingId);
+                    ps.setInt(2, seatIds.get(i));
+                    ps.setDouble(3, seatPrices.get(i));
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(insertPaymentSql)) {
+                ps.setInt(1, bookingId);
+                ps.setString(2, "RVS" + bookingId);
+                ps.setDouble(3, totalPrice);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            return bookingId;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (Exception rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public List<BookingView> findHistoryByUser(int userId) {
+        List<BookingView> list = new ArrayList<>();
+        String sql = bookingViewSelect()
+                + "WHERE bk.user_id = ? "
+                + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
+                + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email "
+                + "ORDER BY bk.booked_at DESC, bk.id DESC";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBookingView(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public BookingView findDetailByIdAndUser(int bookingId, int userId) {
+        String sql = bookingViewSelect()
+                + "WHERE bk.id = ? AND bk.user_id = ? "
+                + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
+                + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapBookingView(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean cancelByUser(int bookingId, int userId) {
+        String updateBookingSql = "UPDATE dbo.BOOKINGS "
+                + "SET status = 'CANCELLED', last_update = GETDATE() "
+                + "WHERE id = ? AND user_id = ? AND status IN ('PENDING','CONFIRMED')";
+        String updatePaymentSql = "UPDATE dbo.PAYMENTS "
+                + "SET status = 'FAILED', last_update = GETDATE() "
+                + "WHERE booking_id = ?";
+
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false);
+
+            int affected;
+            try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
+                ps.setInt(1, bookingId);
+                ps.setInt(2, userId);
+                affected = ps.executeUpdate();
+            }
+
+            if (affected == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    public List<BookingView> findByStaffBranch(int staffId, String keyword, String status) {
+        List<BookingView> list = new ArrayList<>();
+        String sql = bookingViewSelect()
+                + "JOIN dbo.STAFF_BRANCH sb ON sb.branch_id = br.id "
+                + "WHERE sb.user_id = ? "
+                + "AND (? IS NULL OR bk.status = ?) "
+                + "AND (? IS NULL OR m.title LIKE ? OR u.full_name LIKE ? OR CAST(bk.id AS varchar(20)) = ?) "
+                + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
+                + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email "
+                + "ORDER BY bk.booked_at DESC, bk.id DESC";
+
+        String normalizedStatus = blankToNull(status);
+        String normalizedKeyword = blankToNull(keyword);
+        String like = normalizedKeyword == null ? null : "%" + normalizedKeyword + "%";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, staffId);
+            ps.setString(2, normalizedStatus);
+            ps.setString(3, normalizedStatus);
+            ps.setString(4, normalizedKeyword);
+            ps.setString(5, like);
+            ps.setString(6, like);
+            ps.setString(7, normalizedKeyword);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBookingView(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public BookingView findDetailByIdAndStaffBranch(int bookingId, int staffId) {
+        String sql = bookingViewSelect()
+                + "JOIN dbo.STAFF_BRANCH sb ON sb.branch_id = br.id "
+                + "WHERE bk.id = ? AND sb.user_id = ? "
+                + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
+                + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, staffId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapBookingView(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean cancelByStaffBranch(int bookingId, int staffId) {
+        String updateBookingSql = "UPDATE bk "
+                + "SET bk.status = 'CANCELLED', bk.last_update = GETDATE() "
+                + "FROM dbo.BOOKINGS bk "
+                + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.STAFF_BRANCH sb ON sb.branch_id = h.branch_id "
+                + "WHERE bk.id = ? AND sb.user_id = ? AND bk.status IN ('PENDING','CONFIRMED')";
+        String updatePaymentSql = "UPDATE dbo.PAYMENTS "
+                + "SET status = 'FAILED', last_update = GETDATE() "
+                + "WHERE booking_id = ?";
+
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false);
+
+            int affected;
+            try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
+                ps.setInt(1, bookingId);
+                ps.setInt(2, staffId);
+                affected = ps.executeUpdate();
+            }
+
+            if (affected == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean checkInByStaffBranch(int bookingId, int staffId) {
+        String sql = "UPDATE bk "
+                + "SET bk.status = 'CHECKED_IN', bk.last_update = GETDATE() "
+                + "FROM dbo.BOOKINGS bk "
+                + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.STAFF_BRANCH sb ON sb.branch_id = h.branch_id "
+                + "WHERE bk.id = ? AND sb.user_id = ? AND bk.status = 'CONFIRMED'";
+        return updateStaffBookingStatus(sql, bookingId, staffId);
+    }
+
+    public boolean markUsedByStaffBranch(int bookingId, int staffId) {
+        String sql = "UPDATE bk "
+                + "SET bk.status = 'USED', bk.last_update = GETDATE() "
+                + "FROM dbo.BOOKINGS bk "
+                + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.STAFF_BRANCH sb ON sb.branch_id = h.branch_id "
+                + "WHERE bk.id = ? AND sb.user_id = ? AND bk.status = 'CHECKED_IN'";
+        return updateStaffBookingStatus(sql, bookingId, staffId);
+    }
+
+    private boolean updateStaffBookingStatus(String sql, int bookingId, int staffId) {
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, staffId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private String bookingViewSelect() {
+        return "SELECT bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
+                + "bk.qr_code, bk.booked_at, "
+                + "m.id AS movie_id, m.title AS movie_title, "
+                + "br.name AS branch_name, h.name AS hall_name, s.start_time AS show_start, "
+                + "u.full_name AS customer_name, u.email AS customer_email, "
+                + "STRING_AGG(CONCAT(se.seat_row, se.seat_number), ', ') "
+                + "WITHIN GROUP (ORDER BY se.seat_row, se.seat_number) AS seat_labels, "
+                + "COUNT(se.id) AS seat_count "
+                + "FROM dbo.BOOKINGS bk "
+                + "JOIN dbo.[USER] u ON u.id = bk.user_id "
+                + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES br ON br.id = h.branch_id "
+                + "LEFT JOIN dbo.BOOKING_SEATS bs ON bs.booking_id = bk.id "
+                + "LEFT JOIN dbo.SEATS se ON se.id = bs.seat_id ";
+    }
+
+    private BookingView mapBookingView(ResultSet rs) throws Exception {
+        BookingView view = new BookingView();
+        Booking booking = new Booking(
+                rs.getInt("id"),
+                rs.getInt("user_id"),
+                rs.getInt("showtime_id"),
+                rs.getString("source"),
+                rs.getString("status"),
+                rs.getDouble("total_price"),
+                rs.getString("qr_code"),
+                rs.getTimestamp("booked_at")
+        );
+
+        Timestamp showStart = rs.getTimestamp("show_start");
+
+        view.setBooking(booking);
+        view.setMovieId(rs.getInt("movie_id"));
+        view.setMovieTitle(rs.getString("movie_title"));
+        view.setBranchName(rs.getString("branch_name"));
+        view.setHallName(rs.getString("hall_name"));
+        view.setShowStart(showStart == null ? null : showStart.toLocalDateTime());
+        view.setSeatLabels(rs.getString("seat_labels") == null ? "" : rs.getString("seat_labels"));
+        view.setSeatCount(rs.getInt("seat_count"));
+        view.setCustomerName(rs.getString("customer_name"));
+        view.setCustomerEmail(rs.getString("customer_email"));
+
+        return view;
+    }
+
+    private String placeholders(int size) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            if (i > 0) {
+                sb.append(",");
+            }
+            sb.append("?");
+        }
+        return sb.toString();
+    }
+
+    private void bindSeatIds(PreparedStatement ps, List<Integer> seatIds, int startIndex) throws Exception {
+        int index = startIndex;
+        for (Integer seatId : seatIds) {
+            ps.setInt(index++, seatId);
+        }
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value.trim();
     }
 }

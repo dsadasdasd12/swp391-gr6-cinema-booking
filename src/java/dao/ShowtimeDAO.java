@@ -597,6 +597,83 @@ public class ShowtimeDAO {
         return null;
     }
 
+    public Showtime findBookableById(int id) {
+        String sql
+                = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "       s.base_price, s.status, "
+                + "       m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "       h.name AS hall_name, h.hall_type, "
+                + "       b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE s.id = ? "
+                + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                + "AND s.start_time > GETDATE()";
+
+        try (Connection conn = DBContext.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public List<Showtime> findBookableByBranchMovieAndDate(
+            int branchId,
+            int movieId,
+            LocalDate date) {
+
+        List<Showtime> list = new ArrayList<>();
+
+        String sql
+                = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "       s.base_price, s.status, "
+                + "       m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "       h.name AS hall_name, h.hall_type, "
+                + "       b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE h.branch_id = ? "
+                + "AND s.movie_id = ? "
+                + "AND CONVERT(date, s.start_time) = ? "
+                + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                + "AND s.start_time > GETDATE() "
+                + "ORDER BY s.start_time, h.name";
+
+        try (Connection conn = DBContext.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, branchId);
+            ps.setInt(2, movieId);
+            ps.setDate(3, java.sql.Date.valueOf(date));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     public List<MovieShowtimes> findByBranchAndDate(
             int branchId,
             LocalDate date) {
