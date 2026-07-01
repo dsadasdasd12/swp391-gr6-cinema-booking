@@ -160,6 +160,11 @@ if (uri.startsWith(ctx + "/pages/staff/")) {
             return;
         }
 
+        if (uri.startsWith(ctx + "/booking") && user == null) {
+            res.sendRedirect(ctx + "/login");
+            return;
+        }
+
         // Customer pages
         if (uri.startsWith(ctx + "/booking")
                 || uri.startsWith(ctx + "/profile")
