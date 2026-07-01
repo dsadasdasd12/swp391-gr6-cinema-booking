@@ -32,7 +32,7 @@
                 <div class="empty">
                     <h3>Bạn chưa có đơn đặt vé nào</h3>
                     <p>Hãy chọn phim và đặt vé để bắt đầu nhé.</p>
-                    <p><a class="btn btn-primary" href="${ctx}/movies?status=NOW_SHOWING">Đặt vé ngay</a></p>
+                    <p><a class="btn btn-primary" href="${ctx}/booking/start">Đặt vé ngay</a></p>
                 </div>
             </c:when>
 

@@ -33,6 +33,7 @@ import service.MovieService;
         urlPatterns = {
             
             "/movie",
+            "/movies",
             "/movieslist",
             "/manager/movie-assignments/branches",
             "/manager/movie-assignments/halls",
@@ -70,7 +71,6 @@ public class MovieDetailController extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            
 
             case "/movie":
                 showMovieDetail(request, response);

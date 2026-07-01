@@ -26,6 +26,8 @@ public class BookingView {
     private LocalDateTime showStart; // SHOWTIMES.start_time
     private String seatLabels;       // ví dụ "A1, A2, B5"
     private int seatCount;
+    private String customerName;
+    private String customerEmail;
 
     public BookingView() {
     }
@@ -92,6 +94,22 @@ public class BookingView {
 
     public void setSeatCount(int seatCount) {
         this.seatCount = seatCount;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCustomerEmail() {
+        return customerEmail;
+    }
+
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
     }
 
     // ── Helper hiển thị ─────────────────────────────────────

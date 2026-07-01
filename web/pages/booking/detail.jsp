@@ -44,6 +44,9 @@
                 <c:if test="${param.msg == 'cancelled'}">
                     <div class="notice ok">Đã hủy đơn thành công.</div>
                 </c:if>
+                <c:if test="${param.msg == 'booking_created'}">
+                    <div class="notice ok">Đã tạo booking. Vui lòng hoàn tất thanh toán để vé được xác nhận.</div>
+                </c:if>
                 <c:if test="${param.msg == 'cancel_failed'}">
                     <div class="notice err">Không thể hủy đơn này (đơn đã sử dụng/đã hủy hoặc không cho phép hủy).</div>
                 </c:if>

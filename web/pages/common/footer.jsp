@@ -17,7 +17,7 @@
             <h4>Khám phá</h4>
             <ul class="footer-links">
                 <li><a href="${ctx}/home">Trang chủ</a></li>
-                <li><a href="${ctx}/movieslist">Tất cả phim</a></li>
+                <li><a href="${ctx}/movies">Tất cả phim</a></li>
                 <li><a href="${ctx}/movies?status=NOW_SHOWING">Đang chiếu</a></li>
                 <li><a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a></li>
             </ul>

@@ -15,9 +15,16 @@
     <a href="${ctx}/home" class="brand">🎬 RapViet</a>
     <nav class="main-nav">
         <a href="${ctx}/home"   class="${param.active == 'home'   ? 'active' : ''}">Trang chủ</a>
-        <a href="${ctx}/movieslist" class="${param.active == 'movies' ? 'active' : ''}">Phim</a>
+        <a href="${ctx}/movies" class="${param.active == 'movies' ? 'active' : ''}">Phim</a>
         <a href="${ctx}/movies?status=NOW_SHOWING">Đang chiếu</a>
         <a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a>
+        <a href="${ctx}/booking/start" class="${param.active == 'booking' ? 'active' : ''}">Đặt vé</a>
+        <c:if test="${sessionScope.user != null}">
+            <a href="${ctx}/my-bookings" class="${param.active == 'bookings' ? 'active' : ''}">Vé của tôi</a>
+        </c:if>
+        <c:if test="${sessionScope.user != null and (sessionScope.user.role == 'STAFF' or sessionScope.user.role == 'MANAGER' or sessionScope.user.role == 'ADMIN')}">
+            <a href="${ctx}/staff/bookings" class="${param.active == 'staff-bookings' ? 'active' : ''}">Quản lý booking</a>
+        </c:if>
     </nav>
     <div class="header-actions">
         <c:choose>

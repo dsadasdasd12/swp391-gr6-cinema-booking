@@ -23,15 +23,59 @@
             <jsp:param name="active" value="showtimes"/>
         </jsp:include>
 
-        <div class="page-wrap">
-            <div class="container">
-                <c:choose>
-                    <%-- ── Không tìm thấy suất chiếu ── --%>
-                    <c:when test="${notFound or empty seatMap}">
-                        <div class="empty">
-                            <h3>Không tìm thấy suất chiếu</h3>
-                            <p>Suất chiếu bạn chọn không tồn tại hoặc đã bị gỡ.</p>
-                            <p><a class="btn btn-primary" href="${ctx}/showtimes">← Về lịch chiếu</a></p>
+    <div class="page-wrap">
+    <div class="container">
+        <c:choose>
+            <%-- ── Không tìm thấy suất chiếu ── --%>
+            <c:when test="${notFound or empty seatMap}">
+                <div class="empty">
+                    <h3>Không tìm thấy suất chiếu</h3>
+                    <p>Suất chiếu bạn chọn không tồn tại hoặc đã bị gỡ.</p>
+                    <p><a class="btn btn-primary" href="${ctx}/showtimes">← Về lịch chiếu</a></p>
+                </div>
+            </c:when>
+
+            <%-- ── Sơ đồ ghế ── --%>
+            <c:otherwise>
+                <%-- Ngữ cảnh suất chiếu: phim / rạp / phòng / ngày giờ --%>
+                <div class="seat-context">
+                    <h1><c:out value="${st.movieTitle}"/></h1>
+                    <ul class="seat-meta">
+                        <li>🏢 <c:out value="${st.branchName}"/></li>
+                        <li>🎬 Phòng <c:out value="${st.hallName}"/> (<c:out value="${st.hallType}"/>)</li>
+                        <li>📅 ${st.showDate}</li>
+                        <li>🕒 ${st.startHour} - ${st.endHour}</li>
+                    </ul>
+                    <div class="result-meta">
+                        Còn trống <strong>${seatMap.availableSeats}</strong> / ${seatMap.totalSeats} ghế
+                    </div>
+                </div>
+
+                <%-- Chú thích màu trạng thái --%>
+                <div class="seat-legend">
+                    <span><i class="seat available"></i> Còn trống</span>
+                    <span><i class="seat booked"></i> Đã đặt</span>
+                    <span><i class="seat maintenance"></i> Bảo trì</span>
+                    <span><i class="seat available VIP"></i> Ghế VIP</span>
+                    <span><i class="seat available COUPLE"></i> Ghế đôi</span>
+                </div>
+
+                <%-- Biểu tượng màn hình --%>
+                <div class="screen">MÀN HÌNH</div>
+
+                <%-- Lưới ghế: vòng ngoài theo hàng, vòng trong theo ghế --%>
+                <div class="seat-map">
+                    <c:forEach var="row" items="${seatMap.rows}">
+                        <div class="seat-row">
+                            <span class="row-label"><c:out value="${row.rowLabel}"/></span>
+                            <%-- sv là dto.SeatView: sv.seat = entity Seat (cột DB),
+                                 sv.statusClass/statusLabel = trạng thái suy theo suất chiếu --%>
+                            <c:forEach var="sv" items="${row.seats}">
+                                <span class="seat ${sv.statusClass} ${sv.seat.seatType}"
+                                      title="${sv.seat.seatCode} - ${sv.statusLabel}">
+                                    ${sv.seat.seatNumber}
+                                </span>
+                            </c:forEach>
                         </div>
                     </c:when>
 

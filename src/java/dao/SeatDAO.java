@@ -122,7 +122,27 @@ public class SeatDAO {
 
     public List<SeatView> findByShowtime(int showtimeId) {
 
-        List<SeatView> list = new ArrayList<>();
+    String sql=
+        "SELECT s.*, "+
+        "CASE WHEN EXISTS("+
+        "SELECT 1 "+
+        "FROM BOOKING_SEATS bs "+
+        "JOIN BOOKINGS b ON b.id=bs.booking_id "+
+        "WHERE bs.seat_id=s.id "+
+        "AND b.showtime_id=? "+
+        "AND b.status IN('PENDING','CONFIRMED','CHECKED_IN','USED')" +
+        ") OR EXISTS("+
+        "SELECT 1 "+
+        "FROM CART_ITEMS ci "+
+        "JOIN CART c ON c.id=ci.cart_id "+
+        "WHERE ci.seat_id=s.id "+
+        "AND c.showtime_id=? "+
+        "AND ci.locked_until>GETDATE()" +
+        ") THEN 1 ELSE 0 END booked "+
+        "FROM SEATS s "+
+        "JOIN SHOWTIMES st ON st.hall_id=s.hall_id "+
+        "WHERE st.id=? "+
+        "ORDER BY s.seat_row,s.seat_number";
 
         String sql =
         "SELECT "
@@ -146,9 +166,9 @@ public class SeatDAO {
         + "ORDER BY s.seat_row, s.seat_number";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, showtimeId);
-            ps.setInt(2, showtimeId);
-            ResultSet rs = ps.executeQuery();
+        ps.setInt(1,showtimeId);
+        ps.setInt(2,showtimeId);
+        ps.setInt(3,showtimeId);
 
             while (rs.next()) {
 
@@ -169,6 +189,81 @@ public class SeatDAO {
                 list.add(view);
             }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    return list;
+}
+
+    public List<SeatView> findByShowtimeAndIds(int showtimeId, List<Integer> seatIds) {
+        List<SeatView> list = new ArrayList<>();
+
+        if (showtimeId <= 0 || seatIds == null || seatIds.isEmpty()) {
+            return list;
+        }
+
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < seatIds.size(); i++) {
+            if (i > 0) {
+                placeholders.append(",");
+            }
+            placeholders.append("?");
+        }
+
+        String sql =
+            "SELECT s.*, " +
+            "CASE WHEN EXISTS(" +
+            "SELECT 1 " +
+            "FROM BOOKING_SEATS bs " +
+            "JOIN BOOKINGS b ON b.id=bs.booking_id " +
+            "WHERE bs.seat_id=s.id " +
+            "AND b.showtime_id=? " +
+            "AND b.status IN('PENDING','CONFIRMED','CHECKED_IN','USED')" +
+            ") OR EXISTS(" +
+            "SELECT 1 " +
+            "FROM CART_ITEMS ci " +
+            "JOIN CART c ON c.id=ci.cart_id " +
+            "WHERE ci.seat_id=s.id " +
+            "AND c.showtime_id=? " +
+            "AND ci.locked_until>GETDATE()" +
+            ") THEN 1 ELSE 0 END booked " +
+            "FROM SEATS s " +
+            "JOIN SHOWTIMES st ON st.hall_id=s.hall_id " +
+            "WHERE st.id=? " +
+            "AND s.id IN (" + placeholders + ") " +
+            "ORDER BY s.seat_row,s.seat_number";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, showtimeId);
+            ps.setInt(2, showtimeId);
+            ps.setInt(3, showtimeId);
+            int index = 4;
+            for (Integer seatId : seatIds) {
+                ps.setInt(index++, seatId);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Seat seat = new Seat(
+                    rs.getInt("id"),
+                    rs.getInt("hall_id"),
+                    rs.getString("seat_row"),
+                    rs.getInt("seat_number"),
+                    rs.getString("seat_type"),
+                    rs.getBoolean("maintenance")
+                );
+
+                SeatView view = new SeatView();
+                view.setSeat(seat);
+                view.setBooked(rs.getBoolean("booked"));
+                list.add(view);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

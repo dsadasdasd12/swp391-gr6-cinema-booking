@@ -83,7 +83,7 @@
                             <div class="showtime-chips">
                                 <%-- Mỗi giờ chiếu dẫn sang sơ đồ ghế của suất đó (Phần 3) --%>
                                 <c:forEach var="st" items="${ms.showtimes}">
-                                    <a class="showtime-chip" href="${ctx}/seats?showtimeId=${st.id}">
+                                    <a class="showtime-chip" href="${ctx}/booking/seats?showtimeId=${st.id}">
                                         <div class="t">${st.startHour}</div>
                                         <div class="sub"><c:out value="${st.hallType}"/> &middot; <c:out value="${st.hallName}"/></div>
                                     </a>

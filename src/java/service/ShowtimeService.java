@@ -11,6 +11,7 @@ import dao.MovieDAO;
 import dao.ShowtimeDAO;
 import dao.StaffBranchDAO;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -384,6 +385,22 @@ public class ShowtimeService {
 
     public Showtime getShowtimeById(int id) {
         return showtimeDAO.getShowtimeById(id);
+    }
+
+    public Showtime getBookableShowtime(int id) {
+        if (id <= 0) {
+            return null;
+        }
+
+        return showtimeDAO.findBookableById(id);
+    }
+
+    public List<Showtime> getBookableShowtimes(int branchId, int movieId, LocalDate date) {
+        if (branchId <= 0 || movieId <= 0 || date == null) {
+            return Collections.emptyList();
+        }
+
+        return showtimeDAO.findBookableByBranchMovieAndDate(branchId, movieId, date);
     }
 
     public boolean setSeatPricing(int showtimeId, String seatType, double price) {

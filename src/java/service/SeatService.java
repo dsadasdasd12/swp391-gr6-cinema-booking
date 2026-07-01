@@ -1,6 +1,7 @@
 package service;
 
 import dao.SeatDAO;
+import dto.SeatView;
 import java.util.List;
 import model.Seat;
 import model.Hall;
@@ -26,5 +27,9 @@ public class SeatService {
 
     public List<Hall> getAllHalls() {
         return seatDAO.getAllHalls();
+    }
+
+    public List<SeatView> getSeatViewsByShowtimeAndIds(int showtimeId, List<Integer> seatIds) {
+        return seatDAO.findByShowtimeAndIds(showtimeId, seatIds);
     }
 }

@@ -85,6 +85,14 @@ public class MovieService {
         return movieDAO.findById(movieId);
     }
 
+    public List<Movie> getBookableMoviesByBranch(int branchId) {
+        if (branchId <= 0) {
+            return new ArrayList<>();
+        }
+
+        return movieDAO.findBookableByBranch(branchId);
+    }
+
     /** Các suất chiếu sắp tới cho trang chi tiết. */
     public List<Showtime> getShowtimes(int movieId) {
         return showtimeDAO.findUpcomingByMovie(movieId);
