@@ -68,7 +68,7 @@
 
                         <div class="bd-actions">
                             <c:if test="${bk.cancellable}">
-                                <form method="post" action="${ctx}/staff/booking/cancel"
+                                <form method="post" action="${ctx}/staff/booking-staff/cancel"
                                       onsubmit="return confirm('Hủy booking này?');">
                                     <input type="hidden" name="id" value="${bk.booking.id}">
                                     <button class="btn btn-ghost" type="submit">Hủy booking</button>
@@ -76,14 +76,14 @@
                             </c:if>
 
                             <c:if test="${bk.booking.status == 'CONFIRMED'}">
-                                <form method="post" action="${ctx}/staff/booking/check-in">
+                                <form method="post" action="${ctx}/staff/booking-staff/check-in">
                                     <input type="hidden" name="id" value="${bk.booking.id}">
                                     <button class="btn btn-primary" type="submit">Check-in</button>
                                 </form>
                             </c:if>
 
                             <c:if test="${bk.booking.status == 'CHECKED_IN'}">
-                                <form method="post" action="${ctx}/staff/booking/use">
+                                <form method="post" action="${ctx}/staff/booking-staff/use">
                                     <input type="hidden" name="id" value="${bk.booking.id}">
                                     <button class="btn btn-primary" type="submit">Đánh dấu đã dùng</button>
                                 </form>

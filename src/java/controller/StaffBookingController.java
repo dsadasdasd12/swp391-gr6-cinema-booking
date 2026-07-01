@@ -13,11 +13,11 @@ import model.User;
 import service.BookingService;
 
 @WebServlet(name = "StaffBookingController", urlPatterns = {
-    "/staff/bookings",
-    "/staff/booking",
-    "/staff/booking/cancel",
-    "/staff/booking/check-in",
-    "/staff/booking/use"
+    "/staff/booking-staff",
+    "/staff/booking-staff-list",
+    "/staff/booking-staff/cancel",
+    "/staff/booking-staff/check-in",
+    "/staff/booking-staff/use"
 })
 public class StaffBookingController extends HttpServlet {
 
@@ -33,7 +33,7 @@ public class StaffBookingController extends HttpServlet {
         }
 
         String path = request.getServletPath();
-        if ("/staff/booking".equals(path)) {
+        if ("/staff/booking-staff".equals(path)) {
             showDetail(staff, request, response);
             return;
         }
@@ -58,25 +58,25 @@ public class StaffBookingController extends HttpServlet {
         String msg;
 
         switch (path) {
-            case "/staff/booking/cancel":
+            case "/staff/booking-staff/cancel":
                 ok = bookingService.cancelByStaff(bookingId, staff.getId());
                 msg = ok ? "cancelled" : "cancel_failed";
                 break;
-            case "/staff/booking/check-in":
+            case "/staff/booking-staff/check-in":
                 ok = bookingService.checkInByStaff(bookingId, staff.getId());
                 msg = ok ? "checked_in" : "checkin_failed";
                 break;
-            case "/staff/booking/use":
+            case "/staff/booking-staff/use":
                 ok = bookingService.markUsedByStaff(bookingId, staff.getId());
                 msg = ok ? "used" : "use_failed";
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/staff/bookings");
+                response.sendRedirect(request.getContextPath() + "/staff/booking-staff");
                 return;
         }
 
         response.sendRedirect(request.getContextPath()
-                + "/staff/booking?id=" + bookingId + "&msg=" + msg);
+                + "/staff/booking-staff?id=" + bookingId + "&msg=" + msg);
     }
 
     private void showList(User staff, HttpServletRequest request, HttpServletResponse response)

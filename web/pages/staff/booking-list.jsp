@@ -25,7 +25,7 @@
                 </div>
             </div>
 
-            <form class="st-toolbar" method="get" action="${ctx}/staff/bookings">
+            <form class="st-toolbar" method="get" action="${ctx}/staff/booking-staff-list">
                 <div class="filter-field grow">
                     <label for="q">Tìm kiếm</label>
                     <input id="q" name="q" type="text" value="<c:out value='${keyword}'/>"
@@ -57,7 +57,7 @@
                 <c:otherwise>
                     <div class="booking-list">
                         <c:forEach var="bk" items="${bookings}">
-                            <a class="booking-row" href="${ctx}/staff/booking?id=${bk.booking.id}">
+                            <a class="booking-row" href="${ctx}/staff/booking-staff?id=${bk.booking.id}">
                                 <div class="booking-main">
                                     <h3>#${bk.booking.id} · <c:out value="${bk.movieTitle}"/></h3>
                                     <div class="booking-meta">
