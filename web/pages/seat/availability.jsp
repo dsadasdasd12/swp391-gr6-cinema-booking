@@ -72,7 +72,7 @@
                                  sv.statusClass/statusLabel = trạng thái suy theo suất chiếu --%>
                             <c:forEach var="sv" items="${row.seats}">
                                 <span class="seat ${sv.statusClass} ${sv.seat.seatType}"
-                                      title="${sv.seat.seatLabel} - ${sv.statusLabel}">
+                                      title="${sv.seat.seatCode} - ${sv.statusLabel}">
                                     ${sv.seat.seatNumber}
                                 </span>
                             </c:forEach>
