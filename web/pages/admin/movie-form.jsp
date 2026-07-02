@@ -1,6 +1,6 @@
 <%--
     Rạp Việt CMS — Premium Add / Edit Movie Form
-    URL: /admin/movies?action=new (add) or ?action=edit&id={id} (update)
+    URL: /admin/moviesmanagement?action=new (add) or ?action=edit&id={id} (update)
     Servlet: AdminMovieController
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
@@ -21,7 +21,7 @@
     <div class="rv-page-header__left">
         <!-- Breadcrumb -->
         <div class="rv-breadcrumb">
-            <a href="${ctx}/admin/movies?action=list">Quản lý phim</a>
+            <a href="${ctx}/admin/moviesmanagement?action=list">Quản lý phim</a>
             <i class="bi bi-chevron-right rv-breadcrumb__sep"></i>
             <span class="rv-breadcrumb__current">
                 <c:choose>
@@ -55,7 +55,7 @@
     </div>
 </c:if>
 
-<form method="post" action="${ctx}/admin/movies" id="rv-movie-form" novalidate enctype="multipart/form-data">
+<form method="post" action="${ctx}/admin/moviesmanagement" id="rv-movie-form" novalidate enctype="multipart/form-data">
     <input type="hidden" name="action" value="${formAction}">
     <c:if test="${isEdit}">
         <input type="hidden" name="id" value="${movie.id}">
@@ -231,7 +231,7 @@
     <!-- ── FOOTER ACTIONS ── -->
     <div class="rv-card" style="margin-top: var(--s-6); border-top: 1px solid var(--border);">
         <div class="rv-card__body" style="display: flex; justify-content: flex-end; gap: var(--s-4); padding: var(--s-4) var(--s-6);">
-            <a href="${ctx}/admin/movies?action=list" id="rv-form-cancel" class="rv-btn rv-btn--ghost">
+            <a href="${ctx}/admin/moviesmanagement?action=list" id="rv-form-cancel" class="rv-btn rv-btn--ghost">
                 Hủy bỏ
             </a>
             <button type="submit" class="rv-btn rv-btn--primary" id="rv-form-save">

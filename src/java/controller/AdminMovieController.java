@@ -113,7 +113,7 @@ public class AdminMovieController extends HttpServlet {
     private void handleEdit(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         int id = parseId(req.getParameter("id"));
-        if (id <= 0) { resp.sendRedirect(req.getContextPath() + "/admin/movies?action=list"); return; }
+        if (id <= 0) { resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list"); return; }
 
         Movie movie = movieService.getMovieById(id);
         if (movie == null) { resp.sendError(HttpServletResponse.SC_NOT_FOUND); return; }
@@ -129,7 +129,7 @@ public class AdminMovieController extends HttpServlet {
     private void handleDetail(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         int id = parseId(req.getParameter("id"));
-        if (id <= 0) { resp.sendRedirect(req.getContextPath() + "/admin/movies?action=list"); return; }
+        if (id <= 0) { resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list"); return; }
         Movie movie = movieService.getMovieById(id);
         if (movie == null) { resp.sendError(HttpServletResponse.SC_NOT_FOUND); return; }
         req.setAttribute("movie", movie);
@@ -166,7 +166,7 @@ public class AdminMovieController extends HttpServlet {
                 movieService.updatePoster(newId, uploaded);
             }
             req.getSession().setAttribute("flashSuccess", "Thêm phim thành công!");
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?action=list");
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
         } else {
             req.setAttribute("errors", List.of("Lỗi hệ thống, không thể thêm phim."));
             req.setAttribute("movie",      m);
@@ -205,7 +205,7 @@ public class AdminMovieController extends HttpServlet {
             movieService.updatePoster(m.getId(), uploaded);
         }
         req.getSession().setAttribute("flashSuccess", "Cập nhật phim thành công!");
-        resp.sendRedirect(req.getContextPath() + "/admin/movies?action=list");
+        resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
     }
 
     /**  Xóa phim (chặn nếu có suất chiếu). */
@@ -218,7 +218,7 @@ public class AdminMovieController extends HttpServlet {
         } else {
             req.getSession().setAttribute("flashSuccess", "Xóa phim thành công!");
         }
-        resp.sendRedirect(req.getContextPath() + "/admin/movies?action=list");
+        resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
     }
 
     /**
@@ -257,12 +257,12 @@ public class AdminMovieController extends HttpServlet {
 
         if (movieId <= 0) {
             req.getSession().setAttribute("flashError", "Không xác định được phim cần upload.");
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?action=list");
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
             return;
         }
         if (part == null || part.getSize() == 0) {
             req.getSession().setAttribute("flashError", "Vui lòng chọn file trước khi bấm Upload.");
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?action=detail&id=" + movieId);
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
             return;
         }
 
@@ -273,14 +273,14 @@ public class AdminMovieController extends HttpServlet {
         if (!"poster".equals(type)) {
             req.getSession().setAttribute("flashError",
                     "Chỉ hỗ trợ upload poster. Trailer: dùng link YouTube trên form sửa phim hoặc ô bên dưới.");
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?action=detail&id=" + movieId);
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
             return;
         }
         boolean validPoster = fileExtension.equals("jpg") || fileExtension.equals("png")
                 || fileExtension.equals("jpeg") || fileExtension.equals("webp");
         if (!validPoster) {
             req.getSession().setAttribute("flashError", "Poster chỉ nhận jpg, png hoặc webp.");
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?action=detail&id=" + movieId);
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
             return;
         }
 
@@ -296,7 +296,7 @@ public class AdminMovieController extends HttpServlet {
 
         movieService.updatePoster(movieId, relativeUrl);
         req.getSession().setAttribute("flashSuccess", "Upload poster thành công.");
-        resp.sendRedirect(req.getContextPath() + "/admin/movies?action=detail&id=" + movieId);
+        resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
     }
 
     /** Cập nhật link trailer YouTube từ trang chi tiết / sửa. */
@@ -304,7 +304,7 @@ public class AdminMovieController extends HttpServlet {
             throws IOException {
         int movieId = parseId(req.getParameter("movieId"));
         if (movieId <= 0) {
-            resp.sendRedirect(req.getContextPath() + "/admin/movies?action=list");
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
             return;
         }
         String url = trim(req.getParameter("trailerUrl"));
@@ -314,13 +314,13 @@ public class AdminMovieController extends HttpServlet {
             if (probe.getEmbedUrl() == null) {
                 req.getSession().setAttribute("flashError",
                         "Link YouTube không hợp lệ. Ví dụ: https://www.youtube.com/watch?v=...");
-                resp.sendRedirect(req.getContextPath() + "/admin/movies?action=detail&id=" + movieId);
+                resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
                 return;
             }
         }
         movieService.updateTrailer(movieId, (url == null || url.isBlank()) ? null : url);
         req.getSession().setAttribute("flashSuccess", "Đã lưu link trailer YouTube.");
-        resp.sendRedirect(req.getContextPath() + "/admin/movies?action=detail&id=" + movieId);
+        resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
     }
 
     // ── Utility helpers ──────────────────────────────────────
