@@ -4,6 +4,7 @@
  */
 package dao;
 
+import dto.BranchView;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,15 +23,14 @@ public class BranchDAO {
     public List<Branch> getAllBranches() {
         List<Branch> list = new ArrayList<>();
         String sql = "SELECT id, name, address, phone FROM dbo.BRANCHES WHERE status = 'ACTIVE' ORDER BY name ASC";
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Branch b = new Branch(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getString("address"),
-                    rs.getString("phone")
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("address"),
+                        rs.getString("phone")
                 );
                 list.add(b);
             }
@@ -42,16 +42,15 @@ public class BranchDAO {
 
     public Branch getBranchById(int id) {
         String sql = "SELECT id, name, address, phone FROM dbo.BRANCHES WHERE id = ?";
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Branch(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("address"),
-                        rs.getString("phone")
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("address"),
+                            rs.getString("phone")
                     );
                 }
             }
@@ -65,8 +64,7 @@ public class BranchDAO {
         List<Branch> list = new ArrayList<>();
         String sql = "SELECT id, name, address, phone, status FROM dbo.BRANCHES WHERE status = 'ACTIVE' ORDER BY name";
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Branch b = new Branch();
                 b.setId(rs.getInt("id"));
@@ -78,10 +76,11 @@ public class BranchDAO {
             }
         } catch (SQLException e) {
             System.getLogger(BranchDAO.class.getName())
-                  .log(System.Logger.Level.ERROR, "findAllActive branches thất bại", e);
+                    .log(System.Logger.Level.ERROR, "findAllActive branches thất bại", e);
         }
         return list;
     }
+
     public List<Branch> findAll() {
         String sql = "SELECT id, cinema_id, name, address, phone, open_time, close_time, status, last_update "
                 + "FROM dbo.BRANCHES "
@@ -90,8 +89,7 @@ public class BranchDAO {
         List<Branch> branches = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
 
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 branches.add(mapRow(rs));
@@ -352,5 +350,42 @@ public class BranchDAO {
         }
 
         return Time.valueOf(time);
+    }
+
+    public List<BranchView> findActiveBranchViews() {
+
+        List<BranchView> list = new ArrayList<>();
+
+        String sql
+                = "SELECT b.*, "
+                + "c.name AS cinema_name, "
+                + "COUNT(h.id) AS hall_count "
+                + "FROM BRANCHES b "
+                + "JOIN CINEMA c ON c.id=b.cinema_id "
+                + "LEFT JOIN HALLS h "
+                + "ON h.branch_id=b.id AND h.status='ACTIVE' "
+                + "WHERE b.status='ACTIVE' "
+                + "GROUP BY b.id,b.cinema_id,b.name,b.address,b.phone,"
+                + "b.open_time,b.close_time,b.status,b.last_update,c.name";
+
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+
+                Branch branch = mapRow(rs);
+
+                BranchView view = new BranchView();
+                view.setBranch(branch);
+                view.setCinemaName(rs.getString("cinema_name"));
+                view.setHallCount(rs.getInt("hall_count"));
+
+                list.add(view);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

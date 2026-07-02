@@ -41,7 +41,7 @@
                 Quản lý phòng chiếu
             </a>
 
-            <a href="${ctx}/manager/showtimes">
+            <a href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
 
@@ -148,7 +148,7 @@
                             </div>
 
                             <a class="btn btn-primary btn-small"
-                               href="${ctx}/manager/halls/create">
+                               href="${ctx}/manager/halls/create?branchId=${branch.id}">
                                 + Thêm phòng chiếu
                             </a>
                         </div>
@@ -228,7 +228,7 @@
                                                     <div class="action-inline">
 
                                                         <a class="btn btn-ghost btn-small"
-                                                           href="${ctx}/manager/halls/edit?id=${h.id}">
+                                                           href="${ctx}/manager/halls/edit?id=${h.id}&branchId=${branch.id}">
                                                             Sửa
                                                         </a>
 
@@ -239,6 +239,10 @@
                                                             <input type="hidden"
                                                                    name="id"
                                                                    value="${h.id}">
+                                                            
+                                                            <input type="hidden"
+                                                                   name="branchId"
+                                                                   value="${branch.id}">
 
                                                             <c:choose>
                                                                 <c:when test="${h.status eq 'ACTIVE'}">
@@ -273,6 +277,10 @@
                                                             <input type="hidden"
                                                                    name="id"
                                                                    value="${h.id}">
+                                                            
+                                                            <input type="hidden"
+                                                                   name="branchId"
+                                                                   value="${branch.id}">
 
                                                             <button type="submit"
                                                                     class="btn btn-danger btn-small">

@@ -53,7 +53,7 @@
                 Quản lý phòng chiếu
             </a>
 
-            <a href="${ctx}/manager/showtimes">
+            <a href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
 
@@ -138,6 +138,10 @@
                           action="${ctx}${isEdit
                                   ? '/manager/halls/edit'
                                   : '/manager/halls/create'}">
+                        
+                        <input type="hidden"
+                               name="branchId"
+                               value="${branch.id}">
 
                         <c:if test="${isEdit}">
 

@@ -41,7 +41,7 @@
                 Quản lý phòng chiếu
             </a>
 
-            <a class="active" href="${ctx}/manager/showtimes">
+            <a class="active" href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
 
@@ -91,7 +91,7 @@
 
                 <c:if test="${not empty branch}">
                     <a class="btn btn-primary"
-                       href="${ctx}/manager/showtimes/create">
+                       href="${ctx}/manager/showtimesmanagement/create">
                         + Tạo suất chiếu
                     </a>
                 </c:if>
@@ -258,12 +258,12 @@
                                                         <c:if test="${s.status ne 'CANCELLED'}">
 
                                                             <a class="btn btn-ghost btn-small"
-                                                               href="${ctx}/manager/showtimes/edit?id=${s.id}">
+                                                               href="${ctx}/manager/showtimesmanagement/edit?id=${s.id}">
                                                                 Sửa
                                                             </a>
 
                                                             <form method="post"
-                                                                  action="${ctx}/manager/showtimes/cancel"
+                                                                  action="${ctx}/manager/showtimesmanagement/cancel"
                                                                   onsubmit="return confirm('Bạn có chắc muốn hủy suất chiếu này?');">
 
                                                                 <input type="hidden"

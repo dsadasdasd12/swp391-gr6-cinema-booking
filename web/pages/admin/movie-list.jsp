@@ -1,6 +1,6 @@
 <%--
     Rạp Việt CMS — Premium Movie Management List
-    URL: /admin/movies?action=list
+    URL: /admin/moviesmanagement?action=list
     Servlet: AdminMovieController
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
@@ -26,7 +26,7 @@
     </div>
     <c:if test="${sessionScope.user.admin}">
         <div class="rv-page-header__right">
-            <a href="${ctx}/admin/movies?action=new" class="rv-btn rv-btn--primary">
+            <a href="${ctx}/admin/moviesmanagement?action=new" class="rv-btn rv-btn--primary">
                 <i class="bi bi-plus-lg"></i>Thêm phim mới
             </a>
         </div>
@@ -35,7 +35,7 @@
 
 <!-- ── TOOLBAR / FILTERS ── -->
 <div class="rv-toolbar">
-    <form method="get" action="${ctx}/admin/movies" class="d-flex align-items-center flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
+    <form method="get" action="${ctx}/admin/moviesmanagement" class="d-flex align-items-center flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
         <input type="hidden" name="action" value="list">
         
         <!-- Search Input -->
@@ -59,7 +59,7 @@
             <button type="submit" class="rv-btn rv-btn--secondary rv-btn--sm">
                 Lọc dữ liệu
             </button>
-            <a href="${ctx}/admin/movies?action=list" class="rv-btn rv-btn--ghost rv-btn--sm" title="Xóa lọc">
+            <a href="${ctx}/admin/moviesmanagement?action=list" class="rv-btn rv-btn--ghost rv-btn--sm" title="Xóa lọc">
                 Xóa lọc
             </a>
             <a href="javascript:location.reload();" class="rv-btn rv-btn--refresh" title="Làm mới bảng">
@@ -78,7 +78,7 @@
                 <div class="rv-empty__title">Không tìm thấy phim nào</div>
                 <div class="rv-empty__message">Hệ thống chưa có bộ phim nào khớp với điều kiện tìm kiếm hoặc dữ liệu trống.</div>
                 <c:if test="${sessionScope.user.admin}">
-                    <a href="${ctx}/admin/movies?action=new" class="rv-btn rv-btn--primary rv-btn--sm" style="margin-top: 20px;">
+                    <a href="${ctx}/admin/moviesmanagement?action=new" class="rv-btn rv-btn--primary rv-btn--sm" style="margin-top: 20px;">
                         <i class="bi bi-plus-lg"></i>Tạo phim ngay
                     </a>
                 </c:if>
@@ -166,10 +166,10 @@
                                 <c:if test="${sessionScope.user.admin}">
                                     <td>
                                         <div class="d-flex align-items-center justify-content-center gap-2">
-                                            <a href="${ctx}/admin/movies?action=detail&id=${m.id}" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Xem chi tiết" style="border:none">
+                                            <a href="${ctx}/admin/moviesmanagement?action=detail&id=${m.id}" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Xem chi tiết" style="border:none">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="${ctx}/admin/movies?action=edit&id=${m.id}" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Sửa thông tin" style="border:none">
+                                            <a href="${ctx}/admin/moviesmanagement?action=edit&id=${m.id}" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Sửa thông tin" style="border:none">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                             <c:choose>
@@ -180,7 +180,7 @@
                                                     </button>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a href="${ctx}/admin/movies?action=delete&id=${m.id}" class="rv-btn rv-btn--ghost rv-btn--icon" style="color: var(--danger); border:none"
+                                                    <a href="${ctx}/admin/moviesmanagement?action=delete&id=${m.id}" class="rv-btn rv-btn--ghost rv-btn--icon" style="color: var(--danger); border:none"
                                                        data-tooltip="Xóa phim"
                                                        data-confirm
                                                        data-confirm-title="Xóa phim này?"
@@ -206,7 +206,7 @@
                 <jsp:param name="totalPages" value="${not empty totalPages ? totalPages : 1}" />
                 <jsp:param name="totalItems" value="${not empty totalItems ? totalItems : fn:length(movies)}" />
                 <jsp:param name="pageSize" value="${not empty pageSize ? pageSize : 10}" />
-                <jsp:param name="baseUrl" value="${ctx}/admin/movies?action=list&keyword=${keyword}&status=${status}" />
+                <jsp:param name="baseUrl" value="${ctx}/admin/moviesmanagement?action=list&keyword=${keyword}&status=${status}" />
             </jsp:include>
         </c:otherwise>
     </c:choose>

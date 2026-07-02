@@ -9,7 +9,7 @@
 <c:set var="uri"    value="${pageContext.request.requestURI}" />
 
 <%-- Helper checks for active menus --%>
-<c:set var="isMovie"        value="${uri.contains('/admin/movies') || uri.contains('/movie')}" />
+<c:set var="isMovie"        value="${uri.contains('/admin/moviesmanagement') || uri.contains('/moviesmanagement')}" />
 <c:set var="isTicket"       value="${uri.contains('/admin/tickets') || uri.contains('/ticket')}" />
 <c:set var="isNotif"        value="${uri.contains('/admin/notifications') || uri.contains('/notification')}" />
 <c:set var="isReport"       value="${uri.contains('/admin/reports') || uri.contains('/report')}" />
@@ -37,11 +37,11 @@
             <i class="bi bi-chevron-right rv-nav__arrow"></i>
         </div>
         <div class="rv-nav__sub">
-            <a href="${ctx}/admin/movies?action=list" class="rv-nav__sub-item ${isMovie && (param.action == 'list' || empty param.action || param.action == 'detail') ? 'active' : ''}">
+            <a href="${ctx}/admin/moviesmanagement?action=list" class="rv-nav__sub-item ${isMovie && (param.action == 'list' || empty param.action || param.action == 'detail') ? 'active' : ''}">
                 Danh sách phim
             </a>
             <c:if test="${isAdminRole || isManagerRole}">
-                <a href="${ctx}/admin/movies?action=new" class="rv-nav__sub-item ${isMovie && param.action == 'new' ? 'active' : ''}">
+                <a href="${ctx}/admin/moviesmanagement?action=new" class="rv-nav__sub-item ${isMovie && param.action == 'new' ? 'active' : ''}">
                     Thêm phim mới
                 </a>
             </c:if>

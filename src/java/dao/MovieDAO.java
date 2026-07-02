@@ -141,6 +141,36 @@ public class MovieDAO {
         return null;
     }
 
+    public List<Movie> findBookableByBranch(int branchId) {
+        List<Movie> movies = new ArrayList<>();
+        String sql = "SELECT DISTINCT m.id, m.title, m.duration_min, m.description, m.release_date, "
+                + "       m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
+                + RATING_SUBQUERY
+                + "FROM dbo.MOVIES m "
+                + "JOIN dbo.SHOWTIMES s ON s.movie_id = m.id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "WHERE h.branch_id = ? "
+                + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                + "AND s.start_time > GETDATE() "
+                + "ORDER BY m.title";
+
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, branchId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    movies.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.getLogger(MovieDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findBookableByBranch that bai", e);
+        }
+
+        attachCategories(movies);
+        return movies;
+    }
+
     // ── Các hàm hỗ trợ ──────────────────────────────────────
 
     /** Dựng mệnh đề WHERE và thêm các giá trị tương ứng vào {@code params}. */

@@ -15,7 +15,7 @@
 <nav aria-label="breadcrumb" style="margin-bottom:1.5rem;">
     <ol class="breadcrumb" style="background:transparent;padding:0;margin:0;font-size:.85rem;">
         <li class="breadcrumb-item">
-            <a href="${ctx}/admin/movies?action=list" style="color:var(--clr-primary);text-decoration:none;">Quản lý phim</a>
+            <a href="${ctx}/admin/moviesmanagement?action=list" style="color:var(--clr-primary);text-decoration:none;">Quản lý phim</a>
         </li>
         <li class="breadcrumb-item active" style="color:var(--clr-muted);">
             <c:out value="${movie.title}"/>
@@ -62,10 +62,10 @@
 
             <!-- Action buttons -->
             <div class="d-flex flex-column gap-2">
-                <a href="${ctx}/admin/movies?action=edit&id=${movie.id}" class="btn-admin-primary">
+                <a href="${ctx}/admin/moviesmanagement?action=edit&id=${movie.id}" class="btn-admin-primary">
                     <i class="bi bi-pencil"></i> Chỉnh sửa
                 </a>
-                <a href="${ctx}/admin/movies?action=list" class="btn-admin-ghost">
+                <a href="${ctx}/admin/moviesmanagement?action=list" class="btn-admin-ghost">
                     <i class="bi bi-arrow-left"></i> Danh sách
                 </a>
             </div>
@@ -74,7 +74,7 @@
         <!-- Upload poster -->
         <div class="admin-card mt-3">
             <h3 style="font-size:.9rem;font-weight:600;margin-bottom:.75rem;">Upload poster mới</h3>
-            <form method="post" action="${ctx}/admin/movies" enctype="multipart/form-data">
+            <form method="post" action="${ctx}/admin/moviesmanagement" enctype="multipart/form-data">
                 <input type="hidden" name="action"  value="upload">
                 <input type="hidden" name="movieId" value="${movie.id}">
                 <input type="hidden" name="type"    value="poster">
@@ -91,7 +91,7 @@
             <h3 style="font-size:.9rem;font-weight:600;margin-bottom:.75rem;">
                 <i class="bi bi-youtube" style="color:#dc2626;margin-right:4px;"></i>Trailer YouTube
             </h3>
-            <form method="post" action="${ctx}/admin/movies">
+            <form method="post" action="${ctx}/admin/moviesmanagement">
                 <input type="hidden" name="action"  value="update-trailer">
                 <input type="hidden" name="movieId" value="${movie.id}">
                 <label class="form-label-admin" for="trailerUrlDetail" style="font-size:.78rem;">Link YouTube</label>

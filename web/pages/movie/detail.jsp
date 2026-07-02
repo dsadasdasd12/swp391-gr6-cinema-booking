@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Cinema - Chi tiết phim (Xem chi tiết + Suất chiếu)
     Module: Duyệt phim /    (Group6 - DuyThai)
     Được phục vụ bởi controller.MovieDetailController  ->  URL /movie?id=N
@@ -12,126 +12,181 @@
 
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><c:out value="${empty movie ? 'Không tìm thấy phim' : movie.title}"/> - RapViet Cinema</title>
-    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-    <link rel="stylesheet" href="${ctx}/assets/css/movie.css">
-</head>
-<body>
-    <jsp:include page="/pages/common/header.jsp">
-        <jsp:param name="active" value="movies"/>
-    </jsp:include>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title><c:out value="${empty movie ? 'Không tìm thấy phim' : movie.title}"/> - RapViet Cinema</title>
+        <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+        <link rel="stylesheet" href="${ctx}/assets/css/movie.css">
+    </head>
+    <body>
+        <jsp:include page="/pages/common/header.jsp">
+            <jsp:param name="active" value="movies"/>
+        </jsp:include>
 
-    <div class="page-wrap">
-    <div class="container">
-    <c:choose>
-        <%-- ── Không tìm thấy phim ── --%>
-        <c:when test="${notFound or empty movie}">
-            <div class="empty">
-                <h3>Không tìm thấy phim</h3>
-                <p>Phim bạn tìm không tồn tại hoặc đã bị gỡ.</p>
-                <p><a class="btn btn-primary" href="${ctx}/movies">← Về danh sách phim</a></p>
-            </div>
-        </c:when>
+        <div class="page-wrap">
+            <div class="container">
+                <c:choose>
+                    <%-- ── Không tìm thấy phim ── --%>
+                    <c:when test="${notFound or empty movie}">
+                        <div class="empty">
+                            <h3>Không tìm thấy phim</h3>
+                            <p>Phim bạn tìm không tồn tại hoặc đã bị gỡ.</p>
+                            <p><a class="btn btn-primary" href="${ctx}/movies">← Về danh sách phim</a></p>
+                        </div>
+                    </c:when>
 
-        <%-- ── Chi tiết phim ── --%>
-        <c:otherwise>
-            <p style="margin:0 0 16px;">
-                <a href="${ctx}/movies" style="color:#9aa0aa;">← Danh sách phim</a>
-            </p>
+                    <%-- ── Chi tiết phim ── --%>
+                    <c:otherwise>
+                        <p style="margin:0 0 16px;">
+                            <a href="${ctx}/movieslist" style="color:#9aa0aa;">← Danh sách phim</a>
+                        </p>
 
-            <div class="detail-hero">
-                <div class="detail-poster">
-                    <img src="${empty movie.posterUrl ? ph : movie.posterUrl}"
-                         alt="<c:out value='${movie.title}'/>"
-                         onerror="this.onerror=null;this.src='${ph}'">
-                </div>
-
-                <div class="detail-info">
-                    <h1><c:out value="${movie.title}"/></h1>
-
-                    <div class="chips">
-                        <span class="chip"><c:out value="${movie.statusLabel}"/></span>
-                        <span class="chip">${movie.durationLabel}</span>
-                        <c:forEach var="c" items="${movie.categories}">
-                            <span class="chip"><c:out value="${c.name}"/></span>
-                        </c:forEach>
-                    </div>
-
-                    <%-- Điểm đánh giá: vẽ 5 sao, tô đặc theo số sao làm tròn --%>
-                    <c:choose>
-                        <c:when test="${movie.reviewCount > 0}">
-                            <div>
-                                <span class="rating-stars">
-                                    <c:forEach var="s" begin="1" end="5">${s <= movie.roundedStars ? '★' : '☆'}</c:forEach>
-                                </span>
-                                <strong>${movie.ratingRounded}/5</strong>
-                                <span style="color:#9aa0aa;">(${movie.reviewCount} đánh giá)</span>
+                        <div class="detail-hero">
+                            <div class="detail-poster">
+                                <img src="${empty movie.posterUrl ? ph : movie.posterUrl}"
+                                     alt="<c:out value='${movie.title}'/>"
+                                     onerror="this.onerror=null;this.src='${ph}'">
                             </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div style="color:#9aa0aa;">Chưa có đánh giá</div>
-                        </c:otherwise>
-                    </c:choose>
 
-                    <div class="detail-table">
-                        <div><span class="k">Đạo diễn</span>
-                            <c:out value="${empty movie.director ? 'Đang cập nhật' : movie.director}"/></div>
-                        <div><span class="k">Diễn viên</span>
-                            <c:out value="${empty movie.actor ? 'Đang cập nhật' : movie.actor}"/></div>
-                        <div><span class="k">Khởi chiếu</span>
-                            <c:out value="${empty movie.releaseDateLabel ? 'Đang cập nhật' : movie.releaseDateLabel}"/></div>
-                        <div><span class="k">Ngôn ngữ</span>
-                            <c:out value="${empty movie.languageNames ? 'Đang cập nhật' : movie.languageNames}"/></div>
-                    </div>
-                </div>
-            </div>
+                            <div class="detail-info">
+                                <h1><c:out value="${movie.title}"/></h1>
+                                <c:choose>
+                                    <c:when test="${not empty sessionScope.user}">
+                                        <form action="${ctx}/favorite-movie" method="post" style="margin: 16px 0;">
+                                            <input type="hidden" name="movieId" value="${movie.id}">
 
-            <%-- ── Nội dung phim ── --%>
-            <c:if test="${not empty movie.description}">
-                <h2 class="section-title">Nội dung phim</h2>
-                <div class="synopsis"><c:out value="${movie.description}"/></div>
-            </c:if>
+                                            <button type="submit"
+                                                    class="btn ${favorite ? 'btn-secondary' : 'btn-primary'}">
+                                                <c:choose>
+                                                    <c:when test="${favorite}">
+                                                        ♥ Đã yêu thích
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        ♡ Thêm vào yêu thích
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </button>
+                                        </form>
+                                    </c:when>
 
-            <%-- ── Trailer (chỉ hiện khi là link YouTube hợp lệ) ── --%>
-            <c:if test="${not empty movie.embedUrl}">
-                <h2 class="section-title">Trailer</h2>
-                <div class="trailer-wrap">
-                    <iframe src="${movie.embedUrl}" allowfullscreen
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-                </div>
-            </c:if>
+                                    <c:otherwise>
+                                        <a class="btn btn-primary" href="${ctx}/login">
+                                            ♡ Đăng nhập để yêu thích phim
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
+                                <div class="chips">
+                                    <span class="chip"><c:out value="${movie.statusLabel}"/></span>
+                                    <span class="chip">${movie.durationLabel}</span>
+                                    <c:forEach var="c" items="${movie.categories}">
+                                        <span class="chip"><c:out value="${c.name}"/></span>
+                                    </c:forEach>
+                                </div>
 
-            <%-- ── Lịch chiếu (đã gom nhóm theo chi nhánh ở tầng service) ── --%>
-            <h2 class="section-title">Lịch chiếu</h2>
-            <c:choose>
-                <c:when test="${empty branchShowtimes}">
-                    <div class="empty">Hiện chưa có lịch chiếu cho phim này.</div>
-                </c:when>
-                <c:otherwise>
-                    <c:forEach var="b" items="${branchShowtimes}">
-                        <div class="branch-block">
-                            <h4><c:out value="${b.branchName}"/></h4>
-                            <div class="addr"><c:out value="${b.branchAddress}"/></div>
-                            <div class="showtime-chips">
-                                <c:forEach var="st" items="${b.showtimes}">
-                                    <a class="showtime-chip" href="${ctx}/booking?showtimeId=${st.id}">
-                                        <div class="t">${st.startHour}</div>
-                                        <div class="sub">${st.showDate} &middot; <c:out value="${st.hallType}"/></div>
-                                    </a>
-                                </c:forEach>
+                                <%-- Điểm đánh giá: vẽ 5 sao, tô đặc theo số sao làm tròn --%>
+                                <c:choose>
+                                    <c:when test="${movie.reviewCount > 0}">
+                                        <div>
+                                            <span class="rating-stars">
+                                                <c:forEach var="s" begin="1" end="5">${s <= movie.roundedStars ? '★' : '☆'}</c:forEach>
+                                                </span>
+                                                <strong>${movie.ratingRounded}/5</strong>
+                                            <span style="color:#9aa0aa;">(${movie.reviewCount} đánh giá)</span>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div style="color:#9aa0aa;">Chưa có đánh giá</div>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <div class="detail-table">
+                                    <div><span class="k">Đạo diễn</span>
+                                        <c:out value="${empty movie.director ? 'Đang cập nhật' : movie.director}"/></div>
+                                    <div><span class="k">Diễn viên</span>
+                                        <c:out value="${empty movie.actor ? 'Đang cập nhật' : movie.actor}"/></div>
+                                    <div><span class="k">Khởi chiếu</span>
+                                        <c:out value="${empty movie.releaseDateLabel ? 'Đang cập nhật' : movie.releaseDateLabel}"/></div>
+                                    <div><span class="k">Ngôn ngữ</span>
+                                        <c:out value="${empty movie.languageNames ? 'Đang cập nhật' : movie.languageNames}"/></div>
+                                </div>
                             </div>
                         </div>
-                    </c:forEach>
-                </c:otherwise>
-            </c:choose>
-        </c:otherwise>
-    </c:choose>
-    </div>
-    </div>
 
-    <jsp:include page="/pages/common/footer.jsp" />
-</body>
+                        <%-- ── Nội dung phim ── --%>
+                        <c:if test="${not empty movie.description}">
+                            <h2 class="section-title">Nội dung phim</h2>
+                            <div class="synopsis"><c:out value="${movie.description}"/></div>
+                        </c:if>
+
+                        <%-- ── Trailer (chỉ hiện khi là link YouTube hợp lệ) ── --%>
+                        <c:if test="${not empty movie.embedUrl}">
+                            <h2 class="section-title">Trailer</h2>
+                            <div class="trailer-wrap">
+                                <iframe src="${movie.embedUrl}" allowfullscreen
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                            </div>
+                        </c:if>
+
+                        <%-- ── Lịch chiếu (đã gom nhóm theo chi nhánh ở tầng service) ── --%>
+                        <h2 class="section-title">Lịch chiếu</h2>
+                        <c:choose>
+                            <c:when test="${empty branchShowtimes}">
+                                <div class="empty">Hiện chưa có lịch chiếu cho phim này.</div>
+                            </c:when>
+                            <c:otherwise>
+                                <c:forEach var="b" items="${branchShowtimes}">
+                                    <div class="branch-block">
+                                        <h4><c:out value="${b.branchName}"/></h4>
+                                        <div class="addr"><c:out value="${b.branchAddress}"/></div>
+                                        <div class="showtime-chips">
+                                            <c:forEach var="st" items="${b.showtimes}">
+                                                <a class="showtime-chip" href="${ctx}/booking/seats?showtimeId=${st.id}">
+                                                    <div class="t">${st.startHour}</div>
+                                                    <div class="sub">${st.showDate} &middot; <c:out value="${st.hallType}"/></div>
+                                                </a>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </c:otherwise>
+                        </c:choose>
+
+                        <%-- ── Đánh giá từ khán giả (danh sách review ACTIVE của phim) ── --%>
+                        <h2 class="section-title">Đánh giá từ khán giả</h2>
+                        <c:if test="${param.msg == 'review_ok'}">
+                            <div class="notice ok">Đã lưu đánh giá của bạn.</div>
+                        </c:if>
+                        <c:if test="${param.msg == 'review_failed'}">
+                            <div class="notice err">Không thể lưu/xóa đánh giá (kiểm tra điều kiện hoặc thử lại).</div>
+                        </c:if>
+                        <c:choose>
+                            <c:when test="${empty reviews}">
+                                <div class="empty">Chưa có đánh giá nào cho phim này.</div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="review-list">
+                                    <%-- rv là dto.ReviewView: rv.review = entity Review, rv.userFullName = tên người --%>
+                                    <c:forEach var="rv" items="${reviews}">
+                                        <div class="review-item">
+                                            <div class="review-head">
+                                                <span class="review-author"><c:out value="${rv.userFullName}"/></span>
+                                                <span class="review-stars">${rv.stars}</span>
+                                                <span class="review-date">${rv.createdAtLabel}</span>
+                                            </div>
+                                            <c:if test="${not empty rv.review.comment}">
+                                                <div class="review-text"><c:out value="${rv.review.comment}"/></div>
+                                            </c:if>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+
+        <jsp:include page="/pages/common/footer.jsp" />
+    </body>
 </html>

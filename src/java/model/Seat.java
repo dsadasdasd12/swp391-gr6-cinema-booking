@@ -51,4 +51,8 @@ public class Seat implements Serializable {
         char ch = seatRow.toUpperCase().charAt(0);
         return ch - 'A' + 1;
     }
+    
+    public String getSeatLabel() {
+    return seatRow + seatNumber;
+}
 }
