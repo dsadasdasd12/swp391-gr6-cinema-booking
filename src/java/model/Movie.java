@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import util.MoviePosterFallbacks;
 
 /**
  * Entity ánh xạ một dòng của bảng dbo.MOVIES, kèm vài trường hiển thị suy diễn
@@ -277,6 +278,10 @@ public int getDurationRemainingMinutes() {
     public String getPosterWebPath() {
         String p = normalizePosterPath(posterUrl);
         return p == null ? "" : p;
+    }
+
+    public String getPosterFallbackUrl() {
+        return MoviePosterFallbacks.resolve(title);
     }
 
     /**

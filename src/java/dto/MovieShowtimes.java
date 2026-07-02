@@ -7,6 +7,7 @@ package dto;
 import java.util.ArrayList;
 import java.util.List;
 import model.Showtime;
+import util.MoviePosterFallbacks;
 
 /**
  * Gom các suất chiếu (trong cùng một chi nhánh, cùng một ngày) của cùng một
@@ -54,6 +55,10 @@ public class MovieShowtimes {
 
     public void setPosterUrl(String posterUrl) {
         this.posterUrl = posterUrl;
+    }
+
+    public String getPosterFallbackUrl() {
+        return MoviePosterFallbacks.resolve(movieTitle);
     }
 
     public List<Showtime> getShowtimes() {

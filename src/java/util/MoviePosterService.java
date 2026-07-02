@@ -12,11 +12,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import util.MoviePosterFallbacks;
 
 /**
- * Tải poster phim từ internet và lưu vào thư mục web/assets/uploads/movies/{id}/.
+ * Downloads poster images to local web assets and rewrites poster_url
+ * so movie pages can render without depending on external hotlinks.
  */
 public final class MoviePosterService {
 
@@ -25,33 +25,32 @@ public final class MoviePosterService {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
-    /** Poster TMDB / CDN công khai theo id phim mẫu */
-    private static final Map<Integer, String> POSTER_SOURCES = new LinkedHashMap<>();
-
-    static {
-        POSTER_SOURCES.put(1, "https://image.tmdb.org/t/p/w500/8s9rDqgqgQk7XgFKW8PCeLHxKzL.jpg"); // Lật Mặt 7
-        POSTER_SOURCES.put(2, "https://image.tmdb.org/t/p/w500/w39yx5N7y5P99hBDqmJ9Nqi2nzP.jpg"); // Mai
-        POSTER_SOURCES.put(3, "https://image.tmdb.org/t/p/w500/1pdfLVWWdIOh0J1ioh0jD6W2Y9Z.jpg"); // Dune 2
-        POSTER_SOURCES.put(4, "https://image.tmdb.org/t/p/w500/xvqDOS8FFetD5lSsV9cYQ955i6.jpg"); // Inside Out 2
+    private MoviePosterService() {
     }
 
-    private MoviePosterService() {}
-
     public static void ensurePosters(Connection conn, String webRootPath) {
-        if (conn == null || webRootPath == null) {
+        if (conn == null || webRootPath == null || webRootPath.isBlank()) {
             return;
         }
-        System.out.println("==> Đang tải poster phim...");
-        for (Map.Entry<Integer, String> e : POSTER_SOURCES.entrySet()) {
-            int movieId = e.getKey();
-            try {
-                String relative = downloadPoster(movieId, e.getValue(), webRootPath);
-                if (relative != null) {
+        try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT id, title FROM dbo.MOVIES "
+                        + "WHERE NULLIF(LTRIM(RTRIM(poster_url)), '') IS NULL "
+                        + "OR poster_url LIKE 'http%' "
+                        + "OR poster_url LIKE 'https%'"
+        );
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                int movieId = rs.getInt("id");
+                String sourceUrl = MoviePosterFallbacks.resolve(rs.getString("title"));
+                try {
+                    String relative = downloadPoster(movieId, sourceUrl, webRootPath);
                     updatePosterUrl(conn, movieId, relative);
+                } catch (Exception ex) {
+                    System.err.println("==> Không tải được poster phim " + movieId + ": " + ex.getMessage());
                 }
-            } catch (Exception ex) {
-                System.err.println("==> Không tải được poster phim " + movieId + ": " + ex.getMessage());
             }
+        } catch (SQLException ex) {
+            System.err.println("==> Không đọc được danh sách phim để tải poster: " + ex.getMessage());
         }
     }
 
@@ -71,7 +70,9 @@ public final class MoviePosterService {
             throw new IllegalStateException("HTTP " + response.statusCode());
         }
 
-        String ext = sourceUrl.contains(".png") ? "png" : "jpg";
+        String ext = sourceUrl.contains(".png") ? "png"
+                : sourceUrl.contains(".webp") ? "webp"
+                : "jpg";
         Path file = dir.resolve("poster." + ext);
         try (InputStream in = response.body()) {
             Files.copy(in, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
@@ -81,12 +82,11 @@ public final class MoviePosterService {
     }
 
     private static void updatePosterUrl(Connection conn, int movieId, String relativeUrl) throws SQLException {
-        String sql = "UPDATE dbo.MOVIES SET poster_url = ? WHERE id = ?";
+        String sql = "UPDATE dbo.MOVIES SET poster_url = ?, last_update = GETDATE() WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, relativeUrl);
             ps.setInt(2, movieId);
             ps.executeUpdate();
         }
     }
-
 }

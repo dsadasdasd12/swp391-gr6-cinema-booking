@@ -39,7 +39,9 @@ public class BookingHistoryController extends HttpServlet {
             return;
         }
 
-        request.setAttribute("bookings", bookingService.getHistory(user.getId()));
+        String status = request.getParameter("status");
+        request.setAttribute("status", status);
+        request.setAttribute("bookings", bookingService.getHistory(user.getId(), status));
         request.getRequestDispatcher("/pages/booking/history.jsp").forward(request, response);
     }
 

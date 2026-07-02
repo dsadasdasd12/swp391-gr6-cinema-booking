@@ -77,6 +77,7 @@ public class MovieDetailController extends HttpServlet {
                 break;
                 
                 
+            case "/movies":
             case "/movieslist":
                 showMovieList(request, response);
                 break;

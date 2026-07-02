@@ -119,10 +119,14 @@ public class BookingService {
     }
 
     public List<BookingView> getHistory(int userId) {
+        return getHistory(userId, null);
+    }
+
+    public List<BookingView> getHistory(int userId, String status) {
         if (userId <= 0) {
             return new ArrayList<>();
         }
-        return bookingDAO.findHistoryByUser(userId);
+        return bookingDAO.findHistoryByUser(userId, normalizeHistoryStatus(status));
     }
 
     public BookingView getDetail(int bookingId, int userId) {
@@ -187,6 +191,23 @@ public class BookingService {
     }
 
     private String normalizeStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return null;
+        }
+        String normalized = status.trim().toUpperCase();
+        switch (normalized) {
+            case "PENDING":
+            case "CONFIRMED":
+            case "CHECKED_IN":
+            case "USED":
+            case "CANCELLED":
+                return normalized;
+            default:
+                return null;
+        }
+    }
+
+    private String normalizeHistoryStatus(String status) {
         if (status == null || status.trim().isEmpty()) {
             return null;
         }

@@ -560,17 +560,22 @@ public class BookingDAO {
         return -1;
     }
 
-    public List<BookingView> findHistoryByUser(int userId) {
+    public List<BookingView> findHistoryByUser(int userId, String status) {
         List<BookingView> list = new ArrayList<>();
         String sql = bookingViewSelect()
                 + "WHERE bk.user_id = ? "
+                + "AND (? IS NULL OR bk.status = ?) "
                 + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
                 + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email "
                 + "ORDER BY bk.booked_at DESC, bk.id DESC";
 
+        String normalizedStatus = blankToNull(status);
+
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
+            ps.setString(2, normalizedStatus);
+            ps.setString(3, normalizedStatus);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapBookingView(rs));

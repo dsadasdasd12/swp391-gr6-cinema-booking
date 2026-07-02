@@ -2,6 +2,7 @@
  * Hệ thống Quản lý Rạp chiếu phim RapViet
  * Module: Duyệt phim - truy xuất dữ liệu bảng dbo.LANGUAGES
  */
+// @author HuyPD
 package dao;
 
 import java.sql.Connection;
@@ -47,36 +48,90 @@ public class LanguageDAO {
 
     /** Các ngôn ngữ của một phim, kèm cờ phụ đề (subtitle). */
     public List<Language> findByMovieId(int movieId) {
-    List<Language> list = new ArrayList<>();
-
-    String sql =
-        "SELECT l.id, l.name, l.code, l.status, l.last_update, ml.subtitle " +
-        "FROM MOVIE_LANGUAGES ml " +
-        "JOIN LANGUAGES l ON l.id = ml.language_id " +
-        "WHERE ml.movie_id = ? " +
-        "ORDER BY l.name";
-
-    try (Connection conn = DBContext.getInstance().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-
-        ps.setInt(1, movieId);
-
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Language lang = new Language();
-                lang.setId(rs.getInt("id"));
-                lang.setName(rs.getString("name"));
-                lang.setCode(rs.getString("code"));
-                lang.setStatus(rs.getString("status"));
-
-                list.add(lang);
+        String sql = "SELECT l.id, l.name, l.code, l.status, ml.subtitle "
+                + "FROM dbo.LANGUAGES l "
+                + "JOIN dbo.MOVIE_LANGUAGES ml ON ml.language_id = l.id "
+                + "WHERE ml.movie_id = ? ORDER BY l.name";
+        List<Language> list = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Language l = new Language();
+                    l.setId(rs.getInt("id"));
+                    l.setName(EncodingUtil.getString(rs, "name"));
+                    l.setCode(rs.getString("code"));
+                    l.setStatus(rs.getString("status"));
+                    l.setSubtitle(rs.getBoolean("subtitle"));
+                    list.add(l);
+                }
             }
+        } catch (SQLException e) {
+            System.getLogger(LanguageDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findByMovieId thất bại", e);
         }
-
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
 
-    return list;
-}
+    public List<Language> findAll() {
+        String sql = "SELECT id, name, code, status FROM dbo.LANGUAGES ORDER BY name";
+        List<Language> list = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Language l = new Language();
+                l.setId(rs.getInt("id"));
+                l.setName(EncodingUtil.getString(rs, "name"));
+                l.setCode(rs.getString("code"));
+                l.setStatus(rs.getString("status"));
+                list.add(l);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean insert(Language l) {
+        String sql = "INSERT INTO dbo.LANGUAGES (name, code, status) VALUES (?, ?, ?)";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setNString(1, l.getName());
+            ps.setString(2, l.getCode());
+            ps.setString(3, l.getStatus());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean update(Language l) {
+        String sql = "UPDATE dbo.LANGUAGES SET name = ?, code = ?, status = ? WHERE id = ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setNString(1, l.getName());
+            ps.setString(2, l.getCode());
+            ps.setString(3, l.getStatus());
+            ps.setInt(4, l.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean delete(int id) {
+        String sql = "DELETE FROM dbo.LANGUAGES WHERE id = ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

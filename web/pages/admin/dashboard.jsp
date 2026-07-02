@@ -13,6 +13,7 @@
 %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="pageTitle" value="Bảng điều khiển — Rạp Việt CMS" scope="request" />
 
@@ -167,7 +168,9 @@
         <div class="rv-card__body" style="display: flex; flex-direction: column; gap: var(--s-3);">
             <c:forEach var="m" items="${comingMovies}">
                 <div style="display: flex; gap: var(--s-3); align-items: center; padding-bottom: var(--s-2); border-bottom: 1px solid var(--border);">
-                    <img src="${ctx}/${not empty m.posterUrl ? m.posterUrl : 'assets/img/default-poster.jpg'}" 
+                    <c:set var="comingPosterSrc"
+                           value="${empty m.posterUrl ? m.posterFallbackUrl : (fn:startsWith(m.posterUrl, 'http') ? m.posterUrl : ctx.concat('/').concat(m.posterUrl))}" />
+                    <img src="${comingPosterSrc}" 
                          alt="Poster" 
                          style="width: 45px; height: 60px; object-fit: cover; border-radius: var(--r-md); border: 1px solid var(--border);">
                     <div>

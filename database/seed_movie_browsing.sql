@@ -80,14 +80,14 @@ GO
 
 -- ── Phim (đủ 3 trạng thái để demo bộ lọc) ───────────────────
 INSERT INTO dbo.MOVIES (title, duration_min, description, release_date, status, poster_url, trailer_url, actor, director) VALUES
- (N'Vũ Trụ Song Song', 135, N'Một kỹ sư phát hiện cánh cổng dẫn tới các vũ trụ song song và phải ngăn chặn thảm hoạ dây chuyền.', '2026-05-10', 'NOW_SHOWING', 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg', 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', N'Minh Anh, Quốc Bảo', N'Trần Hùng'),
- (N'Lằn Ranh Sinh Tử', 118, N'Đặc nhiệm phải giải cứu con tin trong một toà nhà bị chiếm giữ.', '2026-05-20', 'NOW_SHOWING', NULL, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'Hữu Long, Lan Phương', N'Phạm Tuấn'),
- (N'Ngôi Nhà Câm Lặng', 102, N'Gia đình trẻ chuyển tới ngôi nhà cổ và đối mặt thế lực vô hình.', '2026-04-28', 'NOW_SHOWING', NULL, NULL, N'Thu Hà, Đức Anh', N'Lê Vân'),
- (N'Tiếng Cười Mùa Hạ', 96, N'Nhóm bạn thân và mùa hè đáng nhớ với những tình huống dở khóc dở cười.', '2026-05-01', 'NOW_SHOWING', NULL, NULL, N'Gia Bảo, Mỹ Linh', N'Ngô Thanh'),
- (N'Hành Tinh Băng Giá', 110, N'Phi hành đoàn khám phá hành tinh băng và bí ẩn của nền văn minh đã mất.', '2026-06-15', 'COMING_SOON', NULL, 'https://youtu.be/aqz-KE-bpKQ', N'Bảo Nam, Hồng Nhung', N'Đỗ Quang'),
- (N'Trái Tim Mùa Đông', 124, N'Chuyện tình lãng mạn vượt thời gian giữa hai con người xa lạ.', '2026-07-01', 'COMING_SOON', NULL, NULL, N'Khánh Vy, Tuấn Kiệt', N'Vũ Hà'),
- (N'Thế Giới Kỳ Diệu', 88, N'Hành trình phiêu lưu của chú robot nhỏ đi tìm gia đình.', '2026-03-10', 'ENDED', NULL, NULL, N'Lồng tiếng Việt', N'Mai Phương'),
- (N'Bóng Đêm Trở Lại', 129, N'Thám tử lần theo dấu vết kẻ sát nhân hàng loạt trong thành phố.', '2026-02-14', 'ENDED', NULL, NULL, N'Anh Tú, Diễm My', N'Hoàng Sơn');
+ (N'Vũ Trụ Song Song', 135, N'Một kỹ sư phát hiện cánh cổng dẫn tới các vũ trụ song song và phải ngăn chặn thảm hoạ dây chuyền.', '2026-05-10', 'NOW_SHOWING', 'https://upload.wikimedia.org/wikipedia/en/1/1e/Everything_Everywhere_All_at_Once.jpg', 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', N'Minh Anh, Quốc Bảo', N'Trần Hùng'),
+ (N'Lằn Ranh Sinh Tử', 118, N'Đặc nhiệm phải giải cứu con tin trong một toà nhà bị chiếm giữ.', '2026-05-20', 'NOW_SHOWING', 'https://upload.wikimedia.org/wikipedia/en/thumb/0/02/Extraction_2_poster.jpg/250px-Extraction_2_poster.jpg', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', N'Hữu Long, Lan Phương', N'Phạm Tuấn'),
+ (N'Ngôi Nhà Câm Lặng', 102, N'Gia đình trẻ chuyển tới ngôi nhà cổ và đối mặt thế lực vô hình.', '2026-04-28', 'NOW_SHOWING', 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e7/A_Quiet_Place_Day_One_%282024%29_poster.jpg/250px-A_Quiet_Place_Day_One_%282024%29_poster.jpg', NULL, N'Thu Hà, Đức Anh', N'Lê Vân'),
+ (N'Tiếng Cười Mùa Hạ', 96, N'Nhóm bạn thân và mùa hè đáng nhớ với những tình huống dở khóc dở cười.', '2026-05-01', 'NOW_SHOWING', 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c4/Anyone_but_You_%282023%29_official_poster.webp/250px-Anyone_but_You_%282023%29_official_poster.webp.png', NULL, N'Gia Bảo, Mỹ Linh', N'Ngô Thanh'),
+ (N'Hành Tinh Băng Giá', 110, N'Phi hành đoàn khám phá hành tinh băng và bí ẩn của nền văn minh đã mất.', '2026-06-15', 'COMING_SOON', 'https://upload.wikimedia.org/wikipedia/en/thumb/5/52/Dune_Part_Two_poster.jpeg/250px-Dune_Part_Two_poster.jpeg', 'https://youtu.be/aqz-KE-bpKQ', N'Bảo Nam, Hồng Nhung', N'Đỗ Quang'),
+ (N'Trái Tim Mùa Đông', 124, N'Chuyện tình lãng mạn vượt thời gian giữa hai con người xa lạ.', '2026-07-01', 'COMING_SOON', 'https://upload.wikimedia.org/wikipedia/en/thumb/3/36/Mai_2024_poster.jpg/250px-Mai_2024_poster.jpg', NULL, N'Khánh Vy, Tuấn Kiệt', N'Vũ Hà'),
+ (N'Thế Giới Kỳ Diệu', 88, N'Hành trình phiêu lưu của chú robot nhỏ đi tìm gia đình.', '2026-03-10', 'ENDED', 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/Inside_Out_2_poster.jpg/250px-Inside_Out_2_poster.jpg', NULL, N'Lồng tiếng Việt', N'Mai Phương'),
+ (N'Bóng Đêm Trở Lại', 129, N'Thám tử lần theo dấu vết kẻ sát nhân hàng loạt trong thành phố.', '2026-02-14', 'ENDED', 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4a/Oppenheimer_%28film%29.jpg/250px-Oppenheimer_%28film%29.jpg', NULL, N'Anh Tú, Diễm My', N'Hoàng Sơn');
 GO
 
 -- ── Gán thể loại cho phim (tra theo tên để không phụ thuộc id) ─

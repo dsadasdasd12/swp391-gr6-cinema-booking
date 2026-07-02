@@ -4,6 +4,8 @@
  */
 package dto;
 
+import util.MoviePosterFallbacks;
+
 /**
  * DTO nhẹ phục vụ trang danh sách phim của admin (movie-list.jsp).
  * Chỉ chứa các trường cần hiển thị trong bảng; tránh đưa toàn bộ model xuống JSP.
@@ -73,6 +75,10 @@ public class MovieDTO {
             p = p.substring(1);
         }
         return p;
+    }
+
+    public String getPosterFallbackUrl() {
+        return MoviePosterFallbacks.resolve(title);
     }
 
     public String getDirector()            { return director; }

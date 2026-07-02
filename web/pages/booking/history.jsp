@@ -26,6 +26,22 @@
     <div class="container">
         <h1 class="page-title">Vé của tôi</h1>
 
+        <form method="get" action="${ctx}/my-bookings" style="display:flex; gap:12px; align-items:end; flex-wrap:wrap; margin: 0 0 20px;">
+            <div style="display:flex; flex-direction:column; gap:6px; min-width:220px;">
+                <label for="status" style="font-size:14px; color:#9aa0aa;">Lọc theo trạng thái</label>
+                <select id="status" name="status" style="height:42px; border-radius:8px; border:1px solid #2a2f3a; background:#11131a; color:#fff; padding:0 12px;">
+                    <option value="" ${empty status ? 'selected' : ''}>Tất cả</option>
+                    <option value="PENDING" ${status == 'PENDING' ? 'selected' : ''}>Chờ thanh toán</option>
+                    <option value="CONFIRMED" ${status == 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
+                    <option value="CHECKED_IN" ${status == 'CHECKED_IN' ? 'selected' : ''}>Đã check-in</option>
+                    <option value="USED" ${status == 'USED' ? 'selected' : ''}>Đã sử dụng</option>
+                    <option value="CANCELLED" ${status == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Lọc</button>
+            <a class="btn btn-ghost" href="${ctx}/my-bookings">Xóa lọc</a>
+        </form>
+
         <c:choose>
             <%-- ── Chưa có đơn nào ── --%>
             <c:when test="${empty bookings}">

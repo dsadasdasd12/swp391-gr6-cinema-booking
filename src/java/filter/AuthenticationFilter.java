@@ -1,9 +1,4 @@
 package filter;
-import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebFilter;
-import jakarta.servlet.http.*;
-import model.User;
-import java.io.IOException;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -85,40 +80,40 @@ public class AuthenticationFilter implements Filter {
             }
         }
         // Block direct JSP access for admin pages
-if (uri.startsWith(ctx + "/pages/admin/")) {
-    if (!"ADMIN".equals(role)) {
-        res.sendRedirect(ctx + "/home");
-        return;
-    }
+        if (uri.startsWith(ctx + "/pages/admin/")) {
+            if (!"ADMIN".equals(role)) {
+                res.sendRedirect(ctx + "/home");
+                return;
+            }
 
-    chain.doFilter(request, response);
-    return;
-}
+            chain.doFilter(request, response);
+            return;
+        }
 
-// Block direct JSP access for manager pages
-if (uri.startsWith(ctx + "/pages/manager/")) {
-    if (!"MANAGER".equals(role) && !"ADMIN".equals(role)) {
-        res.sendRedirect(ctx + "/home");
-        return;
-    }
+        // Block direct JSP access for manager pages
+        if (uri.startsWith(ctx + "/pages/manager/")) {
+            if (!"MANAGER".equals(role) && !"ADMIN".equals(role)) {
+                res.sendRedirect(ctx + "/home");
+                return;
+            }
 
-    chain.doFilter(request, response);
-    return;
-}
+            chain.doFilter(request, response);
+            return;
+        }
 
-// Block direct JSP access for staff pages
-if (uri.startsWith(ctx + "/pages/staff/")) {
-    if (!"STAFF".equals(role)
-            && !"MANAGER".equals(role)
-            && !"ADMIN".equals(role)) {
+        // Block direct JSP access for staff pages
+        if (uri.startsWith(ctx + "/pages/staff/")) {
+            if (!"STAFF".equals(role)
+                    && !"MANAGER".equals(role)
+                    && !"ADMIN".equals(role)) {
 
-        res.sendRedirect(ctx + "/home");
-        return;
-    }
+                res.sendRedirect(ctx + "/home");
+                return;
+            }
 
-    chain.doFilter(request, response);
-    return;
-}
+            chain.doFilter(request, response);
+            return;
+        }
         // ADMIN only
         if (uri.startsWith(ctx + "/admin")) {
 

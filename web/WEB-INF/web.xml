@@ -24,4 +24,8 @@
     <param-name>mail.smtp.password</param-name>
     <param-value>qsrx wbqy udid oqlj</param-value>
 </context-param>
+
+<listener>
+    <listener-class>listener.StartupListener</listener-class>
+</listener>
 </web-app>
