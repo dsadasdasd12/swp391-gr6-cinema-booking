@@ -15,7 +15,7 @@
     <a href="${ctx}/home" class="brand">🎬 RapViet</a>
     <nav class="main-nav">
         <a href="${ctx}/home"   class="${param.active == 'home'   ? 'active' : ''}">Trang chủ</a>
-        <a href="${ctx}/movies" class="${param.active == 'movies' ? 'active' : ''}">Phim</a>
+        <a href="${ctx}/movieslist" class="${param.active == 'movies' ? 'active' : ''}">Phim</a>
         <a href="${ctx}/movies?status=NOW_SHOWING">Đang chiếu</a>
         <a href="${ctx}/movies?status=COMING_SOON">Sắp chiếu</a>
         <a href="${ctx}/booking/start" class="${param.active == 'booking' ? 'active' : ''}">Đặt vé</a>

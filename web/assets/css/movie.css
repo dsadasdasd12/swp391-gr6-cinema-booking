@@ -200,3 +200,60 @@
     width: 100%; background: #0f1115; border: 1px solid #2c3038; border-radius: 8px;
     color: #e8e8ea; padding: 10px 12px; font-family: inherit; font-size: 14px; resize: vertical;
 }
+ 
+
+/* ================= Payment QR ================= */
+
+.payment-qr-box{
+    display:flex;
+    align-items:center;
+    gap:30px;
+
+    margin-top:25px;
+    padding:24px;
+
+    background:#111827;
+    border:1px solid #2c3038;
+    border-radius:12px;
+}
+
+.payment-info{
+    flex:1 1 auto;
+}
+
+.payment-info h3{
+    margin:0 0 18px;
+    color:#fff;
+}
+
+.payment-info p{
+    margin:10px 0;
+    color:#d1d5db;
+}
+
+.payment-info code{
+    color:#ff4d4f;
+    font-weight:700;
+}
+
+.payment-note{
+    color:#9ca3af;
+    font-size:14px;
+}
+
+/* QR luôn nằm sát phải */
+.payment-qr{
+    margin-left:auto;
+    flex-shrink:0;
+}
+
+/* Thu nhỏ QR */
+.payment-qr-img{
+    width:160px;
+    height:160px;
+    display:block;
+
+    background:#fff;
+    border-radius:8px;
+    padding:6px;
+}

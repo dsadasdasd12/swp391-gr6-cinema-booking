@@ -39,7 +39,7 @@
                     <%-- ── Chi tiết phim ── --%>
                     <c:otherwise>
                         <p style="margin:0 0 16px;">
-                            <a href="${ctx}/movies" style="color:#9aa0aa;">← Danh sách phim</a>
+                            <a href="${ctx}/movieslist" style="color:#9aa0aa;">← Danh sách phim</a>
                         </p>
 
                         <div class="detail-hero">

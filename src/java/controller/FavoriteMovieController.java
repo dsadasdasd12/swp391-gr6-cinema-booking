@@ -12,13 +12,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import model.Movie;
 import model.User;
 
 /**
  *
  * @author tttru
  */
-@WebServlet("/favorite-movie")
+@WebServlet({
+    "/favorite-movie"})
 public class FavoriteMovieController extends HttpServlet {
     private final FavoriteMovieDAO favoriteMovieDAO = new FavoriteMovieDAO();
     /**
@@ -56,22 +59,33 @@ public class FavoriteMovieController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+
+        User user = (User) request.getSession().getAttribute("user");
+
+    if (user == null) {
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    List<Movie> favoriteMovies = favoriteMovieDAO.findByUserId(user.getId());
+
+    System.out.println("User ID = " + user.getId());
+    System.out.println("Favorite movies = " + favoriteMovies.size());
+
+    request.setAttribute("favoriteMovies", favoriteMovies);
+
+    request.getRequestDispatcher("/pages/customer/favoritefilms.jsp")
+           .forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         User user = (User) request.getSession().getAttribute("user");
@@ -84,9 +98,8 @@ public class FavoriteMovieController extends HttpServlet {
         int movieId = Integer.parseInt(request.getParameter("movieId"));
 
         favoriteMovieDAO.toggle(user.getId(), movieId);
-        
 
-        response.sendRedirect(request.getContextPath() + "/movie?id=" + movieId);
+        response.sendRedirect(request.getHeader("Referer"));
     }
 
     /**

@@ -52,7 +52,7 @@
             </li>
 
             <li>
-                <a href="${ctx}/favorite-films">
+                <a href="${ctx}/favorite-movie">
                     ❤️ Favorite Film
                 </a>
             </li>

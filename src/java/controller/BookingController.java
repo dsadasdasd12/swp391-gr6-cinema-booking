@@ -1,5 +1,7 @@
 package controller;
 
+
+
 import dto.BookingDraft;
 import dto.BookingDraftView;
 import dto.SeatMap;
@@ -31,6 +33,8 @@ import service.ShowtimeService;
     "/booking/confirm"
 })
 public class BookingController extends HttpServlet {
+
+
 
     private static final String DRAFT_SESSION_KEY = "bookingDraft";
 
@@ -205,7 +209,7 @@ public class BookingController extends HttpServlet {
             request.setAttribute("draftInvalid", Boolean.TRUE);
             request.setAttribute("error", e.getMessage());
         }
-
+        
         request.getRequestDispatcher("/pages/booking/confirm.jsp").forward(request, response);
     }
 

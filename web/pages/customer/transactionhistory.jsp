@@ -26,7 +26,7 @@
 
         <ul class="profile-menu">
             <li><a href="${ctx}/profile">👤 Personal Detail</a></li>
-            <li><a href="${ctx}/favorite-films">❤️ Favorite Film</a></li>
+            <li><a href="${ctx}/favorite-movie">❤️ Favorite Film</a></li>
             <li><a href="${ctx}/transaction-history" class="active">🧾 Transaction History</a></li>
         </ul>
     </aside>

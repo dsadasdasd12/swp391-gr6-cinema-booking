@@ -4,6 +4,10 @@
  */
 package controller;
 
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -25,6 +29,9 @@ import service.BookingService;
  */
 @WebServlet(name = "BookingDetailController", urlPatterns = {"/my-booking"})
 public class BookingDetailController extends HttpServlet {
+        private static final String BANK_CODE = "BIDV";
+private static final String ACCOUNT_NO = "4860555705";
+private static final String ACCOUNT_NAME = "TRAN THE TRUONG";
 
     private final BookingService bookingService = new BookingService();
 
@@ -47,7 +54,22 @@ public class BookingDetailController extends HttpServlet {
             request.setAttribute("notFound", Boolean.TRUE);
         } else {
             request.setAttribute("bk", booking);
+            
+            String transferContent = "RV" + booking.getBooking().getId();
+
+    String paymentQr =
+            "https://img.vietqr.io/image/"
+            + BANK_CODE + "-"
+            + ACCOUNT_NO
+            + "-compact2.png"
+            + "?amount=" + (long) booking.getBooking().getTotalPrice()
+            + "&addInfo=" + URLEncoder.encode(transferContent, StandardCharsets.UTF_8)
+            + "&accountName=" + URLEncoder.encode(ACCOUNT_NAME, StandardCharsets.UTF_8);
+
+    request.setAttribute("paymentQr", paymentQr);
+    request.setAttribute("transferContent", transferContent);
         }
+        
         request.getRequestDispatcher("/pages/booking/detail.jsp").forward(request, response);
     }
 
