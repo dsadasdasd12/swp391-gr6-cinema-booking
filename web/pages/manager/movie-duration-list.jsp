@@ -1,374 +1,718 @@
-<%-- 
-    Document   : movie-duration-list
-    Created on : Jun 18, 2026, 7:23:16 PM
-    Author     : MSI
---%>
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="topUser" value="${sessionScope.user}" />
 
 <!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>
-        Quản lý thời lượng phim - RapViet Cinema
-    </title>
+    <title>Quản lý thời lượng phim - Rạp Việt CMS</title>
+
+    <%-- Dùng design system hiện có của Admin, không sửa file CSS gốc. --%>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet"
-          href="${ctx}/assets/css/style.css">
+          href="${ctx}/assets/css/admin/variables.css?v=redblack">
 
     <link rel="stylesheet"
-          href="${ctx}/assets/css/admin.css">
+          href="${ctx}/assets/css/admin/base.css?v=redblack">
+
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/layout.css?v=redblack">
+
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/components.css?v=redblack">
+
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/tables.css?v=redblack">
+
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/forms.css?v=redblack">
 
     <style>
-        .duration-toolbar {
-            display: flex;
-            justify-content: space-between;
+        /*
+         * CSS chỉ áp dụng cho movie-duration-list.jsp.
+         * Không ảnh hưởng trang Admin, Customer hay trang Manager khác.
+         */
+
+        .manager-duration-page .manager-topbar-context {
+            display: inline-flex;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: var(--s-2);
+            padding-right: var(--s-4);
+            border-right: 1px solid var(--border);
+            color: var(--n-500);
+            font-size: var(--text-sm);
         }
 
-        .duration-search {
-            width: 100%;
-            max-width: 420px;
+        .manager-duration-page .manager-topbar-context i {
+            color: var(--primary-light);
         }
 
-        .duration-search input {
-            width: 100%;
+        .manager-duration-page .manager-sidebar-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin: 0 var(--s-4) var(--s-4);
+            padding: var(--s-4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--r-lg);
+            background: linear-gradient(
+                145deg,
+                rgba(229, 9, 20, 0.18),
+                rgba(255, 255, 255, 0.02)
+            );
+            color: rgba(255, 255, 255, 0.76);
+            font-size: var(--text-xs);
+            line-height: 1.5;
         }
 
-        .duration-note {
-            padding: 14px 16px;
-            margin-bottom: 20px;
-            border: 1px solid #2b303b;
-            border-radius: 9px;
-            background: #11141a;
-            color: #aeb4bf;
-            font-size: 14px;
-            line-height: 1.6;
+        .manager-duration-page .manager-sidebar-info__label {
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
         }
 
-        .duration-note strong {
+        .manager-duration-page .manager-sidebar-info strong {
             color: #ffffff;
+            font-size: var(--text-base);
         }
 
-        .movie-information {
+        .manager-duration-page .manager-duration-note {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--s-3);
+            margin-bottom: var(--s-6);
+            padding: var(--s-4);
+            border: 1px solid #BFDBFE;
+            border-radius: var(--r-md);
+            background: #EFF6FF;
+            color: #1E40AF;
+            font-size: var(--text-base);
+            line-height: 1.65;
+        }
+
+        .manager-duration-page .manager-duration-note i {
+            margin-top: 2px;
+            color: #2563EB;
+            font-size: var(--text-md);
+        }
+
+        .manager-duration-page .manager-duration-note strong {
+            color: #1E3A8A;
+        }
+
+        .manager-duration-page .manager-duration-toolbar {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: var(--s-5);
+            margin-bottom: var(--s-5);
+            flex-wrap: wrap;
+        }
+
+        .manager-duration-page .manager-search-group {
+            width: min(100%, 430px);
+            margin: 0;
+        }
+
+        .manager-duration-page .manager-search-input {
+            position: relative;
+        }
+
+        .manager-duration-page .manager-search-input i {
+            position: absolute;
+            top: 50%;
+            left: var(--s-3);
+            z-index: 1;
+            color: var(--n-400);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .manager-duration-page .manager-search-input .rv-input {
+            padding-left: 42px;
+        }
+
+        .manager-duration-page .manager-total-movies {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--s-2);
+            min-height: var(--input-h);
+            color: var(--n-500);
+            font-size: var(--text-sm);
+            white-space: nowrap;
+        }
+
+        .manager-duration-page .manager-total-movies strong {
+            color: var(--n-900);
+        }
+
+        .manager-duration-page .movie-information {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: var(--s-3);
         }
 
-        .movie-poster-small {
-            width: 52px;
-            height: 72px;
+        .manager-duration-page .movie-poster-small {
+            width: 48px;
+            height: 64px;
             flex-shrink: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            background: var(--n-100);
             object-fit: cover;
-            border: 1px solid #30343f;
-            border-radius: 7px;
-            background: #171a21;
         }
 
-        .movie-poster-placeholder {
-            width: 52px;
-            height: 72px;
-            flex-shrink: 0;
+        .manager-duration-page .movie-poster-placeholder {
             display: flex;
+            width: 48px;
+            height: 64px;
             align-items: center;
             justify-content: center;
-            border: 1px solid #30343f;
-            border-radius: 7px;
-            background: #171a21;
-            color: #7f8794;
-            font-size: 11px;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            background: var(--n-100);
+            color: var(--n-400);
+            font-size: 10px;
+            line-height: 1.4;
             text-align: center;
         }
 
-        .movie-name {
+        .manager-duration-page .movie-name {
             display: block;
-            margin-bottom: 5px;
-            color: #ffffff;
+            margin-bottom: 4px;
+            color: var(--n-900);
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .manager-duration-page .movie-id {
+            color: var(--n-500);
+            font-size: var(--text-sm);
+        }
+
+        .manager-duration-page .current-duration {
+            color: var(--n-900);
             font-weight: 700;
         }
 
-        .movie-id {
-            color: #8f96a3;
-            font-size: 12px;
+        .manager-duration-page .duration-hours {
+            display: block;
+            margin-top: 4px;
+            color: var(--n-500);
+            font-size: var(--text-sm);
         }
 
-        .duration-form {
+        .manager-duration-page .duration-form {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: var(--s-2);
         }
 
-        .duration-input-wrapper {
+        .manager-duration-page .duration-input-wrapper {
             position: relative;
-            width: 150px;
+            width: 145px;
         }
 
-        .duration-input-wrapper input {
-            width: 100%;
+        .manager-duration-page .duration-input-wrapper .rv-input {
             padding-right: 48px;
         }
 
-        .duration-unit {
+        .manager-duration-page .duration-unit {
             position: absolute;
             top: 50%;
-            right: 13px;
-            color: #9299a5;
-            font-size: 13px;
-            pointer-events: none;
+            right: var(--s-3);
+            color: var(--n-500);
+            font-size: var(--text-sm);
             transform: translateY(-50%);
+            pointer-events: none;
         }
 
-        .current-duration {
-            color: #ffffff;
-            font-weight: 700;
-        }
-
-        .duration-hours {
-            display: block;
-            margin-top: 4px;
-            color: #9299a5;
-            font-size: 12px;
-        }
-
-        .badge-coming {
-            background: rgba(202, 138, 4, 0.16);
-            color: #facc15;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        .no-search-result {
-            display: none;
-            padding: 30px 20px;
-            color: #9aa0aa;
+        .manager-duration-page .manager-empty-state {
+            display: flex;
+            min-height: 240px;
+            align-items: center;
+            justify-content: center;
+            padding: var(--s-8);
             text-align: center;
         }
 
+        .manager-duration-page .manager-empty-state__content {
+            max-width: 460px;
+        }
+
+        .manager-duration-page .manager-empty-state__icon {
+            display: inline-flex;
+            width: 56px;
+            height: 56px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--s-4);
+            border-radius: var(--r-lg);
+            background: var(--n-100);
+            color: var(--n-400);
+            font-size: 25px;
+        }
+
+        .manager-duration-page .manager-empty-state h2 {
+            margin: 0 0 var(--s-2);
+            color: var(--n-800);
+            font-size: var(--text-md);
+            font-weight: 700;
+        }
+
+        .manager-duration-page .manager-empty-state p {
+            margin: 0;
+            color: var(--n-500);
+            font-size: var(--text-base);
+            line-height: 1.65;
+        }
+
+        .manager-duration-page .manager-no-search-result {
+            display: none;
+            padding: var(--s-8) var(--s-4);
+            color: var(--n-500);
+            text-align: center;
+        }
+
+        .manager-duration-page .manager-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--s-3);
+            margin-bottom: var(--s-6);
+            padding: var(--s-4);
+            border: 1px solid #FECACA;
+            border-radius: var(--r-md);
+            background: var(--danger-bg);
+            color: #B91C1C;
+            font-size: var(--text-base);
+            line-height: 1.55;
+        }
+
+        .manager-duration-page .manager-alert i {
+            margin-top: 2px;
+            font-size: var(--text-md);
+        }
+
         @media (max-width: 900px) {
-            .duration-toolbar {
-                flex-direction: column;
-                align-items: stretch;
+            .manager-duration-page .manager-topbar-context {
+                display: none;
             }
 
-            .duration-search {
-                max-width: none;
-            }
-
-            .duration-form {
+            .manager-duration-page .manager-duration-toolbar {
                 align-items: stretch;
                 flex-direction: column;
             }
 
-            .duration-input-wrapper {
+            .manager-duration-page .manager-search-group {
+                width: 100%;
+            }
+
+            .manager-duration-page .manager-total-movies {
+                min-height: auto;
+            }
+
+            .manager-duration-page .duration-form {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .manager-duration-page .duration-input-wrapper {
                 width: 100%;
             }
         }
     </style>
+
+    <script src="${ctx}/assets/js/main.js"
+            charset="UTF-8"
+            defer></script>
+
+    <script src="${ctx}/assets/js/confirm.js"
+            charset="UTF-8"
+            defer></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"
+            defer></script>
 </head>
 
-<body>
+<body class="manager-duration-page">
 
-<div class="admin-shell">
+<div class="rv-toast-container">
 
-    <%-- SIDEBAR --%>
-    <aside class="admin-sidebar">
+    <c:if test="${not empty sessionScope.flashMessage}">
+        <div class="rv-toast
+             ${sessionScope.flashType == 'success'
+               ? 'rv-toast--success'
+               : 'rv-toast--error'}">
 
-        <div class="admin-brand">
-            RAPVIET SYSTEM
+            <i class="bi
+               ${sessionScope.flashType == 'success'
+                 ? 'bi-check-circle-fill'
+                 : 'bi-exclamation-octagon-fill'}
+               rv-toast__icon"></i>
+
+            <div class="rv-toast__content">
+                <div class="rv-toast__title">
+                    <c:out value="${sessionScope.flashType == 'success'
+                                   ? 'Thành công'
+                                   : 'Thông báo'}" />
+                </div>
+
+                <div class="rv-toast__message">
+                    <c:out value="${sessionScope.flashMessage}" />
+                </div>
+            </div>
+
+            <button type="button"
+                    class="rv-toast__close"
+                    aria-label="Đóng thông báo">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
 
-        <div class="admin-role">
-            <p>Phân hệ</p>
-            <strong>Manager Dashboard</strong>
-            <span>Quyền: Branch Manager</span>
+        <c:remove var="flashMessage"
+                  scope="session" />
+
+        <c:remove var="flashType"
+                  scope="session" />
+    </c:if>
+</div>
+
+<header class="rv-topbar">
+
+    <button type="button"
+            class="rv-topbar__toggle"
+            title="Mở menu"
+            aria-label="Mở menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <a class="rv-topbar__brand"
+       href="${ctx}/manager/dashboard">
+
+        <div class="rv-topbar__brand-icon">
+            <i class="bi bi-film"></i>
         </div>
 
-        <nav class="admin-menu">
+        <span class="rv-topbar__brand-text">
+            RẠP VIỆT <span>CMS</span>
+        </span>
+    </a>
 
-            <a href="${ctx}/manager/dashboard">
-                Dashboard
-            </a>
+    <div class="rv-topbar__actions">
 
-            <a href="${ctx}/manager/halls">
-                Quản lý phòng chiếu
-            </a>
+        <div class="manager-topbar-context">
+            <i class="bi bi-building"></i>
+            <span>Phân hệ Quản lý chi nhánh</span>
+        </div>
 
-            <a href="${ctx}/manager/showtimes">
-                Quản lý lịch chiếu
-            </a>
+        <div class="rv-topbar__user">
 
-            <a href="${ctx}/manager/movie-assignments/branches">
-                Phim tại chi nhánh
-            </a>
+            <div class="rv-topbar__avatar">
+                <c:choose>
+                    <c:when test="${not empty topUser and not empty topUser.fullName}">
+                        <c:out value="${topUser.fullName.substring(0, 1).toUpperCase()}" />
+                    </c:when>
 
-            <a href="${ctx}/manager/movie-assignments/halls">
-                Phim tại phòng chiếu
-            </a>
+                    <c:otherwise>M</c:otherwise>
+                </c:choose>
+            </div>
 
-            <a class="active"
-               href="${ctx}/manager/movie-durations">
-                Quản lý thời lượng phim
-            </a>
+            <div class="rv-topbar__user-info">
+                <span class="rv-topbar__user-name">
+                    <c:out value="${not empty topUser
+                                   ? topUser.fullName
+                                   : 'Branch Manager'}" />
+                </span>
 
-            <a href="${ctx}/logout">
-                Đăng xuất
-            </a>
-
-        </nav>
-
-    </aside>
-
-    <%-- MAIN CONTENT --%>
-    <main class="admin-main">
-
-        <div class="admin-topbar">
-
-            <div>
-                <strong>
-                    Quản lý thời lượng phim
-                </strong>
-
-                <span>
-                    Thiết lập số phút chạy chính thức của từng bộ phim
+                <span class="rv-topbar__user-role">
+                    Quản lý chi nhánh
                 </span>
             </div>
 
-        </div>
+            <i class="bi bi-chevron-down rv-topbar__user-arrow"></i>
 
-        <section class="admin-content">
+            <div class="rv-topbar__dropdown">
 
-            <div class="page-heading">
+                <div class="rv-topbar__dropdown-header">
+                    <div style="font-weight: 600; color: var(--n-800);">
+                        <c:out value="${not empty topUser
+                                       ? topUser.fullName
+                                       : 'Branch Manager'}" />
+                    </div>
 
-                <div>
-                    <h1>Thời lượng phim</h1>
-
-                    <p>
-                        Thời lượng được sử dụng để tự động tính giờ kết thúc
-                        khi tạo hoặc cập nhật suất chiếu.
-                    </p>
+                    <div class="email">
+                        <c:out value="${not empty topUser
+                                       ? topUser.email
+                                       : ''}" />
+                    </div>
                 </div>
 
-                <a class="btn btn-ghost"
-                   href="${ctx}/manager/dashboard">
+                <a href="${ctx}/manager/dashboard"
+                   class="rv-topbar__dropdown-item">
 
-                    Quay lại Dashboard
-
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    Bảng điều khiển
                 </a>
 
+                <div class="rv-topbar__dropdown-divider"></div>
+
+                <a href="${ctx}/logout"
+                   class="rv-topbar__dropdown-item danger">
+
+                    <i class="bi bi-box-arrow-right"></i>
+                    Đăng xuất
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="rv-wrapper">
+
+    <aside class="rv-sidebar">
+
+        <div class="manager-sidebar-info">
+            <span class="manager-sidebar-info__label">PHÂN HỆ</span>
+            <strong>Branch Manager</strong>
+            <span>Quản lý vận hành chi nhánh được phân công</span>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/dashboard"
+               class="rv-nav__item">
+
+                <i class="bi bi-grid-1x2-fill"></i>
+                Bảng điều khiển
+            </a>
+        </div>
+
+        <div class="rv-nav__label">
+            Vận hành chi nhánh
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/halls"
+               class="rv-nav__item">
+
+                <i class="bi bi-door-open-fill"></i>
+                Quản lý phòng chiếu
+            </a>
+        </div>
+
+        <div class="rv-nav__group open">
+
+            <div class="rv-nav__item active"
+                 role="button"
+                 tabindex="0">
+
+                <i class="bi bi-film"></i>
+                Phân bổ phim
+
+                <i class="bi bi-chevron-right rv-nav__arrow"></i>
             </div>
 
-            <%-- FLASH MESSAGE --%>
-            <c:if test="${not empty sessionScope.flashMessage}">
+            <div class="rv-nav__sub">
 
-                <div class="alert
-                     ${sessionScope.flashType == 'success'
-                       ? 'alert-success'
-                       : 'alert-error'}">
+                <a href="${ctx}/manager/movie-assignments/branches"
+                   class="rv-nav__sub-item">
+                    Phim tại chi nhánh
+                </a>
 
-                    <c:out value="${sessionScope.flashMessage}" />
+                <a href="${ctx}/manager/movie-assignments/halls"
+                   class="rv-nav__sub-item">
+                    Phim tại phòng chiếu
+                </a>
 
+                <a href="${ctx}/manager/movie-durations"
+                   class="rv-nav__sub-item active">
+                    Thời lượng phim
+                </a>
+            </div>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/showtimes"
+               class="rv-nav__item">
+
+                <i class="bi bi-calendar-week-fill"></i>
+                Quản lý lịch chiếu
+            </a>
+        </div>
+
+        <div class="rv-nav__spacer"></div>
+
+        <div class="rv-nav__divider"></div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/logout"
+               class="rv-nav__item logout">
+
+                <i class="bi bi-box-arrow-right"></i>
+                Đăng xuất
+            </a>
+        </div>
+    </aside>
+
+    <main class="rv-main">
+
+        <div class="rv-page-header">
+
+            <div class="rv-page-header__left">
+
+                <div class="rv-breadcrumb">
+                    <a href="${ctx}/manager/dashboard">
+                        Quản lý chi nhánh
+                    </a>
+
+                    <i class="bi bi-chevron-right rv-breadcrumb__sep"></i>
+
+                    <a href="${ctx}/manager/movie-assignments/branches">
+                        Phân bổ phim
+                    </a>
+
+                    <i class="bi bi-chevron-right rv-breadcrumb__sep"></i>
+
+                    <span class="rv-breadcrumb__current">
+                        Thời lượng phim
+                    </span>
                 </div>
 
-                <c:remove var="flashMessage"
-                          scope="session" />
+                <h1 class="rv-page-title">
+                    Quản lý thời lượng phim
+                </h1>
 
-                <c:remove var="flashType"
-                          scope="session" />
+                <p class="rv-page-subtitle">
+                    Thiết lập số phút chạy chính thức của từng Movie để hệ thống tự tính giờ kết thúc suất chiếu.
+                </p>
+            </div>
 
-            </c:if>
+            <div class="rv-page-header__right">
+                <a class="rv-btn rv-btn--ghost"
+                   href="${ctx}/manager/dashboard">
 
-            <div class="duration-note">
+                    <i class="bi bi-arrow-left"></i>
+                    Quay lại Dashboard
+                </a>
+            </div>
+        </div>
 
+        <div class="manager-duration-note">
+            <i class="bi bi-info-circle-fill"></i>
+
+            <div>
                 <strong>Lưu ý:</strong>
 
                 Thời lượng phải là số nguyên từ
                 <strong>1 đến 600 phút</strong>.
 
-                Khi tạo suất chiếu mới, hệ thống tính:
+                Khi tạo hoặc cập nhật suất chiếu, hệ thống tính:
 
                 <strong>
                     Giờ kết thúc = Giờ bắt đầu + Thời lượng phim
                 </strong>.
+            </div>
+        </div>
 
+        <div class="rv-card">
+
+            <div class="rv-card__header">
+                <span class="rv-card__title">
+                    <i class="bi bi-clock-history"
+                       style="margin-right: 8px; color: var(--primary-light);"></i>
+                    Danh sách phim
+                </span>
             </div>
 
-            <div class="panel">
+            <div class="rv-card__body">
 
-                <div class="panel-header">
-                    Danh sách phim
-                </div>
+                <div class="manager-duration-toolbar">
 
-                <div class="panel-body">
+                    <div class="rv-form-group manager-search-group">
 
-                    <div class="duration-toolbar">
+                        <label class="rv-label"
+                               for="movieSearch">
+                            Tìm kiếm phim
+                        </label>
 
-                        <div class="duration-search">
-
-                            <label for="movieSearch">
-                                Tìm kiếm phim
-                            </label>
+                        <div class="manager-search-input">
+                            <i class="bi bi-search"></i>
 
                             <input id="movieSearch"
                                    type="text"
-                                   class="input-field"
+                                   class="rv-input"
                                    placeholder="Nhập tên phim..."
                                    autocomplete="off"
                                    oninput="filterMovies()">
-
                         </div>
-
-                        <div style="color: #9aa0aa; font-size: 14px;">
-
-                            Tổng số phim:
-
-                            <strong style="color: #ffffff;">
-                                <c:out value="${movies.size()}" />
-                            </strong>
-
-                        </div>
-
                     </div>
 
-                    <c:choose>
+                    <div class="manager-total-movies">
+                        <i class="bi bi-film"></i>
 
-                        <%-- CHƯA CÓ PHIM TRONG HỆ THỐNG --%>
-                        <c:when test="${empty movies}">
+                        Tổng số phim:
 
-                            <div class="empty-admin">
+                        <strong>
+                            <c:out value="${movies.size()}" />
+                        </strong>
+                    </div>
+                </div>
 
-                                Hiện tại chưa có phim nào trong hệ thống.
+                <c:choose>
 
+                    <%-- Chưa có Movie trong hệ thống. --%>
+                    <c:when test="${empty movies}">
+
+                        <div class="manager-empty-state">
+                            <div class="manager-empty-state__content">
+
+                                <div class="manager-empty-state__icon">
+                                    <i class="bi bi-film"></i>
+                                </div>
+
+                                <h2>Chưa có Movie trong hệ thống</h2>
+
+                                <p>
+                                    Danh sách Movie sẽ hiển thị tại đây sau khi được thêm vào hệ thống.
+                                </p>
                             </div>
+                        </div>
+                    </c:when>
 
-                        </c:when>
+                    <c:otherwise>
 
-                        <c:otherwise>
+                        <div class="rv-table-wrapper"
+                             style="overflow-x: auto;">
 
-                            <div class="table-responsive">
+                            <table class="rv-table"
+                                   id="movieDurationTable">
 
-                                <table class="admin-table"
-                                       id="movieDurationTable">
-
-                                    <thead>
-
+                                <thead>
                                     <tr>
-
                                         <th>
                                             Phim
                                         </th>
 
-                                        <th style="width: 190px;">
+                                        <th style="width: 180px;">
                                             Trạng thái
                                         </th>
 
@@ -376,15 +720,13 @@
                                             Thời lượng hiện tại
                                         </th>
 
-                                        <th style="width: 360px;">
+                                        <th style="width: 330px;">
                                             Cập nhật thời lượng
                                         </th>
-
                                     </tr>
+                                </thead>
 
-                                    </thead>
-
-                                    <tbody>
+                                <tbody>
 
                                     <c:forEach var="movie"
                                                items="${movies}">
@@ -412,44 +754,31 @@
                                                                 Không có
                                                                 <br>
                                                                 ảnh
-
                                                             </div>
-
                                                         </c:when>
 
                                                         <c:otherwise>
 
                                                             <div class="movie-poster-placeholder">
-
                                                                 Không có
                                                                 <br>
                                                                 ảnh
-
                                                             </div>
-
                                                         </c:otherwise>
-
                                                     </c:choose>
 
                                                     <div>
 
                                                         <span class="movie-name">
-
                                                             <c:out value="${movie.title}" />
-
                                                         </span>
 
                                                         <span class="movie-id">
-
                                                             Mã phim:
                                                             <c:out value="${movie.id}" />
-
                                                         </span>
-
                                                     </div>
-
                                                 </div>
-
                                             </td>
 
                                             <td>
@@ -457,65 +786,59 @@
                                                 <c:choose>
 
                                                     <c:when test="${movie.status == 'NOW_SHOWING'}">
-
-                                                        <span class="badge-status badge-active">
+                                                        <span class="rv-badge rv-badge--nowshowing">
+                                                            <i class="bi bi-play-circle-fill"></i>
                                                             Đang chiếu
                                                         </span>
-
                                                     </c:when>
 
                                                     <c:when test="${movie.status == 'COMING_SOON'}">
-
-                                                        <span class="badge-status badge-coming">
+                                                        <span class="rv-badge rv-badge--comingsoon">
+                                                            <i class="bi bi-calendar-event-fill"></i>
                                                             Sắp chiếu
                                                         </span>
-
                                                     </c:when>
 
                                                     <c:when test="${movie.status == 'ENDED'}">
-
-                                                        <span class="badge-status badge-inactive">
+                                                        <span class="rv-badge rv-badge--ended">
+                                                            <i class="bi bi-stop-circle-fill"></i>
                                                             Đã kết thúc
                                                         </span>
-
                                                     </c:when>
 
                                                     <c:otherwise>
-
-                                                        <span class="badge-status badge-inactive">
-
+                                                        <span class="rv-badge rv-badge--inactive">
                                                             <c:out value="${movie.status}" />
-
                                                         </span>
-
                                                     </c:otherwise>
-
                                                 </c:choose>
-
                                             </td>
 
                                             <td>
 
                                                 <span class="current-duration">
-
                                                     <c:out value="${movie.durationMin}" />
                                                     phút
-
                                                 </span>
 
                                                 <span class="duration-hours">
-
+                                                    <i class="bi bi-clock"></i>
                                                     <c:out value="${movie.durationHours}" />
                                                     giờ
                                                     <c:out value="${movie.durationRemainingMinutes}" />
                                                     phút
-
                                                 </span>
-
                                             </td>
 
                                             <td>
 
+                                                <%--
+                                                    Giữ nguyên:
+                                                    - POST action
+                                                    - movieId
+                                                    - durationMin
+                                                    - JS confirmDurationUpdate(this)
+                                                --%>
                                                 <form method="post"
                                                       action="${ctx}/manager/movie-durations/update"
                                                       class="duration-form"
@@ -537,7 +860,7 @@
 
                                                         <input type="number"
                                                                name="durationMin"
-                                                               class="input-field duration-input"
+                                                               class="rv-input duration-input"
                                                                value="${movie.durationMin}"
                                                                min="1"
                                                                max="600"
@@ -548,49 +871,35 @@
                                                         <span class="duration-unit">
                                                             phút
                                                         </span>
-
                                                     </div>
 
                                                     <button type="submit"
-                                                            class="btn btn-primary">
+                                                            class="rv-btn rv-btn--primary">
 
+                                                        <i class="bi bi-check-lg"></i>
                                                         Cập nhật
-
                                                     </button>
-
                                                 </form>
-
                                             </td>
-
                                         </tr>
-
                                     </c:forEach>
+                                </tbody>
+                            </table>
+                        </div>
 
-                                    </tbody>
+                        <div id="noSearchResult"
+                             class="manager-no-search-result">
 
-                                </table>
+                            <i class="bi bi-search"
+                               style="margin-right: 6px;"></i>
 
-                            </div>
-
-                            <div id="noSearchResult"
-                                 class="no-search-result">
-
-                                Không tìm thấy phim phù hợp.
-
-                            </div>
-
-                        </c:otherwise>
-
-                    </c:choose>
-
-                </div>
-
+                            Không tìm thấy Movie phù hợp.
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
-
-        </section>
-
+        </div>
     </main>
-
 </div>
 
 <script>
@@ -730,5 +1039,4 @@
 </script>
 
 </body>
-
 </html>
