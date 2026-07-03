@@ -250,12 +250,25 @@ public class ShowtimeDAO {
     // READ: Lấy giá vé thực tế của ghế cho suất chiếu (Bảng SEAT_PRICING hoặc fallback về SHOWTIMES.base_price)
     public double getSeatPrice(int showtimeId, String seatType, double basePrice) {
         String sql = "SELECT price FROM dbo.SEAT_PRICING WHERE showtime_id = ? AND seat_type = ?";
-        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, showtimeId);
             ps.setString(2, seatType);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getDouble("price");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Fallback: Lấy chính xác giá tiền thật mặc định của loại ghế đó trong SEAT_TYPES
+        String priceSql = "SELECT default_price FROM dbo.SEAT_TYPES WHERE code = ?";
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(priceSql)) {
+            ps.setString(1, seatType);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("default_price");
                 }
             }
         } catch (Exception e) {
@@ -734,5 +747,35 @@ public class ShowtimeDAO {
         }
 
         return result;
+    }
+
+    public boolean hasFutureShowtimes(int hallId) {
+        String sql = "SELECT COUNT(*) FROM dbo.SHOWTIMES WHERE hall_id = ? AND start_time > GETDATE() AND status != 'CANCELLED'";
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hallId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean hasBookings(int showtimeId) {
+        String sql = "SELECT COUNT(*) FROM dbo.BOOKINGS WHERE showtime_id = ? AND status != 'CANCELLED'";
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, showtimeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

@@ -46,6 +46,8 @@ public class SeatAvailabilityController extends HttpServlet {
 
         // 3) Đẩy dữ liệu sang view
         request.setAttribute("seatMap", seatMap);
+        dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
+        request.setAttribute("allSeatTypes", seatTypeDAO.findAll());
         request.getRequestDispatcher("/pages/seat/availability.jsp").forward(request, response);
     }
 

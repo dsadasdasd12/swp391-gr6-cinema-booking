@@ -23,7 +23,7 @@
 <aside class="rv-sidebar">
     <!-- 🏠 Dashboard -->
     <div class="rv-nav__group">
-        <a href="${ctx}/admin/dashboard" class="rv-nav__item ${uri.contains('/admin/dashboard') ? 'active' : ''}">
+        <a href="${ctx}/${isAdminRole ? 'admin' : 'manager'}/dashboard" class="rv-nav__item ${uri.contains('/admin/dashboard') || uri.contains('/manager/dashboard') ? 'active' : ''}">
             <i class="bi bi-grid-1x2-fill"></i>
             Dashboard
         </a>
@@ -68,12 +68,21 @@
         
         <!-- Branch Management -->
         <div class="rv-nav__group">
-    <a href="${ctx}/admin/branches"
-       class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">
-        <i class="bi bi-geo-alt-fill"></i>
-        Quản lý Chi nhánh
-    </a>
-</div>
+            <a href="${ctx}/admin/branches"
+               class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">
+                <i class="bi bi-geo-alt-fill"></i>
+                Quản lý Chi nhánh
+            </a>
+        </div>
+        
+        <c:if test="${isAdminRole}">
+            <div class="rv-nav__group">
+                <a href="${ctx}/admin/seat-types" class="rv-nav__item ${uri.contains('/admin/seat-types') ? 'active' : ''}">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                    Quản lý loại ghế &amp; giá
+                </a>
+            </div>
+        </c:if>
         
     <!-- 📧 Notifications (đặt vé / thanh toán / hệ thống — không có khuyến mãi) -->
     <div class="rv-nav__group">
@@ -99,9 +108,9 @@
                     Báo cáo hệ thống
                 </a>
             </c:if>
-            <!-- Branch Reports: Manager only -->
-            <c:if test="${isManagerRole || isAdminRole}">
-                <a href="${ctx}/admin/reports/branch" class="rv-nav__sub-item ${uri.contains('/admin/reports/branch') ? 'active' : ''}">
+            <!-- Branch Reports: Admin only -->
+            <c:if test="${isAdminRole}">
+                <a href="${ctx}/admin/reports/branch" class="rv-nav__sub-item ${uri.contains('/reports/branch') ? 'active' : ''}">
                     Báo cáo chi nhánh
                 </a>
             </c:if>

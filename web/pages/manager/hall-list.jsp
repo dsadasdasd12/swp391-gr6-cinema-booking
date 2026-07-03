@@ -41,6 +41,10 @@
                 Quản lý phòng chiếu
             </a>
 
+            <a href="${ctx}/manager/seat-config">
+                Cấu hình ghế
+            </a>
+
             <a href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
@@ -57,6 +61,8 @@
                href="${ctx}/manager/movie-durations">
                 Quản lý thời lượng phim
             </a>
+
+
 
             <a href="${ctx}/logout">
                 Đăng xuất
@@ -197,7 +203,9 @@
                                                         <c:out value="${h.seatsPerRow}" />
                                                         ghế
                                                     </strong>
-
+                                                    <div style="margin-top: 4px;">
+                                                        <a href="${ctx}/manager/seat-config?hallId=${h.id}" class="btn btn-ghost btn-small" style="padding: 2px 6px; font-size: 11px;">🔧 Cấu hình ghế</a>
+                                                    </div>
                                                     <div style="margin-top: 4px;
                                                                 color: #94a3b8;
                                                                 font-size: 12px;">

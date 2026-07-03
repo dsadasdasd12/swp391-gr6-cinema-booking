@@ -168,6 +168,10 @@ public class BookingController extends HttpServlet {
         request.setAttribute("seatMap", seatMap);
         request.setAttribute("bookingMode", Boolean.TRUE);
         request.setAttribute("error", error);
+        
+        dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
+        request.setAttribute("allSeatTypes", seatTypeDAO.findAll());
+        
         request.getRequestDispatcher("/pages/booking/seats.jsp").forward(request, response);
     }
 

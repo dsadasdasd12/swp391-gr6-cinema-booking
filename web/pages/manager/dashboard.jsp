@@ -51,6 +51,10 @@
                 Quản lý phòng chiếu
             </a>
 
+            <a href="${ctx}/manager/seat-config">
+                Cấu hình ghế
+            </a>
+
             <a href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
@@ -63,10 +67,11 @@
                 Phim tại phòng chiếu
             </a>
 
-            <a 
-               href="${ctx}/manager/movie-durations">
+            <a href="${ctx}/manager/movie-durations">
                 Quản lý thời lượng phim
             </a>
+
+
 
             <a href="${ctx}/logout">
                 Đăng xuất
@@ -125,6 +130,19 @@
 
                 </a>
 
+                <%-- CẤU HÌNH GHẾ --%>
+                <a class="dashboard-card"
+                   href="${ctx}/manager/seat-config">
+
+                    <h3>Cấu hình ghế</h3>
+
+                    <p>
+                        Thiết lập sơ đồ ghế, loại ghế (Standard, VIP, Couple) 
+                        và trạng thái bảo trì cho từng ghế trong phòng chiếu.
+                    </p>
+
+                </a>
+
                 <%-- PHÂN BỔ PHIM CHO CHI NHÁNH --%>
                 <a class="dashboard-card"
                    href="${ctx}/manager/movie-assignments/branches">
@@ -166,7 +184,7 @@
 
                 <%-- QUẢN LÝ LỊCH CHIẾU --%>
                 <a class="dashboard-card"
-                   href="${ctx}/manager/showtimes">
+                   href="${ctx}/manager/showtimesmanagement">
 
                     <h3>Quản lý lịch chiếu</h3>
 
@@ -177,6 +195,8 @@
                     </p>
 
                 </a>
+
+
 
             </div>
 

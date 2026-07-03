@@ -9,6 +9,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Chọn ghế - RapViet Cinema</title>
+    <style>
+        <c:forEach items="${allSeatTypes}" var="st">
+        .seat.available.${st.code}:not(.selected) { background-color: ${st.color} !important; }
+        .seat-choice input:checked + .seat.available.${st.code} { background-color: #10b981 !important; border-color: #10b981 !important; }
+        </c:forEach>
+    </style>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/movie.css">
 </head>
@@ -44,12 +50,15 @@
                     <form method="post" action="${ctx}/booking/seats">
                         <input type="hidden" name="showtimeId" value="${st.id}">
 
-                        <div class="seat-legend">
+                        <div class="seat-legend" style="flex-wrap: wrap; gap: 10px 20px;">
                             <span><i class="seat available"></i> Còn trống</span>
-                            <span><i class="seat booked"></i> Đã đặt</span>
+                            <span><i class="seat booked"></i> Đã đạt</span>
                             <span><i class="seat maintenance"></i> Bảo trì</span>
-                            <span><i class="seat available VIP"></i> VIP</span>
-                            <span><i class="seat available COUPLE"></i> Ghế đôi</span>
+                            <c:forEach items="${allSeatTypes}" var="st">
+                                <c:if test="${st.status == 'ACTIVE' && st.code != 'STANDARD'}">
+                                    <span><i class="seat available ${st.code}"></i> ${st.name}</span>
+                                </c:if>
+                            </c:forEach>
                         </div>
 
                         <div class="screen">MÀN HÌNH</div>

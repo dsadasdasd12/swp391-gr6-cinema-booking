@@ -426,4 +426,8 @@ public class ShowtimeService {
     public List<Showtime> getShowtimesByBranchAndDate(int branchId, String dateStr) {
         return showtimeDAO.getShowtimesByBranchAndDate(branchId, dateStr);
     }
+
+    public boolean hasBookings(int showtimeId) {
+        return showtimeDAO.hasBookings(showtimeId);
+    }
 }

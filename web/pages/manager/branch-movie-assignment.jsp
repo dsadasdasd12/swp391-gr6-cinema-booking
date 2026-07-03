@@ -137,6 +137,10 @@
                 Quản lý phòng chiếu
             </a>
 
+            <a href="${ctx}/manager/seat-config">
+                Cấu hình ghế
+            </a>
+
             <a href="${ctx}/manager/showtimesmanagement">
                 Quản lý lịch chiếu
             </a>
@@ -153,6 +157,8 @@
                href="${ctx}/manager/movie-durations">
                 Quản lý thời lượng phim
             </a>
+
+
 
             <a href="${ctx}/logout">
                 Đăng xuất
