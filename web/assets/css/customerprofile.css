@@ -365,3 +365,36 @@ input::-ms-reveal,
 input::-ms-clear {
     display: none;
 }
+
+.pager {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.pager a {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #111827;
+    color: white;
+    text-decoration: none;
+}
+
+.pager a.current {
+    background: #dc2626;
+}
+
+.btn-sm{
+    padding:6px 14px;
+    font-size:13px;
+}
+
+.btn-success{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-success:hover{
+    background:#15803d;
+}

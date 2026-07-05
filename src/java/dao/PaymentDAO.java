@@ -15,7 +15,7 @@ public class PaymentDAO {
                 "(booking_id, type, method, transaction_id, status, amount, paid_at, gateway, last_update) " +
                 "VALUES (?, 'BOOKING', 'SEPAY', ?, 'PENDING', ?, NULL, 'SEPAY', GETDATE())";
 
-        String transactionId = "RV" + bookingId;
+        String transactionId = "RVS" + bookingId;
 
         try (Connection conn = DBContext.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

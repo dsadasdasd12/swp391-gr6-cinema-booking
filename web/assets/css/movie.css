@@ -202,58 +202,71 @@
 }
  
 
-/* ================= Payment QR ================= */
+/* ===== Booking Detail Layout ===== */
 
-.payment-qr-box{
-    display:flex;
-    align-items:center;
-    gap:30px;
+.booking-layout{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: start;
+    margin: 0 10rem 0 0;
+}
 
-    margin-top:25px;
-    padding:24px;
+.payment-qr-img{
+    width: 15rem;
+    height: 15rem;
+}
 
+/*
+
+.booking-summary{
     background:#111827;
     border:1px solid #2c3038;
     border-radius:12px;
+    padding:20px;
 }
 
-.payment-info{
-    flex:1 1 auto;
+.booking-summary-item{
+    display:flex;
+    margin-bottom:14px;
 }
 
-.payment-info h3{
-    margin:0 0 18px;
-    color:#fff;
+.booking-summary-item:last-child{
+    margin-bottom:0;
 }
 
-.payment-info p{
-    margin:10px 0;
-    color:#d1d5db;
-}
-
-.payment-info code{
-    color:#ff4d4f;
-    font-weight:700;
-}
-
-.payment-note{
-    color:#9ca3af;
-    font-size:14px;
-}
-
-/* QR luôn nằm sát phải */
-.payment-qr{
-    margin-left:auto;
+.booking-summary-label{
+    width:130px;
+    color:#9aa0aa;
+    font-weight:600;
     flex-shrink:0;
 }
 
-/* Thu nhỏ QR */
-.payment-qr-img{
-    width:160px;
-    height:160px;
-    display:block;
-
-    background:#fff;
-    border-radius:8px;
-    padding:6px;
+.booking-summary-value{
+    flex:1;
+    color:#fff;
 }
+
+.booking-payment{
+    background:#111827;
+    border:1px solid #2c3038;
+    border-radius:12px;
+    padding:20px;
+    text-align:center;
+}
+
+.booking-payment img{
+    width:250px;
+    height:250px;
+    object-fit:contain;
+    background:#fff;
+    border-radius:10px;
+    padding:8px;
+    margin:15px auto;
+    display:block;
+}
+
+.booking-payment code{
+    color:#ff4d4f;
+    font-weight:bold;
+}*/
