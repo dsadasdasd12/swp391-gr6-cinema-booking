@@ -876,4 +876,57 @@ public class BookingDAO {
         }
         return value.trim();
     }
+    
+    public List<BookingView> findHistoryByUserPaging(int userId, int page, int pageSize) {
+    List<BookingView> list = new ArrayList<>();
+
+    int offset = (page - 1) * pageSize;
+
+    String sql = bookingViewSelect()
+            + "WHERE bk.user_id = ? "
+            + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
+            + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email "
+            + "ORDER BY bk.booked_at DESC, bk.id DESC "
+            + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+    try (Connection conn = new DBContext().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setInt(1, userId);
+        ps.setInt(2, offset);
+        ps.setInt(3, pageSize);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapBookingView(rs));
+            }
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+    
+    public int countHistoryByUser(int userId) {
+    String sql = "SELECT COUNT(*) FROM dbo.BOOKINGS WHERE user_id = ?";
+
+    try (Connection conn = new DBContext().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setInt(1, userId);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return 0;
+}
 }

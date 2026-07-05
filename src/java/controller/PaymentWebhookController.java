@@ -1,5 +1,6 @@
 package controller;
 
+import java.sql.SQLException;
 import service.BookingService;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class PaymentWebhookController extends HttpServlet {
 
         System.out.println("=== SEPAY WEBHOOK RECEIVED ===");
         System.out.println("Payload: " + jsonPayload);
+        
 
         try {
             // 2. Phân tích các trường JSON bằng Regex (không dùng thư viện ngoài)
@@ -44,12 +46,12 @@ public class PaymentWebhookController extends HttpServlet {
             if (transactionContent == null) {
                 transactionContent = extractJsonField(jsonPayload, "content"); // Fallback
             }
-            
+
             String transferAmountStr = extractJsonField(jsonPayload, "transferAmount");
             if (transferAmountStr == null) {
                 transferAmountStr = extractJsonField(jsonPayload, "amount"); // Fallback
             }
-            
+
             String referenceCode = extractJsonField(jsonPayload, "referenceCode");
             if (referenceCode == null || "null".equals(referenceCode)) {
                 referenceCode = extractJsonField(jsonPayload, "id"); // Fallback dùng ID giao dịch SePay
@@ -116,7 +118,7 @@ public class PaymentWebhookController extends HttpServlet {
     private String extractJsonField(String json, String fieldName) {
         // Regex tìm trường JSON dạng "key": "value" hoặc "key": value
         Pattern pattern = Pattern.compile(
-            "\"" + fieldName + "\"[\\s]*:[\\s]*(?:\"([^\"]*)\"|([0-9.-]+|true|false|null))"
+                "\"" + fieldName + "\"[\\s]*:[\\s]*(?:\"([^\"]*)\"|([0-9.-]+|true|false|null))"
         );
         Matcher matcher = pattern.matcher(json);
         if (matcher.find()) {
@@ -129,10 +131,13 @@ public class PaymentWebhookController extends HttpServlet {
     }
 
     private int extractBookingId(String content) {
-        if (content == null) return -1;
-        // Tìm chữ RVS/RVS và các con số liền sau (có thể chứa khoảng trắng)
+        if (content == null) {
+            return -1;
+        }
+
         Pattern pattern = Pattern.compile("RVS\\s*([0-9]+)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(content);
+
         if (matcher.find()) {
             try {
                 return Integer.parseInt(matcher.group(1));
@@ -140,6 +145,7 @@ public class PaymentWebhookController extends HttpServlet {
                 return -1;
             }
         }
+
         return -1;
     }
 }

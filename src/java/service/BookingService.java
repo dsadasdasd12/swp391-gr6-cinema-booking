@@ -202,4 +202,12 @@ public class BookingService {
                 return null;
         }
     }
+    
+    public List<BookingView> getHistoryByUserPaging(int userId, int page, int pageSize) {
+    return bookingDAO.findHistoryByUserPaging(userId, page, pageSize);
+}
+
+public int countHistoryByUser(int userId) {
+    return bookingDAO.countHistoryByUser(userId);
+}
 }

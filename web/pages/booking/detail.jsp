@@ -57,50 +57,61 @@
                                 <span class="badge ${bk.statusBadgeClass}">${bk.statusLabel}</span>
                             </div>
 
-                            <div class="detail-table">
-                                <div><span class="k">Mã đơn</span> #${bk.booking.id}</div>
-                                <div><span class="k">Suất chiếu</span> ${bk.showTimeLabel}</div>
-                                <div><span class="k">Chi nhánh</span> <c:out value="${bk.branchName}"/></div>
-                                <div><span class="k">Phòng</span> <c:out value="${bk.hallName}"/></div>
-                                <div><span class="k">Ghế</span> <c:out value="${bk.seatLabels}"/> (${bk.seatCount} ghế)</div>
-                                <div><span class="k">Tổng tiền</span> ${bk.totalPriceLabel}</div>
-                                <div><span class="k">Hình thức</span> <c:out value="${bk.booking.source}"/></div>
-                                <div><span class="k">Đặt lúc</span> ${bk.bookedAtLabel}</div>
+                            <div class="booking-layout">
+
+                                <div class="booking-summary">
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label"><b>Mã đơn:</b> <span class="booking-summary-value">#${bk.booking.id}</span></div>
+
+                                    </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label"><b>Suất chiếu:</b> <span class="booking-summary-value">${bk.showTimeLabel}</span></div>
+
+                                    </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label"><b>Chi nhánh:</b> <span class="booking-summary-value">${bk.branchName}</span></div>
+
+                                    </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label"><b>Phòng:</b> <span class="booking-summary-value">${bk.hallName}</span></div>
+
+                                    </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label"><b>Ghế:</b> <span class="booking-summary-value">${bk.seatLabels}</span></div>
+
+                                    </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label"><b>Tổng tiền:</b> <span class="booking-summary-value">${bk.totalPriceLabel}</span></div>
+
+                                    </div>
+
+                                </div>
+                                <div class="booking-payment">
+                                    <c:if test="${bk.booking.status == 'PENDING'}">
+                                        <div class="booking-qr-right">
+                                            <h3>Thanh toán đơn vé</h3>
+
+                                            <img class="payment-qr-img"
+                                                 src="${paymentQr}"
+                                                 alt="QR thanh toán">
+
+                                            <p><b>Số tiền:</b> ${bk.totalPriceLabel}</p>
+
+                                            <p>
+                                                <b>Nội dung CK:</b> <code>${transferContent}</code><br>
+                                                
+                                            </p>
+                                        </div>
+                                    </c:if>
+                                </div>
+
                             </div>
-                            <%-- QR thanh toán: chỉ hiện khi đơn đang chờ thanh toán --%>
-                            <c:if test="${bk.booking.status == 'PENDING'}">
-                                <div class="payment-qr-box">
-
-                                    <div class="payment-info">
-                                        <h3>Thanh toán đơn vé</h3>
-
-                                        <p><b>Số tiền:</b> ${bk.totalPriceLabel}</p>
-
-                                        <p>
-                                            <b>Nội dung chuyển khoản:</b><br>
-                                            <code>${transferContent}</code>
-                                        </p>
-
-                                        <p class="payment-note">
-                                            Sau khi thanh toán, hệ thống sẽ tự động xác nhận vé.
-                                        </p>
-                                    </div>
-
-                                    <div class="payment-qr">
-                                        <img class="payment-qr-img"
-                                             src="${paymentQr}"
-                                             alt="QR thanh toán">
-                                    </div>
-
-                                </div>
-                            </c:if>
-                            <%-- Mã QR (nếu đơn đã có) --%>
-                            <c:if test="${not empty bk.booking.qrCode}">
-                                <div class="qr-box">
-                                    <span class="k">Mã vé (QR):</span>
-                                    <code><c:out value="${bk.booking.qrCode}"/></code>
-                                </div>
-                            </c:if>
 
                             <div class="bd-actions">
                                 <%-- Hủy đơn: chỉ hiện khi còn cho phép hủy --%>
@@ -125,4 +136,25 @@
 
         <jsp:include page="/pages/common/footer.jsp" />
     </body>
+    <c:if test="${bk.booking.status == 'PENDING'}">
+        <script>
+            const bookingId = "${bk.booking.id}";
+            const ctx = "${ctx}";
+
+            setInterval(function () {
+                fetch(ctx + "/payment/status?bookingId=" + bookingId)
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            if (data.paid === true) {
+                                window.location.href = ctx + "/booking/success?bookingId=" + bookingId;
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log("Payment polling error:", error);
+                        });
+            }, 3000);
+        </script>
+    </c:if>
 </html>
