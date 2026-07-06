@@ -97,6 +97,27 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);">
+                    <!-- End Date -->
+                    <div class="rv-form-group">
+                        <label class="rv-label" for="endDate">NgÃ y káº¿t thÃºc chiáº¿u *</label>
+                        <input type="date" id="endDate" name="endDate" class="rv-input" required value="${movie.endDateForInput}">
+                    </div>
+
+                    <!-- Auto Status -->
+                    <div class="rv-form-group">
+                        <label class="rv-label" for="status">Tráº¡ng thÃ¡i phÃ¡t hÃ nh</label>
+                        <select id="status" class="rv-select" disabled>
+                            <option value="COMING_SOON" ${movie.status == 'COMING_SOON' ? 'selected' : ''}>Sáº¯p chiáº¿u (Coming Soon)</option>
+                            <option value="NOW_SHOWING" ${movie.status == 'NOW_SHOWING' ? 'selected' : ''}>Äang chiáº¿u (Now Showing)</option>
+                            <option value="ENDED" ${movie.status == 'ENDED' ? 'selected' : ''}>ÄÃ£ káº¿t thÃºc (Ended)</option>
+                        </select>
+                        <span style="font-size: 11px; color: var(--n-400); margin-top: 4px; display: block;">
+                            Tá»± Ä‘á»™ng tÃ­nh theo ngÃ y khá»Ÿi chiáº¿u vÃ  ngÃ y káº¿t thÃºc.
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);">
                     <!-- Duration -->
                     <div class="rv-form-group">
                         <label class="rv-label" for="durationMin">Thời lượng (phút) *</label>
@@ -126,9 +147,9 @@
                     </div>
 
                     <!-- Status Selection -->
-                    <div class="rv-form-group">
+                    <div class="rv-form-group" style="display:none;">
                         <label class="rv-label" for="status">Trạng thái phát hành *</label>
-                        <select id="status" name="status" class="rv-select" required>
+                        <select id="statusLegacy" class="rv-select" disabled>
                             <option value="">-- Chọn trạng thái --</option>
                             <option value="COMING_SOON" ${movie.status == 'COMING_SOON' ? 'selected' : ''}>Sắp chiếu (Coming Soon)</option>
                             <option value="NOW_SHOWING" ${movie.status == 'NOW_SHOWING' ? 'selected' : ''}>Đang chiếu (Now Showing)</option>
@@ -294,6 +315,7 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
         window.showToast('Thiếu ngôn ngữ', 'Vui lòng chọn ngôn ngữ chính.', 'error');
     }
 
+    updateAutoStatus();
     const statusVal = document.getElementById('status').value;
     if (!statusVal) {
         isValid = false;
@@ -301,6 +323,7 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
     }
 
     const releaseInput = document.getElementById('releaseDate').value;
+    const endInput = document.getElementById('endDate').value;
     if (!releaseInput) {
         isValid = false;
         window.showToast('Thiếu ngày chiếu', 'Vui lòng chọn ngày khởi chiếu.', 'error');
@@ -315,6 +338,19 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
         } else if (statusVal === 'ENDED' && release >= today) {
             isValid = false;
             window.showToast('Ngày không hợp lệ', 'Phim đã kết thúc: ngày khởi chiếu phải trước hôm nay.', 'error');
+        }
+    }
+
+    if (!endInput) {
+        isValid = false;
+        window.showToast('Thiáº¿u ngÃ y káº¿t thÃºc', 'Vui lÃ²ng chá»n ngÃ y káº¿t thÃºc chiáº¿u.', 'error');
+    }
+    if (releaseInput && endInput) {
+        const release = new Date(releaseInput + 'T00:00:00');
+        const end = new Date(endInput + 'T00:00:00');
+        if (end < release) {
+            isValid = false;
+            window.showToast('NgÃ y khÃ´ng há»£p lá»‡', 'NgÃ y káº¿t thÃºc chiáº¿u khÃ´ng Ä‘Æ°á»£c trÆ°á»›c ngÃ y khá»Ÿi chiáº¿u.', 'error');
         }
     }
 
@@ -337,6 +373,7 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
 });
 
 (function syncReleaseDateByStatus() {
+    return;
     const statusEl = document.getElementById('status');
     const dateEl = document.getElementById('releaseDate');
     if (!statusEl || !dateEl) return;
@@ -356,6 +393,40 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
     };
     statusEl.addEventListener('change', apply);
     apply();
+})();
+
+function updateAutoStatus() {
+    const statusEl = document.getElementById('status');
+    const releaseEl = document.getElementById('releaseDate');
+    const endEl = document.getElementById('endDate');
+    if (!statusEl || !releaseEl || !endEl || !releaseEl.value || !endEl.value) {
+        return;
+    }
+
+    endEl.min = releaseEl.value;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const release = new Date(releaseEl.value + 'T00:00:00');
+    const end = new Date(endEl.value + 'T00:00:00');
+
+    if (release > today) {
+        statusEl.value = 'COMING_SOON';
+    } else if (end < today) {
+        statusEl.value = 'ENDED';
+    } else {
+        statusEl.value = 'NOW_SHOWING';
+    }
+}
+
+(function bindAutoStatusByDate() {
+    const releaseEl = document.getElementById('releaseDate');
+    const endEl = document.getElementById('endDate');
+    if (!releaseEl || !endEl) {
+        return;
+    }
+    releaseEl.addEventListener('change', updateAutoStatus);
+    endEl.addEventListener('change', updateAutoStatus);
+    updateAutoStatus();
 })();
 </script>
 

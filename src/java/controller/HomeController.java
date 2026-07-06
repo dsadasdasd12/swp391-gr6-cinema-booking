@@ -33,6 +33,8 @@ public class HomeController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        movieService.refreshMovieStatusesByDate();
+
         request.setAttribute("nowShowing", topMovies("NOW_SHOWING"));
         request.setAttribute("comingSoon", topMovies("COMING_SOON"));
 
