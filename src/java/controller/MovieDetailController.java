@@ -322,7 +322,8 @@ public class MovieDetailController extends HttpServlet {
 
         List<Hall> halls = new ArrayList<>();
         List<MovieAssignmentItem> movieItems = new ArrayList<>();
-
+        
+        /*Doi hall tren giao dien*/
         int selectedHallId = parsePositiveInt(
                 request.getParameter("hallId")
         );

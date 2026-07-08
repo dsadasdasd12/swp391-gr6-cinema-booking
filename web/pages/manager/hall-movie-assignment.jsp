@@ -9,16 +9,7 @@
 
 <head>
     <meta charset="UTF-8">
-
-    <meta http-equiv="Cache-Control"
-          content="no-cache, no-store, must-revalidate">
-
-    <meta http-equiv="Pragma"
-          content="no-cache">
-
-    <meta http-equiv="Expires"
-          content="0">
-
+    
     <meta name="viewport"
           content="width=device-width, initial-scale=1">
 
@@ -54,319 +45,7 @@
     <link rel="stylesheet"
           href="${ctx}/assets/css/admin/forms.css?v=redblack">
 
-    <style>
-
-        .manager-hall-assignment-page .manager-topbar-context {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            padding-right: var(--s-4);
-            border-right: 1px solid var(--border);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-hall-assignment-page .manager-topbar-context i {
-            color: var(--primary-light);
-        }
-
-        .manager-hall-assignment-page .manager-sidebar-info {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            margin: 0 var(--s-4) var(--s-4);
-            padding: var(--s-4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--r-lg);
-            background: linear-gradient(
-                145deg,
-                rgba(229, 9, 20, 0.18),
-                rgba(255, 255, 255, 0.02)
-            );
-            color: rgba(255, 255, 255, 0.76);
-            font-size: var(--text-xs);
-            line-height: 1.5;
-        }
-
-        .manager-hall-assignment-page .manager-sidebar-info__label {
-            color: rgba(255, 255, 255, 0.42);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        .manager-hall-assignment-page .manager-sidebar-info strong {
-            color: #ffffff;
-            font-size: var(--text-base);
-        }
-
-        .manager-hall-assignment-page .manager-info-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #BFDBFE;
-            border-radius: var(--r-md);
-            background: #EFF6FF;
-            color: #1E40AF;
-            line-height: 1.55;
-        }
-
-        .manager-hall-assignment-page .manager-info-banner i {
-            margin-top: 2px;
-            font-size: var(--text-md);
-        }
-
-        .manager-hall-assignment-page .manager-info-banner strong {
-            color: #1E3A8A;
-        }
-
-        .manager-hall-assignment-page .manager-info-banner span {
-            display: block;
-            margin-top: 3px;
-            font-size: var(--text-sm);
-        }
-
-        .manager-hall-assignment-page .manager-filter-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: var(--s-5);
-            align-items: end;
-        }
-
-        .manager-hall-assignment-page .manager-input-prefix {
-            position: relative;
-        }
-
-        .manager-hall-assignment-page .manager-input-prefix i {
-            position: absolute;
-            top: 50%;
-            left: var(--s-3);
-            z-index: 1;
-            color: var(--n-400);
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        .manager-hall-assignment-page .manager-input-prefix .rv-input,
-        .manager-hall-assignment-page .manager-input-prefix .rv-select {
-            padding-left: 42px;
-        }
-
-        .manager-hall-assignment-page .manager-card-heading {
-            display: flex;
-            align-items: center;
-            gap: var(--s-3);
-        }
-
-        .manager-hall-assignment-page .manager-card-heading__icon {
-            display: inline-flex;
-            width: 40px;
-            height: 40px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border-radius: var(--r-md);
-            background: rgba(229, 9, 20, 0.14);
-            color: var(--primary-light);
-            font-size: 18px;
-        }
-
-        .manager-hall-assignment-page .manager-card-heading__title {
-            margin: 0;
-            color: var(--n-900);
-            font-size: var(--text-md);
-            font-weight: 700;
-            line-height: 1.35;
-        }
-
-        .manager-hall-assignment-page .manager-card-heading__subtitle {
-            margin-top: 2px;
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            line-height: 1.45;
-        }
-
-        .manager-hall-assignment-page .manager-hall-information {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-5);
-            padding: var(--s-4);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            background: var(--n-50);
-            color: var(--n-600);
-            font-size: var(--text-sm);
-            line-height: 1.65;
-        }
-
-        .manager-hall-assignment-page .manager-hall-information i {
-            margin-top: 2px;
-            color: var(--primary-light);
-            font-size: var(--text-md);
-        }
-
-        .manager-hall-assignment-page .manager-hall-information strong {
-            color: var(--n-900);
-        }
-
-        .manager-hall-assignment-page .manager-assignment-summary {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--s-4);
-            margin-bottom: var(--s-5);
-            padding: var(--s-4);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            background: var(--n-50);
-            flex-wrap: wrap;
-        }
-
-        .manager-hall-assignment-page .manager-assignment-note {
-            max-width: 720px;
-            color: var(--n-600);
-            font-size: var(--text-sm);
-            line-height: 1.65;
-        }
-
-        .manager-hall-assignment-page .manager-assignment-note strong {
-            color: var(--n-900);
-        }
-
-        .manager-hall-assignment-page .manager-select-all-label {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            margin: 0;
-            color: var(--n-700);
-            cursor: pointer;
-            font-size: var(--text-sm);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .manager-hall-assignment-page .movie-checkbox {
-            width: 18px;
-            height: 18px;
-            margin: 0;
-            cursor: pointer;
-            accent-color: var(--primary);
-        }
-
-        .manager-hall-assignment-page .manager-movie-title {
-            display: block;
-            color: var(--n-900);
-            font-weight: 700;
-            line-height: 1.45;
-        }
-
-        .manager-hall-assignment-page .manager-movie-duration {
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-hall-assignment-page .manager-unassigned-text {
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-hall-assignment-page .manager-assignment-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--s-3);
-            margin-top: var(--s-6);
-            padding-top: var(--s-5);
-            border-top: 1px solid var(--border);
-        }
-
-        .manager-hall-assignment-page .manager-empty-state {
-            display: flex;
-            min-height: 240px;
-            align-items: center;
-            justify-content: center;
-            padding: var(--s-8);
-            text-align: center;
-        }
-
-        .manager-hall-assignment-page .manager-empty-state__content {
-            max-width: 470px;
-        }
-
-        .manager-hall-assignment-page .manager-empty-state__icon {
-            display: inline-flex;
-            width: 56px;
-            height: 56px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: var(--s-4);
-            border-radius: var(--r-lg);
-            background: var(--n-100);
-            color: var(--n-400);
-            font-size: 25px;
-        }
-
-        .manager-hall-assignment-page .manager-empty-state h2 {
-            margin: 0 0 var(--s-2);
-            color: var(--n-800);
-            font-size: var(--text-md);
-            font-weight: 700;
-        }
-
-        .manager-hall-assignment-page .manager-empty-state p {
-            margin: 0;
-            color: var(--n-500);
-            font-size: var(--text-base);
-            line-height: 1.65;
-        }
-
-        .manager-hall-assignment-page .manager-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #FECACA;
-            border-radius: var(--r-md);
-            background: var(--danger-bg);
-            color: #B91C1C;
-            font-size: var(--text-base);
-            line-height: 1.55;
-        }
-
-        .manager-hall-assignment-page .manager-alert i {
-            margin-top: 2px;
-            font-size: var(--text-md);
-        }
-
-        @media (max-width: 900px) {
-            .manager-hall-assignment-page .manager-topbar-context {
-                display: none;
-            }
-
-            .manager-hall-assignment-page .manager-filter-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 680px) {
-            .manager-hall-assignment-page .manager-assignment-summary {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .manager-hall-assignment-page .manager-assignment-footer {
-                flex-direction: column-reverse;
-                align-items: stretch;
-            }
-
-            .manager-hall-assignment-page .manager-assignment-footer .rv-btn {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="${ctx}/assets/css/manager/movie-management.css?v=1">
 
     <script src="${ctx}/assets/js/main.js"
             charset="UTF-8"
@@ -476,7 +155,7 @@
             <div class="rv-topbar__dropdown">
 
                 <div class="rv-topbar__dropdown-header">
-                    <div style="font-weight: 600; color: var(--n-800);">
+                    <div class="manager-dropdown-name">
                         <c:out value="${not empty topUser
                                        ? topUser.fullName
                                        : 'Branch Manager'}" />
@@ -629,8 +308,7 @@
             </div>
 
             <div class="rv-page-header__right">
-                <span class="rv-badge rv-badge--manager"
-                      style="padding: var(--s-2) var(--s-3);">
+                <span class="rv-badge rv-badge--manager manager-page-badge">
 
                     <i class="bi bi-person-workspace"></i>
                     Branch Manager
@@ -657,8 +335,7 @@
 
                     <div class="rv-card__header">
                         <span class="rv-card__title">
-                            <i class="bi bi-building-x"
-                               style="margin-right: 8px; color: var(--warning);"></i>
+                            <i class="bi bi-building-x manager-warning-icon"></i>
                             Chưa được phân công chi nhánh
                         </span>
                     </div>
@@ -700,8 +377,7 @@
                 </div>
 
                 <%-- Branch hiển thị, Manager chỉ được đổi Hall trong Branch này. --%>
-                <div class="rv-card"
-                     style="margin-bottom: var(--s-6);">
+                <div class="rv-card manager-card-spaced">
 
                     <div class="rv-card__header">
 
@@ -817,8 +493,7 @@
 
                             <div class="rv-card__header">
                                 <span class="rv-card__title">
-                                    <i class="bi bi-door-closed"
-                                       style="margin-right: 8px; color: var(--warning);"></i>
+                                    <i class="bi bi-door-closed manager-warning-icon"></i>
                                     Chưa có phòng chiếu
                                 </span>
                             </div>
@@ -839,8 +514,7 @@
                                             cho từng Hall.
                                         </p>
 
-                                        <a class="rv-btn rv-btn--primary"
-                                           style="margin-top: var(--s-5);"
+                                        <a class="rv-btn rv-btn--primary manager-empty-action"
                                            href="${ctx}/manager/halls">
 
                                             <i class="bi bi-door-open-fill"></i>
@@ -924,8 +598,7 @@
                                                     Hãy phân bổ Movie cho chi nhánh trước.
                                                 </p>
 
-                                                <a class="rv-btn rv-btn--primary"
-                                                   style="margin-top: var(--s-5);"
+                                                <a class="rv-btn rv-btn--primary manager-empty-action"
                                                    href="${ctx}/manager/movie-assignments/branches">
 
                                                     <i class="bi bi-building-check-fill"></i>
@@ -987,7 +660,7 @@
 
                                                     <thead>
                                                         <tr>
-                                                            <th style="width: 90px; text-align: center;">
+                                                            <th class="manager-selection-col">
                                                                 Chọn
                                                             </th>
 
@@ -1010,13 +683,13 @@
                                                     </thead>
 
                                                     <tbody>
-
+                                                           <%--check box--%>
                                                         <c:forEach var="item"
                                                                    items="${movieItems}">
 
                                                             <tr>
 
-                                                                <td style="text-align: center;">
+                                                                <td class="manager-selection-cell">
 
                                                                     <input type="checkbox"
                                                                            name="movieIds"

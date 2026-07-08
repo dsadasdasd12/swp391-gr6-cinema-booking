@@ -240,10 +240,10 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        prepareFormData(
+        prepareEditFormData(
                 request,
                 branch,
-                showtime.getHallId()
+                hall
         );
 
         request.setAttribute("showtime", showtime);
@@ -401,13 +401,18 @@ public class ShowtimeController extends HttpServlet {
             );
         }
 
-        int selectedHallId = prepareFormData(
-                request,
-                branch,
-                showtime.getHallId()
+        Hall lockedHall = hallDAO.findByIdAndBranchId(
+                current.getHallId(),
+                branch.getId()
         );
 
-        showtime.setHallId(selectedHallId);
+        showtime.setHallId(current.getHallId());
+
+        prepareEditFormData(
+                request,
+                branch,
+                lockedHall
+        );
 
         request.setAttribute("showtime", showtime);
         request.setAttribute("formMode", "edit");
@@ -547,6 +552,41 @@ public class ShowtimeController extends HttpServlet {
         request.setAttribute("selectedHallId", selectedHallId);
 
         return selectedHallId;
+    }
+
+    private void prepareEditFormData(
+            HttpServletRequest request,
+            Branch branch,
+            Hall lockedHall
+    ) {
+        List<Hall> halls = new ArrayList<>();
+        Map<Integer, List<Movie>> moviesByHall
+                = new LinkedHashMap<>();
+
+        List<Movie> selectedHallMovies = new ArrayList<>();
+        int selectedHallId = 0;
+
+        if (branch != null && isHallActive(lockedHall)) {
+            halls.add(lockedHall);
+            selectedHallId = lockedHall.getId();
+
+            selectedHallMovies
+                    = movieManagementDAO.findMoviesAssignedToHall(
+                            selectedHallId
+                    );
+
+            moviesByHall.put(
+                    selectedHallId,
+                    selectedHallMovies
+            );
+        }
+
+        request.setAttribute("branch", branch);
+        request.setAttribute("halls", halls);
+        request.setAttribute("moviesByHall", moviesByHall);
+        request.setAttribute("movies", selectedHallMovies);
+        request.setAttribute("selectedHallId", selectedHallId);
+        request.setAttribute("lockHallOnEdit", true);
     }
 
     private boolean isHallActive(Hall hall) {

@@ -57,327 +57,8 @@
 
     <link rel="stylesheet"
           href="${ctx}/assets/css/admin/forms.css?v=redblack">
-
-    <style>
-        /*
-         * CSS chỉ áp dụng riêng cho showtime-form.jsp.
-         * Không ảnh hưởng Admin, Customer hay các trang Manager khác.
-         */
-
-        .manager-showtime-form-page .manager-topbar-context {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            padding-right: var(--s-4);
-            border-right: 1px solid var(--border);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-showtime-form-page .manager-topbar-context i {
-            color: var(--primary-light);
-        }
-
-        .manager-showtime-form-page .manager-sidebar-info {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            margin: 0 var(--s-4) var(--s-4);
-            padding: var(--s-4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--r-lg);
-            background: linear-gradient(
-                145deg,
-                rgba(229, 9, 20, 0.18),
-                rgba(255, 255, 255, 0.02)
-            );
-            color: rgba(255, 255, 255, 0.76);
-            font-size: var(--text-xs);
-            line-height: 1.5;
-        }
-
-        .manager-showtime-form-page .manager-sidebar-info__label {
-            color: rgba(255, 255, 255, 0.42);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        .manager-showtime-form-page .manager-sidebar-info strong {
-            color: #ffffff;
-            font-size: var(--text-base);
-        }
-
-        .manager-showtime-form-page .manager-showtime-info {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #bfdbfe;
-            border-radius: var(--r-md);
-            background: #eff6ff;
-            color: #1e40af;
-            font-size: var(--text-base);
-            line-height: 1.65;
-        }
-
-        .manager-showtime-form-page .manager-showtime-info i {
-            margin-top: 2px;
-            color: #2563eb;
-            font-size: var(--text-md);
-        }
-
-        .manager-showtime-form-page .manager-showtime-info strong {
-            color: #1e3a8a;
-        }
-
-        .manager-showtime-form-page .manager-form-card-heading {
-            display: flex;
-            align-items: center;
-            gap: var(--s-3);
-        }
-
-        .manager-showtime-form-page .manager-form-card-heading__icon {
-            display: inline-flex;
-            width: 40px;
-            height: 40px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border-radius: var(--r-md);
-            background: rgba(229, 9, 20, 0.14);
-            color: var(--primary-light);
-            font-size: 18px;
-        }
-
-        .manager-showtime-form-page .manager-form-card-heading__title {
-            margin: 0;
-            color: var(--n-900);
-            font-size: var(--text-md);
-            font-weight: 700;
-            line-height: 1.4;
-        }
-
-        .manager-showtime-form-page .manager-form-card-heading__description {
-            margin-top: 3px;
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            line-height: 1.45;
-        }
-
-        .manager-showtime-form-page .field-note {
-            display: block;
-            margin-top: var(--s-2);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            line-height: 1.55;
-        }
-
-        .manager-showtime-form-page .manager-input-icon {
-            position: relative;
-        }
-
-        .manager-showtime-form-page .manager-input-icon i {
-            position: absolute;
-            top: 50%;
-            left: var(--s-3);
-            z-index: 1;
-            color: var(--n-400);
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        .manager-showtime-form-page .manager-input-icon .rv-input,
-        .manager-showtime-form-page .manager-input-icon .rv-select {
-            padding-left: 42px;
-        }
-
-        .manager-showtime-form-page .manager-input-icon--top i {
-            top: 23px;
-        }
-
-        .manager-showtime-form-page .manager-readonly-input {
-            background: var(--n-50);
-            color: var(--n-600);
-        }
-
-        .manager-showtime-form-page .schedule-information {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: var(--s-4);
-            margin-top: var(--s-6);
-            padding: var(--s-5);
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            background: var(--n-50);
-        }
-
-        .manager-showtime-form-page .schedule-information h3 {
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            gap: var(--s-2);
-            margin: 0;
-            color: var(--n-900);
-            font-size: var(--text-md);
-            font-weight: 700;
-        }
-
-        .manager-showtime-form-page .schedule-information h3 i {
-            color: var(--primary-light);
-        }
-
-        .manager-showtime-form-page .schedule-information p {
-            margin: 0;
-            padding: var(--s-4);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            background: var(--surface);
-            color: var(--n-600);
-            font-size: var(--text-sm);
-            line-height: 1.55;
-        }
-
-        .manager-showtime-form-page .schedule-information strong {
-            display: block;
-            margin-top: var(--s-2);
-            color: var(--n-900);
-            font-size: var(--text-base);
-        }
-
-        .manager-showtime-form-page .movie-assignment-warning {
-            display: none;
-            margin-top: var(--s-3);
-            padding: var(--s-3) var(--s-4);
-            border: 1px solid #fed7aa;
-            border-radius: var(--r-md);
-            background: var(--warning-bg);
-            color: #9a3412;
-            font-size: var(--text-sm);
-            line-height: 1.55;
-        }
-
-        .manager-showtime-form-page .movie-assignment-warning a {
-            color: #7c2d12;
-            font-weight: 700;
-            text-decoration: underline;
-        }
-
-        .manager-showtime-form-page .movie-autocomplete {
-            position: relative;
-            width: 100%;
-        }
-
-        .manager-showtime-form-page .movie-suggestion-list {
-            display: none;
-            position: absolute;
-            top: calc(100% + 6px);
-            right: 0;
-            left: 0;
-            z-index: 1000;
-            max-height: 260px;
-            overflow-y: auto;
-            padding: var(--s-2);
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            background: var(--surface);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .manager-showtime-form-page .movie-suggestion-item {
-            display: block;
-            width: 100%;
-            padding: var(--s-3);
-            border: 0;
-            border-radius: var(--r-md);
-            background: transparent;
-            color: var(--n-800);
-            text-align: left;
-            cursor: pointer;
-        }
-
-        .manager-showtime-form-page .movie-suggestion-item:hover,
-        .manager-showtime-form-page .movie-suggestion-item.active {
-            background: rgba(229, 9, 20, 0.1);
-        }
-
-        .manager-showtime-form-page .movie-suggestion-title {
-            display: block;
-            color: var(--n-900);
-            font-size: var(--text-base);
-            font-weight: 700;
-            line-height: 1.4;
-        }
-
-        .manager-showtime-form-page .movie-suggestion-duration {
-            display: block;
-            margin-top: 4px;
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-showtime-form-page .movie-suggestion-empty {
-            padding: var(--s-3);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-showtime-form-page .manager-form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--s-3);
-            margin-top: var(--s-6);
-            padding-top: var(--s-5);
-            border-top: 1px solid var(--border);
-        }
-
-        .manager-showtime-form-page .manager-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #fecaca;
-            border-radius: var(--r-md);
-            background: var(--danger-bg);
-            color: #b91c1c;
-            font-size: var(--text-base);
-            line-height: 1.55;
-        }
-
-        .manager-showtime-form-page .manager-alert i {
-            margin-top: 2px;
-            font-size: var(--text-md);
-        }
-
-        @media (max-width: 1024px) {
-            .manager-showtime-form-page .schedule-information {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .manager-showtime-form-page .manager-topbar-context {
-                display: none;
-            }
-
-            .manager-showtime-form-page .rv-form-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 680px) {
-            .manager-showtime-form-page .manager-form-actions {
-                flex-direction: column-reverse;
-                align-items: stretch;
-            }
-
-            .manager-showtime-form-page .manager-form-actions .rv-btn {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/manager/showtime.css?v=1">
 
     <script src="${ctx}/assets/js/main.js"
             charset="UTF-8"
@@ -452,7 +133,7 @@
             <div class="rv-topbar__dropdown">
 
                 <div class="rv-topbar__dropdown-header">
-                    <div style="font-weight: 600; color: var(--n-800);">
+                    <div class="manager-dropdown-name">
                         <c:out value="${not empty topUser
                                        ? topUser.fullName
                                        : 'Branch Manager'}" />
@@ -710,10 +391,17 @@
                             <div class="manager-input-icon">
                                 <i class="bi bi-door-open"></i>
 
+                                <c:if test="${isEdit}">
+                                    <input type="hidden"
+                                           name="hallId"
+                                           value="${showtime.hallId}">
+                                </c:if>
+
                                 <select id="hallId"
-                                        name="hallId"
+                                        name="${isEdit ? 'hallIdDisplay' : 'hallId'}"
                                         class="rv-select"
-                                        required>
+                                        required
+                                        ${isEdit ? 'disabled' : ''}>
 
                                     <option value="">
                                         -- Chọn phòng chiếu --
@@ -736,7 +424,15 @@
                             </div>
 
                             <span class="field-note">
-                                Chỉ hiển thị Hall thuộc Branch được Admin phân công cho Manager.
+                                <c:choose>
+                                    <c:when test="${isEdit}">
+                                        Khi cập nhật suất chiếu, Hall được khóa theo Hall ban đầu để tránh nhầm với tạo mới.
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        Chỉ hiển thị Hall thuộc Branch được Admin phân công cho Manager.
+                                    </c:otherwise>
+                                </c:choose>
                             </span>
                         </div>
 
@@ -941,7 +637,7 @@
                 </form>
 
                 <select id="movieOptionSource"
-                        style="display: none;"
+                        class="manager-hidden-select"
                         aria-hidden="true">
 
                     <c:forEach var="entry"
@@ -993,6 +689,8 @@
 
     const startTimeInput
             = document.getElementById("startTime");
+
+    setStartTimeMin();
 
     const durationPreview
             = document.getElementById("durationPreview");
@@ -1269,7 +967,67 @@
         updateSchedulePreview();
     }
 
+    function formatDateTimeLocalInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hour = String(date.getHours()).padStart(2, "0");
+        const minute = String(date.getMinutes()).padStart(2, "0");
+
+        return year + "-" + month + "-" + day
+                + "T" + hour + ":" + minute;
+    }
+
+    function getCurrentMinute() {
+        const now = new Date();
+        now.setSeconds(0, 0);
+
+        return now;
+    }
+
+    function setStartTimeMin() {
+        if (!startTimeInput) {
+            return;
+        }
+
+        startTimeInput.min = formatDateTimeLocalInput(
+                getCurrentMinute()
+        );
+    }
+
+    function validateStartTimeNotPast() {
+        setStartTimeMin();
+
+        const startValue = startTimeInput.value;
+
+        if (!startValue) {
+            startTimeInput.setCustomValidity("");
+            return true;
+        }
+
+        const selectedStartTime = parseLocalDateTime(startValue);
+
+        if (!selectedStartTime) {
+            startTimeInput.setCustomValidity(
+                    "Thời gian bắt đầu không hợp lệ."
+            );
+            return false;
+        }
+
+        if (selectedStartTime < getCurrentMinute()) {
+            startTimeInput.setCustomValidity(
+                    "Không thể chọn thời gian bắt đầu trong quá khứ."
+            );
+            return false;
+        }
+
+        startTimeInput.setCustomValidity("");
+        return true;
+    }
+
     function updateSchedulePreview() {
+        validateStartTimeNotPast();
+
         const selectedMovie = getSelectedMovie();
         const duration = selectedMovie ? selectedMovie.duration : 0;
 
@@ -1435,6 +1193,12 @@
     showtimeForm.addEventListener(
             "submit",
             function (event) {
+                if (!validateStartTimeNotPast()) {
+                    event.preventDefault();
+                    startTimeInput.reportValidity();
+                    return;
+                }
+
                 const selectedMovie = getSelectedMovie();
 
                 if (!selectedMovie) {
