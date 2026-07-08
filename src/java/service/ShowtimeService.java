@@ -10,6 +10,7 @@ import dao.MovieManagementDAO;
 import dao.MovieDAO;
 import dao.ShowtimeDAO;
 import dao.StaffBranchDAO;
+import dto.MovieShowtimes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -89,8 +90,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "PhÃ²ng chiáº¿u nÃ y Ä‘Ã£ cÃ³ suáº¥t chiáº¿u "
+                    + "trong khoáº£ng thá»i gian Ä‘Ã£ chá»n."
             );
         }
 
@@ -119,8 +120,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "PhÃ²ng chiáº¿u nÃ y Ä‘Ã£ cÃ³ suáº¥t chiáº¿u "
+                    + "trong khoáº£ng thá»i gian Ä‘Ã£ chá»n."
             );
         }
 
@@ -140,8 +141,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "PhÃ²ng chiáº¿u nÃ y Ä‘Ã£ cÃ³ suáº¥t chiáº¿u "
+                    + "trong khoáº£ng thá»i gian Ä‘Ã£ chá»n."
             );
         }
 
@@ -156,7 +157,7 @@ public class ShowtimeService {
 
         if (showtime == null || showtime.getId() <= 0) {
             throw new IllegalArgumentException(
-                    "Không xác định được suất chiếu cần cập nhật."
+                    "KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c suáº¥t chiáº¿u cáº§n cáº­p nháº­t."
             );
         }
 
@@ -167,7 +168,7 @@ public class ShowtimeService {
 
         if (current == null) {
             throw new IllegalArgumentException(
-                    "Bạn không có quyền cập nhật suất chiếu này."
+                    "Báº¡n khÃ´ng cÃ³ quyá»n cáº­p nháº­t suáº¥t chiáº¿u nÃ y."
             );
         }
 
@@ -187,8 +188,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "PhÃ²ng chiáº¿u nÃ y Ä‘Ã£ cÃ³ suáº¥t chiáº¿u "
+                    + "trong khoáº£ng thá»i gian Ä‘Ã£ chá»n."
             );
         }
 
@@ -230,7 +231,7 @@ public class ShowtimeService {
     private Branch requireAssignedBranch(int managerId) {
         if (managerId <= 0) {
             throw new IllegalArgumentException(
-                    "Tài khoản Manager không hợp lệ."
+                    "TÃ i khoáº£n Manager khÃ´ng há»£p lá»‡."
             );
         }
 
@@ -238,7 +239,7 @@ public class ShowtimeService {
 
         if (branch == null) {
             throw new IllegalArgumentException(
-                    "Tài khoản Manager chưa được Admin phân công chi nhánh."
+                    "TÃ i khoáº£n Manager chÆ°a Ä‘Æ°á»£c Admin phÃ¢n cÃ´ng chi nhÃ¡nh."
             );
         }
 
@@ -251,7 +252,7 @@ public class ShowtimeService {
     ) {
         if (hallId <= 0) {
             throw new IllegalArgumentException(
-                    "Vui lòng chọn phòng chiếu."
+                    "Vui lÃ²ng chá»n phÃ²ng chiáº¿u."
             );
         }
 
@@ -262,7 +263,7 @@ public class ShowtimeService {
 
         if (hall == null) {
             throw new IllegalArgumentException(
-                    "Bạn không có quyền sử dụng phòng chiếu này."
+                    "Báº¡n khÃ´ng cÃ³ quyá»n sá»­ dá»¥ng phÃ²ng chiáº¿u nÃ y."
             );
         }
 
@@ -270,7 +271,7 @@ public class ShowtimeService {
                 hall.getStatus()
         )) {
             throw new IllegalArgumentException(
-                    "Chỉ có thể tạo hoặc cập nhật suất chiếu cho phòng chiếu đang hoạt động."
+                    "Chá»‰ cÃ³ thá»ƒ táº¡o hoáº·c cáº­p nháº­t suáº¥t chiáº¿u cho phÃ²ng chiáº¿u Ä‘ang hoáº¡t Ä‘á»™ng."
             );
         }
     }
@@ -281,37 +282,37 @@ public class ShowtimeService {
     ) {
         if (showtime == null) {
             throw new IllegalArgumentException(
-                    "Dữ liệu suất chiếu không hợp lệ."
+                    "Dá»¯ liá»‡u suáº¥t chiáº¿u khÃ´ng há»£p lá»‡."
             );
         }
 
         if (requireId && showtime.getId() <= 0) {
             throw new IllegalArgumentException(
-                    "Không xác định được suất chiếu cần cập nhật."
+                    "KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c suáº¥t chiáº¿u cáº§n cáº­p nháº­t."
             );
         }
 
         if (showtime.getMovieId() <= 0) {
             throw new IllegalArgumentException(
-                    "Vui lòng chọn phim."
+                    "Vui lÃ²ng chá»n phim."
             );
         }
 
         if (showtime.getHallId() <= 0) {
             throw new IllegalArgumentException(
-                    "Vui lòng chọn phòng chiếu."
+                    "Vui lÃ²ng chá»n phÃ²ng chiáº¿u."
             );
         }
 
         if (showtime.getStartTime() == null) {
             throw new IllegalArgumentException(
-                    "Vui lòng chọn thời gian bắt đầu."
+                    "Vui lÃ²ng chá»n thá»i gian báº¯t Ä‘áº§u."
             );
         }
 
         if (showtime.getBasePrice() < 0) {
             throw new IllegalArgumentException(
-                    "Giá vé cơ bản không được nhỏ hơn 0."
+                    "GiÃ¡ vÃ© cÆ¡ báº£n khÃ´ng Ä‘Æ°á»£c nhá» hÆ¡n 0."
             );
         }
 
@@ -321,7 +322,7 @@ public class ShowtimeService {
 
         if (movie == null) {
             throw new IllegalArgumentException(
-                    "Phim không tồn tại."
+                    "Phim khÃ´ng tá»“n táº¡i."
             );
         }
 
@@ -333,13 +334,13 @@ public class ShowtimeService {
 
         if (!assignedToHall) {
             throw new IllegalArgumentException(
-                    "Phim này chưa được phân bổ cho phòng chiếu đã chọn."
+                    "Phim nÃ y chÆ°a Ä‘Æ°á»£c phÃ¢n bá»• cho phÃ²ng chiáº¿u Ä‘Ã£ chá»n."
             );
         }
 
         if (movie.getDurationMin() <= 0) {
             throw new IllegalArgumentException(
-                    "Phim chưa có thời lượng hợp lệ."
+                    "Phim chÆ°a cÃ³ thá»i lÆ°á»£ng há»£p lá»‡."
             );
         }
 
@@ -353,7 +354,7 @@ public class ShowtimeService {
 
         if (!VALID_STATUS.contains(status)) {
             throw new IllegalArgumentException(
-                    "Trạng thái suất chiếu không hợp lệ."
+                    "Tráº¡ng thÃ¡i suáº¥t chiáº¿u khÃ´ng há»£p lá»‡."
             );
         }
 
@@ -425,5 +426,13 @@ public class ShowtimeService {
 
     public List<Showtime> getShowtimesByBranchAndDate(int branchId, String dateStr) {
         return showtimeDAO.getShowtimesByBranchAndDate(branchId, dateStr);
+    }
+
+    public List<MovieShowtimes> getMovieShowtimesByBranchAndDate(int branchId, LocalDate date) {
+        if (branchId <= 0 || date == null) {
+            return Collections.emptyList();
+        }
+
+        return showtimeDAO.findByBranchAndDate(branchId, date);
     }
 }

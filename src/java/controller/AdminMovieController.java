@@ -345,6 +345,9 @@ public class AdminMovieController extends HttpServlet {
         // releaseDate
         try { m.setReleaseDate(LocalDate.parse(req.getParameter("releaseDate"))); }
         catch (Exception e) { m.setReleaseDate(null); }
+        // endDate
+        try { m.setEndDate(LocalDate.parse(req.getParameter("endDate"))); }
+        catch (Exception e) { m.setEndDate(null); }
         return m;
     }
 
