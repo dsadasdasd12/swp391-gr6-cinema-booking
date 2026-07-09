@@ -435,6 +435,7 @@
                                 <div class="manager-input-prefix">
                                     <i class="bi bi-door-open"></i>
 
+                                        <%--hiển thị dropdown Hall--%>
                                     <select id="hallId"
                                             name="hallId"
                                             class="rv-select"
@@ -453,6 +454,7 @@
 
                                             <c:otherwise>
 
+                                                <%--Danh sách Hall:--%>
                                                 <c:forEach var="hall"
                                                            items="${halls}">
 
@@ -610,6 +612,7 @@
 
                                     <c:otherwise>
 
+                                        <%-- hiển thị danh sách Movie của Hall --%>
                                         <form id="hallAssignmentForm"
                                               method="post"
                                               action="${ctx}/manager/movie-assignments/halls"

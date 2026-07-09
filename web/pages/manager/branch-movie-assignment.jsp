@@ -500,7 +500,8 @@
                                                     <tr>
 
                                                         <td class="center">
-
+                                                            
+                                                            <%--submit các checkbox--%>
                                                             <input type="checkbox"
                                                                    name="movieIds"
                                                                    value="${item.movieId}"

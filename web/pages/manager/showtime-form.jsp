@@ -449,7 +449,8 @@
 
                                 <div class="manager-input-icon">
                                     <i class="bi bi-film"></i>
-
+                                    
+                                    <%-- nguoi dung thay ten phim --%>
                                     <input id="movieTitleInput"
                                            class="rv-input"
                                            type="text"
@@ -469,6 +470,7 @@
                                 </div>
                             </div>
 
+                                    <%-- sever nhan dang phim --%>
                             <input type="hidden"
                                    id="movieId"
                                    name="movieId"
@@ -636,6 +638,7 @@
                     </div>
                 </form>
 
+                        <%-- Dữ liệu phim được đổ vào --%>
                 <select id="movieOptionSource"
                         class="manager-hidden-select"
                         aria-hidden="true">
