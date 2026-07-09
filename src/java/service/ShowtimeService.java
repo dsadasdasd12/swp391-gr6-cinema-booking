@@ -89,8 +89,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
@@ -119,8 +119,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
@@ -140,8 +140,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
@@ -196,8 +196,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
