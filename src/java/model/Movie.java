@@ -288,6 +288,9 @@ public int getDurationRemainingMinutes() {
             return null;
         }
         String p = url.trim();
+        if (isAbsoluteUrl(p)) {
+            return p;
+        }
         while (p.startsWith("/")) {
             p = p.substring(1);
         }
@@ -298,6 +301,18 @@ public int getDurationRemainingMinutes() {
     public String getPosterWebPath() {
         String p = normalizePosterPath(posterUrl);
         return p == null ? "" : p;
+    }
+
+    public boolean isPosterExternalUrl() {
+        return isAbsoluteUrl(posterUrl);
+    }
+
+    public static boolean isAbsoluteUrl(String url) {
+        if (url == null) {
+            return false;
+        }
+        String lower = url.trim().toLowerCase();
+        return lower.startsWith("http://") || lower.startsWith("https://");
     }
 
     /**
