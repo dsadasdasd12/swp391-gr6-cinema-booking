@@ -79,6 +79,7 @@ CREATE TABLE dbo.MOVIES (
     duration_min    INT             NOT NULL,
     description     NVARCHAR(MAX)   NULL,
     release_date    DATE            NOT NULL,
+    end_date        DATE            NULL,
     status          VARCHAR(20)     NOT NULL CONSTRAINT DF_MOV_st  DEFAULT 'COMING_SOON',
     poster_url      VARCHAR(500)    NULL,
     trailer_url     VARCHAR(500)    NULL,
@@ -87,7 +88,8 @@ CREATE TABLE dbo.MOVIES (
     last_update     DATETIME2       NOT NULL CONSTRAINT DF_MOV_lu  DEFAULT GETDATE(),
     CONSTRAINT PK_MOVIES            PRIMARY KEY (id),
     CONSTRAINT CK_MOV_status        CHECK (status IN ('COMING_SOON','NOW_SHOWING','ENDED')),
-    CONSTRAINT CK_MOV_duration      CHECK (duration_min > 0)
+    CONSTRAINT CK_MOV_duration      CHECK (duration_min > 0),
+    CONSTRAINT CK_MOV_dates         CHECK (end_date IS NULL OR end_date >= release_date)
 );
 
 CREATE TABLE dbo.MOVIES_CATEGORY (

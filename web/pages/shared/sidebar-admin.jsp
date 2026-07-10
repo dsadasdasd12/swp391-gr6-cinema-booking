@@ -1,27 +1,28 @@
 <%--
-    Rạp Việt CMS — Premium Admin Sidebar Navigation
+    Rạp Việt CMS - Premium Admin Sidebar Navigation
     Include sau header-admin.jsp trên mỗi trang admin.
     Active state được detect tự động qua request.getRequestURI().
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="ctx"    value="${pageContext.request.contextPath}" />
-<c:set var="uri"    value="${pageContext.request.requestURI}" />
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="uri" value="${pageContext.request.requestURI}" />
 
-<%-- Helper checks for active menus --%>
-<c:set var="isMovie"        value="${uri.contains('/admin/moviesmanagement') || uri.contains('/moviesmanagement')}" />
-<c:set var="isTicket"       value="${uri.contains('/admin/tickets') || uri.contains('/ticket')}" />
-<c:set var="isNotif"        value="${uri.contains('/admin/notifications') || uri.contains('/notification')}" />
-<c:set var="isReport"       value="${uri.contains('/admin/reports') || uri.contains('/report')}" />
+<c:set var="isMovie" value="${uri.contains('/admin/moviesmanagement') || uri.contains('/moviesmanagement') || uri.contains('/admin/movies') || uri.contains('/movie') || uri.contains('/admin/categories') || uri.contains('/admin/genres') || uri.contains('/admin/languages')}" />
+<c:set var="isCategory" value="${uri.contains('/admin/categories')}" />
+<c:set var="isGenre" value="${uri.contains('/admin/genres')}" />
+<c:set var="isLanguage" value="${uri.contains('/admin/languages')}" />
+<c:set var="isTicket" value="${uri.contains('/admin/tickets') || uri.contains('/ticket')}" />
+<c:set var="isNotif" value="${uri.contains('/admin/notifications') || uri.contains('/notification')}" />
+<c:set var="isReport" value="${uri.contains('/admin/reports') || uri.contains('/report')}" />
 <c:set var="isGeneralReport" value="${uri.contains('/admin/reports') && !uri.contains('/admin/reports/system') && !uri.contains('/admin/reports/branch')}" />
-<c:set var="isAccount"      value="${uri.contains('/admin/accounts') || uri.contains('/account')}" />
-<c:set var="isSettings"     value="${uri.contains('/admin/settings')}" />
+<c:set var="isAccount" value="${uri.contains('/admin/accounts') || uri.contains('/account')}" />
+<c:set var="isSettings" value="${uri.contains('/admin/settings')}" />
 <c:set var="sessionUser" value="${not empty sessionScope.user ? sessionScope.user : sessionScope.adminUser}" />
-<c:set var="isAdminRole"    value="${sessionUser.role == 'ADMIN'}" />
-<c:set var="isManagerRole"  value="${sessionUser.role == 'MANAGER'}" />
+<c:set var="isAdminRole" value="${sessionUser.role == 'ADMIN'}" />
+<c:set var="isManagerRole" value="${sessionUser.role == 'MANAGER'}" />
 
 <aside class="rv-sidebar">
-    <!-- 🏠 Dashboard -->
     <div class="rv-nav__group">
         <a href="${ctx}/admin/dashboard" class="rv-nav__item ${uri.contains('/admin/dashboard') ? 'active' : ''}">
             <i class="bi bi-grid-1x2-fill"></i>
@@ -29,7 +30,6 @@
         </a>
     </div>
 
-    <!-- 🎬 Movie Management (Admin / Manager / Staff view only) -->
     <div class="rv-nav__group ${isMovie ? 'open' : ''}">
         <div class="rv-nav__item ${isMovie ? 'active' : ''}">
             <i class="bi bi-film"></i>
@@ -44,38 +44,40 @@
                 <a href="${ctx}/admin/moviesmanagement?action=new" class="rv-nav__sub-item ${isMovie && param.action == 'new' ? 'active' : ''}">
                     Thêm phim mới
                 </a>
+                <a href="${ctx}/admin/categories" class="rv-nav__sub-item ${isCategory ? 'active' : ''}">
+                    Danh mục phim
+                </a>
+                <a href="${ctx}/admin/genres" class="rv-nav__sub-item ${isGenre ? 'active' : ''}">
+                    Thể loại phim
+                </a>
+                <a href="${ctx}/admin/languages" class="rv-nav__sub-item ${isLanguage ? 'active' : ''}">
+                    Ngôn ngữ phim
+                </a>
             </c:if>
         </div>
     </div>
 
-    <!-- 🎫 Booking Management -->
     <div class="rv-nav__group">
         <a href="${ctx}/admin/tickets?action=list" class="rv-nav__item ${isTicket ? 'active' : ''}">
             <i class="bi bi-qr-code"></i>
             Quản lý vé &amp; Booking
         </a>
     </div>
-            
-            <!-- Cinema Management -->
+
     <div class="rv-nav__group">
-    <a href="${ctx}/admin/cinemas"
-       class="rv-nav__item ${uri.contains('/admin/cinemas') ? 'active' : ''}">
-        <i class="bi bi-building-fill"></i>
-        Quản lý Chuỗi rạp
-    </a>
-</div>
-        
-        
-        <!-- Branch Management -->
-        <div class="rv-nav__group">
-    <a href="${ctx}/admin/branches"
-       class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">
-        <i class="bi bi-geo-alt-fill"></i>
-        Quản lý Chi nhánh
-    </a>
-</div>
-        
-    <!-- 📧 Notifications (đặt vé / thanh toán / hệ thống — không có khuyến mãi) -->
+        <a href="${ctx}/admin/settings#panel-cinema" class="rv-nav__item ${uri.contains('/admin/settings') ? 'active' : ''}">
+            <i class="bi bi-building-fill"></i>
+            Quản lý Chuỗi rạp
+        </a>
+    </div>
+
+    <div class="rv-nav__group">
+        <a href="${ctx}/admin/branches" class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">
+            <i class="bi bi-geo-alt-fill"></i>
+            Quản lý Chi nhánh
+        </a>
+    </div>
+
     <div class="rv-nav__group">
         <a href="${ctx}/admin/notifications?action=list" class="rv-nav__item ${isNotif ? 'active' : ''}">
             <i class="bi bi-envelope-check-fill"></i>
@@ -83,7 +85,6 @@
         </a>
     </div>
 
-    <!-- ── REPORTING & ANALYTICS ── -->
     <div class="rv-nav__label">Báo cáo &amp; Phân tích</div>
 
     <div class="rv-nav__group ${isReport ? 'open' : ''}">
@@ -93,13 +94,11 @@
             <i class="bi bi-chevron-right rv-nav__arrow"></i>
         </div>
         <div class="rv-nav__sub">
-            <!-- System Reports: Admin only -->
             <c:if test="${isAdminRole}">
                 <a href="${ctx}/admin/reports/system" class="rv-nav__sub-item ${uri.contains('/admin/reports/system') ? 'active' : ''}">
                     Báo cáo hệ thống
                 </a>
             </c:if>
-            <!-- Branch Reports: Manager only -->
             <c:if test="${isManagerRole || isAdminRole}">
                 <a href="${ctx}/admin/reports/branch" class="rv-nav__sub-item ${uri.contains('/admin/reports/branch') ? 'active' : ''}">
                     Báo cáo chi nhánh
@@ -126,10 +125,9 @@
         </div>
     </div>
 
-    <!-- ── ACCOUNTS & SECURITY ── -->
     <div class="rv-nav__label">Tài khoản &amp; Bảo mật</div>
 
-   <div class="rv-nav__group ${isAccount ? 'open' : ''}">
+    <div class="rv-nav__group ${isAccount ? 'open' : ''}">
         <div class="rv-nav__item ${isAccount ? 'active' : ''}">
             <i class="bi bi-people-fill"></i>
             Quản trị tài khoản
@@ -153,7 +151,6 @@
     <div class="rv-nav__spacer"></div>
     <div class="rv-nav__divider"></div>
 
-    <!-- System Settings -->
     <c:if test="${isAdminRole}">
         <div class="rv-nav__group">
             <a href="${ctx}/admin/settings" class="rv-nav__item ${isSettings ? 'active' : ''}">
@@ -163,7 +160,6 @@
         </div>
     </c:if>
 
-    <!-- Logout -->
     <div class="rv-nav__group">
         <a href="${ctx}/logout" class="rv-nav__item logout" data-confirm data-confirm-title="Đăng xuất?" data-confirm-message="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống Rap Việt CMS?" data-confirm-type="warning" data-confirm-text="Đăng xuất">
             <i class="bi bi-box-arrow-right"></i>
@@ -172,5 +168,4 @@
     </div>
 </aside>
 
-<!-- Admin main content area starts immediately after sidebar. Closed in page footer -->
 <main class="rv-main">
