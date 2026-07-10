@@ -201,7 +201,8 @@ public class ShowtimeController extends HttpServlet {
         int showtimeId = parseInt(
                 request.getParameter("id")
         );
-
+        
+        /*check showtime thuoc branch*/
         Showtime showtime = showtimeService.getShowtimeByIdAndManagerId(
                 showtimeId,
                 manager.getId()
@@ -221,6 +222,7 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
+            /* lay hall hien tai cua showtime */
         Hall hall = hallDAO.findByIdAndBranchId(
                 showtime.getHallId(),
                 branch.getId()
@@ -492,7 +494,8 @@ public class ShowtimeController extends HttpServlet {
 
         return showtime;
     }
-
+    
+    /*form create*/
     private int prepareFormData(
             HttpServletRequest request,
             Branch branch,
@@ -510,20 +513,23 @@ public class ShowtimeController extends HttpServlet {
             List<Hall> branchHalls = hallDAO.findByBranchId(
                     branch.getId()
             );
-
+            
+            /*hall active*/
             for (Hall hall : branchHalls) {
                 if (isHallActive(hall)) {
                     halls.add(hall);
                 }
             }
-
+            
+            /*hall mac dinh*/
             if (containsHall(halls, requestedHallId)) {
                 selectedHallId = requestedHallId;
 
             } else if (!halls.isEmpty()) {
                 selectedHallId = halls.get(0).getId();
             }
-
+            
+            /*lay danh sach phim*/
             for (Hall hall : halls) {
                 List<Movie> assignedMovies
                         = movieManagementDAO.findMoviesAssignedToHall(
@@ -554,6 +560,7 @@ public class ShowtimeController extends HttpServlet {
         return selectedHallId;
     }
 
+        /*form edit*/
     private void prepareEditFormData(
             HttpServletRequest request,
             Branch branch,

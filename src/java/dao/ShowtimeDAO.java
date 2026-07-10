@@ -143,6 +143,7 @@ public class ShowtimeDAO {
         return list;
     }
 
+    /*manage chi sua id showtime thuoc branch hien tai*/
     public Showtime findByIdAndBranchId(int id, int branchId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "

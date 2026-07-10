@@ -44,6 +44,7 @@ public class HallDAO {
         return halls;
     }
 
+    /* lay hall hien tai cua showtime */
     public Hall findByIdAndBranchId(int id, int branchId) {
         String sql = "SELECT h.id, h.branch_id, b.name AS branch_name, "
                 + "h.name, h.seat_rows, h.seats_per_row, h.total_seats, "
