@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewImg = document.getElementById('rv-preview-img');
   const uploadPlaceholder = document.getElementById('rv-upload-placeholder');
   const clearPosterBtn = document.getElementById('rv-clear-poster');
-  const posterUrlInput = document.getElementById('posterUrl');
 
   if (uploadZone && posterInput) {
     uploadZone.addEventListener('click', (e) => {
@@ -125,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
       clearPosterBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         posterInput.value = '';
-        if (posterUrlInput) posterUrlInput.value = '';
         previewImg.src = '';
         posterPreview.style.display = 'none';
         uploadPlaceholder.style.display = 'flex';
@@ -152,19 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
       markDirty();
     };
     reader.readAsDataURL(file);
-  }
-
-  if (posterUrlInput && posterPreview && previewImg && uploadPlaceholder) {
-    const previewPosterUrl = () => {
-      const url = posterUrlInput.value.trim();
-      if (!url) return;
-      previewImg.src = url;
-      uploadPlaceholder.style.display = 'none';
-      posterPreview.style.display = 'block';
-      markDirty();
-    };
-    posterUrlInput.addEventListener('input', previewPosterUrl);
-    posterUrlInput.addEventListener('change', previewPosterUrl);
   }
 
   const tagContainer = document.getElementById('rv-genre-tags-container');

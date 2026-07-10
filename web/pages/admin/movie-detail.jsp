@@ -40,7 +40,7 @@
             <!-- Poster -->
             <c:choose>
                 <c:when test="${not empty movie.posterWebPath}">
-                    <img src="${movie.posterExternalUrl ? movie.posterWebPath : ctx.concat('/').concat(movie.posterWebPath)}" alt="Poster ${movie.title}"
+                    <img src="${ctx}/${movie.posterWebPath}" alt="Poster ${movie.title}"
                          style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:2/3;margin-bottom:1rem;">
                 </c:when>
                 <c:otherwise>
@@ -71,21 +71,17 @@
             </div>
         </div>
 
-        <!-- Poster URL -->
+        <!-- Upload poster -->
         <div class="admin-card mt-3">
-            <h3 style="font-size:.9rem;font-weight:600;margin-bottom:.75rem;">Poster Cloudinary</h3>
-            <form method="post" action="${ctx}/admin/moviesmanagement">
-                <input type="hidden" name="action"  value="update-poster">
+            <h3 style="font-size:.9rem;font-weight:600;margin-bottom:.75rem;">Upload poster mới</h3>
+            <form method="post" action="${ctx}/admin/moviesmanagement" enctype="multipart/form-data">
+                <input type="hidden" name="action"  value="upload">
                 <input type="hidden" name="movieId" value="${movie.id}">
-                <label class="form-label-admin" for="posterUrlDetail" style="font-size:.78rem;">URL poster</label>
-                <input type="url" id="posterUrlDetail" name="posterUrl" class="form-ctrl-admin mb-2"
-                       placeholder="https://res.cloudinary.com/.../image/upload/..."
-                       value="<c:out value='${movie.posterUrl}'/>">
-                <span style="font-size:.7rem;color:var(--clr-muted);display:block;margin-bottom:.5rem;">
-                    Dán URL Cloudinary để cả nhóm dùng chung ảnh.
-                </span>
-                <button type="submit" class="btn-admin-ghost w-100">
-                    <i class="bi bi-check-lg"></i> Lưu poster
+                <input type="hidden" name="type"    value="poster">
+                <input type="file" name="file" accept="image/jpeg,image/png,image/webp"
+                       class="form-ctrl-admin mb-2" style="padding:.4rem;" id="uploadPosterInput">
+                <button type="submit" class="btn-admin-ghost w-100" id="btnUploadPosterDetail">
+                    <i class="bi bi-upload"></i> Upload
                 </button>
             </form>
         </div>

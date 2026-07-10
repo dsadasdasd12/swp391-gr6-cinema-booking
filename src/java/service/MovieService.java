@@ -76,10 +76,6 @@ public class MovieService {
         return movieDAO.search(filter);
     }
 
-    public int refreshMovieStatusesByDate() {
-        return movieDAO.refreshStatusesByDate(LocalDate.now());
-    }
-
     /** Chi tiết đầy đủ của một phim, hoặc {@code null} nếu phim không tồn tại. */
     public Movie getMovieDetail(int movieId) {
         if (movieId <= 0) {
@@ -470,7 +466,7 @@ public class MovieService {
             );
         }
 
-        Movie movie = movieDAO.findById(movieId);
+        Movie movie = movieManagementDAO.findMovieById(movieId);
 
         if (movie == null) {
             throw new IllegalArgumentException(
@@ -610,14 +606,11 @@ public class MovieService {
         if (m.getReleaseDate() == null) {
             errors.add("Vui lòng chọn ngày khởi chiếu.");
         }
-        if (m.getEndDate() == null) {
-            errors.add("Vui lòng chọn ngày kết thúc chiếu.");
-        }
-        if (m.getReleaseDate() != null
-                && m.getEndDate() != null
-                && m.getEndDate().isBefore(m.getReleaseDate())) {
-
-            errors.add("Ngày kết thúc chiếu không được trước ngày khởi chiếu.");
+        if (m.getStatus() == null
+                || (!m.getStatus().equals("COMING_SOON")
+                &&  !m.getStatus().equals("NOW_SHOWING")
+                &&  !m.getStatus().equals("ENDED"))) {
+            errors.add("Vui lòng chọn trạng thái phát hành.");
         }
         if (categoryIds == null || categoryIds.isEmpty()) {
             errors.add("Vui lòng chọn ít nhất một thể loại.");
@@ -628,6 +621,27 @@ public class MovieService {
         if (requirePoster && (m.getPosterUrl() == null || m.getPosterUrl().isBlank())) {
             errors.add("Vui lòng tải lên poster phim.");
         }
+        if (m.getReleaseDate() != null && m.getStatus() != null) {
+            LocalDate today = LocalDate.now();
+            switch (m.getStatus()) {
+                case "COMING_SOON" -> {
+                    if (m.getReleaseDate().isBefore(today)) {
+                        errors.add("Phim sắp chiếu: ngày khởi chiếu không được trước hôm nay.");
+                    }
+                }
+                case "NOW_SHOWING" -> {
+                    if (m.getReleaseDate().isAfter(today)) {
+                        errors.add("Phim đang chiếu: ngày khởi chiếu không được sau hôm nay.");
+                    }
+                }
+                case "ENDED" -> {
+                    if (!m.getReleaseDate().isBefore(today)) {
+                        errors.add("Phim đã kết thúc: ngày khởi chiếu phải trước hôm nay.");
+                    }
+                }
+                default -> {}
+            }
+        }
         return errors;
     }
 
@@ -636,7 +650,6 @@ public class MovieService {
      * @return id mới, hoặc -1 nếu validate thất bại hoặc lỗi DB
      */
     public int addMovie(Movie m, List<Integer> catIds, List<Integer> langIds) {
-        m.setStatus(resolveStatusByDate(m.getReleaseDate(), m.getEndDate()));
         return movieDAO.insert(m, catIds, langIds);
     }
 
@@ -652,21 +665,9 @@ public class MovieService {
                                   boolean requirePoster) {
         List<String> errors = validateMovie(m, catIds, langIds, requirePoster);
         if (!errors.isEmpty()) return errors;
-        m.setStatus(resolveStatusByDate(m.getReleaseDate(), m.getEndDate()));
         boolean ok = movieDAO.update(m, catIds, langIds);
         if (!ok) errors.add("Cập nhật thất bại, vui lòng thử lại.");
         return errors;
-    }
-
-    public String resolveStatusByDate(LocalDate releaseDate, LocalDate endDate) {
-        LocalDate today = LocalDate.now();
-        if (releaseDate != null && releaseDate.isAfter(today)) {
-            return "COMING_SOON";
-        }
-        if (endDate != null && endDate.isBefore(today)) {
-            return "ENDED";
-        }
-        return "NOW_SHOWING";
     }
 
     /**

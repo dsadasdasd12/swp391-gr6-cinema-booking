@@ -27,7 +27,6 @@ public class Movie {
     private int durationMin;
     private String description;
     private LocalDate releaseDate;
-    private LocalDate endDate;
     private String status;          // COMING_SOON | NOW_SHOWING | ENDED
     private String posterUrl;
     private String trailerUrl;
@@ -82,14 +81,6 @@ public class Movie {
 
     public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
     }
 
     public String getStatus() {
@@ -270,27 +261,12 @@ public int getDurationRemainingMinutes() {
                 : releaseDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
-    /** Ngày kết thúc chiếu dạng dd/MM/yyyy, hoặc rỗng nếu chưa có. */
-    public String getEndDateLabel() {
-        return endDate == null ? ""
-                : endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-    }
-
-    /** Giá trị cho input type="date" (yyyy-MM-dd). */
-    public String getEndDateForInput() {
-        return endDate == null ? ""
-                : endDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
-    }
-
     /** Chuẩn hóa đường dẫn lưu DB / hiển thị (bỏ dấu / đầu). */
     public static String normalizePosterPath(String url) {
         if (url == null || url.isBlank()) {
             return null;
         }
         String p = url.trim();
-        if (isAbsoluteUrl(p)) {
-            return p;
-        }
         while (p.startsWith("/")) {
             p = p.substring(1);
         }
@@ -301,18 +277,6 @@ public int getDurationRemainingMinutes() {
     public String getPosterWebPath() {
         String p = normalizePosterPath(posterUrl);
         return p == null ? "" : p;
-    }
-
-    public boolean isPosterExternalUrl() {
-        return isAbsoluteUrl(posterUrl);
-    }
-
-    public static boolean isAbsoluteUrl(String url) {
-        if (url == null) {
-            return false;
-        }
-        String lower = url.trim().toLowerCase();
-        return lower.startsWith("http://") || lower.startsWith("https://");
     }
 
     /**
