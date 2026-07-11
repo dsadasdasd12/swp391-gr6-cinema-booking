@@ -97,6 +97,27 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);">
+                    <!-- End Date -->
+                    <div class="rv-form-group">
+                        <label class="rv-label" for="endDate">Ngày kết thúc chiếu *</label>
+                        <input type="date" id="endDate" name="endDate" class="rv-input" required value="${movie.endDateForInput}">
+                    </div>
+
+                    <!-- Auto Status -->
+                    <div class="rv-form-group">
+                        <label class="rv-label" for="status">Trạng thái phát hành</label>
+                        <select id="status" class="rv-select" disabled>
+                            <option value="COMING_SOON" ${movie.status == 'COMING_SOON' ? 'selected' : ''}>Sắp chiếu (Coming Soon)</option>
+                            <option value="NOW_SHOWING" ${movie.status == 'NOW_SHOWING' ? 'selected' : ''}>Đang chiếu (Now Showing)</option>
+                            <option value="ENDED" ${movie.status == 'ENDED' ? 'selected' : ''}>Đã kết thúc (Ended)</option>
+                        </select>
+                        <span style="font-size: 11px; color: var(--n-400); margin-top: 4px; display: block;">
+                            Tự động tính theo ngày khởi chiếu và ngày kết thúc.
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);">
                     <!-- Duration -->
                     <div class="rv-form-group">
                         <label class="rv-label" for="durationMin">Thời lượng (phút) *</label>
@@ -126,9 +147,9 @@
                     </div>
 
                     <!-- Status Selection -->
-                    <div class="rv-form-group">
+                    <div class="rv-form-group" style="display:none;">
                         <label class="rv-label" for="status">Trạng thái phát hành *</label>
-                        <select id="status" name="status" class="rv-select" required>
+                        <select id="statusLegacy" class="rv-select" disabled>
                             <option value="">-- Chọn trạng thái --</option>
                             <option value="COMING_SOON" ${movie.status == 'COMING_SOON' ? 'selected' : ''}>Sắp chiếu (Coming Soon)</option>
                             <option value="NOW_SHOWING" ${movie.status == 'NOW_SHOWING' ? 'selected' : ''}>Đang chiếu (Now Showing)</option>
@@ -167,6 +188,16 @@
                     <span class="rv-card__title">Poster phim *</span>
                 </div>
                 <div class="rv-card__body">
+                    <c:set var="posterPreviewSrc" value="${empty movie.posterWebPath ? '' : (movie.posterExternalUrl ? movie.posterWebPath : ctx.concat('/').concat(movie.posterWebPath))}" />
+                    <div class="rv-form-group" style="margin-bottom: var(--s-4);">
+                        <label class="rv-label" for="posterUrl">URL poster Cloudinary *</label>
+                        <input type="url" id="posterUrl" name="posterUrl" class="rv-input"
+                               placeholder="https://res.cloudinary.com/.../image/upload/..."
+                               value="<c:out value='${movie.posterUrl}'/>">
+                        <span style="font-size: 11px; color: var(--n-400); margin-top: 4px; display: block;">
+                            Khuyến nghị dùng Cloudinary để cả nhóm dùng chung ảnh trên mọi máy.
+                        </span>
+                    </div>
                     <!-- Custom Drag and drop zone -->
                     <div id="rv-upload-zone" class="rv-upload-zone" style="border: 2px dashed var(--border); border-radius: var(--r-lg); background: var(--n-50); aspect-ratio: 2/3; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s-4); text-align: center; cursor: pointer; position: relative; transition: all var(--ease); overflow: hidden;">
                         
@@ -179,7 +210,7 @@
 
                         <!-- Local Preview -->
                         <div id="rv-poster-preview" style="display: ${not empty movie.posterWebPath ? 'block' : 'none'}; width: 100%; height: 100%;">
-                            <img id="rv-preview-img" src="${not empty movie.posterWebPath ? ctx.concat('/').concat(movie.posterWebPath) : ''}" alt="poster-preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-md);">
+                            <img id="rv-preview-img" src="${posterPreviewSrc}" alt="poster-preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-md);">
                             
                             <button type="button" id="rv-clear-poster" class="rv-btn rv-btn--danger rv-btn--icon" style="position: absolute; top: var(--s-3); right: var(--s-3); z-index: 10; border-radius: 50%; width: 32px; height: 32px;" title="Xóa ảnh poster">
                                 <i class="bi bi-trash"></i>
@@ -294,6 +325,7 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
         window.showToast('Thiếu ngôn ngữ', 'Vui lòng chọn ngôn ngữ chính.', 'error');
     }
 
+    updateAutoStatus();
     const statusVal = document.getElementById('status').value;
     if (!statusVal) {
         isValid = false;
@@ -301,6 +333,7 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
     }
 
     const releaseInput = document.getElementById('releaseDate').value;
+    const endInput = document.getElementById('endDate').value;
     if (!releaseInput) {
         isValid = false;
         window.showToast('Thiếu ngày chiếu', 'Vui lòng chọn ngày khởi chiếu.', 'error');
@@ -318,10 +351,25 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
         }
     }
 
+    if (!endInput) {
+        isValid = false;
+        window.showToast('Thiếu ngày kết thúc', 'Vui lòng chọn ngày kết thúc chiếu.', 'error');
+    }
+    if (releaseInput && endInput) {
+        const release = new Date(releaseInput + 'T00:00:00');
+        const end = new Date(endInput + 'T00:00:00');
+        if (end < release) {
+            isValid = false;
+            window.showToast('Ngày không hợp lệ', 'Ngày kết thúc chiếu không được trước ngày khởi chiếu.', 'error');
+        }
+    }
+
     const posterInput = document.getElementById('rv-poster-input');
+    const posterUrl = document.getElementById('posterUrl');
     const hasPosterPreview = document.getElementById('rv-poster-preview').style.display !== 'none';
     const hasFile = posterInput.files && posterInput.files.length > 0;
-    if (!hasFile && !hasPosterPreview) {
+    const hasPosterUrl = posterUrl && posterUrl.value.trim().length > 0;
+    if (!hasFile && !hasPosterPreview && !hasPosterUrl) {
         isValid = false;
         window.showToast('Thiếu poster', 'Vui lòng tải lên poster phim.', 'error');
     }
@@ -337,6 +385,7 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
 });
 
 (function syncReleaseDateByStatus() {
+    return;
     const statusEl = document.getElementById('status');
     const dateEl = document.getElementById('releaseDate');
     if (!statusEl || !dateEl) return;
@@ -356,6 +405,40 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
     };
     statusEl.addEventListener('change', apply);
     apply();
+})();
+
+function updateAutoStatus() {
+    const statusEl = document.getElementById('status');
+    const releaseEl = document.getElementById('releaseDate');
+    const endEl = document.getElementById('endDate');
+    if (!statusEl || !releaseEl || !endEl || !releaseEl.value || !endEl.value) {
+        return;
+    }
+
+    endEl.min = releaseEl.value;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const release = new Date(releaseEl.value + 'T00:00:00');
+    const end = new Date(endEl.value + 'T00:00:00');
+
+    if (release > today) {
+        statusEl.value = 'COMING_SOON';
+    } else if (end < today) {
+        statusEl.value = 'ENDED';
+    } else {
+        statusEl.value = 'NOW_SHOWING';
+    }
+}
+
+(function bindAutoStatusByDate() {
+    const releaseEl = document.getElementById('releaseDate');
+    const endEl = document.getElementById('endDate');
+    if (!releaseEl || !endEl) {
+        return;
+    }
+    releaseEl.addEventListener('change', updateAutoStatus);
+    endEl.addEventListener('change', updateAutoStatus);
+    updateAutoStatus();
 })();
 </script>
 

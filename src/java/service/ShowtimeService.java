@@ -160,7 +160,6 @@ public class ShowtimeService {
             );
         }
 
-        /* lay ban ghi trong DB so sanh voi client */
         Showtime current = showtimeDAO.findByIdAndBranchId(
                 showtime.getId(),
                 branch.getId()
@@ -188,7 +187,6 @@ public class ShowtimeService {
 
         validateAndPrepare(showtime, true);
 
-        /* check trung lich nhung loai tru chinh no */
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
         showtime.getStartTime().toLocalDateTime(),
