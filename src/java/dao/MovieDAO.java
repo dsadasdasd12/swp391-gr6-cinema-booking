@@ -8,7 +8,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -57,7 +56,7 @@ public class MovieDAO {
         List<Object> params = new ArrayList<>();
         String where = buildWhere(f, params);
 
-        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
+        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
                 + "       m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + RATING_SUBQUERY
                 + "FROM dbo.MOVIES m "
@@ -119,7 +118,7 @@ public class MovieDAO {
      * đánh giá. Trả về {@code null} nếu không có phim nào ứng với id.
      */
     public Movie findById(int id) {
-        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
+        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
                 + "       m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + RATING_SUBQUERY
                 + "FROM dbo.MOVIES m WHERE m.id = ?";
@@ -135,15 +134,27 @@ public class MovieDAO {
                 }
             }
         } catch (SQLException e) {
-            System.getLogger(MovieDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findById thất bại", e);
+            System.err.println(
+                    "[MovieDAO.findById] Lỗi truy vấn phim ID "
+                            + id
+                            + ": "
+                            + e.getMessage()
+            );
+            
+            e.printStackTrace();
+            
+            throw new RuntimeException(
+                    "Không thể truy vấn dữ liệu phim ID " + id,
+                    e
+            );
         }
+        
         return null;
     }
 
     public List<Movie> findBookableByBranch(int branchId) {
         List<Movie> movies = new ArrayList<>();
-        String sql = "SELECT DISTINCT m.id, m.title, m.duration_min, m.description, m.release_date, "
+        String sql = "SELECT DISTINCT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
                 + "       m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + RATING_SUBQUERY
                 + "FROM dbo.MOVIES m "
@@ -234,6 +245,7 @@ public class MovieDAO {
         m.setDurationMin(rs.getInt("duration_min"));
         m.setDescription(EncodingUtil.getString(rs, "description"));
         m.setReleaseDate(rs.getObject("release_date", LocalDate.class));
+        m.setEndDate(rs.getObject("end_date", LocalDate.class));
         m.setStatus(rs.getString("status"));
         m.setPosterUrl(Movie.normalizePosterPath(rs.getString("poster_url")));
         m.setTrailerUrl(rs.getString("trailer_url"));
@@ -304,7 +316,7 @@ public class MovieDAO {
     public List<Movie> findAll(String keyword, String status) {
         List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-                "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
+                "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
                 + "m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + "0.0 AS avg_rating, 0 AS review_count "
                 + "FROM dbo.MOVIES m WHERE 1=1 ");
@@ -368,19 +380,20 @@ public class MovieDAO {
      */
     public int insert(Movie m, List<Integer> categoryIds, List<Integer> languageIds) {
         String sql = "INSERT INTO dbo.MOVIES "
-                + "(title, duration_min, description, release_date, status, poster_url, trailer_url, actor, director) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "(title, duration_min, description, release_date, end_date, status, poster_url, trailer_url, actor, director) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, m.getTitle());
             ps.setInt   (2, m.getDurationMin());
             ps.setString(3, m.getDescription());
             ps.setObject(4, m.getReleaseDate());          // LocalDate
-            ps.setString(5, m.getStatus() != null ? m.getStatus() : "COMING_SOON");
-            ps.setString(6, m.getPosterUrl());
-            ps.setString(7, m.getTrailerUrl());
-            ps.setString(8, m.getActor());
-            ps.setString(9, m.getDirector());
+            ps.setObject(5, m.getEndDate());              // LocalDate
+            ps.setString(6, m.getStatus() != null ? m.getStatus() : "COMING_SOON");
+            ps.setString(7, m.getPosterUrl());
+            ps.setString(8, m.getTrailerUrl());
+            ps.setString(9, m.getActor());
+            ps.setString(10, m.getDirector());
             ps.executeUpdate();
 
             try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -404,7 +417,7 @@ public class MovieDAO {
      */
     public boolean update(Movie m, List<Integer> categoryIds, List<Integer> languageIds) {
         String sql = "UPDATE dbo.MOVIES SET "
-                + "title=?, duration_min=?, description=?, release_date=?, status=?, "
+                + "title=?, duration_min=?, description=?, release_date=?, end_date=?, status=?, "
                 + "poster_url=?, trailer_url=?, actor=?, director=?, last_update=GETDATE() "
                 + "WHERE id=?";
         Connection conn = DBContext.getInstance().getConnection();
@@ -413,12 +426,13 @@ public class MovieDAO {
             ps.setInt   (2, m.getDurationMin());
             ps.setString(3, m.getDescription());
             ps.setObject(4, m.getReleaseDate());
-            ps.setString(5, m.getStatus());
-            ps.setString(6, m.getPosterUrl());
-            ps.setString(7, m.getTrailerUrl());
-            ps.setString(8, m.getActor());
-            ps.setString(9, m.getDirector());
-            ps.setInt   (10, m.getId());
+            ps.setObject(5, m.getEndDate());
+            ps.setString(6, m.getStatus());
+            ps.setString(7, m.getPosterUrl());
+            ps.setString(8, m.getTrailerUrl());
+            ps.setString(9, m.getActor());
+            ps.setString(10, m.getDirector());
+            ps.setInt   (11, m.getId());
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 syncCategories(conn, m.getId(), categoryIds);
@@ -477,6 +491,41 @@ public class MovieDAO {
                     .log(System.Logger.Level.ERROR, "updateStatus thất bại", e);
         }
         return false;
+    }
+
+    /**
+     * Đồng bộ trạng thái phim theo ngày hiện tại.
+     * Rule: chưa tới release_date => COMING_SOON; quá end_date => ENDED;
+     * còn lại => NOW_SHOWING. end_date NULL nghĩa là chưa đặt ngày kết thúc.
+     */
+    public int refreshStatusesByDate(LocalDate today) {
+        if (today == null) {
+            today = LocalDate.now();
+        }
+
+        String computedStatus =
+                "CASE "
+                + "WHEN release_date > ? THEN 'COMING_SOON' "
+                + "WHEN end_date IS NOT NULL AND end_date < ? THEN 'ENDED' "
+                + "ELSE 'NOW_SHOWING' "
+                + "END";
+
+        String sql = "UPDATE dbo.MOVIES "
+                + "SET status = " + computedStatus + ", last_update = GETDATE() "
+                + "WHERE status <> " + computedStatus;
+
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, today);
+            ps.setObject(2, today);
+            ps.setObject(3, today);
+            ps.setObject(4, today);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            System.getLogger(MovieDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "refreshStatusesByDate thất bại", e);
+        }
+        return 0;
     }
 
     /** Cập nhật đường dẫn poster sau khi upload. */

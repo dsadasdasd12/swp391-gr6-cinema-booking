@@ -22,6 +22,8 @@ import java.time.LocalDate;
  */
 public class ShowtimeDAO {
 
+    private static final int SHOWTIME_GAP_MINUTES = 15;
+
     // ==========================================
     // 1. Movie Browsing Module (Original Git Method)
     // ==========================================
@@ -141,6 +143,7 @@ public class ShowtimeDAO {
         return list;
     }
 
+    /*manage chi sua id showtime thuoc branch hien tai*/
     public Showtime findByIdAndBranchId(int id, int branchId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "
@@ -505,13 +508,24 @@ public class ShowtimeDAO {
 
     /**
      * Check trùng lịch trong cùng một Hall.
+     * Công thức mới mở rộng khoảng cần kiểm tra thêm 15 phút ở cả 2 đầu:
+     * oldStart < newEnd + 15 phút
+     * AND oldEnd > newStart - 15 phút
      *
-     * Điều kiện trùng: newStart < oldEnd AND newEnd > oldStart
+     * exceptShowtimeId dùng cho update để loại trừ chính suất chiếu đang sửa.
      */
     public boolean hasScheduleConflict(int hallId,
             LocalDateTime startTime,
             LocalDateTime endTime,
             int exceptShowtimeId) {
+
+        LocalDateTime conflictStartTime = startTime.minusMinutes(
+                SHOWTIME_GAP_MINUTES
+        );
+
+        LocalDateTime conflictEndTime = endTime.plusMinutes(
+                SHOWTIME_GAP_MINUTES
+        );
 
         String sql = "SELECT COUNT(*) "
                 + "FROM dbo.SHOWTIMES "
@@ -525,8 +539,8 @@ public class ShowtimeDAO {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hallId);
-            ps.setObject(2, endTime);
-            ps.setObject(3, startTime);
+            ps.setObject(2, conflictEndTime);
+            ps.setObject(3, conflictStartTime);
             ps.setInt(4, exceptShowtimeId);
             ps.setInt(5, exceptShowtimeId);
 

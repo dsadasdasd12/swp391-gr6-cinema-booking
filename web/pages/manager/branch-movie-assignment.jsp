@@ -32,277 +32,7 @@
     <link rel="stylesheet" href="${ctx}/assets/css/admin/tables.css?v=redblack">
     <link rel="stylesheet" href="${ctx}/assets/css/admin/forms.css?v=redblack">
 
-    <style>
-
-        .manager-branch-assignment-page .manager-topbar-context {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            padding-right: var(--s-4);
-            border-right: 1px solid var(--border);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-branch-assignment-page .manager-topbar-context i {
-            color: var(--primary-light);
-        }
-
-        .manager-branch-assignment-page .manager-sidebar-info {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            margin: 0 var(--s-4) var(--s-4);
-            padding: var(--s-4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--r-lg);
-            background: linear-gradient(
-                145deg,
-                rgba(229, 9, 20, 0.18),
-                rgba(255, 255, 255, 0.02)
-            );
-            color: rgba(255, 255, 255, 0.76);
-            font-size: var(--text-xs);
-            line-height: 1.5;
-        }
-
-        .manager-branch-assignment-page .manager-sidebar-info__label {
-            color: rgba(255, 255, 255, 0.42);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        .manager-branch-assignment-page .manager-sidebar-info strong {
-            color: #ffffff;
-            font-size: var(--text-base);
-        }
-
-        .manager-branch-assignment-page .manager-assignment-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #BFDBFE;
-            border-radius: var(--r-md);
-            background: #EFF6FF;
-            color: #1E40AF;
-        }
-
-        .manager-branch-assignment-page .manager-assignment-banner i {
-            margin-top: 2px;
-            font-size: var(--text-md);
-        }
-
-        .manager-branch-assignment-page .manager-assignment-banner strong {
-            color: #1E3A8A;
-        }
-
-        .manager-branch-assignment-page .manager-assignment-banner span {
-            display: block;
-            margin-top: 2px;
-            font-size: var(--text-sm);
-            line-height: 1.55;
-        }
-
-        .manager-branch-assignment-page .manager-branch-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--s-4);
-            flex-wrap: wrap;
-        }
-
-        .manager-branch-assignment-page .manager-branch-card-info {
-            display: flex;
-            align-items: center;
-            gap: var(--s-3);
-            min-width: 0;
-        }
-
-        .manager-branch-assignment-page .manager-branch-card-icon {
-            display: inline-flex;
-            width: 42px;
-            height: 42px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border-radius: var(--r-md);
-            background: rgba(229, 9, 20, 0.14);
-            color: var(--primary-light);
-            font-size: 19px;
-        }
-
-        .manager-branch-assignment-page .manager-branch-card-name {
-            margin: 0;
-            color: var(--n-900);
-            font-size: var(--text-md);
-            font-weight: 700;
-            line-height: 1.35;
-        }
-
-        .manager-branch-assignment-page .manager-branch-card-address {
-            margin-top: 3px;
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            line-height: 1.45;
-        }
-
-        .manager-branch-assignment-page .manager-assignment-summary {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--s-4);
-            margin-bottom: var(--s-5);
-            padding: var(--s-4);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            background: var(--n-50);
-            flex-wrap: wrap;
-        }
-
-        .manager-branch-assignment-page .manager-assignment-note {
-            max-width: 720px;
-            color: var(--n-600);
-            font-size: var(--text-sm);
-            line-height: 1.65;
-        }
-
-        .manager-branch-assignment-page .manager-assignment-note strong {
-            color: var(--n-900);
-        }
-
-        .manager-branch-assignment-page .manager-select-all-label {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            margin: 0;
-            color: var(--n-700);
-            cursor: pointer;
-            font-size: var(--text-sm);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .manager-branch-assignment-page .movie-checkbox {
-            width: 18px;
-            height: 18px;
-            margin: 0;
-            cursor: pointer;
-            accent-color: var(--primary);
-        }
-
-        .manager-branch-assignment-page .manager-movie-title {
-            display: block;
-            color: var(--n-900);
-            font-weight: 700;
-            line-height: 1.45;
-        }
-
-        .manager-branch-assignment-page .manager-movie-duration {
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-branch-assignment-page .manager-unassigned-text {
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-branch-assignment-page .manager-assignment-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--s-3);
-            margin-top: var(--s-6);
-            padding-top: var(--s-5);
-            border-top: 1px solid var(--border);
-        }
-
-        .manager-branch-assignment-page .manager-empty-state {
-            display: flex;
-            min-height: 240px;
-            align-items: center;
-            justify-content: center;
-            padding: var(--s-8);
-            text-align: center;
-        }
-
-        .manager-branch-assignment-page .manager-empty-state__content {
-            max-width: 470px;
-        }
-
-        .manager-branch-assignment-page .manager-empty-state__icon {
-            display: inline-flex;
-            width: 56px;
-            height: 56px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: var(--s-4);
-            border-radius: var(--r-lg);
-            background: var(--n-100);
-            color: var(--n-400);
-            font-size: 25px;
-        }
-
-        .manager-branch-assignment-page .manager-empty-state h2 {
-            margin: 0 0 var(--s-2);
-            color: var(--n-800);
-            font-size: var(--text-md);
-            font-weight: 700;
-        }
-
-        .manager-branch-assignment-page .manager-empty-state p {
-            margin: 0;
-            color: var(--n-500);
-            font-size: var(--text-base);
-            line-height: 1.65;
-        }
-
-        .manager-branch-assignment-page .manager-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border-radius: var(--r-md);
-            font-size: var(--text-base);
-            line-height: 1.55;
-        }
-
-        .manager-branch-assignment-page .manager-alert--error {
-            border: 1px solid #FECACA;
-            background: var(--danger-bg);
-            color: #B91C1C;
-        }
-
-        .manager-branch-assignment-page .manager-alert i {
-            margin-top: 2px;
-            font-size: var(--text-md);
-        }
-
-        @media (max-width: 900px) {
-            .manager-branch-assignment-page .manager-topbar-context {
-                display: none;
-            }
-        }
-
-        @media (max-width: 680px) {
-            .manager-branch-assignment-page .manager-assignment-summary {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .manager-branch-assignment-page .manager-assignment-footer {
-                flex-direction: column-reverse;
-                align-items: stretch;
-            }
-
-            .manager-branch-assignment-page .manager-assignment-footer .rv-btn {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="${ctx}/assets/css/manager/movie-management.css?v=1">
 
     <script src="${ctx}/assets/js/main.js" charset="UTF-8" defer></script>
     <script src="${ctx}/assets/js/confirm.js" charset="UTF-8" defer></script>
@@ -412,7 +142,7 @@
             <div class="rv-topbar__dropdown">
 
                 <div class="rv-topbar__dropdown-header">
-                    <div style="font-weight: 600; color: var(--n-800);">
+                    <div class="manager-dropdown-name">
                         <c:out value="${not empty topUser
                                        ? topUser.fullName
                                        : 'Branch Manager'}" />
@@ -558,8 +288,7 @@
             </div>
 
             <div class="rv-page-header__right">
-                <span class="rv-badge rv-badge--manager"
-                      style="padding: var(--s-2) var(--s-3);">
+                <span class="rv-badge rv-badge--manager manager-page-badge">
                     <i class="bi bi-person-workspace"></i>
                     Branch Manager
                 </span>
@@ -585,8 +314,7 @@
 
                     <div class="rv-card__header">
                         <span class="rv-card__title">
-                            <i class="bi bi-building-x"
-                               style="margin-right: 8px; color: var(--warning);"></i>
+                            <i class="bi bi-building-x manager-warning-icon"></i>
                             Chưa được phân công chi nhánh
                         </span>
                     </div>
@@ -628,8 +356,7 @@
                 </div>
 
                 <%-- Thông tin Branch được lấy từ Manager đang đăng nhập. --%>
-                <div class="rv-card"
-                     style="margin-bottom: var(--s-6);">
+                <div class="rv-card manager-card-spaced">
 
                     <div class="rv-card__header">
 
@@ -666,8 +393,7 @@
                     <div class="rv-card__header">
 
                         <span class="rv-card__title">
-                            <i class="bi bi-film"
-                               style="margin-right: 8px; color: var(--primary-light);"></i>
+                            <i class="bi bi-film manager-primary-icon"></i>
                             Danh sách phim hệ thống
                         </span>
                     </div>
@@ -744,8 +470,7 @@
 
                                             <thead>
                                                 <tr>
-                                                    <th class="center"
-                                                        style="width: 92px;">
+                                                    <th class="center manager-selection-col-branch">
                                                         Chọn
                                                     </th>
 
@@ -775,7 +500,8 @@
                                                     <tr>
 
                                                         <td class="center">
-
+                                                            
+                                                            <%--submit các checkbox--%>
                                                             <input type="checkbox"
                                                                    name="movieIds"
                                                                    value="${item.movieId}"
