@@ -447,4 +447,8 @@ public class ShowtimeService {
     public List<Showtime> getShowtimesByBranchAndDate(int branchId, String dateStr) {
         return showtimeDAO.getShowtimesByBranchAndDate(branchId, dateStr);
     }
+
+    public Object getMovieShowtimesByBranchAndDate(int branchId, LocalDate date) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
