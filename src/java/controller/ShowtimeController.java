@@ -1,8 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 package controller;
 
 import dao.HallDAO;
@@ -27,6 +22,24 @@ import model.Showtime;
 import model.User;
 import service.ShowtimeService;
 
+/**
+ * Controller cho luồng Manager quản lý suất chiếu tại chi nhánh được phân công.
+ *
+ * <p>Luồng UI:</p>
+ * <ul>
+ *   <li>GET {@code /manager/showtimesmanagement}: liệt kê suất chiếu của branch Manager.</li>
+ *   <li>GET {@code /manager/showtimesmanagement/create}: mở form tạo suất chiếu.</li>
+ *   <li>GET {@code /manager/showtimesmanagement/edit?id=...}: mở form sửa suất chiếu.</li>
+ *   <li>POST {@code /manager/showtimesmanagement/create}: validate và tạo suất chiếu mới.</li>
+ *   <li>POST {@code /manager/showtimesmanagement/edit}: validate và cập nhật suất chiếu.</li>
+ *   <li>POST {@code /manager/showtimesmanagement/cancel}: hủy suất chiếu nếu thuộc branch Manager.</li>
+ * </ul>
+ *
+ * <p>Controller luôn lấy branch từ Manager đang đăng nhập và chỉ cho thao tác trên hall/movie
+ * thuộc branch đó.</p>
+ *
+ * @author HuyPD
+ */
 @WebServlet(name = "ShowtimeController", urlPatterns = {
     "/manager/showtimesmanagement",
     "/manager/showtimesmanagement/create",

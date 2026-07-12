@@ -153,7 +153,7 @@
                                     <div style="width:45px;height:65px;overflow:hidden;border-radius:6px;border:1px solid rgba(255,255,255,.1);">
                                         <c:choose>
                                             <c:when test="${not empty row.poster_url}">
-                                                <img src="${ctx}/${row.poster_url}" alt="poster" style="width:100%;height:100%;object-fit:cover;">
+                                                <img src="${(fn:startsWith(row.poster_url, 'http://') or fn:startsWith(row.poster_url, 'https://')) ? row.poster_url : ctx.concat('/').concat(row.poster_url)}" alt="poster" style="width:100%;height:100%;object-fit:cover;">
                                             </c:when>
                                             <c:otherwise>
                                                 <div style="width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#888;">N/A</div>

@@ -39,6 +39,7 @@ public class MovieDAO {
 
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final LanguageDAO languageDAO = new LanguageDAO();
+    private Boolean hasEndDateColumn;
 
     /** Các truy vấn con tính điểm/đếm đánh giá cho từng phim. */
     private static final String RATING_SUBQUERY =
@@ -56,7 +57,8 @@ public class MovieDAO {
         List<Object> params = new ArrayList<>();
         String where = buildWhere(f, params);
 
-        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
+        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
+                + endDateSelect() + ", "
                 + "       m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + RATING_SUBQUERY
                 + "FROM dbo.MOVIES m "
@@ -118,7 +120,8 @@ public class MovieDAO {
      * đánh giá. Trả về {@code null} nếu không có phim nào ứng với id.
      */
     public Movie findById(int id) {
-        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
+        String sql = "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
+                + endDateSelect() + ", "
                 + "       m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + RATING_SUBQUERY
                 + "FROM dbo.MOVIES m WHERE m.id = ?";
@@ -142,7 +145,8 @@ public class MovieDAO {
 
     public List<Movie> findBookableByBranch(int branchId) {
         List<Movie> movies = new ArrayList<>();
-        String sql = "SELECT DISTINCT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
+        String sql = "SELECT DISTINCT m.id, m.title, m.duration_min, m.description, m.release_date, "
+                + endDateSelect() + ", "
                 + "       m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + RATING_SUBQUERY
                 + "FROM dbo.MOVIES m "
@@ -226,6 +230,30 @@ public class MovieDAO {
     }
 
     /** Ánh xạ một dòng ResultSet sang đối tượng Movie. */
+    private String endDateSelect() {
+        return hasEndDateColumn()
+                ? "m.end_date"
+                : "CAST(NULL AS DATE) AS end_date";
+    }
+
+    private boolean hasEndDateColumn() {
+        if (hasEndDateColumn != null) {
+            return hasEndDateColumn;
+        }
+
+        String sql = "SELECT CASE WHEN COL_LENGTH('dbo.MOVIES', 'end_date') IS NULL THEN 0 ELSE 1 END";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            hasEndDateColumn = rs.next() && rs.getInt(1) == 1;
+        } catch (SQLException e) {
+            hasEndDateColumn = false;
+            System.getLogger(MovieDAO.class.getName())
+                    .log(System.Logger.Level.WARNING, "Cannot inspect MOVIES.end_date column", e);
+        }
+        return hasEndDateColumn;
+    }
+
     private Movie mapRow(ResultSet rs) throws SQLException {
         Movie m = new Movie();
         m.setId(rs.getInt("id"));
@@ -304,7 +332,8 @@ public class MovieDAO {
     public List<Movie> findAll(String keyword, String status) {
         List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-                "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, m.end_date, "
+                "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
+                + endDateSelect() + ", "
                 + "m.status, m.poster_url, m.trailer_url, m.actor, m.director, m.last_update, "
                 + "0.0 AS avg_rating, 0 AS review_count "
                 + "FROM dbo.MOVIES m WHERE 1=1 ");
@@ -491,10 +520,14 @@ public class MovieDAO {
             today = LocalDate.now();
         }
 
-        String computedStatus =
-                "CASE "
+        String computedStatus = hasEndDateColumn()
+                ? "CASE "
                 + "WHEN release_date > ? THEN 'COMING_SOON' "
                 + "WHEN end_date IS NOT NULL AND end_date < ? THEN 'ENDED' "
+                + "ELSE 'NOW_SHOWING' "
+                + "END"
+                : "CASE "
+                + "WHEN release_date > ? THEN 'COMING_SOON' "
                 + "ELSE 'NOW_SHOWING' "
                 + "END";
 
@@ -505,9 +538,13 @@ public class MovieDAO {
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, today);
-            ps.setObject(2, today);
-            ps.setObject(3, today);
-            ps.setObject(4, today);
+            if (hasEndDateColumn()) {
+                ps.setObject(2, today);
+                ps.setObject(3, today);
+                ps.setObject(4, today);
+            } else {
+                ps.setObject(2, today);
+            }
             return ps.executeUpdate();
         } catch (SQLException e) {
             System.getLogger(MovieDAO.class.getName())
