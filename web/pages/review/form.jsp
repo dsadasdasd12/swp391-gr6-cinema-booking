@@ -35,6 +35,13 @@
             </c:when>
 
             <%-- ── Form đánh giá (tạo mới hoặc sửa) ── --%>
+            <c:when test="${not empty review and not canEdit}">
+                <div class="empty">
+                    <h3>Đã hết thời gian chỉnh sửa đánh giá</h3>
+                    <p>Bạn chỉ có thể chỉnh sửa đánh giá trong vòng 30 phút kể từ khi gửi.</p>
+                    <p><a class="btn btn-primary" href="${ctx}/movie?id=${movieId}">← Về trang phim</a></p>
+                </div>
+            </c:when>
             <c:otherwise>
                 <h1 class="page-title">
                     ${empty review ? 'Viết đánh giá' : 'Chỉnh sửa đánh giá'}

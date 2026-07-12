@@ -22,6 +22,7 @@ import model.Language;
 import model.Movie;
 import model.User;
 import service.MovieService;
+import service.ReviewService;
 
 
 /**
@@ -62,6 +63,7 @@ import service.MovieService;
 )
 public class MovieDetailController extends HttpServlet {
     FavoriteMovieDAO favoriteMovieDAO = new FavoriteMovieDAO();
+    private final ReviewService reviewService = new ReviewService();
 
     private static final String MOVIE_LIST_PAGE
             = "/pages/movie/list.jsp";
@@ -259,6 +261,7 @@ public class MovieDetailController extends HttpServlet {
                 "branchShowtimes",
                 movieService.getShowtimesByBranch(movieId)
         );
+        request.setAttribute("reviews", reviewService.getMovieReviews(movieId));
 
         // forward sang detail JSP, giu lai cac attribute vua set.
         request.getRequestDispatcher(MOVIE_DETAIL_PAGE).forward(request, response);

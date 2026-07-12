@@ -64,6 +64,7 @@ public class ReviewController extends HttpServlet {
 
         // Chi cho edit review neu review hien co thuoc user dang dang nhap.
         boolean ownsExisting = existing != null && existing.getUserId() == user.getId();
+        boolean canEdit = ownsExisting && reviewService.canEditReview(existing.getId(), user.getId());
 
         if (existing == null && !reviewService.canReview(user.getId(), movieId, bookingId)) {
             // Không đủ điều kiện đánh giá (đơn không hợp lệ / chưa xem)
@@ -79,6 +80,7 @@ public class ReviewController extends HttpServlet {
         request.setAttribute("movieId", movieId);
         // Neu user so huu review cu thi dua review vao form de sua, nguoc lai de null.
         request.setAttribute("review", ownsExisting ? existing : null);
+        request.setAttribute("canEdit", canEdit);
         request.getRequestDispatcher("/pages/review/form.jsp").forward(request, response);
     }
 
