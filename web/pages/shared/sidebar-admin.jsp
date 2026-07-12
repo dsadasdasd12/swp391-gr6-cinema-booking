@@ -55,6 +55,14 @@
             Quản lý vé &amp; Booking
         </a>
     </div>
+
+    <!-- 🏷️ Discount Management -->
+    <div class="rv-nav__group">
+        <a href="${ctx}/DiscountManager" class="rv-nav__item ${uri.contains('/DiscountManager') ? 'active' : ''}">
+            <i class="bi bi-tags-fill"></i>
+            Quản lý mã giảm giá
+        </a>
+    </div>
             
             <!-- Cinema Management -->
     <div class="rv-nav__group">

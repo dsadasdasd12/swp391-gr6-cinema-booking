@@ -160,6 +160,10 @@
 
 
 
+            <a href="${ctx}/DiscountManager">
+                Quản lý mã giảm giá
+            </a>
+
             <a href="${ctx}/logout">
                 Đăng xuất
             </a>
