@@ -71,7 +71,7 @@
         <i class="bi bi-list"></i>
     </button>
 
-    <a class="rv-topbar__brand" href="${ctx}/admin/movies?action=list">
+    <a class="rv-topbar__brand" href="${ctx}/admin/dashboard">
         <div class="rv-topbar__brand-icon">
             <i class="bi bi-film"></i>
         </div>
