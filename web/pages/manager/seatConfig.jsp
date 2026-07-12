@@ -216,9 +216,19 @@
                     </div>
                     
                     <c:if test="${!isLocked && currentHallId > 0}">
-                        <button type="button" onclick="openBulkAddModal()" style="background: #10b981; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px 20px; border-radius: 6px; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-size: 0.95em;">
-                            <i class="bi bi-magic"></i> Thêm nhanh hàng loạt
-                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" onclick="openBulkAddModal()" style="background: #10b981; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px 20px; border-radius: 6px; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-size: 0.95em;">
+                                <i class="bi bi-magic"></i> Thêm nhanh hàng loạt
+                            </button>
+                            
+                            <form action="seat-config" method="POST" onsubmit="return confirm('CẢNH BÁO: Hành động này sẽ xóa TOÀN BỘ ghế hiện có của phòng chiếu này! Bạn chắc chắn chứ?');" style="margin: 0;">
+                                <input type="hidden" name="hallId" value="${currentHallId}">
+                                <input type="hidden" name="action" value="clearAll">
+                                <button type="submit" style="background: #dc2626; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px 20px; border-radius: 6px; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-size: 0.95em;">
+                                    <i class="bi bi-trash3-fill"></i> Xóa toàn bộ sơ đồ ghế
+                                </button>
+                            </form>
+                        </div>
                     </c:if>
                 </div>
             </div>

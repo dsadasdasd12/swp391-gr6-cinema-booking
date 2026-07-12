@@ -102,13 +102,21 @@ public class SeatTypeDAO {
     }
 
     public boolean delete(int id) {
-        String sql = "UPDATE dbo.SEAT_TYPES SET status = 'INACTIVE', last_update = GETDATE() WHERE id = ?";
+        // Thử hard-delete trước (xóa hoàn toàn khỏi database nếu chưa được sử dụng)
+        String sql = "DELETE FROM dbo.SEAT_TYPES WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.getLogger(SeatTypeDAO.class.getName()).log(System.Logger.Level.ERROR, "delete failed", e);
+            // Nếu có lỗi khóa ngoại (do đang có ghế hoặc lịch sử tham chiếu loại ghế này), chuyển sang soft-delete (Khóa trạng thái)
+            String fallbackSql = "UPDATE dbo.SEAT_TYPES SET status = 'INACTIVE', last_update = GETDATE() WHERE id = ?";
+            try (PreparedStatement psFallback = conn.prepareStatement(fallbackSql)) {
+                psFallback.setInt(1, id);
+                return psFallback.executeUpdate() > 0;
+            } catch (SQLException ex) {
+                System.getLogger(SeatTypeDAO.class.getName()).log(System.Logger.Level.ERROR, "delete failed", ex);
+            }
         }
         return false;
     }

@@ -250,28 +250,18 @@ public class ShowtimeDAO {
         return false;
     }
 
-    // READ: Lấy giá vé thực tế của ghế cho suất chiếu (Bảng SEAT_PRICING hoặc fallback về SHOWTIMES.base_price)
+    // CALCULATE: Lấy giá vé thực tế của ghế bằng cách nhân giá gốc (basePrice) với hệ số nhân (multiplier) của loại ghế đó trong SEAT_TYPES
     public double getSeatPrice(int showtimeId, String seatType, double basePrice) {
-        String sql = "SELECT price FROM dbo.SEAT_PRICING WHERE showtime_id = ? AND seat_type = ?";
+        String sql = "SELECT default_price FROM dbo.SEAT_TYPES WHERE code = ?";
         try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, showtimeId);
-            ps.setString(2, seatType);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getDouble("price");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Fallback: Lấy chính xác giá tiền thật mặc định của loại ghế đó trong SEAT_TYPES
-        String priceSql = "SELECT default_price FROM dbo.SEAT_TYPES WHERE code = ?";
-        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(priceSql)) {
             ps.setString(1, seatType);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getDouble("default_price");
+                    double multiplier = rs.getDouble("default_price");
+                    // Tránh trường hợp hệ số nhân bị cấu hình sai <= 0
+                    if (multiplier > 0) {
+                        return basePrice * multiplier;
+                    }
                 }
             }
         } catch (Exception e) {

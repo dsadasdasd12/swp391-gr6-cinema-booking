@@ -97,7 +97,18 @@ public class SeatConfigController extends HttpServlet {
             if (isLocked) {
                 request.getSession().setAttribute("msgError", "Không thể chỉnh sửa sơ đồ ghế của phòng này vì đang có suất chiếu chưa diễn ra. Vui lòng hoàn thành hoặc hủy các suất chiếu trước.");
             } else {
-                if ("bulkAdd".equals(action)) {
+                if ("clearAll".equals(action)) {
+                    try {
+                        if (seatService.deleteSeatsOfHall(hallId)) {
+                            request.getSession().setAttribute("msgSuccess", "Đã xóa toàn bộ cấu hình ghế của phòng chiếu này thành công.");
+                        } else {
+                            request.getSession().setAttribute("msgError", "Lỗi khi xóa toàn bộ cấu hình ghế.");
+                        }
+                    } catch (Exception e) {
+                        request.getSession().setAttribute("msgError", "Lỗi: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                } else if ("bulkAdd".equals(action)) {
                     try {
                         String bulkType = request.getParameter("bulkType"); // row, col, grid
                         String bulkSeatType = request.getParameter("bulkSeatType");

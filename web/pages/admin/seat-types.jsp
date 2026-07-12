@@ -137,7 +137,7 @@
                         <th style="width: 80px; text-align: center;">ID</th>
                         <th>Mã loại (Code)</th>
                         <th>Tên hiển thị</th>
-                        <th style="text-align: right;">Giá mặc định</th>
+                        <th style="text-align: right;">Hệ số nhân</th>
                         <th style="text-align: center;">Màu hiển thị</th>
                         <th style="text-align: center;">Trạng thái</th>
                         <th style="width: 140px; text-align: center;">Thao tác</th>
@@ -150,7 +150,7 @@
                             <td style="font-family: monospace; font-weight: bold; color: #fbbf24;">${st.code}</td>
                             <td style="color: #fff; font-weight: 600;">${st.name}</td>
                             <td style="text-align: right; color: #34d399; font-weight: 600;">
-                                <fmt:formatNumber value="${st.defaultPrice}" pattern="#,##0"/> đ
+                                x<fmt:formatNumber value="${st.defaultPrice}" pattern="#,##0.0#"/>
                             </td>
                             <td style="text-align: center;">
                                 <span style="display: inline-block; width: 24px; height: 24px; border-radius: 4px; background-color: ${st.color}; border: 1px solid #4b5563; vertical-align: middle;"></span>
@@ -219,8 +219,8 @@
                     <input type="text" name="name" class="custom-input" placeholder="VD: Ghế Deluxe" required>
                 </div>
                 <div class="custom-form-group">
-                    <label class="custom-label">Giá vé mặc định (đ)</label>
-                    <input type="number" name="defaultPrice" class="custom-input" min="0" value="0" required>
+                    <label class="custom-label">Hệ số nhân giá (ví dụ: 1.0, 1.5, 2.0)</label>
+                    <input type="number" step="0.1" name="defaultPrice" class="custom-input" min="0" value="1.0" required>
                 </div>
                 <div class="custom-form-group">
                     <label class="custom-label">Màu sắc hiển thị</label>
@@ -266,8 +266,8 @@
                     <input type="text" name="name" id="editName" class="custom-input" required>
                 </div>
                 <div class="custom-form-group">
-                    <label class="custom-label">Giá vé mặc định (đ)</label>
-                    <input type="number" name="defaultPrice" id="editDefaultPrice" class="custom-input" min="0" required>
+                    <label class="custom-label">Hệ số nhân giá (ví dụ: 1.0, 1.5, 2.0)</label>
+                    <input type="number" step="0.1" name="defaultPrice" id="editDefaultPrice" class="custom-input" min="0" required>
                 </div>
                 <div class="custom-form-group">
                     <label class="custom-label">Màu sắc hiển thị</label>
@@ -298,7 +298,7 @@
         document.getElementById('editCode').value = code;
         document.getElementById('editCodeHidden').value = code;
         document.getElementById('editName').value = name;
-        document.getElementById('editDefaultPrice').value = Math.round(defaultPrice);
+        document.getElementById('editDefaultPrice').value = defaultPrice;
         document.getElementById('editColor').value = color || '#10b981';
         
         var statusSelect = document.getElementById('editStatus');

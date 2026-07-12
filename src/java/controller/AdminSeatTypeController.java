@@ -128,9 +128,9 @@ public class AdminSeatTypeController extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
 
         if (seatTypeDAO.delete(id)) {
-            request.getSession().setAttribute("msgSuccess", "Khóa loại ghế thành công.");
+            request.getSession().setAttribute("msgSuccess", "Xóa hoặc Khóa trạng thái loại ghế thành công.");
         } else {
-            request.getSession().setAttribute("msgError", "Lỗi khi khóa loại ghế.");
+            request.getSession().setAttribute("msgError", "Lỗi khi thực hiện xóa hoặc khóa loại ghế.");
         }
 
         response.sendRedirect(request.getContextPath() + "/admin/seat-types");

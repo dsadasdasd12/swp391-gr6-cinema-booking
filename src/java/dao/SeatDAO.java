@@ -72,6 +72,22 @@ public class SeatDAO {
         }
     }
 
+    // 3.1. DELETE ALL: Xóa toàn bộ cấu hình ghế của một phòng chiếu
+    public boolean deleteSeatsOfHall(int hallId) {
+        String sql = "DELETE FROM dbo.SEATS WHERE hall_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hallId);
+            boolean success = ps.executeUpdate() >= 0;
+            if (success) {
+                recalculateTotalSeats(hallId);
+            }
+            return success;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean insertSeat(int hallId, String seatRow, int seatNumber, String seatType, boolean maintenance) {
         String sql = "INSERT INTO dbo.SEATS (hall_id, seat_row, seat_number, seat_type, maintenance) VALUES (?, ?, ?, ?, ?)";
         try (java.sql.Connection conn = new util.DBContext().getConnection(); java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {

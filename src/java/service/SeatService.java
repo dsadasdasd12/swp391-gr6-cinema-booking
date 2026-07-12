@@ -21,6 +21,10 @@ public class SeatService {
         return seatDAO.deleteSeat(hallId, seatRow, seatNumber);
     }
 
+    public boolean deleteSeatsOfHall(int hallId) {
+        return seatDAO.deleteSeatsOfHall(hallId);
+    }
+
     public boolean insertSeat(int hallId, String seatRow, int seatNumber, String seatType, boolean maintenance) {
         return seatDAO.insertSeat(hallId, seatRow, seatNumber, seatType, maintenance);
     }
