@@ -1,6 +1,7 @@
 package service;
 
 import dao.BookingDAO;
+import dao.BookingStatusHistoryDAO;
 import dto.BookingDraftView;
 import dto.BookingSeatLine;
 import dto.BookingView;
@@ -10,11 +11,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import model.Booking;
+import model.BookingStatusHistory;
 import model.Seat;
 import model.Showtime;
 
 public class BookingService {
     private final BookingDAO bookingDAO = new BookingDAO();
+    private final BookingStatusHistoryDAO bookingStatusHistoryDAO = new BookingStatusHistoryDAO();
     private final ShowtimeService showtimeService = new ShowtimeService();
     private final SeatService seatService = new SeatService();
 
@@ -130,6 +133,13 @@ public class BookingService {
             return null;
         }
         return bookingDAO.findDetailByIdAndUser(bookingId, userId);
+    }
+
+    public List<BookingStatusHistory> getStatusHistory(int bookingId) {
+        if (bookingId <= 0) {
+            return new ArrayList<>();
+        }
+        return bookingStatusHistoryDAO.findByBookingId(bookingId);
     }
 
     public boolean cancel(int bookingId, int userId) {

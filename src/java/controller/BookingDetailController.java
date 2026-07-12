@@ -68,6 +68,7 @@ public class BookingDetailController extends HttpServlet {
         } else {
             // Attribute "bk" la object chi tiet booking de JSP render thong tin ve/phim/ghe.
             request.setAttribute("bk", booking);
+            request.setAttribute("statusHistory", bookingService.getStatusHistory(booking.getBooking().getId()));
 
             // Noi dung chuyen khoan co dang RVS + bookingId de webhook tach ra duoc booking can confirm.
             String transferContent = "RVS" + booking.getBooking().getId();
