@@ -1,14 +1,9 @@
-<%-- 
-    Document   : showtime-form
-    Created on : Jun 10, 2026, 9:07:37 PM
-    Author     : MSI
---%>
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="isEdit" value="${formMode == 'edit'}" />
+<c:set var="topUser" value="${sessionScope.user}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,291 +11,409 @@
 <head>
     <meta charset="UTF-8">
 
+    <meta http-equiv="Cache-Control"
+          content="no-cache, no-store, must-revalidate">
+
+    <meta http-equiv="Pragma"
+          content="no-cache">
+
+    <meta http-equiv="Expires"
+          content="0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
     <title>
         ${isEdit ? 'Cập nhật suất chiếu' : 'Tạo suất chiếu'}
-        - RapViet Cinema
+        - Rạp Việt CMS
     </title>
 
-    <link rel="stylesheet"
-          href="${ctx}/assets/css/style.css">
+    <%-- Dùng design system giao diện Admin hiện có, không chỉnh sửa file CSS gốc. --%>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet"
-          href="${ctx}/assets/css/admin.css">
+          href="${ctx}/assets/css/admin/variables.css?v=redblack">
 
-    <style>
-        .field-note {
-            display: block;
-            margin-top: 7px;
-            color: #94a3b8;
-            font-size: 13px;
-            line-height: 1.5;
-        }
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/base.css?v=redblack">
 
-        .schedule-information {
-            margin-top: 20px;
-            padding: 16px;
-            border: 1px solid #2b303b;
-            border-radius: 10px;
-            background: #11141a;
-        }
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/layout.css?v=redblack">
 
-        .schedule-information h3 {
-            margin: 0 0 12px;
-            color: #ffffff;
-            font-size: 15px;
-        }
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/components.css?v=redblack">
 
-        .schedule-information p {
-            margin: 6px 0;
-            color: #b7bdc8;
-            font-size: 14px;
-        }
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/tables.css?v=redblack">
 
-        .schedule-information strong {
-            color: #ffffff;
-        }
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/admin/forms.css?v=redblack">
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/manager/showtime.css?v=1">
 
-        .movie-assignment-warning {
-            display: none;
-            margin-top: 10px;
-            padding: 12px 14px;
-            border: 1px solid rgba(245, 158, 11, 0.4);
-            border-radius: 8px;
-            background: rgba(245, 158, 11, 0.08);
-            color: #facc15;
-            font-size: 13px;
-            line-height: 1.5;
-        }
+    <script src="${ctx}/assets/js/main.js"
+            charset="UTF-8"
+            defer></script>
 
-        .movie-assignment-warning a {
-            color: #ffffff;
-            font-weight: 700;
-            text-decoration: underline;
-        }
+    <script src="${ctx}/assets/js/confirm.js"
+            charset="UTF-8"
+            defer></script>
 
-        .movie-autocomplete {
-            position: relative;
-            width: 100%;
-        }
-
-        .movie-suggestion-list {
-            display: none;
-            position: absolute;
-            top: calc(100% + 6px);
-            right: 0;
-            left: 0;
-            z-index: 1000;
-            max-height: 260px;
-            overflow-y: auto;
-            padding: 6px;
-            border: 1px solid #2b303b;
-            border-radius: 10px;
-            background: #1b1f27;
-            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
-        }
-
-        .movie-suggestion-item {
-            display: block;
-            width: 100%;
-            padding: 11px 12px;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: #ffffff;
-            text-align: left;
-            cursor: pointer;
-        }
-
-        .movie-suggestion-item:hover,
-        .movie-suggestion-item.active {
-            background: rgba(255, 255, 255, 0.13);
-        }
-
-        .movie-suggestion-title {
-            display: block;
-            font-size: 14px;
-            font-weight: 700;
-            line-height: 1.4;
-        }
-
-        .movie-suggestion-duration {
-            display: block;
-            margin-top: 4px;
-            color: #cbd5e1;
-            font-size: 12px;
-        }
-
-        .movie-suggestion-empty {
-            padding: 12px;
-            color: #94a3b8;
-            font-size: 13px;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"
+            defer></script>
 </head>
 
-<body>
+<body class="manager-showtime-form-page">
 
-<div class="admin-shell">
+<header class="rv-topbar">
 
-    <aside class="admin-sidebar">
+    <button type="button"
+            class="rv-topbar__toggle"
+            title="Mở menu"
+            aria-label="Mở menu">
+        <i class="bi bi-list"></i>
+    </button>
 
-        <div class="admin-brand">
-            RAPVIET SYSTEM
+    <a class="rv-topbar__brand"
+       href="${ctx}/manager/dashboard">
+
+        <div class="rv-topbar__brand-icon">
+            <i class="bi bi-film"></i>
         </div>
 
-        <div class="admin-role">
-            <p>Phân hệ</p>
-            <strong>Manager Dashboard</strong>
-            <span>Quyền: Branch Manager</span>
+        <span class="rv-topbar__brand-text">
+            RẠP VIỆT <span>CMS</span>
+        </span>
+    </a>
+
+    <div class="rv-topbar__actions">
+
+        <div class="manager-topbar-context">
+            <i class="bi bi-building"></i>
+            <span>Phân hệ Quản lý chi nhánh</span>
         </div>
 
-        <nav class="admin-menu">
+        <div class="rv-topbar__user">
 
-            <a href="${ctx}/manager/dashboard">
-                Dashboard
-            </a>
+            <div class="rv-topbar__avatar">
+                <c:choose>
+                    <c:when test="${not empty topUser and not empty topUser.fullName}">
+                        <c:out value="${topUser.fullName.substring(0, 1).toUpperCase()}" />
+                    </c:when>
 
-            <a href="${ctx}/manager/halls">
-                Quản lý phòng chiếu
-            </a>
+                    <c:otherwise>M</c:otherwise>
+                </c:choose>
+            </div>
 
-            <a href="${ctx}/manager/seat-config">
-                Cấu hình ghế
-            </a>
+            <div class="rv-topbar__user-info">
+                <span class="rv-topbar__user-name">
+                    <c:out value="${not empty topUser
+                                   ? topUser.fullName
+                                   : 'Branch Manager'}" />
+                </span>
 
-            <a class="active" href="${ctx}/manager/showtimesmanagement">
-                Quản lý lịch chiếu
-            </a>
-
-            <a href="${ctx}/manager/movie-assignments/branches">
-                Phim tại chi nhánh
-            </a>
-
-            <a href="${ctx}/manager/movie-assignments/halls">
-                Phim tại phòng chiếu
-            </a>
-
-            <a 
-               href="${ctx}/manager/movie-durations">
-                Quản lý thời lượng phim
-            </a>
-
-
-
-            <a href="${ctx}/DiscountManager">
-                Quản lý mã giảm giá
-            </a>
-
-            <a href="${ctx}/logout">
-                Đăng xuất
-            </a>
-
-        </nav>
-
-    </aside>
-
-    <main class="admin-main">
-
-        <div class="admin-topbar">
-
-            <div>
-                <strong>
-                    ${isEdit
-                      ? 'Cập nhật suất chiếu'
-                      : 'Tạo suất chiếu mới'}
-                </strong>
-
-                <span>
-                    Chọn phòng, phim và thời gian bắt đầu trong chi nhánh được phân công
+                <span class="rv-topbar__user-role">
+                    Quản lý chi nhánh
                 </span>
             </div>
 
-        </div>
+            <i class="bi bi-chevron-down rv-topbar__user-arrow"></i>
 
-        <section class="admin-content">
+            <div class="rv-topbar__dropdown">
 
-            <div class="page-heading">
+                <div class="rv-topbar__dropdown-header">
+                    <div class="manager-dropdown-name">
+                        <c:out value="${not empty topUser
+                                       ? topUser.fullName
+                                       : 'Branch Manager'}" />
+                    </div>
 
-                <div>
-                    <h1>
-                        ${isEdit
-                          ? 'Cập nhật suất chiếu'
-                          : 'Tạo suất chiếu mới'}
-                    </h1>
-
-                    <p>
-                        Hệ thống tự động tính giờ kết thúc theo thời lượng
-                        phim và kiểm tra trùng lịch trong cùng phòng chiếu.
-                    </p>
+                    <div class="email">
+                        <c:out value="${not empty topUser
+                                       ? topUser.email
+                                       : ''}" />
+                    </div>
                 </div>
 
-                <a class="btn btn-ghost"
-                   href="${ctx}/manager/showtimesmanagement">
-                    Quay lại
+                <a href="${ctx}/manager/dashboard"
+                   class="rv-topbar__dropdown-item">
+
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    Bảng điều khiển
                 </a>
 
+                <div class="rv-topbar__dropdown-divider"></div>
+
+                <a href="${ctx}/logout"
+                   class="rv-topbar__dropdown-item danger">
+
+                    <i class="bi bi-box-arrow-right"></i>
+                    Đăng xuất
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="rv-wrapper">
+
+    <aside class="rv-sidebar">
+
+        <div class="manager-sidebar-info">
+            <span class="manager-sidebar-info__label">PHÂN HỆ</span>
+            <strong>Branch Manager</strong>
+            <span>Quản lý vận hành chi nhánh được phân công</span>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/dashboard"
+               class="rv-nav__item">
+
+                <i class="bi bi-grid-1x2-fill"></i>
+                Bảng điều khiển
+            </a>
+        </div>
+
+        <div class="rv-nav__label">
+            Vận hành chi nhánh
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/halls"
+               class="rv-nav__item">
+
+                <i class="bi bi-door-open-fill"></i>
+                Quản lý phòng chiếu
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/seat-config"
+               class="rv-nav__item">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                Cấu hình ghế
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+
+            <div class="rv-nav__item"
+                 role="button"
+                 tabindex="0">
+
+                <i class="bi bi-film"></i>
+                Phân bổ phim
+
+                <i class="bi bi-chevron-right rv-nav__arrow"></i>
             </div>
 
-            <c:if test="${not empty error}">
+            <div class="rv-nav__sub">
 
-                <div class="alert alert-error">
+                <a href="${ctx}/manager/movie-assignments/branches"
+                   class="rv-nav__sub-item">
+                    Phim tại chi nhánh
+                </a>
+
+                <a href="${ctx}/manager/movie-assignments/halls"
+                   class="rv-nav__sub-item">
+                    Phim tại phòng chiếu
+                </a>
+
+                <a href="${ctx}/manager/movie-durations"
+                   class="rv-nav__sub-item">
+                    Thời lượng phim
+                </a>
+            </div>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/showtimesmanagement"
+               class="rv-nav__item active">
+
+                <i class="bi bi-calendar-week-fill"></i>
+                Quản lý lịch chiếu
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/DiscountManager"
+               class="rv-nav__item">
+                <i class="bi bi-tags-fill"></i>
+                Quản lý mã giảm giá
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/logout"
+               class="rv-nav__item logout">
+
+                <i class="bi bi-box-arrow-right"></i>
+                Đăng xuất
+            </a>
+        </div>
+    </aside>
+
+    <main class="rv-main">
+
+        <div class="rv-page-header">
+
+            <div class="rv-page-header__left">
+
+                <div class="rv-breadcrumb">
+                    <a href="${ctx}/manager/dashboard">
+                        Quản lý chi nhánh
+                    </a>
+
+                    <i class="bi bi-chevron-right rv-breadcrumb__sep"></i>
+
+                    <a href="${ctx}/manager/showtimesmanagement">
+                        Quản lý lịch chiếu
+                    </a>
+
+                    <i class="bi bi-chevron-right rv-breadcrumb__sep"></i>
+
+                    <span class="rv-breadcrumb__current">
+                        ${isEdit ? 'Cập nhật suất chiếu' : 'Tạo suất chiếu'}
+                    </span>
+                </div>
+
+                <h1 class="rv-page-title">
+                    ${isEdit
+                      ? 'Cập nhật suất chiếu'
+                      : 'Tạo suất chiếu mới'}
+                </h1>
+
+                <p class="rv-page-subtitle">
+                    Chọn Hall, Movie và thời gian bắt đầu trong chi nhánh được phân công.
+                </p>
+            </div>
+
+            <div class="rv-page-header__right">
+                <a class="rv-btn rv-btn--ghost"
+                   href="${ctx}/manager/showtimesmanagement">
+
+                    <i class="bi bi-arrow-left"></i>
+                    Quay lại danh sách
+                </a>
+            </div>
+        </div>
+
+        <c:if test="${not empty error}">
+            <div class="manager-alert">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+
+                <span>
                     <c:out value="${error}" />
+                </span>
+            </div>
+        </c:if>
+
+        <div class="manager-showtime-info">
+            <i class="bi bi-info-circle-fill"></i>
+
+            <div>
+                <strong>Nguyên tắc lập lịch:</strong>
+
+                Hệ thống tự tính giờ kết thúc từ thời lượng Movie và tự từ chối
+                nếu Hall đã có suất chiếu bị chồng thời gian.
+            </div>
+        </div>
+
+        <div class="rv-card">
+
+            <div class="rv-card__header">
+
+                <div class="manager-form-card-heading">
+
+                    <div class="manager-form-card-heading__icon">
+                        <i class="bi ${isEdit
+                                       ? 'bi-pencil-square'
+                                       : 'bi-calendar-plus-fill'}"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="manager-form-card-heading__title">
+                            ${isEdit
+                              ? 'Thông tin suất chiếu cần cập nhật'
+                              : 'Thông tin suất chiếu mới'}
+                        </h2>
+
+                        <div class="manager-form-card-heading__description">
+                            Các trường có dấu * là bắt buộc.
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-            </c:if>
+            <div class="rv-card__body">
 
-            <div class="panel">
+                <form id="showtimeForm"
+                      method="post"
+                      action="${ctx}${isEdit
+                              ? '/manager/showtimesmanagement/edit'
+                              : '/manager/showtimesmanagement/create'}">
 
-                <div class="panel-header">
-                    Thông tin suất chiếu
-                </div>
+                    <c:if test="${isEdit}">
+                        <input type="hidden"
+                               name="id"
+                               value="${showtime.id}">
+                    </c:if>
 
-                <div class="panel-body">
+                    <div class="rv-form-container">
 
-                    <form id="showtimeForm"
-                          method="post"
-                          action="${ctx}${isEdit
-                                  ? '/manager/showtimesmanagement/edit'
-                                  : '/manager/showtimesmanagement/create'}">
+                        <div class="rv-form-group">
 
-                        <c:if test="${isEdit}">
+                            <label class="rv-label">
+                                Chi nhánh được phân công
+                            </label>
 
-                            <input type="hidden"
-                                   name="id"
-                                   value="${showtime.id}">
-
-                        </c:if>
-
-                        <div class="form-grid">
-
-                            <div class="form-group">
-
-                                <label>
-                                    Chi nhánh được phân công
-                                </label>
+                            <div class="manager-input-icon">
+                                <i class="bi bi-building"></i>
 
                                 <input type="text"
-                                       class="input-field"
+                                       class="rv-input manager-readonly-input"
                                        value="${branch.name}"
                                        readonly>
-
-                                <span class="field-note">
-                                    Manager chỉ có thể tạo suất chiếu cho các phòng
-                                    thuộc chi nhánh này.
-                                </span>
-
                             </div>
 
-                            <div class="form-group">
+                            <span class="field-note">
+                                Manager chỉ có thể tạo suất chiếu cho Hall thuộc chi nhánh này.
+                            </span>
+                        </div>
 
-                                <label for="hallId">
-                                    Phòng chiếu *
-                                </label>
+                        <div class="rv-form-group">
+
+                            <label class="rv-label"
+                                   for="hallId">
+                                Phòng chiếu
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="manager-input-icon">
+                                <i class="bi bi-door-open"></i>
+
+                                <c:if test="${isEdit}">
+                                    <input type="hidden"
+                                           name="hallId"
+                                           value="${showtime.hallId}">
+                                </c:if>
 
                                 <select id="hallId"
-                                        name="hallId"
-                                        class="select-field"
-                                        required>
+                                        name="${isEdit ? 'hallIdDisplay' : 'hallId'}"
+                                        class="rv-select"
+                                        required
+                                        ${isEdit ? 'disabled' : ''}>
 
                                     <option value="">
                                         -- Chọn phòng chiếu --
@@ -317,31 +430,41 @@
                                             <c:out value="${hall.name}" />
                                             -
                                             <c:out value="${hall.hallType}" />
-
                                         </option>
-
                                     </c:forEach>
-
                                 </select>
-
-                                <span class="field-note">
-                                    Chỉ hiển thị các phòng thuộc chi nhánh
-                                    được Admin phân công cho Manager.
-                                </span>
-
                             </div>
 
-                            <div class="form-group">
+                            <span class="field-note">
+                                <c:choose>
+                                    <c:when test="${isEdit}">
+                                        Khi cập nhật suất chiếu, Hall được khóa theo Hall ban đầu để tránh nhầm với tạo mới.
+                                    </c:when>
 
-                                <label for="movieTitleInput">
-                                    Phim *
-                                </label>
+                                    <c:otherwise>
+                                        Chỉ hiển thị Hall thuộc Branch được Admin phân công cho Manager.
+                                    </c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
 
-                                <div id="movieAutocomplete"
-                                     class="movie-autocomplete">
+                        <div class="rv-form-group">
 
+                            <label class="rv-label"
+                                   for="movieTitleInput">
+                                Phim
+                                <span class="required">*</span>
+                            </label>
+
+                            <div id="movieAutocomplete"
+                                 class="movie-autocomplete">
+
+                                <div class="manager-input-icon">
+                                    <i class="bi bi-film"></i>
+                                    
+                                    <%-- nguoi dung thay ten phim --%>
                                     <input id="movieTitleInput"
-                                           class="input-field"
+                                           class="rv-input"
                                            type="text"
                                            placeholder="Nhập hoặc chọn phim..."
                                            autocomplete="off"
@@ -351,92 +474,110 @@
                                            aria-autocomplete="list"
                                            aria-expanded="false"
                                            aria-controls="movieSuggestionList">
-
-                                    <div id="movieSuggestionList"
-                                         class="movie-suggestion-list"
-                                         role="listbox">
-                                    </div>
-
                                 </div>
 
-                                <input type="hidden"
-                                       id="movieId"
-                                       name="movieId"
-                                       value="">
-
-                                <span class="field-note"
-                                      id="movieNote">
-                                    Chọn phòng chiếu trước. Sau đó bấm vào ô Phim
-                                    để xem gợi ý hoặc nhập tên phim để tìm.
-                                </span>
-
-                                <div id="movieAssignmentWarning"
-                                     class="movie-assignment-warning">
-
-                                    Phòng chiếu này chưa được phân bổ phim.
-
-                                    <br>
-
-                                    <a id="assignmentLink"
-                                       href="${ctx}/manager/movie-assignments/halls">
-                                        Đi đến phân bổ phim cho phòng
-                                    </a>
-
+                                <div id="movieSuggestionList"
+                                     class="movie-suggestion-list"
+                                     role="listbox">
                                 </div>
-
                             </div>
 
-                            <div class="form-group">
+                                    <%-- sever nhan dang phim --%>
+                            <input type="hidden"
+                                   id="movieId"
+                                   name="movieId"
+                                   value="">
 
-                                <label for="startTime">
-                                    Thời gian bắt đầu *
-                                </label>
+                            <span class="field-note"
+                                  id="movieNote">
+                                Chọn Hall trước. Sau đó bấm vào ô Phim để xem gợi ý hoặc nhập tên phim để tìm.
+                            </span>
+
+                            <div id="movieAssignmentWarning"
+                                 class="movie-assignment-warning">
+
+                                Hall này chưa được phân bổ Movie.
+
+                                <br>
+
+                                <a id="assignmentLink"
+                                   href="${ctx}/manager/movie-assignments/halls">
+                                    Đi đến phân bổ phim cho phòng
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="rv-form-group">
+
+                            <label class="rv-label"
+                                   for="startTime">
+                                Thời gian bắt đầu
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="manager-input-icon">
+                                <i class="bi bi-calendar-event"></i>
 
                                 <input id="startTime"
                                        name="startTime"
-                                       class="input-field"
+                                       class="rv-input"
                                        type="datetime-local"
                                        required
                                        value="${showtime.startInputValue}">
-
                             </div>
 
-                            <div class="form-group">
+                            <span class="field-note">
+                                Giờ kết thúc được tự động tính theo thời lượng Movie đã chọn.
+                            </span>
+                        </div>
 
-                                <label for="basePrice">
-                                    Giá vé cơ bản *
-                                </label>
+                        <div class="rv-form-group">
+
+                            <label class="rv-label"
+                                   for="basePrice">
+                                Giá vé cơ bản
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="manager-input-icon">
+                                <i class="bi bi-cash-stack"></i>
 
                                 <input id="basePrice"
                                        name="basePrice"
-                                       class="input-field"
+                                       class="rv-input"
                                        type="number"
                                        min="0"
                                        step="1000"
                                        required
                                        value="${showtime.basePrice}">
-
-                                <span class="field-note">
-                                    Đơn vị: VNĐ.
-                                </span>
-
                             </div>
 
-                            <div class="form-group">
+                            <span class="field-note">
+                                Đơn vị: VNĐ.
+                            </span>
+                        </div>
 
-                                <label for="status">
-                                    Trạng thái *
-                                </label>
+                        <div class="rv-form-group">
+
+                            <label class="rv-label"
+                                   for="status">
+                                Trạng thái
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="manager-input-icon">
+                                <i class="bi bi-toggle-on"></i>
 
                                 <select id="status"
                                         name="status"
-                                        class="select-field"
+                                        class="rv-select"
                                         required>
 
                                     <option value="SCHEDULED"
                                         ${showtime.status == 'SCHEDULED'
                                           ? 'selected'
                                           : ''}>
+
                                         SCHEDULED - Đã lên lịch
                                     </option>
 
@@ -444,94 +585,96 @@
                                         ${showtime.status == 'ON_SALE'
                                           ? 'selected'
                                           : ''}>
+
                                         ON_SALE - Đang bán vé
                                     </option>
-
                                 </select>
-
                             </div>
 
+                            <span class="field-note">
+                                Chỉ suất chiếu đang hoạt động mới có thể được bán vé theo quy tắc hệ thống.
+                            </span>
                         </div>
+                    </div>
 
-                        <div class="schedule-information">
+                    <div class="schedule-information">
 
-                            <h3>
-                                Thời gian suất chiếu
-                            </h3>
+                        <h3>
+                            <i class="bi bi-clock-history"></i>
+                            Thông tin thời gian suất chiếu
+                        </h3>
 
-                            <p>
-                                Thời lượng phim:
+                        <p>
+                            Thời lượng Movie:
 
-                                <strong id="durationPreview">
-                                    Chưa chọn phim
-                                </strong>
-                            </p>
+                            <strong id="durationPreview">
+                                Chưa chọn phim
+                            </strong>
+                        </p>
 
-                            <p>
-                                Thời gian kết thúc dự kiến:
+                        <p>
+                            Thời gian kết thúc dự kiến:
 
-                                <strong id="endTimePreview">
-                                    Chưa xác định
-                                </strong>
-                            </p>
+                            <strong id="endTimePreview">
+                                Chưa xác định
+                            </strong>
+                        </p>
 
-                            <p>
-                                Hệ thống sẽ từ chối lưu nếu phòng đã có
-                                suất chiếu bị chồng thời gian.
-                            </p>
+                        <p>
+                            Kiểm tra lịch:
 
-                        </div>
+                            <strong>
+                                Hệ thống từ chối lưu nếu Hall đã có suất chiếu bị chồng thời gian.
+                            </strong>
+                        </p>
+                    </div>
 
-                        <div class="form-actions">
+                    <div class="manager-form-actions">
 
-                            <a class="btn btn-ghost"
-                               href="${ctx}/manager/showtimesmanagement">
-                                Hủy
-                            </a>
+                        <a class="rv-btn rv-btn--ghost"
+                           href="${ctx}/manager/showtimesmanagement">
 
-                            <button class="btn btn-primary"
-                                    type="submit">
-                                ${isEdit ? 'Cập nhật' : 'Lưu'}
-                            </button>
+                            <i class="bi bi-x-lg"></i>
+                            Hủy
+                        </a>
 
-                        </div>
+                        <button class="rv-btn rv-btn--primary"
+                                type="submit">
 
-                    </form>
+                            <i class="bi ${isEdit
+                                           ? 'bi-check-lg'
+                                           : 'bi-plus-lg'}"></i>
 
-                    <select id="movieOptionSource"
-                            style="display: none;"
-                            aria-hidden="true">
+                            ${isEdit ? 'Cập nhật suất chiếu' : 'Lưu suất chiếu'}
+                        </button>
+                    </div>
+                </form>
 
-                        <c:forEach var="entry"
-                                   items="${moviesByHall}">
+                        <%-- Dữ liệu phim được đổ vào --%>
+                <select id="movieOptionSource"
+                        class="manager-hidden-select"
+                        aria-hidden="true">
 
-                            <c:forEach var="movie"
-                                       items="${entry.value}">
+                    <c:forEach var="entry"
+                               items="${moviesByHall}">
 
-                                <option value="${movie.id}"
-                                        data-hall-id="${entry.key}"
-                                        data-duration="${movie.durationMin}"
-                                        data-title="<c:out value='${movie.title}' />">
+                        <c:forEach var="movie"
+                                   items="${entry.value}">
 
-                                    <c:out value="${movie.title}" />
-                                    - ${movie.durationMin} phút
+                            <option value="${movie.id}"
+                                    data-hall-id="${entry.key}"
+                                    data-duration="${movie.durationMin}"
+                                    data-title="<c:out value='${movie.title}' />">
 
-                                </option>
-
-                            </c:forEach>
-
+                                <c:out value="${movie.title}" />
+                                - ${movie.durationMin} phút
+                            </option>
                         </c:forEach>
-
-                    </select>
-
-                </div>
-
+                    </c:forEach>
+                </select>
             </div>
-
-        </section>
-
+        </div>
     </main>
-
 </div>
 
 <script>
@@ -561,6 +704,8 @@
 
     const startTimeInput
             = document.getElementById("startTime");
+
+    setStartTimeMin();
 
     const durationPreview
             = document.getElementById("durationPreview");
@@ -837,7 +982,67 @@
         updateSchedulePreview();
     }
 
+    function formatDateTimeLocalInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hour = String(date.getHours()).padStart(2, "0");
+        const minute = String(date.getMinutes()).padStart(2, "0");
+
+        return year + "-" + month + "-" + day
+                + "T" + hour + ":" + minute;
+    }
+
+    function getCurrentMinute() {
+        const now = new Date();
+        now.setSeconds(0, 0);
+
+        return now;
+    }
+
+    function setStartTimeMin() {
+        if (!startTimeInput) {
+            return;
+        }
+
+        startTimeInput.min = formatDateTimeLocalInput(
+                getCurrentMinute()
+        );
+    }
+
+    function validateStartTimeNotPast() {
+        setStartTimeMin();
+
+        const startValue = startTimeInput.value;
+
+        if (!startValue) {
+            startTimeInput.setCustomValidity("");
+            return true;
+        }
+
+        const selectedStartTime = parseLocalDateTime(startValue);
+
+        if (!selectedStartTime) {
+            startTimeInput.setCustomValidity(
+                    "Thời gian bắt đầu không hợp lệ."
+            );
+            return false;
+        }
+
+        if (selectedStartTime < getCurrentMinute()) {
+            startTimeInput.setCustomValidity(
+                    "Không thể chọn thời gian bắt đầu trong quá khứ."
+            );
+            return false;
+        }
+
+        startTimeInput.setCustomValidity("");
+        return true;
+    }
+
     function updateSchedulePreview() {
+        validateStartTimeNotPast();
+
         const selectedMovie = getSelectedMovie();
         const duration = selectedMovie ? selectedMovie.duration : 0;
 
@@ -1003,6 +1208,12 @@
     showtimeForm.addEventListener(
             "submit",
             function (event) {
+                if (!validateStartTimeNotPast()) {
+                    event.preventDefault();
+                    startTimeInput.reportValidity();
+                    return;
+                }
+
                 const selectedMovie = getSelectedMovie();
 
                 if (!selectedMovie) {

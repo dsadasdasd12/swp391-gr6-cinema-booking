@@ -1,323 +1,295 @@
-<%-- 
+<%--
     Document   : hall-list
-    Created on : Jun 9, 2026, 10:12:26 PM
-    Author     : MSI
+    Purpose    : Hall Management - RapViet Cinema Branch Manager
 --%>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="pageTitle" value="Quản lý phòng chiếu — Rạp Việt CMS" scope="request" />
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Quản lý phòng chiếu - RapViet Cinema</title>
+<c:set var="extraCss" scope="request">
+    <link rel="stylesheet" href="${ctx}/assets/css/manager/hall.css?v=1">
+</c:set>
 
-    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-    <link rel="stylesheet" href="${ctx}/assets/css/admin.css">
-</head>
+<%@ include file="/pages/shared/header-admin.jsp" %>
+<%@ include file="/pages/shared/sidebar-admin.jsp" %>
 
-<body>
-<div class="admin-shell">
-
-    <aside class="admin-sidebar">
-        <div class="admin-brand">RAPVIET SYSTEM</div>
-
-        <div class="admin-role">
-            <p>Phân hệ</p>
-            <strong>Manager Dashboard</strong>
-            <span>Quyền: Branch Manager</span>
+<section class="management-page hall-list-page">
+    <div class="management-header">
+        <div>
+            <h1>Quản lý phòng chiếu</h1>
+            <p>Thêm, chỉnh sửa, xóa, cấu hình sức chứa và trạng thái phòng chiếu của chi nhánh được phân công.</p>
         </div>
 
-       <nav class="admin-menu">
-
-            <a href="${ctx}/manager/dashboard">
-                Dashboard
+        <c:if test="${not empty branch}">
+            <a class="management-btn management-btn-primary"
+               href="${ctx}/manager/halls/create?branchId=${branch.id}">
+                + Thêm phòng chiếu
             </a>
+        </c:if>
+    </div>
 
-            <a class="active" href="${ctx}/manager/halls">
-                Quản lý phòng chiếu
-            </a>
-
-            <a href="${ctx}/manager/seat-config">
-                Cấu hình ghế
-            </a>
-
-            <a href="${ctx}/manager/showtimesmanagement">
-                Quản lý lịch chiếu
-            </a>
-
-            <a href="${ctx}/manager/movie-assignments/branches">
-                Phim tại chi nhánh
-            </a>
-
-            <a href="${ctx}/manager/movie-assignments/halls">
-                Phim tại phòng chiếu
-            </a>
-
-            <a 
-               href="${ctx}/manager/movie-durations">
-                Quản lý thời lượng phim
-            </a>
-
-
-
-            <a href="${ctx}/DiscountManager">
-                Quản lý mã giảm giá
-            </a>
-
-            <a href="${ctx}/logout">
-                Đăng xuất
-            </a>
-
-        </nav>
-    </aside>
-
-    <main class="admin-main">
-
-        <div class="admin-topbar">
-            <div>
-                <strong>Quản lý phòng chiếu</strong>
-
-                <span>
-                    Một Manager quản lý một chi nhánh và các phòng chiếu bên trong.
-                </span>
-            </div>
+    <c:if test="${not empty sessionScope.flashMessage}">
+        <div class="management-alert ${sessionScope.flashType == 'success' ? 'management-alert-success' : 'management-alert-error'}">
+            <c:out value="${sessionScope.flashMessage}" />
         </div>
 
-        <section class="admin-content">
+        <c:remove var="flashMessage" scope="session" />
+        <c:remove var="flashType" scope="session" />
+    </c:if>
 
-            <div class="page-heading">
-                <div>
-                    <h1>Quản lý phòng chiếu</h1>
+    <c:if test="${not empty requestScope.errorMessage}">
+        <div class="management-alert management-alert-error">
+            <c:out value="${requestScope.errorMessage}" />
+        </div>
+    </c:if>
 
+    <c:choose>
+        <c:when test="${empty branch}">
+            <div class="management-card">
+                <div class="management-card-header">
+                    <div>
+                        <h2>Chưa được phân công chi nhánh</h2>
+                        <span>Tài khoản Manager này chưa có chi nhánh để quản lý phòng chiếu.</span>
+                    </div>
+                </div>
+
+                <div class="management-empty hall-empty-state">
+                    <div class="hall-empty-icon">
+                        <i class="bi bi-building-exclamation"></i>
+                    </div>
+
+                    <strong>Chưa thể quản lý phòng chiếu</strong>
                     <p>
-                        Chỉ hiển thị các phòng thuộc chi nhánh được Admin phân công
-                        cho tài khoản Manager này.
+                        Bạn chỉ có thể thêm, sửa hoặc quản lý phòng chiếu sau khi được Admin phân công Branch.
                     </p>
                 </div>
             </div>
+        </c:when>
 
-            <%-- Flash message sau khi Add / Edit / Delete / Change Status --%>
-            <c:if test="${not empty sessionScope.flashMessage}">
-                <div class="alert
-                    ${sessionScope.flashType eq 'success'
-                        ? 'alert-success'
-                        : 'alert-error'}">
+        <c:otherwise>
+            <div class="hall-branch-banner">
+                <i class="bi bi-building-check-fill"></i>
 
-                    <c:out value="${sessionScope.flashMessage}" />
+                <div>
+                    <strong>
+                        Chi nhánh đang quản lý:
+                        <c:out value="${branch.name}" />
+                    </strong>
+
+                    <span>
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <c:out value="${branch.address}" />
+                    </span>
+                </div>
+            </div>
+
+            <div class="management-card">
+                <div class="management-card-header">
+                    <div>
+                        <h2>Danh sách phòng chiếu</h2>
+                        <span>
+                            Quản lý các Hall thuộc chi nhánh
+                            <strong><c:out value="${branch.name}" /></strong>
+                        </span>
+                    </div>
+
+                    <input type="text"
+                           id="hallSearch"
+                           class="management-search"
+                           placeholder="Tìm theo tên phòng, loại phòng, trạng thái...">
                 </div>
 
-                <c:remove var="flashMessage" scope="session" />
-                <c:remove var="flashType" scope="session" />
-            </c:if>
-
-            <c:choose>
-
-                <%-- Manager chưa được Admin phân Branch --%>
-                <c:when test="${empty branch}">
-                    <div class="panel">
-                        <div class="panel-header">
-                            Chưa được phân công chi nhánh
-                        </div>
-
-                        <div class="panel-body">
-                            <div class="empty-admin">
-                                Tài khoản Manager này chưa được Admin phân công
-                                chi nhánh. Không thể quản lý phòng chiếu cho đến
-                                khi có một Branch được gán.
-                            </div>
-                        </div>
-                    </div>
-                </c:when>
-
-                <%-- Manager đã có đúng một Branch --%>
-                <c:otherwise>
-
-                    <div class="panel">
-
-                        <div class="panel-header"
-                             style="display: flex;
-                                    justify-content: space-between;
-                                    align-items: center;
-                                    padding-right: 24px;">
-
-                            <div>
-                                <strong>
-                                    <c:out value="${branch.name}" />
-                                </strong>
-
-                                <div style="font-size: 13px;
-                                            color: #94a3b8;
-                                            margin-top: 4px;">
-
-                                    <c:out value="${branch.address}" />
+                <div class="management-table-wrap">
+                    <c:choose>
+                        <c:when test="${empty halls}">
+                            <div class="management-empty hall-empty-state">
+                                <div class="hall-empty-icon">
+                                    <i class="bi bi-door-closed"></i>
                                 </div>
+
+                                <strong>Chưa có phòng chiếu nào</strong>
+                                <p>
+                                    Chi nhánh này chưa có dữ liệu phòng chiếu. Hãy tạo phòng đầu tiên để tiếp tục phân bổ phim và lập lịch chiếu.
+                                </p>
+
+                                <a class="management-btn management-btn-primary hall-empty-action"
+                                   href="${ctx}/manager/halls/create?branchId=${branch.id}">
+                                    + Thêm phòng chiếu đầu tiên
+                                </a>
                             </div>
+                        </c:when>
 
-                            <a class="btn btn-primary btn-small"
-                               href="${ctx}/manager/halls/create?branchId=${branch.id}">
-                                + Thêm phòng chiếu
-                            </a>
-                        </div>
+                        <c:otherwise>
+                            <table class="management-table hall-table" id="hallTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Phòng chiếu</th>
+                                        <th>Cấu hình ghế</th>
+                                        <th>Loại phòng</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
 
-                        <div class="panel-body">
-
-                            <c:choose>
-
-                                <c:when test="${empty halls}">
-                                    <div class="empty-admin">
-                                        Chi nhánh này chưa có phòng chiếu nào.
-                                    </div>
-                                </c:when>
-
-                                <c:otherwise>
-
-                                    <table class="admin-table">
-                                        <thead>
+                                <tbody>
+                                    <c:forEach var="h" items="${halls}">
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Tên phòng</th>
-                                            <th>Cấu hình ghế</th>
-                                            <th>Loại phòng</th>
-                                            <th>Trạng thái</th>
-                                            <th>Thao tác</th>
-                                        </tr>
-                                        </thead>
+                                            <td>#${h.id}</td>
 
-                                        <tbody>
-                                        <c:forEach var="h" items="${halls}">
-                                            <tr>
-                                                <td>
-                                                    #<c:out value="${h.id}" />
-                                                </td>
-
-                                                <td>
-                                                    <strong>
-                                                        <c:out value="${h.name}" />
-                                                    </strong>
-                                                </td>
-
-                                                <td>
-                                                    <strong>
-                                                        <c:out value="${h.seatRows}" />
-                                                        hàng ×
-                                                        <c:out value="${h.seatsPerRow}" />
-                                                        ghế
-                                                    </strong>
-                                                    <div style="margin-top: 4px;">
-                                                        <a href="${ctx}/manager/seat-config?hallId=${h.id}" class="btn btn-ghost btn-small" style="padding: 2px 6px; font-size: 11px;">🔧 Cấu hình ghế</a>
+                                            <td>
+                                                <div class="management-user">
+                                                    <div class="management-avatar">
+                                                        <c:choose>
+                                                            <c:when test="${not empty h.name}">
+                                                                ${fn:substring(h.name, 0, 1)}
+                                                            </c:when>
+                                                            <c:otherwise>H</c:otherwise>
+                                                        </c:choose>
                                                     </div>
-                                                    <div style="margin-top: 4px;
-                                                                color: #94a3b8;
-                                                                font-size: 12px;">
 
-                                                        Tổng:
-                                                        <c:out value="${h.totalSeats}" />
-                                                        ghế
+                                                    <div>
+                                                        <strong><c:out value="${h.name}" /></strong>
+                                                        <span>RapViet Hall</span>
                                                     </div>
-                                                </td>
+                                                </div>
+                                            </td>
 
-                                                <td>
+                                            <td>
+                                                <div class="hall-seat-config">
+                                                    <c:out value="${h.seatRows}" /> hàng ×
+                                                    <c:out value="${h.seatsPerRow}" /> ghế
+                                                </div>
+
+                                                <div style="margin-top: 6px;">
+                                                    <a href="${ctx}/manager/seat-config?hallId=${h.id}"
+                                                       class="management-btn management-btn-small management-btn-ghost"
+                                                       style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: var(--text-xs); border-radius: var(--r-sm);">
+                                                        <i class="bi bi-grid-3x3-gap"></i>
+                                                        Cấu hình ghế
+                                                    </a>
+                                                </div>
+
+                                                <div class="management-muted" style="margin-top: 6px;">
+                                                    Tổng:
+                                                    <strong><c:out value="${h.totalSeats}" /></strong>
+                                                    ghế
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <span class="hall-type-badge">
+                                                    <i class="bi bi-stars"></i>
                                                     <c:out value="${h.hallType}" />
-                                                </td>
+                                                </span>
+                                            </td>
 
-                                                <td>
-                                                    <span class="badge-status
-                                                        ${h.status eq 'ACTIVE'
-                                                            ? 'badge-active'
-                                                            : h.status eq 'MAINTENANCE'
-                                                                ? 'badge-warning'
-                                                                : 'badge-inactive'}">
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${h.status == 'ACTIVE'}">
+                                                        <span class="management-status management-status-active">
+                                                            Hoạt động
+                                                        </span>
+                                                    </c:when>
 
-                                                        <c:out value="${h.status}" />
-                                                    </span>
-                                                </td>
+                                                    <c:when test="${h.status == 'MAINTENANCE'}">
+                                                        <span class="management-status management-status-warning">
+                                                            Bảo trì
+                                                        </span>
+                                                    </c:when>
 
-                                                <td>
-                                                    <div class="action-inline">
+                                                    <c:otherwise>
+                                                        <span class="management-status management-status-blocked">
+                                                            Ngưng hoạt động
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
 
-                                                        <a class="btn btn-ghost btn-small"
-                                                           href="${ctx}/manager/halls/edit?id=${h.id}&branchId=${branch.id}">
-                                                            Sửa
-                                                        </a>
+                                            <td>
+                                                <div class="management-actions">
+                                                    <a class="management-btn management-btn-small management-btn-ghost"
+                                                       href="${ctx}/manager/halls/edit?id=${h.id}&branchId=${branch.id}">
+                                                        Sửa
+                                                    </a>
 
-                                                        <%-- Đổi trạng thái Hall --%>
-                                                        <form method="post"
-                                                              action="${ctx}/manager/halls/status">
+                                                    <form method="post"
+                                                          action="${ctx}/manager/halls/status"
+                                                          class="hall-action-form">
+                                                        <input type="hidden" name="id" value="${h.id}">
+                                                        <input type="hidden" name="branchId" value="${branch.id}">
 
-                                                            <input type="hidden"
-                                                                   name="id"
-                                                                   value="${h.id}">
-                                                            
-                                                            <input type="hidden"
-                                                                   name="branchId"
-                                                                   value="${branch.id}">
+                                                        <c:choose>
+                                                            <c:when test="${h.status == 'ACTIVE'}">
+                                                                <input type="hidden" name="status" value="MAINTENANCE">
+                                                                <button type="submit"
+                                                                        class="management-btn management-btn-small management-btn-ghost">
+                                                                    Bảo trì
+                                                                </button>
+                                                            </c:when>
 
-                                                            <c:choose>
-                                                                <c:when test="${h.status eq 'ACTIVE'}">
-                                                                    <input type="hidden"
-                                                                           name="status"
-                                                                           value="MAINTENANCE">
+                                                            <c:otherwise>
+                                                                <input type="hidden" name="status" value="ACTIVE">
+                                                                <button type="submit"
+                                                                        class="management-btn management-btn-small management-btn-success">
+                                                                    Mở lại
+                                                                </button>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </form>
 
-                                                                    <button type="submit"
-                                                                            class="btn btn-warning btn-small">
-                                                                        Bảo trì
-                                                                    </button>
-                                                                </c:when>
+                                                    <form method="post"
+                                                          action="${ctx}/manager/halls/delete"
+                                                          class="hall-action-form"
+                                                          onsubmit="return confirm('Bạn có chắc muốn xóa phòng chiếu này?');">
+                                                        <input type="hidden" name="id" value="${h.id}">
+                                                        <input type="hidden" name="branchId" value="${branch.id}">
 
-                                                                <c:otherwise>
-                                                                    <input type="hidden"
-                                                                           name="status"
-                                                                           value="ACTIVE">
+                                                        <button type="submit"
+                                                                class="management-btn management-btn-small management-btn-danger">
+                                                            Xóa
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+        </c:otherwise>
+    </c:choose>
+</section>
 
-                                                                    <button type="submit"
-                                                                            class="btn btn-success btn-small">
-                                                                        Mở lại
-                                                                    </button>
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </form>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var searchInput = document.getElementById('hallSearch');
+        var hallTable = document.getElementById('hallTable');
 
-                                                        <%-- Xóa Hall --%>
-                                                        <form method="post"
-                                                              action="${ctx}/manager/halls/delete"
-                                                              onsubmit="return confirm('Bạn có chắc muốn xóa phòng chiếu này?');">
+        if (!searchInput || !hallTable) {
+            return;
+        }
 
-                                                            <input type="hidden"
-                                                                   name="id"
-                                                                   value="${h.id}">
-                                                            
-                                                            <input type="hidden"
-                                                                   name="branchId"
-                                                                   value="${branch.id}">
+        searchInput.addEventListener('input', function () {
+            var keyword = searchInput.value.trim().toLowerCase();
+            var rows = hallTable.querySelectorAll('tbody tr');
 
-                                                            <button type="submit"
-                                                                    class="btn btn-danger btn-small">
-                                                                Xóa
-                                                            </button>
-                                                        </form>
+            rows.forEach(function (row) {
+                var text = row.innerText.toLowerCase();
+                row.style.display = text.includes(keyword) ? '' : 'none';
+            });
+        });
+    });
+</script>
 
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                        </tbody>
-                                    </table>
-
-                                </c:otherwise>
-                            </c:choose>
-
-                        </div>
-                    </div>
-
-                </c:otherwise>
-            </c:choose>
-
-        </section>
-    </main>
+</main>
 </div>
 </body>
 </html>

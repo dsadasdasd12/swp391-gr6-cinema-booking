@@ -18,6 +18,7 @@ import model.Category;
 import model.Language;
 import model.Movie;
 import service.MovieService;
+import util.CloudinaryService;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Servlet xử lý quản lý phim dành cho admin/branch-manager.
+ * Servlet xử lý quản lý phim dành cho admin.
  * URL: /admin/movies?action=list|new|add|edit|update|delete|status|upload
  *
  * @author LONG
@@ -35,7 +36,7 @@ import java.util.List;
 @WebServlet("/admin/moviesmanagement")
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,       // 1 MB trước khi ghi ra disk
-    maxFileSize       = 20 * 1024 * 1024,  // tối đa 20 MB mỗi file
+    maxFileSize       = 5 * 1024 * 1024,   // khớp giới hạn poster trên giao diện
     maxRequestSize    = 50 * 1024 * 1024   // tối đa 50 MB mỗi request
 )
 public class AdminMovieController extends HttpServlet {
@@ -75,6 +76,7 @@ public class AdminMovieController extends HttpServlet {
             case "delete" -> handleDelete(req, resp);
             case "status" -> handleStatus(req, resp);   // AJAX
             case "upload"         -> handleUpload(req, resp);
+            case "update-poster"  -> handleUpdatePoster(req, resp);
             case "update-trailer" -> handleUpdateTrailer(req, resp);
             default       -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
@@ -161,11 +163,16 @@ public class AdminMovieController extends HttpServlet {
 
         int newId = movieService.addMovie(m, catIds, langIds);
         if (newId > 0) {
-            String uploaded = savePosterPart(req, newId);
-            if (uploaded != null) {
-                movieService.updatePoster(newId, uploaded);
+            String uploadWarning = null;
+            if (hasNewPoster) {
+                try {
+                    String cloudinaryUrl = CloudinaryService.uploadMoviePoster(req.getPart("posterFile"));
+                    movieService.updatePoster(newId, cloudinaryUrl);
+                } catch (IOException ex) {
+                    uploadWarning = " Poster chua duoc tai len Cloudinary: " + ex.getMessage();
+                }
             }
-            req.getSession().setAttribute("flashSuccess", "Thêm phim thành công!");
+            req.getSession().setAttribute("flashSuccess", "Thêm phim thành công!" + (uploadWarning == null ? "" : uploadWarning));
             resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
         } else {
             req.setAttribute("errors", List.of("Lỗi hệ thống, không thể thêm phim."));
@@ -200,11 +207,16 @@ public class AdminMovieController extends HttpServlet {
             req.getRequestDispatcher("/pages/admin/movie-form.jsp").forward(req, resp);
             return;
         }
-        String uploaded = savePosterPart(req, m.getId());
-        if (uploaded != null) {
-            movieService.updatePoster(m.getId(), uploaded);
+        String uploadWarning = null;
+        if (hasNewPoster) {
+            try {
+                String cloudinaryUrl = CloudinaryService.uploadMoviePoster(req.getPart("posterFile"));
+                movieService.updatePoster(m.getId(), cloudinaryUrl);
+            } catch (IOException ex) {
+                uploadWarning = " Poster chua duoc tai len Cloudinary: " + ex.getMessage();
+            }
         }
-        req.getSession().setAttribute("flashSuccess", "Cập nhật phim thành công!");
+        req.getSession().setAttribute("flashSuccess", "Cập nhật phim thành công!" + (uploadWarning == null ? "" : uploadWarning));
         resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
     }
 
@@ -299,6 +311,26 @@ public class AdminMovieController extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
     }
 
+    /** Cap nhat URL poster dung chung, vi du Cloudinary. */
+    private void handleUpdatePoster(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        int movieId = parseId(req.getParameter("movieId"));
+        if (movieId <= 0) {
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
+            return;
+        }
+        String url = trim(req.getParameter("posterUrl"));
+        if (url != null && !url.isBlank() && !isSupportedPosterUrl(url)) {
+            req.getSession().setAttribute("flashError",
+                    "Link poster khong hop le. Hay dung URL http/https cua anh jpg, png, jpeg, webp hoac Cloudinary.");
+            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
+            return;
+        }
+        movieService.updatePoster(movieId, (url == null || url.isBlank()) ? null : url);
+        req.getSession().setAttribute("flashSuccess", "Da luu URL poster.");
+        resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
+    }
+
     /** Cập nhật link trailer YouTube từ trang chi tiết / sửa. */
     private void handleUpdateTrailer(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -345,6 +377,9 @@ public class AdminMovieController extends HttpServlet {
         // releaseDate
         try { m.setReleaseDate(LocalDate.parse(req.getParameter("releaseDate"))); }
         catch (Exception e) { m.setReleaseDate(null); }
+        // endDate
+        try { m.setEndDate(LocalDate.parse(req.getParameter("endDate"))); }
+        catch (Exception e) { m.setEndDate(null); }
         return m;
     }
 
@@ -423,6 +458,14 @@ public class AdminMovieController extends HttpServlet {
     private boolean hasPosterFile(HttpServletRequest req) throws ServletException, IOException {
         Part part = req.getPart("posterFile");
         return part != null && part.getSize() > 0;
+    }
+
+    private boolean isSupportedPosterUrl(String url) {
+        String lower = url.trim().toLowerCase();
+        return (lower.startsWith("http://") || lower.startsWith("https://"))
+                && (lower.contains(".jpg") || lower.contains(".jpeg")
+                || lower.contains(".png") || lower.contains(".webp")
+                || lower.contains("/image/upload/"));
     }
 
     private String savePosterPart(HttpServletRequest req, int movieId) throws IOException, ServletException {

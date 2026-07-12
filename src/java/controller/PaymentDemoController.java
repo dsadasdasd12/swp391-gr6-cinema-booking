@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +56,12 @@ public class PaymentDemoController extends HttpServlet {
         }
 
         if ("/booking/success".equals(path)) {
-            showSuccess(request, response);
+            try {
+                showSuccess(request, response);
+
+            } catch (SQLException e) {
+                throw new ServletException(e);
+            }
             return;
         }
 
@@ -184,22 +190,22 @@ public class PaymentDemoController extends HttpServlet {
             return;
         }
 
-        String transferContent = "RV" + bookingId;
-        
+        String transferContent = "RVS" + bookingId;
+
         for (TicketSeatView seat : selectedSeats) {
-    bookingPaymentDAO.addBookingSeat(
-            bookingId,
-            seat.getSeatId(),
-            seat.getPrice()
-    );
-}
+            bookingPaymentDAO.addBookingSeat(
+                    bookingId,
+                    seat.getSeatId(),
+                    seat.getPrice()
+            );
+        }
         bookingPaymentDAO.createPendingPayment(
-        bookingId,
-        "SEPAY",
-        BANK_CODE,
-        transferContent,
-        amount
-);
+                bookingId,
+                "SEPAY",
+                BANK_CODE,
+                transferContent,
+                amount
+        );
 
         PaymentView payment = buildPaymentView(
                 bookingId,
@@ -307,7 +313,7 @@ public class PaymentDemoController extends HttpServlet {
 
         int bookingId = 999;
         double amount = 1000;
-        String transferContent = "RV" + bookingId;
+        String transferContent = "RVS" + bookingId;
 
         PaymentView payment = new PaymentView();
 
@@ -337,49 +343,22 @@ public class PaymentDemoController extends HttpServlet {
 
     private void showSuccess(HttpServletRequest request,
             HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, SQLException {
 
-        HttpSession session = request.getSession(false);
+        int bookingId = parseInt(request.getParameter("bookingId"));
 
-        if (session != null && session.getAttribute("lastTicket") != null) {
-            request.setAttribute("ticket", session.getAttribute("lastTicket"));
-            request.getRequestDispatcher(SUCCESS_PAGE).forward(request, response);
+        if (bookingId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
 
-        int bookingId = parseInt(request.getParameter("bookingId"));
-        if (bookingId <= 0) {
-            bookingId = 999;
+        TicketView ticket = bookingPaymentDAO.getTicketViewByBookingId(bookingId);
+
+        if (ticket == null) {
+            request.setAttribute("ticket", null);
+        } else {
+            request.setAttribute("ticket", ticket);
         }
-
-        TicketView ticket = new TicketView();
-
-        ticket.setBookingId(bookingId);
-        ticket.setBookingStatus("CONFIRMED");
-        ticket.setPaymentStatus("PAID");
-
-        ticket.setMovieTitle("Demo Movie");
-        ticket.setMoviePoster("");
-        ticket.setShowDate("30/06/2026");
-        ticket.setShowTime("19:30");
-        ticket.setBranchName("RapViet Cinema Hà Nội");
-        ticket.setBranchAddress("Hà Nội");
-        ticket.setHallName("Hall 1");
-
-        ticket.setPaymentMethod("SEPAY");
-        ticket.setPaymentGateway(BANK_CODE);
-        ticket.setTransactionId("RV" + bookingId);
-
-        ticket.setTotalPrice(1000);
-        ticket.setDiscountAmount(0);
-        ticket.setFinalAmount(1000);
-        ticket.setQrCode("RV" + bookingId);
-
-        List<TicketSeatView> seats = new ArrayList<>();
-        seats.add(new TicketSeatView(1, "A1", "STANDARD", 1000));
-        ticket.setSeats(seats);
-
-        request.setAttribute("ticket", ticket);
 
         request.getRequestDispatcher(SUCCESS_PAGE)
                 .forward(request, response);

@@ -8,6 +8,11 @@
     min-height: calc(100vh - 72px);
 }
 
+.branch-list-page {
+    margin: calc(-1 * var(--page-pad));
+    min-height: calc(100vh - var(--topbar-h));
+}
+
 .management-header {
     display: flex;
     justify-content: space-between;
@@ -36,7 +41,7 @@
     border: 1px solid #262a33;
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
 }
 
 .management-card-header {
@@ -76,7 +81,7 @@
 
 .management-search:focus {
     border-color: #e50914;
-    box-shadow: 0 0 0 3px rgba(229,9,20,.15);
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .15);
 }
 
 /* Table */
@@ -113,7 +118,7 @@
 }
 
 .management-table tr:hover {
-    background: rgba(229,9,20,.035);
+    background: rgba(229, 9, 20, .035);
 }
 
 .management-table tr:last-child td {
@@ -139,7 +144,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    box-shadow: 0 0 0 3px rgba(229,9,20,.12);
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .12);
 }
 
 .management-user strong {
@@ -173,15 +178,15 @@
 }
 
 .management-status-active {
-    background: rgba(34,197,94,.14);
+    background: rgba(34, 197, 94, .14);
     color: #4ade80;
-    border: 1px solid rgba(34,197,94,.25);
+    border: 1px solid rgba(34, 197, 94, .25);
 }
 
 .management-status-blocked {
-    background: rgba(239,68,68,.14);
+    background: rgba(239, 68, 68, .14);
     color: #f87171;
-    border: 1px solid rgba(239,68,68,.25);
+    border: 1px solid rgba(239, 68, 68, .25);
 }
 
 /* Buttons */
@@ -251,7 +256,8 @@
     white-space: nowrap;
 }
 
-.management-actions form {
+.management-actions form,
+.branch-action-form {
     margin: 0;
 }
 
@@ -266,15 +272,15 @@
 }
 
 .management-alert-success {
-    background: rgba(34,197,94,.12);
+    background: rgba(34, 197, 94, .12);
     color: #4ade80;
-    border: 1px solid rgba(34,197,94,.25);
+    border: 1px solid rgba(34, 197, 94, .25);
 }
 
 .management-alert-error {
-    background: rgba(229,9,20,.12);
+    background: rgba(229, 9, 20, .12);
     color: #ff6b6b;
-    border: 1px solid rgba(229,9,20,.25);
+    border: 1px solid rgba(229, 9, 20, .25);
 }
 
 /* Empty */
@@ -285,7 +291,171 @@
     color: #9ca3af;
 }
 
+/* ===============================
+   Branch Form Page
+   =============================== */
+
+.branch-form-page .branch-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 0.9fr);
+    gap: var(--s-6);
+    align-items: start;
+}
+
+.branch-form-page .branch-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+}
+
+.branch-form-page .branch-form-section-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    background: rgba(var(--primary-rgb), 0.1);
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.branch-form-page .branch-form-section-title h2 {
+    margin: 0;
+    color: var(--n-900);
+    font-size: var(--text-md);
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.branch-form-page .branch-form-section-title p {
+    margin: 2px 0 0;
+    color: var(--n-500);
+    font-size: var(--text-sm);
+    line-height: 1.45;
+}
+
+.branch-form-page .branch-input-prefix {
+    position: relative;
+}
+
+.branch-form-page .branch-input-prefix i {
+    position: absolute;
+    top: 50%;
+    left: var(--s-3);
+    z-index: 1;
+    color: var(--n-400);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.branch-form-page .branch-input-prefix .rv-input,
+.branch-form-page .branch-input-prefix .rv-select {
+    padding-left: 42px;
+}
+
+.branch-form-page .branch-form-full-row {
+    grid-column: 1 / -1;
+}
+
+.branch-form-page .branch-form-note {
+    display: block;
+    margin-top: var(--s-2);
+    color: var(--n-500);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+}
+
+.branch-form-page .branch-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    margin-bottom: var(--s-6);
+    padding: var(--s-4);
+    border: 1px solid #FECACA;
+    border-radius: var(--r-md);
+    background: var(--danger-bg);
+    color: #B91C1C;
+    font-size: var(--text-base);
+    line-height: 1.55;
+}
+
+.branch-form-page .branch-alert i {
+    margin-top: 2px;
+    font-size: var(--text-md);
+}
+
+.branch-form-page .branch-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-6);
+}
+
+.branch-form-page .branch-info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    padding: var(--s-4);
+    border: 1px solid #BFDBFE;
+    border-radius: var(--r-md);
+    background: #EFF6FF;
+    color: #1E40AF;
+    line-height: 1.55;
+}
+
+.branch-form-page .branch-info-box i {
+    margin-top: 2px;
+    font-size: var(--text-md);
+}
+
+.branch-form-page .branch-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.branch-form-page .branch-summary-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--border);
+    color: var(--n-600);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+}
+
+.branch-form-page .branch-summary-list li:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.branch-form-page .branch-summary-list i {
+    margin-top: 2px;
+    color: var(--primary);
+    font-size: 16px;
+}
+
+.branch-form-page .branch-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--border);
+}
+
 /* Responsive */
+
+@media (max-width: 1100px) {
+    .branch-form-page .branch-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
 @media (max-width: 900px) {
     .management-page {
@@ -299,6 +469,19 @@
     }
 
     .management-search {
+        width: 100%;
+    }
+}
+
+@media (max-width: 680px) {
+    .branch-form-page .branch-form-actions,
+    .branch-form-page .rv-page-header__right {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .branch-form-page .branch-form-actions .rv-btn,
+    .branch-form-page .rv-page-header__right .rv-btn {
         width: 100%;
     }
 }

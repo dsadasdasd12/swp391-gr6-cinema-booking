@@ -20,6 +20,7 @@ import model.Branch;
 import model.Hall;
 import model.Movie;
 import model.Showtime;
+import dto.MovieShowtimes;
 
 public class ShowtimeService {
 
@@ -89,8 +90,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
@@ -119,8 +120,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
@@ -140,8 +141,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
@@ -171,15 +172,24 @@ public class ShowtimeService {
             );
         }
 
+        if (showtime.getHallId() != current.getHallId()) {
+            throw new IllegalArgumentException(
+                    "Không thể đổi phòng chiếu khi cập nhật suất chiếu. "
+                    + "Nếu muốn chuyển sang phòng khác, hãy tạo suất chiếu mới."
+            );
+        }
+
         ensureHallBelongsToBranch(
-                showtime.getHallId(),
+                current.getHallId(),
                 branch.getId()
         );
+
+        showtime.setHallId(current.getHallId());
 
         validateAndPrepare(showtime, true);
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
-               showtime.getHallId(),
+                showtime.getHallId(),
         showtime.getStartTime().toLocalDateTime(),
         showtime.getEndTime().toLocalDateTime(),
                 showtime.getId()
@@ -187,8 +197,8 @@ public class ShowtimeService {
 
         if (conflict) {
             throw new IllegalArgumentException(
-                    "Phòng chiếu này đã có suất chiếu "
-                    + "trong khoảng thời gian đã chọn."
+                    "Phòng chiếu này đã có suất chiếu trong khoảng thời gian đã chọn "
+                    + "hoặc chưa đủ 15 phút giãn cách giữa hai ca chiếu."
             );
         }
 
@@ -309,6 +319,19 @@ public class ShowtimeService {
             );
         }
 
+        LocalDateTime startTime = showtime.getStartTime()
+                .toLocalDateTime();
+
+        LocalDateTime currentMinute = LocalDateTime.now()
+                .withSecond(0)
+                .withNano(0);
+
+        if (startTime.isBefore(currentMinute)) {
+            throw new IllegalArgumentException(
+                    "Không thể tạo hoặc cập nhật suất chiếu trong quá khứ."
+            );
+        }
+
         if (showtime.getBasePrice() < 0) {
             throw new IllegalArgumentException(
                     "Giá vé cơ bản không được nhỏ hơn 0."
@@ -359,9 +382,8 @@ public class ShowtimeService {
 
         showtime.setStatus(status);
 
-        LocalDateTime endTime = showtime.getStartTime()
-        .toLocalDateTime()
-        .plusMinutes(movie.getDurationMin());
+        LocalDateTime endTime = startTime
+                .plusMinutes(movie.getDurationMin());
 
         showtime.setEndTime(endTime);
     }
@@ -429,5 +451,9 @@ public class ShowtimeService {
 
     public boolean hasBookings(int showtimeId) {
         return showtimeDAO.hasBookings(showtimeId);
+    }
+
+    public List<MovieShowtimes> getMovieShowtimesByBranchAndDate(int branchId, LocalDate date) {
+        return showtimeDAO.findByBranchAndDate(branchId, date);
     }
 }

@@ -1,11 +1,14 @@
 package controller;
 
+import dto.BookingView;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import java.util.List;
 import model.User;
+import service.BookingService;
 import service.UserService;
 
 @WebServlet({
@@ -18,6 +21,7 @@ import service.UserService;
 public class UserController extends HttpServlet {
 
     private final UserService userService = new UserService();
+    private final BookingService bookingService = new BookingService();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -89,6 +93,30 @@ public class UserController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/profile");
                     return;
                 }
+
+                int page = 1;
+                try {
+                    page = Integer.parseInt(request.getParameter("page"));
+                } catch (Exception ignored) {
+                }
+
+                if (page < 1) {
+                    page = 1;
+                }
+
+                int pageSize = 10;
+
+                List<BookingView> transactions
+                        = bookingService.getHistoryByUserPaging(user.getId(), page, pageSize);
+
+                int totalRecords
+                        = bookingService.countHistoryByUser(user.getId());
+
+                int totalPages = (int) Math.ceil(totalRecords * 1.0 / pageSize);
+
+                request.setAttribute("transactions", transactions);
+                request.setAttribute("currentPage", page);
+                request.setAttribute("totalPages", totalPages);
 
                 request.getRequestDispatcher("/pages/customer/transactionhistory.jsp")
                         .forward(request, response);

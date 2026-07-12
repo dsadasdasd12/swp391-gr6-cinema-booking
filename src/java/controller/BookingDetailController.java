@@ -30,7 +30,7 @@ import service.BookingService;
 @WebServlet(name = "BookingDetailController", urlPatterns = {"/my-booking"})
 public class BookingDetailController extends HttpServlet {
         private static final String BANK_CODE = "BIDV";
-private static final String ACCOUNT_NO = "4860555705";
+private static final String ACCOUNT_NO = "96247GGDYW";
 private static final String ACCOUNT_NAME = "TRAN THE TRUONG";
 
     private final BookingService bookingService = new BookingService();
@@ -55,7 +55,7 @@ private static final String ACCOUNT_NAME = "TRAN THE TRUONG";
         } else {
             request.setAttribute("bk", booking);
             
-            String transferContent = "RV" + booking.getBooking().getId();
+            String transferContent = "RVS" + booking.getBooking().getId();
 
     String paymentQr =
             "https://img.vietqr.io/image/"

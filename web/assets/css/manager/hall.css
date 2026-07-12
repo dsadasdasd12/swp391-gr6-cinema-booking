@@ -1,0 +1,608 @@
+/* ===============================
+   Hall Management Page
+   =============================== */
+
+.management-page {
+    padding: 32px 36px;
+    background: #0b0d10;
+    min-height: calc(100vh - 72px);
+}
+
+.hall-list-page {
+    margin: calc(-1 * var(--page-pad));
+    min-height: calc(100vh - var(--topbar-h));
+}
+
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.management-header h1 {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.management-header p {
+    margin: 0;
+    color: #a1a1aa;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Card */
+
+.management-card {
+    background: #111318;
+    border: 1px solid #262a33;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+}
+
+.management-card-header {
+    padding: 22px 24px;
+    border-bottom: 1px solid #262a33;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    background: linear-gradient(180deg, #16191f, #111318);
+}
+
+.management-card-header h2 {
+    margin: 0 0 6px;
+    color: #ffffff;
+    font-size: 22px;
+}
+
+.management-card-header span {
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.management-card-header strong {
+    color: #ffffff;
+}
+
+/* Search */
+
+.management-search {
+    width: 360px;
+    max-width: 100%;
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid #303541;
+    background: #0b0d10;
+    color: #ffffff;
+    outline: none;
+}
+
+.management-search:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .15);
+}
+
+/* Table */
+
+.management-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.management-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+}
+
+.management-table th {
+    padding: 14px 18px;
+    background: #0f1115;
+    border-bottom: 1px solid #262a33;
+    color: #9ca3af;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+}
+
+.management-table td {
+    padding: 18px;
+    border-bottom: 1px solid #20232b;
+    color: #e5e7eb;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.management-table tr:hover {
+    background: rgba(229, 9, 20, .035);
+}
+
+.management-table tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Hall cell */
+
+.management-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 230px;
+}
+
+.management-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e50914, #7f1d1d);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .12);
+}
+
+.management-user strong {
+    display: block;
+    color: #ffffff;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.management-user span {
+    color: #8b8f98;
+    font-size: 12px;
+}
+
+.management-muted {
+    color: #71717a;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.management-muted strong {
+    color: #d4d4d8;
+}
+
+.hall-seat-config {
+    color: #e5e7eb;
+    font-weight: 700;
+}
+
+.hall-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(229, 9, 20, .25);
+    background: rgba(229, 9, 20, .12);
+    color: #fca5a5;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.hall-type-badge i {
+    color: #f87171;
+}
+
+/* Status */
+
+.management-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.management-status-active {
+    background: rgba(34, 197, 94, .14);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, .25);
+}
+
+.management-status-warning {
+    background: rgba(245, 158, 11, .14);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, .25);
+}
+
+.management-status-blocked {
+    background: rgba(239, 68, 68, .14);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, .25);
+}
+
+/* Buttons */
+
+.management-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 14px;
+    transition: .18s ease;
+    font-family: inherit;
+}
+
+.management-btn-primary {
+    background: #e50914;
+    color: #ffffff;
+    padding: 12px 18px;
+}
+
+.management-btn-primary:hover {
+    background: #ff1f2b;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.management-btn-small {
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+.management-btn-ghost {
+    background: #242833;
+    color: #ffffff;
+}
+
+.management-btn-ghost:hover {
+    background: #303541;
+    color: #ffffff;
+}
+
+.management-btn-danger {
+    background: #7f1d1d;
+    color: #ffffff;
+}
+
+.management-btn-danger:hover {
+    background: #991b1b;
+    color: #ffffff;
+}
+
+.management-btn-success {
+    background: #166534;
+    color: #ffffff;
+}
+
+.management-btn-success:hover {
+    background: #15803d;
+    color: #ffffff;
+}
+
+.management-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.management-actions form,
+.hall-action-form {
+    margin: 0;
+}
+
+/* Alert */
+
+.management-alert {
+    padding: 13px 16px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.management-alert-success {
+    background: rgba(34, 197, 94, .12);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, .25);
+}
+
+.management-alert-error {
+    background: rgba(229, 9, 20, .12);
+    color: #ff6b6b;
+    border: 1px solid rgba(229, 9, 20, .25);
+}
+
+/* Empty */
+
+.management-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.hall-empty-state {
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.hall-empty-icon {
+    width: 58px;
+    height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border-radius: 18px;
+    background: #1b1f29;
+    color: #f87171;
+    font-size: 26px;
+}
+
+.hall-empty-state strong {
+    display: block;
+    color: #ffffff;
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.hall-empty-state p {
+    margin: 0 auto;
+    max-width: 520px;
+    color: #a1a1aa;
+    line-height: 1.65;
+}
+
+.hall-empty-action {
+    margin-top: 22px;
+}
+
+/* Branch banner */
+
+.hall-branch-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid rgba(59, 130, 246, .28);
+    border-radius: 14px;
+    background: rgba(59, 130, 246, .1);
+    color: #bfdbfe;
+}
+
+.hall-branch-banner > i {
+    margin-top: 2px;
+    color: #60a5fa;
+    font-size: 18px;
+}
+
+.hall-branch-banner strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #ffffff;
+}
+
+.hall-branch-banner span {
+    color: #93c5fd;
+    font-size: 13px;
+}
+
+/* ===============================
+   Hall Form Page
+   =============================== */
+
+.hall-form-page .hall-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 0.9fr);
+    gap: var(--s-6);
+    align-items: start;
+}
+
+.hall-form-page .hall-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+}
+
+.hall-form-page .hall-form-section-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    background: rgba(var(--primary-rgb), 0.1);
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.hall-form-page .hall-form-section-title h2 {
+    margin: 0;
+    color: var(--n-900);
+    font-size: var(--text-md);
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.hall-form-page .hall-form-section-title p {
+    margin: 2px 0 0;
+    color: var(--n-500);
+    font-size: var(--text-sm);
+    line-height: 1.45;
+}
+
+.hall-form-page .hall-input-prefix {
+    position: relative;
+}
+
+.hall-form-page .hall-input-prefix i {
+    position: absolute;
+    top: 50%;
+    left: var(--s-3);
+    z-index: 1;
+    color: var(--n-400);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.hall-form-page .hall-input-prefix .rv-input,
+.hall-form-page .hall-input-prefix .rv-select {
+    padding-left: 42px;
+}
+
+.hall-form-page .hall-form-full-row {
+    grid-column: 1 / -1;
+}
+
+.hall-form-page .hall-form-note {
+    display: block;
+    margin-top: var(--s-2);
+    color: var(--n-500);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+}
+
+.hall-form-page .hall-total-seat {
+    background: var(--n-50);
+    color: var(--n-700);
+    font-weight: 600;
+}
+
+.hall-form-page .hall-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    margin-bottom: var(--s-6);
+    padding: var(--s-4);
+    border: 1px solid #FECACA;
+    border-radius: var(--r-md);
+    background: var(--danger-bg);
+    color: #B91C1C;
+    font-size: var(--text-base);
+    line-height: 1.55;
+}
+
+.hall-form-page .hall-alert i {
+    margin-top: 2px;
+    font-size: var(--text-md);
+}
+
+.hall-form-page .hall-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-6);
+}
+
+.hall-form-page .hall-info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    padding: var(--s-4);
+    border: 1px solid #BFDBFE;
+    border-radius: var(--r-md);
+    background: #EFF6FF;
+    color: #1E40AF;
+    line-height: 1.55;
+}
+
+.hall-form-page .hall-info-box i {
+    margin-top: 2px;
+    font-size: var(--text-md);
+}
+
+.hall-form-page .hall-info-box strong {
+    color: #1E3A8A;
+}
+
+.hall-form-page .hall-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hall-form-page .hall-summary-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--border);
+    color: var(--n-600);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+}
+
+.hall-form-page .hall-summary-list li:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.hall-form-page .hall-summary-list i {
+    margin-top: 2px;
+    color: var(--primary);
+    font-size: 16px;
+}
+
+.hall-form-page .hall-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+    .hall-form-page .hall-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .management-page {
+        padding: 20px;
+    }
+
+    .management-header,
+    .management-card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .management-search {
+        width: 100%;
+    }
+}
+
+@media (max-width: 680px) {
+    .hall-form-page .hall-form-actions,
+    .hall-form-page .rv-page-header__right {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .hall-form-page .hall-form-actions .rv-btn,
+    .hall-form-page .rv-page-header__right .rv-btn {
+        width: 100%;
+    }
+}
