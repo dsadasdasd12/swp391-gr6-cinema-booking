@@ -25,7 +25,6 @@
 
 <%@ include file="/pages/shared/header-admin.jsp" %>
 <%@ include file="/pages/shared/sidebar-admin.jsp" %>
-
 <div class="hall-form-page">
     <div class="rv-page-header">
         <div class="rv-page-header__left">

@@ -310,6 +310,10 @@ public class CounterBookingController extends HttpServlet {
         List<Showtime> showtimeList = showtimeService.getActiveShowtimesByBranch(branchId);
         request.setAttribute("showtimeList", showtimeList);
 
+        // Fetch seat types to render dynamic styling on staff/counter booking map
+        dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
+        request.setAttribute("allSeatTypes", seatTypeDAO.findAll());
+
         String showtimeIdStr = request.getParameter("showtimeId");
         if (showtimeIdStr != null) {
             try {

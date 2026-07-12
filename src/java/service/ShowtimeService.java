@@ -20,6 +20,7 @@ import model.Branch;
 import model.Hall;
 import model.Movie;
 import model.Showtime;
+import dto.MovieShowtimes;
 
 public class ShowtimeService {
 
@@ -448,7 +449,11 @@ public class ShowtimeService {
         return showtimeDAO.getShowtimesByBranchAndDate(branchId, dateStr);
     }
 
-    public Object getMovieShowtimesByBranchAndDate(int branchId, LocalDate date) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public boolean hasBookings(int showtimeId) {
+        return showtimeDAO.hasBookings(showtimeId);
+    }
+
+    public List<MovieShowtimes> getMovieShowtimesByBranchAndDate(int branchId, LocalDate date) {
+        return showtimeDAO.findByBranchAndDate(branchId, date);
     }
 }

@@ -165,7 +165,16 @@
                                                     <c:out value="${h.seatsPerRow}" /> ghế
                                                 </div>
 
-                                                <div class="management-muted">
+                                                <div style="margin-top: 6px;">
+                                                    <a href="${ctx}/manager/seat-config?hallId=${h.id}"
+                                                       class="management-btn management-btn-small management-btn-ghost"
+                                                       style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: var(--text-xs); border-radius: var(--r-sm);">
+                                                        <i class="bi bi-grid-3x3-gap"></i>
+                                                        Cấu hình ghế
+                                                    </a>
+                                                </div>
+
+                                                <div class="management-muted" style="margin-top: 6px;">
                                                     Tổng:
                                                     <strong><c:out value="${h.totalSeats}" /></strong>
                                                     ghế
