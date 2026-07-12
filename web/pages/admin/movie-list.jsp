@@ -113,7 +113,7 @@
                                     <div class="rv-table-poster">
                                         <c:choose>
                                             <c:when test="${not empty m.posterWebPath}">
-                                                <img src="${ctx}/${m.posterWebPath}" alt="poster" class="rv-skeleton rv-skeleton--img" onload="this.classList.remove('rv-skeleton', 'rv-skeleton--img')">
+                                                <img src="${m.posterExternalUrl ? m.posterWebPath : ctx.concat('/').concat(m.posterWebPath)}" alt="poster" class="rv-skeleton rv-skeleton--img" onload="this.classList.remove('rv-skeleton', 'rv-skeleton--img')">
                                             </c:when>
                                             <c:otherwise>
                                                 <div class="placeholder">

@@ -45,7 +45,7 @@
                             <div class="empty">
                                 <h3>Chưa có phim yêu thích</h3>
                                 <p>Bạn chưa thêm phim nào vào danh sách yêu thích.</p>
-                                <a href="${ctx}/movieslist" class="btn btn-primary">Khám phá phim</a>
+                                <a href="${ctx}/movies" class="btn btn-primary">Khám phá phim</a>
                             </div>
                         </c:when>
 
