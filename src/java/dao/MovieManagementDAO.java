@@ -212,6 +212,94 @@ public class MovieManagementDAO {
     }
 
     /**
+     * Tìm phim bị bỏ khỏi chi nhánh nhưng vẫn còn suất chiếu
+     * chưa kết thúc tại chi nhánh đó.
+     */
+    public String findBranchRemovalConflict(
+            int branchId,
+            List<Integer> selectedMovieIds) {
+
+        String sql = "SELECT DISTINCT m.id, m.title "
+                + "FROM dbo.BRANCH_MOVIES bm "
+                + "JOIN dbo.MOVIES m ON m.id = bm.movie_id "
+                + "JOIN dbo.HALLS h ON h.branch_id = bm.branch_id "
+                + "JOIN dbo.SHOWTIMES s "
+                + "ON s.hall_id = h.id AND s.movie_id = bm.movie_id "
+                + "WHERE bm.branch_id = ? "
+                + "AND s.status IN ('SCHEDULED', 'ON_SALE') "
+                + "AND s.end_time > GETDATE() "
+                + "ORDER BY m.title ASC";
+
+        return findRemovalConflict(
+                sql,
+                branchId,
+                selectedMovieIds,
+                "chi nhánh"
+        );
+    }
+
+    /**
+     * Tìm phim bị bỏ khỏi phòng nhưng vẫn còn suất chiếu
+     * chưa kết thúc tại chính phòng đó.
+     */
+    public String findHallRemovalConflict(
+            int hallId,
+            List<Integer> selectedMovieIds) {
+
+        String sql = "SELECT DISTINCT m.id, m.title "
+                + "FROM dbo.HALL_MOVIES hm "
+                + "JOIN dbo.MOVIES m ON m.id = hm.movie_id "
+                + "JOIN dbo.SHOWTIMES s "
+                + "ON s.hall_id = hm.hall_id AND s.movie_id = hm.movie_id "
+                + "WHERE hm.hall_id = ? "
+                + "AND s.status IN ('SCHEDULED', 'ON_SALE') "
+                + "AND s.end_time > GETDATE() "
+                + "ORDER BY m.title ASC";
+
+        return findRemovalConflict(
+                sql,
+                hallId,
+                selectedMovieIds,
+                "phòng chiếu"
+        );
+    }
+
+    private String findRemovalConflict(
+            String sql,
+            int ownerId,
+            List<Integer> selectedMovieIds,
+            String ownerName) {
+
+        Set<Integer> selectedIds = sanitizeIds(selectedMovieIds);
+        Connection conn = DBContext.getInstance().getConnection();
+
+        if (conn == null) {
+            throw new IllegalStateException(
+                    "Không thể kết nối cơ sở dữ liệu."
+            );
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ownerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (!selectedIds.contains(rs.getInt("id"))) {
+                        return rs.getString("title");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException(
+                    "Không thể kiểm tra lịch chiếu của " + ownerName + ".",
+                    e
+            );
+        }
+
+        return null;
+    }
+
+    /**
      * Lưu toàn bộ danh sách phim được chọn cho chi nhánh.
      *
      * Phim bị bỏ chọn sẽ bị xóa khỏi BRANCH_MOVIES.
@@ -591,6 +679,44 @@ public class MovieManagementDAO {
         }
 
         return null;
+    }
+
+    /**
+     * Kiểm tra phim còn suất chiếu chưa kết thúc hay không.
+     *
+     * Suất đã hủy không ảnh hưởng đến việc sửa thời lượng. Chỉ cần một
+     * suất chiếu còn đang diễn ra hoặc nằm trong tương lai thì không nên
+     * đổi MOVIES.duration_min, vì SHOWTIMES.end_time đã được lưu cố định.
+     */
+    public boolean hasUnfinishedShowtimes(int movieId) {
+        String sql = "SELECT TOP 1 1 "
+                + "FROM dbo.SHOWTIMES "
+                + "WHERE movie_id = ? "
+                + "AND status <> 'CANCELLED' "
+                + "AND end_time > GETDATE()";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        if (conn == null) {
+            return false;
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            System.getLogger(MovieManagementDAO.class.getName()).log(
+                    System.Logger.Level.ERROR,
+                    "Không thể kiểm tra suất chiếu của phim.",
+                    e
+            );
+        }
+
+        return false;
     }
 
     /**

@@ -451,22 +451,30 @@ public class ShowtimeController extends HttpServlet {
                 request.getParameter("id")
         );
 
-        boolean success = showtimeService.cancelShowtime(
-                showtimeId,
-                manager.getId()
-        );
-
-        if (success) {
-            setFlash(
-                    request,
-                    "success",
-                    "Hủy suất chiếu thành công."
+        try {
+            boolean success = showtimeService.cancelShowtime(
+                    showtimeId,
+                    manager.getId()
             );
-        } else {
+
+            if (success) {
+                setFlash(
+                        request,
+                        "success",
+                        "Hủy suất chiếu thành công."
+                );
+            } else {
+                setFlash(
+                        request,
+                        "error",
+                        "Không thể hủy suất chiếu. Vui lòng thử lại."
+                );
+            }
+        } catch (IllegalArgumentException e) {
             setFlash(
                     request,
                     "error",
-                    "Không thể hủy suất chiếu hoặc bạn không có quyền thao tác."
+                    e.getMessage()
             );
         }
 

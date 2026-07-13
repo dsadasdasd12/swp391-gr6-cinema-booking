@@ -211,6 +211,28 @@ public class MovieService {
         List<Integer> validMovieIds
                 = validateAndCleanMovieIds(selectedMovieIds);
 
+        try {
+            String conflictMovie
+                    = movieManagementDAO.findBranchRemovalConflict(
+                            branchId,
+                            validMovieIds
+                    );
+
+            if (conflictMovie != null) {
+                throw new IllegalArgumentException(
+                        "Không thể gỡ phim \""
+                        + conflictMovie
+                        + "\" khỏi chi nhánh vì vẫn còn suất chiếu "
+                        + "chưa kết thúc."
+                );
+            }
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException(
+                    "Không thể kiểm tra lịch chiếu trước khi lưu phân bổ phim.",
+                    e
+            );
+        }
+
         return movieManagementDAO.saveBranchAssignments(
                 branchId,
                 validMovieIds
@@ -256,6 +278,28 @@ public class MovieService {
                         + " chưa được phân bổ cho chi nhánh."
                 );
             }
+        }
+
+        try {
+            String conflictMovie
+                    = movieManagementDAO.findHallRemovalConflict(
+                            hallId,
+                            validMovieIds
+                    );
+
+            if (conflictMovie != null) {
+                throw new IllegalArgumentException(
+                        "Không thể gỡ phim \""
+                        + conflictMovie
+                        + "\" khỏi phòng vì vẫn còn suất chiếu "
+                        + "chưa kết thúc."
+                );
+            }
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException(
+                    "Không thể kiểm tra lịch chiếu trước khi lưu phân bổ phim.",
+                    e
+            );
         }
 
         return movieManagementDAO.saveHallAssignments(
@@ -518,6 +562,13 @@ public class MovieService {
 
         if (currentMovie.getDurationMin() == durationMin) {
             return true;
+        }
+
+        if (movieManagementDAO.hasUnfinishedShowtimes(movieId)) {
+            throw new IllegalArgumentException(
+                    "Không thể thay đổi thời lượng vì phim đang có "
+                    + "suất chiếu chưa kết thúc."
+            );
         }
 
         return movieManagementDAO.updateDuration(

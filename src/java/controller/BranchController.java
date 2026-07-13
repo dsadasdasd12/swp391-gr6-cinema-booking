@@ -199,12 +199,17 @@ public class BranchController extends HttpServlet {
         int id = parseInt(request.getParameter("id"));
         String status = request.getParameter("status");
 
-        boolean success = branchService.changeBranchStatus(id, status);
+        try {
+            boolean success = branchService.changeBranchStatus(id, status);
 
-        if (success) {
-            setFlash(request, "success", "Cập nhật trạng thái chi nhánh thành công.");
-        } else {
-            setFlash(request, "error", "Không thể cập nhật trạng thái chi nhánh.");
+            if (success) {
+                setFlash(request, "success", "Cập nhật trạng thái chi nhánh thành công.");
+            } else {
+                setFlash(request, "error", "Không thể cập nhật trạng thái chi nhánh.");
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
         }
 
         response.sendRedirect(request.getContextPath() + "/admin/branches");

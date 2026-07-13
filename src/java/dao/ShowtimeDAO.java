@@ -211,45 +211,6 @@ public class ShowtimeDAO {
         return null;
     }
 
-    // WRITE: Thiết lập cấu hình giá vé riêng cho loại ghế
-    public boolean setSeatPricing(int showtimeId, String seatType, double price) {
-        String checkSql = "SELECT id FROM dbo.SEAT_PRICING WHERE showtime_id = ? AND seat_type = ?";
-        String updateSql = "UPDATE dbo.SEAT_PRICING SET price = ?, last_update = GETDATE() WHERE showtime_id = ? AND seat_type = ?";
-        String insertSql = "INSERT INTO dbo.SEAT_PRICING (showtime_id, seat_type, price) VALUES (?, ?, ?)";
-
-        try (Connection conn = new DBContext().getConnection()) {
-            boolean exists = false;
-            try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
-                ps.setInt(1, showtimeId);
-                ps.setString(2, seatType);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        exists = true;
-                    }
-                }
-            }
-
-            if (exists) {
-                try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-                    ps.setDouble(1, price);
-                    ps.setInt(2, showtimeId);
-                    ps.setString(3, seatType);
-                    return ps.executeUpdate() > 0;
-                }
-            } else {
-                try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
-                    ps.setInt(1, showtimeId);
-                    ps.setString(2, seatType);
-                    ps.setDouble(3, price);
-                    return ps.executeUpdate() > 0;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     // CALCULATE: Lấy giá vé thực tế của ghế bằng cách nhân giá gốc (basePrice) với hệ số nhân (multiplier) của loại ghế đó trong SEAT_TYPES
     public double getSeatPrice(int showtimeId, String seatType, double basePrice) {
         String sql = "SELECT default_price FROM dbo.SEAT_TYPES WHERE code = ?";

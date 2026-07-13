@@ -320,6 +320,29 @@ public class BranchDAO {
         return false;
     }
 
+    public boolean hasUnfinishedShowtimes(int branchId) {
+        String sql = "SELECT TOP 1 1 "
+                + "FROM dbo.SHOWTIMES s "
+                + "INNER JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "WHERE h.branch_id = ? "
+                + "AND s.status IN ('SCHEDULED', 'ON_SALE') "
+                + "AND s.end_time > GETDATE()";
+
+        Connection conn = DBContext.getInstance().getConnection();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, branchId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
     private Branch mapRow(ResultSet rs) throws SQLException {
         Branch branch = new Branch();
 

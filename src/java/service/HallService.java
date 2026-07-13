@@ -11,6 +11,8 @@ import model.Hall;
 
 public class HallService {
 
+    private static final int MAX_SEAT_ROWS = 26;
+
     private static final List<String> VALID_HALL_TYPES = Arrays.asList(
             "STANDARD", "VIP", "IMAX", "4DX", "PREMIUM"
     );
@@ -55,6 +57,34 @@ public class HallService {
     public boolean updateHall(Hall hall) {
         validateHall(hall, true);
 
+        Hall current = hallDAO.findByIdAndBranchId(
+                hall.getId(),
+                hall.getBranchId()
+        );
+
+        if (current == null) {
+            throw new IllegalArgumentException(
+                    "Không tìm thấy phòng chiếu cần cập nhật."
+            );
+        }
+
+        boolean layoutChanged
+                = current.getSeatRows() != hall.getSeatRows()
+                || current.getSeatsPerRow() != hall.getSeatsPerRow();
+
+        if (layoutChanged && hallDAO.hasAnyShowtime(hall.getId())) {
+            throw new IllegalArgumentException(
+                    "Không thể thay đổi sức chứa vì phòng đã có suất chiếu."
+            );
+        }
+
+        if (isChangingToUnavailable(current.getStatus(), hall.getStatus())
+                && hallDAO.hasUnfinishedShowtimes(hall.getId())) {
+            throw new IllegalArgumentException(
+                    "Không thể ngừng hoạt động hoặc bảo trì phòng vì vẫn còn suất chiếu chưa kết thúc."
+            );
+        }
+
         if (hallDAO.existsByNameAndBranchIdExceptId(
                 hall.getName(),
                 hall.getBranchId(),
@@ -89,6 +119,18 @@ public class HallService {
 
         if (!VALID_STATUS.contains(status)) {
             return false;
+        }
+
+        Hall current = hallDAO.findByIdAndBranchId(id, branchId);
+        if (current == null) {
+            return false;
+        }
+
+        if (isChangingToUnavailable(current.getStatus(), status)
+                && hallDAO.hasUnfinishedShowtimes(id)) {
+            throw new IllegalArgumentException(
+                    "Không thể ngừng hoạt động hoặc bảo trì phòng vì vẫn còn suất chiếu chưa kết thúc."
+            );
         }
 
         return hallDAO.updateStatus(id, branchId, status);
@@ -132,6 +174,12 @@ public class HallService {
             );
         }
 
+        if (hall.getSeatRows() > MAX_SEAT_ROWS) {
+            throw new IllegalArgumentException(
+                    "Số hàng ghế tối đa là 26 hàng (A-Z)."
+            );
+        }
+
         if (hall.getSeatsPerRow() <= 0) {
             throw new IllegalArgumentException(
                     "Số ghế mỗi hàng phải lớn hơn 0."
@@ -168,6 +216,14 @@ public class HallService {
                     "Trạng thái phòng chiếu không hợp lệ."
             );
         }
+    }
+
+    private boolean isChangingToUnavailable(
+            String currentStatus,
+            String newStatus
+    ) {
+        return !newStatus.equalsIgnoreCase(currentStatus)
+                && !"ACTIVE".equalsIgnoreCase(newStatus);
     }
 
     private String trimToNull(String value) {
