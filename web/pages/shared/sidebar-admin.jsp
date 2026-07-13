@@ -10,6 +10,8 @@
 
 <%-- Helper checks for active menus --%>
 <c:set var="isMovie"        value="${uri.contains('/admin/moviesmanagement') || uri.contains('/moviesmanagement')}" />
+<c:set var="isGenre"        value="${uri.contains('/admin/genres')}" />
+<c:set var="isLanguage"     value="${uri.contains('/admin/languages')}" />
 <c:set var="isTicket"       value="${uri.contains('/admin/tickets') || uri.contains('/ticket')}" />
 <c:set var="isNotif"        value="${uri.contains('/admin/notifications') || uri.contains('/notification')}" />
 <c:set var="isReport"       value="${uri.contains('/admin/reports') || uri.contains('/report')}" />
@@ -46,7 +48,18 @@
                 </a>
             </c:if>
         </div>
+                <div class="rv-nav__sub">
+            <c:if test="${isAdminRole}">
+                <a href="${ctx}/admin/genres" class="rv-nav__sub-item ${isGenre ? 'active' : ''}">
+                     Thể loại
+                </a>
+                <a href="${ctx}/admin/languages" class="rv-nav__sub-item ${isLanguage ? 'active' : ''}">
+                    Ngôn ngữ
+                </a>
+            </c:if>
+        </div>
     </div>
+
 
     <c:if test="${isAdminRole}">
         <div class="rv-nav__group">
