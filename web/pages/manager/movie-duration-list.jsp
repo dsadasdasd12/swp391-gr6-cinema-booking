@@ -130,9 +130,7 @@
             <span>Phân hệ Quản lý chi nhánh</span>
         </div>
 
-            <a href="${ctx}/manager/showtimesmanagement">
-                Quản lý lịch chiếu
-            </a>
+
 
             <div class="rv-topbar__avatar">
                 <c:choose>
@@ -226,6 +224,14 @@
             </a>
         </div>
 
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/seat-config"
+               class="rv-nav__item">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                Cấu hình ghế
+            </a>
+        </div>
+
         <div class="rv-nav__group open">
 
             <div class="rv-nav__item active"
@@ -266,9 +272,13 @@
             </a>
         </div>
 
-        <div class="rv-nav__spacer"></div>
-
-        <div class="rv-nav__divider"></div>
+        <div class="rv-nav__group">
+            <a href="${ctx}/DiscountManager"
+               class="rv-nav__item">
+                <i class="bi bi-tags-fill"></i>
+                Quản lý mã giảm giá
+            </a>
+        </div>
 
         <div class="rv-nav__group">
             <a href="${ctx}/logout"

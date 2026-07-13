@@ -23,7 +23,7 @@
 <aside class="rv-sidebar">
     <!-- 🏠 Dashboard -->
     <div class="rv-nav__group">
-        <a href="${ctx}/admin/dashboard" class="rv-nav__item ${uri.contains('/admin/dashboard') ? 'active' : ''}">
+        <a href="${ctx}/${isAdminRole ? 'admin' : 'manager'}/dashboard" class="rv-nav__item ${uri.contains('/admin/dashboard') || uri.contains('/manager/dashboard') ? 'active' : ''}">
             <i class="bi bi-grid-1x2-fill"></i>
             Dashboard
         </a>
@@ -48,40 +48,94 @@
         </div>
     </div>
 
-    <!-- 🎫 Booking Management -->
-    <div class="rv-nav__group">
-        <a href="${ctx}/admin/tickets?action=list" class="rv-nav__item ${isTicket ? 'active' : ''}">
-            <i class="bi bi-qr-code"></i>
-            Quản lý vé &amp; Booking
-        </a>
-    </div>
-            
-            <!-- Cinema Management -->
-    <div class="rv-nav__group">
-    <a href="${ctx}/admin/cinemas"
-       class="rv-nav__item ${uri.contains('/admin/cinemas') ? 'active' : ''}">
-        <i class="bi bi-building-fill"></i>
-        Quản lý Chuỗi rạp
-    </a>
-</div>
-        
-        
-        <!-- Branch Management -->
+    <c:if test="${isAdminRole}">
         <div class="rv-nav__group">
-    <a href="${ctx}/admin/branches"
-       class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">
-        <i class="bi bi-geo-alt-fill"></i>
-        Quản lý Chi nhánh
-    </a>
-</div>
-        
-    <!-- 📧 Notifications (đặt vé / thanh toán / hệ thống — không có khuyến mãi) -->
-    <div class="rv-nav__group">
-        <a href="${ctx}/admin/notifications?action=list" class="rv-nav__item ${isNotif ? 'active' : ''}">
-            <i class="bi bi-envelope-check-fill"></i>
-            Lịch sử thông báo
-        </a>
-    </div>
+            <a href="${ctx}/admin/tickets?action=list" class="rv-nav__item ${isTicket ? 'active' : ''}">
+                <i class="bi bi-qr-code"></i>
+                Quản lý vé &amp; Booking
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/admin/settings#panel-cinema" class="rv-nav__item ${uri.contains('/admin/settings') ? 'active' : ''}">
+                <i class="bi bi-building-fill"></i>
+                Quản lý Chuỗi rạp
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/admin/branches" class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">
+                <i class="bi bi-geo-alt-fill"></i>
+                Quản lý Chi nhánh
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/admin/seat-types" class="rv-nav__item ${uri.contains('/admin/seat-types') ? 'active' : ''}">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                Quản lý loại ghế &amp; giá
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/admin/notifications?action=list" class="rv-nav__item ${isNotif ? 'active' : ''}">
+                <i class="bi bi-envelope-check-fill"></i>
+                Lịch sử thông báo
+            </a>
+        </div>
+    </c:if>
+
+    <c:if test="${isManagerRole}">
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/halls" class="rv-nav__item ${uri.contains('/manager/halls') ? 'active' : ''}">
+                <i class="bi bi-door-open-fill"></i>
+                Quản lý phòng chiếu
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/seat-config" class="rv-nav__item ${uri.contains('/manager/seat-config') ? 'active' : ''}">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                Cấu hình ghế
+            </a>
+        </div>
+
+        <c:set var="isMovieAssign" value="${uri.contains('/manager/movie-assignments') || uri.contains('/manager/movie-durations')}" />
+        <div class="rv-nav__group ${isMovieAssign ? 'open' : ''}">
+            <div class="rv-nav__item ${isMovieAssign ? 'active' : ''}">
+                <i class="bi bi-film"></i>
+                Phân bổ phim
+                <i class="bi bi-chevron-right rv-nav__arrow"></i>
+            </div>
+            <div class="rv-nav__sub">
+                <a href="${ctx}/manager/movie-assignments/branches" class="rv-nav__sub-item ${uri.contains('/manager/movie-assignments/branches') ? 'active' : ''}">
+                    Phim tại chi nhánh
+                </a>
+                <a href="${ctx}/manager/movie-assignments/halls" class="rv-nav__sub-item ${uri.contains('/manager/movie-assignments/halls') ? 'active' : ''}">
+                    Phim tại phòng chiếu
+                </a>
+                <a href="${ctx}/manager/movie-durations" class="rv-nav__sub-item ${uri.contains('/manager/movie-durations') ? 'active' : ''}">
+                    Thời lượng phim
+                </a>
+            </div>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/showtimesmanagement" class="rv-nav__item ${uri.contains('/manager/showtimesmanagement') ? 'active' : ''}">
+                <i class="bi bi-calendar-week-fill"></i>
+                Quản lý lịch chiếu
+            </a>
+        </div>
+    </c:if>
+
+    <c:if test="${isAdminRole || isManagerRole}">
+        <div class="rv-nav__group">
+            <a href="${ctx}/DiscountManager" class="rv-nav__item ${uri.contains('/DiscountManager') ? 'active' : ''}">
+                <i class="bi bi-tags-fill"></i>
+                Quản lý mã giảm giá
+            </a>
+        </div>
+    </c:if>
 
     <!-- ── REPORTING & ANALYTICS ── -->
     <div class="rv-nav__label">Báo cáo &amp; Phân tích</div>

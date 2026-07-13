@@ -1,7 +1,3 @@
-/*
- * Hệ thống Quản lý Rạp chiếu phim RapViet
- * Module: Duyệt phim (Xem chi tiết phim + Suất chiếu) - UC06 / UC12
- */
 package controller;
 
 import dao.FavoriteMovieDAO;
@@ -26,13 +22,38 @@ import model.Language;
 import model.Movie;
 import model.User;
 import service.MovieService;
+import service.ReviewService;
 
 
+/**
+ * Controller cho các luồng phim ở phía khách và một số màn hình phân bổ phim của Manager.
+ *
+ * <p>Luồng khách:</p>
+ * <ul>
+ *   <li>View/Search/Filter movies: GET {@code /movies} hoặc {@code /movieslist}.</li>
+ *   <li>Controller đọc tham số {@code q}, {@code status}, {@code format}, {@code category},
+ *       {@code language}, {@code sort}, {@code page} rồi dựng {@link MovieFilter}.</li>
+ *   <li>Gọi {@link MovieService#browseMovies(MovieFilter)} để lấy danh sách phim phân trang.</li>
+ *   <li>Forward sang {@code /pages/movie/list.jsp} để render kết quả.</li>
+ *   <li>View movie details: GET {@code /movie?id=...}.</li>
+ *   <li>Controller lấy chi tiết phim, trạng thái yêu thích của user nếu đã đăng nhập,
+ *       và suất chiếu theo chi nhánh rồi forward sang {@code /pages/movie/detail.jsp}.</li>
+ * </ul>
+ *
+ * <p>Luồng Manager:</p>
+ * <ul>
+ *   <li>Phân bổ phim cho chi nhánh/phòng chiếu và cập nhật thời lượng phim.</li>
+ *   <li>Controller luôn lấy branch từ Manager đang đăng nhập, không tin branchId gửi từ form.</li>
+ * </ul>
+ *
+ * @author HuyPD
+ */
 @WebServlet(
         name = "MovieDetailController",
         urlPatterns = {
             
             "/movie",
+            "/movies",
             "/movieslist",
             "/manager/movie-assignments/branches",
             "/manager/movie-assignments/halls",
@@ -42,6 +63,7 @@ import service.MovieService;
 )
 public class MovieDetailController extends HttpServlet {
     FavoriteMovieDAO favoriteMovieDAO = new FavoriteMovieDAO();
+    private final ReviewService reviewService = new ReviewService();
 
     private static final String MOVIE_LIST_PAGE
             = "/pages/movie/list.jsp";
@@ -77,6 +99,7 @@ public class MovieDetailController extends HttpServlet {
                 
                 
             case "/movieslist":
+            case "/movies":
                 showMovieList(request, response);
                 break;
 
@@ -135,28 +158,61 @@ public class MovieDetailController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        /*
+         * MovieFilter la object gom tat ca dieu kien loc/search/sort/pagination.
+         * Dung object nay giup khong phai truyen qua nhieu tham so roi rac xuong service/DAO.
+         */
         MovieFilter filter = new MovieFilter();
+
+        // q la keyword user go vao o search.
         filter.setKeyword(request.getParameter("q"));
+
+        // status vi du NOW_SHOWING/COMING_SOON; rong thi doi thanh null de khong loc.
         filter.setStatus(emptyToNull(request.getParameter("status")));
+
+        // format vi du 2D/3D/IMAX; rong thi null.
         filter.setFormat(emptyToNull(request.getParameter("format")));
+
+        // sort quy dinh cach sap xep danh sach phim.
         filter.setSortBy(emptyToNull(request.getParameter("sort")));
+
+        // category/language la id so, parse sai thi null de bo qua filter do.
         filter.setCategoryId(parseNullableInt(request.getParameter("category")));
         filter.setLanguageId(parseNullableInt(request.getParameter("language")));
 
+        // page la trang hien tai cua pagination; khong co thi MovieFilter dung default.
         Integer page = parseNullableInt(request.getParameter("page"));
         if (page != null) {
             filter.setPage(page);
         }
 
+        /*
+         * Service tra ve PageResult gom list phim + thong tin phan trang.
+         * Controller khong tu query DB o day.
+         */
         PageResult<Movie> result = movieService.browseMovies(filter);
+
+        // Lay danh sach category/language de render dropdown filter tren JSP.
         List<Category> categories = movieService.getCategories();
         List<Language> languages = movieService.getLanguages();
 
+        // result la danh sach phim da search/filter/sort/paginate.
         request.setAttribute("result", result);
+
+        // filter giup JSP giu lai gia tri user da chon sau khi submit.
         request.setAttribute("filter", filter);
+
+        // categories/languages dung de render cac option filter.
         request.setAttribute("categories", categories);
         request.setAttribute("languages", languages);
+
+        // queryString giup link pagination giu lai dieu kien loc hien tai.
         request.setAttribute("queryString", buildQueryString(filter));
+        
+        //Trong http nó có 2 cái để redirect ( truyển về trang) . Cái 1 là respone (res.sendredic), cái này
+        // nó k lưu được attribute tại vì khi respone nó sẽ hết 1 phiên của request, nghĩa là các attribute 
+        //không dược gửi kèm và trang bị reset, nếu muốn set attribute gửi kèm thì phải dùng dòng dưới, sẽ không reset trang và kèm 
+        //attribute của requeust
 
         request.getRequestDispatcher(MOVIE_LIST_PAGE).forward(request, response);
     }
@@ -169,30 +225,45 @@ public class MovieDetailController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Doc id phim tu URL /movie?id=...
         int movieId = parseMovieId(request.getParameter("id"));
+
+        // Lay thong tin chi tiet phim theo id.
         Movie movie = movieService.getMovieDetail(movieId);
 
         if (movie == null) {
+            // Khong tim thay phim thi tra 404 nhung van render JSP detail o trang thai notFound.
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             request.setAttribute("notFound", Boolean.TRUE);
             request.getRequestDispatcher(MOVIE_DETAIL_PAGE).forward(request, response);
             return;
         }
-         User user = (User) request.getSession().getAttribute("user");
 
+        // Lay user trong session de biet user nay da favorite phim chua.
+        User user = (User) request.getSession().getAttribute("user");
+
+        // Mac dinh chua favorite; chi check DB neu user da dang nhap.
         boolean favorite = false;
 
         if (user != null) {
+            // Kiem tra phim nay co trong danh sach yeu thich cua user khong.
             favorite = favoriteMovieDAO.exists(user.getId(), movie.getId());
         }
 
+        // Gui trang thai favorite sang JSP de render nut yeu thich dung trang thai.
         request.setAttribute("favorite", favorite);
+
+        // Gui object movie sang JSP de hien title, poster, description, trailer...
         request.setAttribute("movie", movie);
+
+        // Lay danh sach suat chieu cua phim, gom theo chi nhanh de JSP hien lich chieu.
         request.setAttribute(
                 "branchShowtimes",
                 movieService.getShowtimesByBranch(movieId)
         );
+        request.setAttribute("reviews", reviewService.getMovieReviews(movieId));
 
+        // forward sang detail JSP, giu lai cac attribute vua set.
         request.getRequestDispatcher(MOVIE_DETAIL_PAGE).forward(request, response);
     }
 

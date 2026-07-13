@@ -79,6 +79,11 @@ public class ReviewService {
         return reviewDAO.update(reviewId, userId, rating, trimToNull(comment));
     }
 
+    /** Review cua khach chi duoc sua trong 30 phut sau khi tao. */
+    public boolean canEditReview(int reviewId, int userId) {
+        return reviewId > 0 && userId > 0 && reviewDAO.canEdit(reviewId, userId);
+    }
+
     /** Xóa đánh giá của chính khách (Delete). */
     public boolean deleteReview(int reviewId, int userId) {
         if (reviewId <= 0 || userId <= 0) {

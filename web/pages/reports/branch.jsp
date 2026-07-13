@@ -22,74 +22,74 @@
     <div class="rv-page-header__left">
         <!-- Breadcrumb -->
         <div class="rv-breadcrumb">
-            <a href="${ctx}/admin/dashboard">Dashboard</a>
+            <a href="${ctx}/${(sessionScope.user.role == 'ADMIN' || sessionScope.adminUser.role == 'ADMIN') ? 'admin' : 'manager'}/dashboard">Dashboard</a>
             <i class="bi bi-chevron-right rv-breadcrumb__sep"></i>
             <span class="rv-breadcrumb__current">Báo cáo chi nhánh</span>
         </div>
         <h1 class="rv-page-title">Báo cáo hiệu suất chi nhánh</h1>
         <p class="rv-page-subtitle">Phân tích chuyên sâu về doanh thu, tỷ lệ lấp đầy ghế và phim phổ biến tại rạp.</p>
-    </div>
-    <div class="rv-page-header__right">
-        <a href="${ctx}/admin/reports/branch?action=export&fromDate=${report.fromDate}&toDate=${report.toDate}&branchId=${selectedBranchId}" class="rv-btn rv-btn--secondary">
-            <i class="bi bi-file-earmark-spreadsheet-fill"></i>Xuất Excel (XLSX)
-        </a>
-    </div>
-</div>
-
-<!-- ── CONTEXT BANNER ── -->
-<div class="rv-banner rv-banner--info">
-    <i class="bi bi-info-circle-fill"></i>
-    <div>
-        <c:choose>
-            <c:when test="${adminAllBranches}">
-                <strong>Quyền Admin — toàn hệ thống:</strong> Bạn có thể xem và so sánh báo cáo của mọi chi nhánh. Đang hiển thị: <span style="font-weight: 700; text-decoration: underline;"><c:out value="${assignedBranchName}"/></span>.
-            </c:when>
-            <c:otherwise>
-                <strong>Phạm vi truy cập chi nhánh:</strong> Bạn đang xem số liệu cho chi nhánh <span style="font-weight: 700; text-decoration: underline;"><c:out value="${assignedBranchName}"/></span>.
-            </c:otherwise>
-        </c:choose>
-    </div>
-</div>
-
-<!-- ── DATE RANGE FILTER ── -->
-<div class="rv-toolbar">
-    <form method="get" action="${ctx}/admin/reports/branch" class="d-flex align-items-end flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
-        
-        <c:if test="${adminAllBranches}">
-            <div class="rv-form-group" style="min-width: 220px; margin: 0;">
-                <label class="rv-label" for="branchId" style="font-size: 11px; margin-bottom: 4px;">Chi nhánh</label>
-                <select id="branchId" name="branchId" class="rv-input" style="height: 38px;">
-                    <c:forEach var="br" items="${allBranches}">
-                        <option value="${br.id}" ${br.id == selectedBranchId ? 'selected' : ''}>
-                            <c:out value="${br.name}"/>
-                        </option>
-                    </c:forEach>
-                </select>
-            </div>
-        </c:if>
-
-        <div style="display: flex; gap: var(--s-3); flex: 1; min-width: 280px; max-width: 480px;">
-            <!-- From Date -->
-            <div class="rv-form-group" style="flex: 1; margin: 0;">
-                <label class="rv-label" for="fromDate" style="font-size: 11px; margin-bottom: 4px;">Từ ngày</label>
-                <input type="date" id="fromDate" name="fromDate" class="rv-input" style="height: 38px;" required value="${report.fromDate}">
-            </div>
-            
-            <!-- To Date -->
-            <div class="rv-form-group" style="flex: 1; margin: 0;">
-                <label class="rv-label" for="toDate" style="font-size: 11px; margin-bottom: 4px;">Đến ngày</label>
-                <input type="date" id="toDate" name="toDate" class="rv-input" style="height: 38px;" required value="${report.toDate}">
-            </div>
-        </div>
-
-        <div class="d-flex align-items-end gap-2">
-            <button type="submit" class="rv-btn rv-btn--secondary rv-btn--sm">
-                Lọc dữ liệu
-            </button>
-            <a href="${ctx}/admin/reports/branch" class="rv-btn rv-btn--ghost rv-btn--sm">Xóa lọc</a>
-        </div>
-    </form>
-</div>
+     </div>
+     <div class="rv-page-header__right">
+         <a href="${reportUrl}?action=export&fromDate=${report.fromDate}&toDate=${report.toDate}&branchId=${selectedBranchId}" class="rv-btn rv-btn--secondary">
+             <i class="bi bi-file-earmark-spreadsheet-fill"></i>Xuất Excel (XLSX)
+         </a>
+     </div>
+ </div>
+ 
+ <!-- ── CONTEXT BANNER ── -->
+ <div class="rv-banner rv-banner--info">
+     <i class="bi bi-info-circle-fill"></i>
+     <div>
+         <c:choose>
+             <c:when test="${adminAllBranches}">
+                 <strong>Quyền Admin — toàn hệ thống:</strong> Bạn có thể xem và so sánh báo cáo của mọi chi nhánh. Đang hiển thị: <span style="font-weight: 700; text-decoration: underline;"><c:out value="${assignedBranchName}"/></span>.
+             </c:when>
+             <c:otherwise>
+                 <strong>Phạm vi truy cập chi nhánh:</strong> Bạn đang xem số liệu cho chi nhánh <span style="font-weight: 700; text-decoration: underline;"><c:out value="${assignedBranchName}"/></span>.
+             </c:otherwise>
+         </c:choose>
+     </div>
+ </div>
+ 
+ <!-- ── DATE RANGE FILTER ── -->
+ <div class="rv-toolbar">
+     <form method="get" action="${reportUrl}" class="d-flex align-items-end flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
+         
+         <c:if test="${adminAllBranches}">
+             <div class="rv-form-group" style="min-width: 220px; margin: 0;">
+                 <label class="rv-label" for="branchId" style="font-size: 11px; margin-bottom: 4px;">Chi nhánh</label>
+                 <select id="branchId" name="branchId" class="rv-input" style="height: 38px;">
+                     <c:forEach var="br" items="${allBranches}">
+                         <option value="${br.id}" ${br.id == selectedBranchId ? 'selected' : ''}>
+                             <c:out value="${br.name}"/>
+                         </option>
+                     </c:forEach>
+                 </select>
+             </div>
+         </c:if>
+ 
+         <div style="display: flex; gap: var(--s-3); flex: 1; min-width: 280px; max-width: 480px;">
+             <!-- From Date -->
+             <div class="rv-form-group" style="flex: 1; margin: 0;">
+                 <label class="rv-label" for="fromDate" style="font-size: 11px; margin-bottom: 4px;">Từ ngày</label>
+                 <input type="date" id="fromDate" name="fromDate" class="rv-input" style="height: 38px;" required value="${report.fromDate}">
+             </div>
+             
+             <!-- To Date -->
+             <div class="rv-form-group" style="flex: 1; margin: 0;">
+                 <label class="rv-label" for="toDate" style="font-size: 11px; margin-bottom: 4px;">Đến ngày</label>
+                 <input type="date" id="toDate" name="toDate" class="rv-input" style="height: 38px;" required value="${report.toDate}">
+             </div>
+         </div>
+ 
+         <div class="d-flex align-items-end gap-2">
+             <button type="submit" class="rv-btn rv-btn--secondary rv-btn--sm">
+                 Lọc dữ liệu
+             </button>
+             <a href="${reportUrl}" class="rv-btn rv-btn--ghost rv-btn--sm">Xóa lọc</a>
+         </div>
+     </form>
+ </div>
 
 <!-- ── 4× KPI CARDS ROW ── -->
 <div class="rv-kpi-grid" style="grid-template-columns: repeat(4, 1fr);">

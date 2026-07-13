@@ -35,7 +35,7 @@ public class RolePermissionFilter implements Filter {
 
         // Nếu không có session hoặc chưa đăng nhập => chuyển hướng về trang đăng nhập
         if (session == null) {
-            httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp");
+            httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
             return;
         }
 
@@ -44,7 +44,7 @@ public class RolePermissionFilter implements Filter {
             user = (User) session.getAttribute("adminUser");
         }
         if (user == null) {
-            httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp");
+            httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
             return;
         }
 

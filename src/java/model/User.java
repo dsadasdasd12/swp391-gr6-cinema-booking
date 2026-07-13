@@ -1,13 +1,10 @@
 package model;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- *
- * @author Admin
- */
-import java.time.LocalDateTime;
+public class User implements Serializable {
 
-public class User {
+    private static final long serialVersionUID = 1L;
 
     private int id;
     private String fullName;

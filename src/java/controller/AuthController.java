@@ -23,6 +23,8 @@ import util.PasswordUtil;
 })
 public class AuthController extends HttpServlet {
 
+    private static final int LOGIN_SESSION_TIMEOUT_SECONDS = 60 * 60;
+
     private final AuthService authService = new AuthService();
 
     @Override
@@ -152,6 +154,7 @@ public class AuthController extends HttpServlet {
         }
 
         HttpSession session = request.getSession();
+        session.setMaxInactiveInterval(LOGIN_SESSION_TIMEOUT_SECONDS);
         session.setAttribute("user", user);
 
         redirectByRole(request, response, user);
@@ -275,6 +278,7 @@ public class AuthController extends HttpServlet {
         session.removeAttribute("otpPurpose");
         session.removeAttribute("verifyUser");
 
+        session.setMaxInactiveInterval(LOGIN_SESSION_TIMEOUT_SECONDS);
         session.setAttribute("user", verifyUser);
 
         redirectByRole(request, response, verifyUser);

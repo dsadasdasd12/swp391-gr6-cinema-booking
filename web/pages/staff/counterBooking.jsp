@@ -188,6 +188,9 @@
         .seat.STANDARD { background-color: var(--emerald); }
         .seat.VIP { background-color: var(--royal-blue); }
         .seat.COUPLE { background-color: var(--pink); }
+        <c:forEach items="${allSeatTypes}" var="st">
+        .seat.${st.code}:not(.SELECTED):not(.OCCUPIED):not(.MAINTENANCE) { background-color: ${st.color} !important; }
+        </c:forEach>
         .seat.MAINTENANCE {
             background-color: #4b5563 !important;
             border-color: rgba(255, 255, 255, 0.05);
@@ -478,39 +481,39 @@
                     <div class="seat-map-container">
                         <div class="screen">MÀN HÌNH CHIẾU CHÍNH (SCREEN)</div>
                         
-                        <div class="seat-grid" style="grid-template-columns: repeat(${maxSeatNumber}, 48px);">
-                            <c:forEach items="${seatList}" var="s">
-                                <c:set var="isBooked" value="false" />
-                                <c:forEach items="${bookedSeatIds}" var="bookedId">
-                                    <c:if test="${bookedId == s.id}">
-                                        <c:set var="isBooked" value="true" />
-                                    </c:if>
+                        <div style="width: 100%; overflow-x: auto; padding-bottom: 10px;">
+                            <div class="seat-grid" style="grid-template-columns: repeat(${maxSeatNumber}, 48px); margin: 0 auto; width: fit-content; justify-content: start;">
+                                <c:forEach items="${seatList}" var="s">
+                                    <c:set var="isBooked" value="false" />
+                                    <c:forEach items="${bookedSeatIds}" var="bookedId">
+                                        <c:if test="${bookedId == s.id}">
+                                            <c:set var="isBooked" value="true" />
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:set var="seatPrice" value="${showtimeService.getSeatPrice(selectedShowtime.id, s.seatType, selectedShowtime.basePrice)}" />
+                                    <button class="seat ${isBooked ? 'OCCUPIED' : (s.maintenance ? 'MAINTENANCE' : s.seatType)}"
+                                            style="grid-column: ${s.seatNumber}; grid-row: ${s.getRowIndex()};"
+                                            ${isBooked || s.maintenance ? 'disabled' : ''}
+                                            id="seatBtn-${s.id}"
+                                            data-id="${s.id}"
+                                            data-code="${s.getSeatCode()}"
+                                            data-price="${seatPrice}"
+                                            onclick="toggleSeatSelection(this)">
+                                        ${s.getSeatCode()}
+                                    </button>
                                 </c:forEach>
-                                <c:set var="seatPrice" value="${showtimeService.getSeatPrice(selectedShowtime.id, s.seatType, selectedShowtime.basePrice)}" />
-                                <button class="seat ${isBooked ? 'OCCUPIED' : (s.maintenance ? 'MAINTENANCE' : s.seatType)}"
-                                        style="grid-column: ${s.seatNumber}; grid-row: ${s.getRowIndex()};"
-                                        ${isBooked || s.maintenance ? 'disabled' : ''}
-                                        id="seatBtn-${s.id}"
-                                        data-id="${s.id}"
-                                        data-code="${s.getSeatCode()}"
-                                        data-price="${seatPrice}"
-                                        onclick="toggleSeatSelection(this)">
-                                    ${s.getSeatCode()}
-                                </button>
-                            </c:forEach>
+                            </div>
                         </div>
                         
                         <!-- Chú thích legend -->
-                        <div class="legend">
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: var(--emerald);"></div> Standard
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: var(--royal-blue);"></div> VIP
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: var(--pink);"></div> Couple
-                            </div>
+                        <div class="legend" style="flex-wrap: wrap; gap: 10px 20px;">
+                            <c:forEach items="${allSeatTypes}" var="st">
+                                <c:if test="${st.status == 'ACTIVE'}">
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: ${st.color};"></div> ${st.name}
+                                    </div>
+                                </c:if>
+                            </c:forEach>
                             <div class="legend-item">
                                 <div class="legend-color" style="background: #374151;"></div> Đã bán
                             </div>

@@ -122,7 +122,8 @@ public class ReviewDAO {
     /** Sửa đánh giá của chính khách (chỉ điểm + nội dung). */
     public boolean update(int reviewId, int userId, int rating, String comment) {
         String sql = "UPDATE dbo.REVIEWS SET rating = ?, comment = ?, last_update = GETDATE() "
-                + "WHERE id = ? AND user_id = ?";
+                + "WHERE id = ? AND user_id = ? "
+                + "AND created_at >= DATEADD(MINUTE, -30, GETDATE())";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, rating);
@@ -133,6 +134,24 @@ public class ReviewDAO {
         } catch (SQLException e) {
             System.getLogger(ReviewDAO.class.getName())
                     .log(System.Logger.Level.ERROR, "update thất bại", e);
+        }
+        return false;
+    }
+
+    /** Chi co the sua trong 30 phut ke tu luc review duoc tao. */
+    public boolean canEdit(int reviewId, int userId) {
+        String sql = "SELECT COUNT(*) FROM dbo.REVIEWS WHERE id = ? AND user_id = ? "
+                + "AND created_at >= DATEADD(MINUTE, -30, GETDATE())";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, reviewId);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.getLogger(ReviewDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "canEdit review failed", e);
         }
         return false;
     }

@@ -16,6 +16,21 @@
         <title>Chi tiết đơn đặt vé - RapViet Cinema</title>
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
         <link rel="stylesheet" href="${ctx}/assets/css/movie.css">
+        <style>
+            .booking-tracker { margin-top:24px; padding:22px 26px; border:1px solid #2c3038; border-radius:14px; background:#16181d; }
+            .booking-tracker h2 { margin:0 0 6px; font-size:20px; }
+            .booking-tracker__hint { margin:0 0 20px; color:#9aa0aa; font-size:14px; }
+            .status-timeline { list-style:none; margin:0; padding:0; }
+            .status-timeline__item { position:relative; display:grid; grid-template-columns:18px 1fr auto; gap:12px; padding:0 0 20px; }
+            .status-timeline__item:last-child { padding-bottom:0; }
+            .status-timeline__item:not(:last-child)::before { content:""; position:absolute; left:8px; top:18px; bottom:0; width:2px; background:#343944; }
+            .status-timeline__dot { width:18px; height:18px; border-radius:50%; margin-top:2px; background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.12); }
+            .status-timeline__item.pending .status-timeline__dot { background:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,.12); }
+            .status-timeline__item.cancelled .status-timeline__dot { background:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.12); }
+            .status-timeline__title { font-weight:700; color:#f8fafc; }
+            .status-timeline__note { margin-top:3px; color:#aeb6c5; font-size:14px; }
+            .status-timeline__time { color:#9aa0aa; font-size:13px; white-space:nowrap; }
+        </style>
     </head>
     <body>
         <jsp:include page="/pages/common/header.jsp">
@@ -112,6 +127,32 @@
                                 </div>
 
                             </div>
+
+                            <section class="booking-tracker" aria-label="Theo dõi trạng thái đơn vé">
+                                <h2>Theo dõi trạng thái đơn vé</h2>
+                                <p class="booking-tracker__hint">Các mốc được lưu tự động khi trạng thái đơn vé thay đổi.</p>
+                                <c:choose>
+                                    <c:when test="${empty statusHistory}">
+                                        <p class="booking-tracker__hint">Chưa có lịch sử trạng thái cho đơn vé này.</p>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <ol class="status-timeline">
+                                            <c:forEach var="event" items="${statusHistory}">
+                                                <li class="status-timeline__item ${event.statusClass}">
+                                                    <span class="status-timeline__dot" aria-hidden="true"></span>
+                                                    <div>
+                                                        <div class="status-timeline__title"><c:out value="${event.statusLabel}"/></div>
+                                                        <c:if test="${not empty event.note}">
+                                                            <div class="status-timeline__note"><c:out value="${event.note}"/></div>
+                                                        </c:if>
+                                                    </div>
+                                                    <time class="status-timeline__time"><c:out value="${event.changedAtLabel}"/></time>
+                                                </li>
+                                            </c:forEach>
+                                        </ol>
+                                    </c:otherwise>
+                                </c:choose>
+                            </section>
 
                             <div class="bd-actions">
                                 <%-- Hủy đơn: chỉ hiện khi còn cho phép hủy --%>

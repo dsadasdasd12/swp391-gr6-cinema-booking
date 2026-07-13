@@ -24,7 +24,8 @@
 
     <div class="page-wrap">
     <div class="container">
-        <h1 class="page-title">Vé của tôi</h1>
+        <h1 class="page-title">Lịch sử đặt vé</h1>
+        <p class="result-meta">Theo dõi các đơn vé và trạng thái thanh toán của bạn.</p>
 
         <c:choose>
             <%-- ── Chưa có đơn nào ── --%>
