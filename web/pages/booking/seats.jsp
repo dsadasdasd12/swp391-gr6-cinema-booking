@@ -10,9 +10,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Chọn ghế - RapViet Cinema</title>
     <style>
-        <c:forEach items="${allSeatTypes}" var="st">
-        .seat.available.${st.code}:not(.selected) { background-color: ${st.color} !important; }
-        .seat-choice input:checked + .seat.available.${st.code} { background-color: #10b981 !important; border-color: #10b981 !important; }
+        <c:forEach items="${allSeatTypes}" var="seatType">
+        .seat.available.${seatType.code}:not(.selected) { background-color: ${seatType.color} !important; }
+        .seat-choice input:checked + .seat.available.${seatType.code} { background-color: #10b981 !important; border-color: #10b981 !important; }
         </c:forEach>
     </style>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
@@ -54,9 +54,9 @@
                             <span><i class="seat available"></i> Còn trống</span>
                             <span><i class="seat booked"></i> Đã đạt</span>
                             <span><i class="seat maintenance"></i> Bảo trì</span>
-                            <c:forEach items="${allSeatTypes}" var="st">
-                                <c:if test="${st.status == 'ACTIVE' && st.code != 'STANDARD'}">
-                                    <span><i class="seat available ${st.code}"></i> ${st.name}</span>
+                            <c:forEach items="${allSeatTypes}" var="seatType">
+                                <c:if test="${seatType.status == 'ACTIVE' && seatType.code != 'STANDARD'}">
+                                    <span><i class="seat available ${seatType.code}"></i> ${seatType.name}</span>
                                 </c:if>
                             </c:forEach>
                         </div>
