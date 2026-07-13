@@ -9,6 +9,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import model.User;
 import model.Showtime;
 
 @WebServlet(name = "TicketValidationController", urlPatterns = {"/TicketValidation"})
@@ -36,8 +38,23 @@ public class TicketValidationController extends HttpServlet {
                 // Hỗ trợ trích xuất và chuẩn hóa bookingId thông qua TicketService
                 int bookingId = ticketService.parseBookingId(bookingIdStr);
                 
-                // Sử dụng Staff ID = 10 (theo seed_data.sql) để kiểm soát check-in
-                int staffId = 10;
+                // Record the authenticated operator instead of a seed-data-specific ID.
+                HttpSession session = request.getSession(false);
+                User currentUser = session == null ? null : (User) session.getAttribute("user");
+                if (currentUser == null) {
+                    response.sendRedirect(request.getContextPath() + "/login");
+                    return;
+                }
+
+                String role = currentUser.getRole();
+                if (!"STAFF".equalsIgnoreCase(role)
+                        && !"MANAGER".equalsIgnoreCase(role)
+                        && !"ADMIN".equalsIgnoreCase(role)) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
+
+                int staffId = currentUser.getId();
                 
                 String result = ticketService.checkInTicket(bookingId, staffId);
                 
