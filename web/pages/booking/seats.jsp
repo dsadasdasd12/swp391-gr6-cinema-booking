@@ -12,7 +12,12 @@
     <style>
         <c:forEach items="${allSeatTypes}" var="seatType">
         .seat.available.${seatType.code}:not(.selected) { background-color: ${seatType.color} !important; }
-        .seat-choice input:checked + .seat.available.${seatType.code} { background-color: #10b981 !important; border-color: #10b981 !important; }
+        .seat-choice input:checked + .seat.available.${seatType.code} {
+            background-color: #f59e0b !important;
+            border-color: #fef3c7 !important;
+            color: #111827 !important;
+            box-shadow: 0 0 0 3px #b45309 !important;
+        }
         </c:forEach>
     </style>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
