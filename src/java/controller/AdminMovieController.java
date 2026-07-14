@@ -419,60 +419,6 @@ public class AdminMovieController extends HttpServlet {
         }
         return ids;
     }
-
-    private boolean hasPosterFile(HttpServletRequest req) throws ServletException, IOException {
-        Part part = req.getPart("posterFile");
-        return part != null && part.getSize() > 0;
-    }
-
-    private String savePosterPart(HttpServletRequest req, int movieId) throws IOException, ServletException {
-        Part part = req.getPart("posterFile");
-        if (part == null || part.getSize() == 0) {
-            return null;
-        }
-        return savePosterPart(req, movieId, part);
-    }
-
-    private String savePosterPart(HttpServletRequest req, int movieId, Part part) throws IOException {
-        String fileName = getFileName(part);
-        String ext = getExtension(fileName).toLowerCase();
-        if (!ext.equals("jpg") && !ext.equals("jpeg") && !ext.equals("png") && !ext.equals("webp")) {
-            return null;
-        }
-        String uploadRoot = getServletContext().getRealPath("/assets/uploads/movies/" + movieId);
-        File dir = new File(uploadRoot);
-        if (!dir.exists() && !dir.mkdirs()) {
-            return null;
-        }
-        String savedName = "poster_" + System.currentTimeMillis() + "." + ext;
-        part.write(uploadRoot + File.separator + savedName);
-        return "assets/uploads/movies/" + movieId + "/" + savedName;
-    }
-
-    /** Lấy tên file từ Part header Content-Disposition. */
-    private String getFileName(Part part) {
-        String header = part.getHeader("content-disposition");
-        if (header == null) {
-            return "upload";
-        }
-        for (String cd : header.split(";")) {
-            if (cd.trim().startsWith("filename")) {
-                String name = cd.substring(cd.indexOf('=') + 1).trim().replace("\"", "");
-                int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
-                if (slash >= 0) {
-                    name = name.substring(slash + 1);
-                }
-                return name;
-            }
-        }
-        return "upload";
-    }
-
-    private String getExtension(String fileName) {
-        int dot = fileName.lastIndexOf('.');
-        return (dot >= 0) ? fileName.substring(dot + 1) : "";
-    }
-
     /** Kiểm tra form có poster upload mới hay không. */
     private boolean hasPosterFile(HttpServletRequest req) throws ServletException, IOException {
         Part part = req.getPart("posterFile");
