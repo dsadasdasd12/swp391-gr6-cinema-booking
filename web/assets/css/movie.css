@@ -156,9 +156,13 @@
     padding: 16px; transition: border-color .15s ease;
 }
 .booking-row:hover { border-color: #e50914; }
+.booking-main h3 a { color: inherit; }
+.booking-review-btn { font-size: 13px; padding: 7px 10px; }
 .booking-main h3 { margin: 0 0 8px; }
 .booking-meta { color: #9aa0aa; font-size: 14px; margin-top: 4px; }
 .booking-side { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; min-width: 150px; }
+/* .badge dùng cho poster có position:absolute; ở lịch sử vé phải đặt lại trong cột status. */
+.booking-side .badge { position: static; align-self: flex-end; }
 .booking-total { font-weight: 800; color: #fff; }
 .booking-code { color: #7d828c; font-size: 13px; }
 
@@ -188,6 +192,13 @@
 
 /* ── Đánh giá phim (Reviews) ──────────────────── */
 .review-list { display: flex; flex-direction: column; gap: 12px; }
+.review-cta {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 16px 18px; margin: 0 0 16px; border: 1px solid #5b4813;
+    border-radius: 12px; background: linear-gradient(90deg, #2d2510, #16181d);
+}
+.review-cta strong { display: block; color: #ffce3a; margin-bottom: 4px; }
+.review-cta span { color: #b8bcc4; font-size: 14px; }
 .review-item { background: #16181d; border: 1px solid #23262d; border-radius: 12px; padding: 14px 16px; }
 .review-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .review-author { font-weight: 600; }
@@ -200,6 +211,13 @@
     width: 100%; background: #0f1115; border: 1px solid #2c3038; border-radius: 8px;
     color: #e8e8ea; padding: 10px 12px; font-family: inherit; font-size: 14px; resize: vertical;
 }
+.star-picker { display: inline-flex; align-items: center; gap: 2px; margin-top: 8px; }
+.rating-star { appearance: none; border: 0; padding: 0; background: none; cursor: pointer; font-size: 38px; line-height: 1; color: #4a505c; transition: transform .12s ease; }
+.rating-star:hover { transform: scale(1.12); }
+.rating-star.is-full { color: #ffce3a; }
+.rating-star.is-half { color: transparent; background: linear-gradient(90deg, #ffce3a 50%, #4a505c 50%); background-clip: text; -webkit-background-clip: text; }
+.rating-star:focus-visible { outline: 2px solid #ffce3a; outline-offset: 3px; border-radius: 4px; }
+.rating-hint { display: block; color: #9aa0aa; margin-top: 8px; }
  
 
 /* ===== Booking Detail Layout ===== */

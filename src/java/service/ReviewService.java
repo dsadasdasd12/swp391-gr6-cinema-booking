@@ -19,6 +19,7 @@ import model.Review;
  */
 public class ReviewService {
 
+    // Điểm chuyển từ package service sang package dao; ReviewDAO mới được phép chạy SQL REVIEWS.
     private final ReviewDAO reviewDAO = new ReviewDAO();
 
     /** Danh sách đánh giá hiển thị ở trang chi tiết phim. */
@@ -51,11 +52,19 @@ public class ReviewService {
                 && reviewDAO.canReview(userId, movieId, bookingId);
     }
 
+    /** Trả về booking đã xem của user cho phim, hoặc 0 nếu user chưa đủ điều kiện review. */
+    public int getReviewableBookingId(int userId, int movieId) {
+        if (userId <= 0 || movieId <= 0) {
+            return 0;
+        }
+        return reviewDAO.findReviewBookingIdForUserAndMovie(userId, movieId);
+    }
+
     /**
      * Tạo đánh giá mới (Rate + Write). Trả về false nếu điểm sai, không đủ điều
      * kiện đánh giá, hoặc đơn này đã có đánh giá rồi.
      */
-    public boolean createReview(int userId, int movieId, int bookingId, int rating, String comment) {
+    public boolean createReview(int userId, int movieId, int bookingId, double rating, String comment) {
         if (!isValidRating(rating) || !canReview(userId, movieId, bookingId)) {
             return false;
         }
@@ -72,7 +81,7 @@ public class ReviewService {
     }
 
     /** Sửa đánh giá của chính khách (Edit). */
-    public boolean updateReview(int reviewId, int userId, int rating, String comment) {
+    public boolean updateReview(int reviewId, int userId, double rating, String comment) {
         if (reviewId <= 0 || userId <= 0 || !isValidRating(rating)) {
             return false;
         }
@@ -92,8 +101,10 @@ public class ReviewService {
         return reviewDAO.delete(reviewId, userId);
     }
 
-    private static boolean isValidRating(int rating) {
-        return rating >= 1 && rating <= 5;
+    private static boolean isValidRating(double rating) {
+        // Chỉ chấp nhận 0.5, 1.0, 1.5 ... 5.0; tránh client tự gửi 3.7.
+        return rating >= 0.5 && rating <= 5.0
+                && Math.abs(rating * 2 - Math.rint(rating * 2)) < 0.0001;
     }
 
     private static String trimToNull(String s) {

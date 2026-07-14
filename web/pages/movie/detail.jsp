@@ -68,6 +68,7 @@
                                                 </c:choose>
                                             </button>
                                         </form>
+
                                     </c:when>
 
                                     <c:otherwise>
@@ -154,6 +155,24 @@
 
                         <%-- ── Đánh giá từ khán giả (danh sách review ACTIVE của phim) ── --%>
                         <h2 class="section-title">Đánh giá từ khán giả</h2>
+
+                        <%--
+                            Chỉ user sở hữu booking đã CHECKED_IN/USED mới nhận được reviewBookingId.
+                            Vì booking phải đi qua thanh toán trước khi check-in, khách chưa đặt/chưa
+                            thanh toán/chưa xem phim sẽ hoàn toàn không thấy khối này.
+                        --%>
+                        <c:if test="${reviewBookingId > 0}">
+                            <div class="review-cta">
+                                <div>
+                                    <strong>Bạn đã xem phim này?</strong>
+                                    <span>Chia sẻ cảm nhận để giúp các khán giả khác chọn phim.</span>
+                                </div>
+                                <a class="btn btn-primary"
+                                   href="${ctx}/review?bookingId=${reviewBookingId}&movieId=${movie.id}">
+                                    ★ Đánh giá ngay
+                                </a>
+                            </div>
+                        </c:if>
                         <c:if test="${param.msg == 'review_ok'}">
                             <div class="notice ok">Đã lưu đánh giá của bạn.</div>
                         </c:if>

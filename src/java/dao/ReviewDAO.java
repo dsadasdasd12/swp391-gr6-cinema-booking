@@ -100,6 +100,35 @@ public class ReviewDAO {
         return false;
     }
 
+    /**
+     * Tìm một vé của khách có thể dùng để mở luồng review tại trang chi tiết phim.
+     *
+     * <p>Chỉ nhận vé đã được staff check-in hoặc đã dùng xong. Nếu khách đã xem cùng
+     * một phim nhiều lần, ưu tiên vé chưa có review để nút "Đánh giá phim" tạo review
+     * mới; nếu tất cả đều đã review thì trả về review gần nhất để khách vẫn xem/sửa
+     * review của mình (nếu còn trong thời hạn 30 phút).</p>
+     */
+    public int findReviewBookingIdForUserAndMovie(int userId, int movieId) {
+        String sql = "SELECT TOP 1 bk.id FROM dbo.BOOKINGS bk "
+                + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
+                + "LEFT JOIN dbo.REVIEWS r ON r.booking_id = bk.id "
+                + "WHERE bk.user_id = ? AND s.movie_id = ? "
+                + "AND bk.status IN ('CHECKED_IN','USED') "
+                + "ORDER BY CASE WHEN r.id IS NULL THEN 0 ELSE 1 END, bk.last_update DESC, bk.id DESC";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, movieId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            System.getLogger(ReviewDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findReviewBookingIdForUserAndMovie thất bại", e);
+        }
+        return 0;
+    }
+
     /** Thêm một đánh giá mới (status mặc định ACTIVE theo DB). */
     public boolean insert(Review r) {
         String sql = "INSERT INTO dbo.REVIEWS (user_id, movie_id, booking_id, rating, comment) "
@@ -109,7 +138,7 @@ public class ReviewDAO {
             ps.setInt(1, r.getUserId());
             ps.setInt(2, r.getMovieId());
             ps.setInt(3, r.getBookingId());
-            ps.setInt(4, r.getRating());
+            ps.setDouble(4, r.getRating());
             ps.setString(5, r.getComment());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -120,13 +149,13 @@ public class ReviewDAO {
     }
 
     /** Sửa đánh giá của chính khách (chỉ điểm + nội dung). */
-    public boolean update(int reviewId, int userId, int rating, String comment) {
+    public boolean update(int reviewId, int userId, double rating, String comment) {
         String sql = "UPDATE dbo.REVIEWS SET rating = ?, comment = ?, last_update = GETDATE() "
                 + "WHERE id = ? AND user_id = ? "
                 + "AND created_at >= DATEADD(MINUTE, -30, GETDATE())";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, rating);
+            ps.setDouble(1, rating);
             ps.setString(2, comment);
             ps.setInt(3, reviewId);
             ps.setInt(4, userId);
@@ -195,7 +224,7 @@ public class ReviewDAO {
         r.setUserId(rs.getInt("user_id"));
         r.setMovieId(rs.getInt("movie_id"));
         r.setBookingId(rs.getInt("booking_id"));
-        r.setRating(rs.getInt("rating"));
+        r.setRating(rs.getDouble("rating"));
         r.setComment(rs.getString("comment"));
         r.setStatus(rs.getString("status"));
         r.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));

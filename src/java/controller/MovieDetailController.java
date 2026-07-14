@@ -89,17 +89,20 @@ public class MovieDetailController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        // servletPath là URL đã map trong @WebServlet, dùng để chọn đúng use case.
         String path = request.getServletPath();
 
         switch (path) {
 
             case "/movie":
+                // Detail: Controller chuyển id/branch filter sang MovieService, rồi forward Movie sang JSP.
                 showMovieDetail(request, response);
                 break;
                 
                 
             case "/movieslist":
             case "/movies":
+                // Browse/Search/Filter: showMovieList dựng MovieFilter từ query string.
                 showMovieList(request, response);
                 break;
 
@@ -248,6 +251,13 @@ public class MovieDetailController extends HttpServlet {
         if (user != null) {
             // Kiem tra phim nay co trong danh sach yeu thich cua user khong.
             favorite = favoriteMovieDAO.exists(user.getId(), movie.getId());
+
+            // Nếu khách đã check-in/đã xem phim này, lấy booking để hiện nút review ngay
+            // trên trang phim. ReviewController vẫn kiểm tra lại quyền khi mở/lưu form.
+            request.setAttribute(
+                    "reviewBookingId",
+                    reviewService.getReviewableBookingId(user.getId(), movie.getId())
+            );
         }
 
         // Gui trang thai favorite sang JSP de render nut yeu thich dung trang thai.
