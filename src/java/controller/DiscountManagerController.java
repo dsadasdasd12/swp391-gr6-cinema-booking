@@ -39,16 +39,50 @@ public class DiscountManagerController extends HttpServlet {
             try {
                 String code = request.getParameter("code");
                 String discountType = request.getParameter("discountType");
-                double discountValue = Double.parseDouble(request.getParameter("discountValue"));
                 
+                if (code == null || code.trim().isEmpty() || !code.matches("^[A-Za-z0-9_]+$")) {
+                    request.getSession().setAttribute("msgError", "Mã giảm giá không hợp lệ! Chỉ cho phép dùng chữ cái, chữ số và dấu gạch dưới, không chứa khoảng trắng.");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
+
+                double discountValue = Double.parseDouble(request.getParameter("discountValue"));
+                if (discountValue <= 0) {
+                    request.getSession().setAttribute("msgError", "Giá trị giảm giá phải lớn hơn 0!");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
+
+                if ("PERCENT".equalsIgnoreCase(discountType) && discountValue > 100) {
+                    request.getSession().setAttribute("msgError", "Giá trị phần trăm giảm giá không được vượt quá 100%!");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
+
                 String maxDiscountStr = request.getParameter("maxDiscountAmount");
                 Double maxDiscountAmount = null;
                 if (maxDiscountStr != null && !maxDiscountStr.trim().isEmpty()) {
                     maxDiscountAmount = Double.parseDouble(maxDiscountStr.trim());
+                    if (maxDiscountAmount <= 0) {
+                        request.getSession().setAttribute("msgError", "Số tiền giảm tối đa phải lớn hơn 0!");
+                        response.sendRedirect("DiscountManager");
+                        return;
+                    }
                 }
 
                 double minOrderValue = Double.parseDouble(request.getParameter("minOrderValue"));
+                if (minOrderValue < 0) {
+                    request.getSession().setAttribute("msgError", "Giá trị đơn hàng tối thiểu không được âm!");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
+
                 int maxUses = Integer.parseInt(request.getParameter("maxUses"));
+                if (maxUses <= 0) {
+                    request.getSession().setAttribute("msgError", "Số lượt sử dụng tối đa phải lớn hơn 0!");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
 
                 // Phân tích định dạng thời gian từ HTML datetime-local (yyyy-MM-dd'T'HH:mm)
                 String startStr = request.getParameter("startDate");
@@ -60,6 +94,12 @@ public class DiscountManagerController extends HttpServlet {
                 
                 Timestamp startDate = Timestamp.valueOf(startStr);
                 Timestamp endDate = Timestamp.valueOf(endStr);
+                
+                if (!startDate.before(endDate)) {
+                    request.getSession().setAttribute("msgError", "Thời gian bắt đầu phải trước thời gian kết thúc!");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
                 
                 String status = request.getParameter("status");
                 if (status == null || status.trim().isEmpty()) status = "ACTIVE";

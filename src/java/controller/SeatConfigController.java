@@ -119,7 +119,14 @@ public class SeatConfigController extends HttpServlet {
                         if ("row".equals(bulkType)) {
                             String bulkRow = request.getParameter("bulkRow").trim().toUpperCase();
                             int bulkSeatCount = Integer.parseInt(request.getParameter("bulkSeatCount").trim());
-                            if (bulkRow.length() == 1 && Character.isLetter(bulkRow.charAt(0)) && bulkSeatCount > 0) {
+                            
+                            if (bulkSeatCount <= 0 || bulkSeatCount > 30) {
+                                request.getSession().setAttribute("msgError", "Số lượng ghế mỗi hàng phải từ 1 đến 30!");
+                                response.sendRedirect("seat-config?hallId=" + hallId);
+                                return;
+                            }
+                            
+                            if (bulkRow.length() == 1 && Character.isLetter(bulkRow.charAt(0))) {
                                 for (int i = 1; i <= bulkSeatCount; i++) {
                                     if (seatService.insertSeat(hallId, bulkRow, i, bulkSeatType, maintenance)) {
                                         insertedCount++;
@@ -131,9 +138,26 @@ public class SeatConfigController extends HttpServlet {
                             int bulkCol = Integer.parseInt(request.getParameter("bulkCol").trim());
                             String bulkRowStart = request.getParameter("bulkRowStart").trim().toUpperCase();
                             String bulkRowEnd = request.getParameter("bulkRowEnd").trim().toUpperCase();
-                            if (bulkCol > 0 && bulkRowStart.length() == 1 && bulkRowEnd.length() == 1) {
+                            
+                            if (bulkCol <= 0 || bulkCol > 30) {
+                                request.getSession().setAttribute("msgError", "Số cột ghế phải từ 1 đến 30!");
+                                response.sendRedirect("seat-config?hallId=" + hallId);
+                                return;
+                            }
+                            
+                            if (bulkRowStart.length() == 1 && bulkRowEnd.length() == 1) {
                                 char start = bulkRowStart.charAt(0);
                                 char end = bulkRowEnd.charAt(0);
+                                if (!Character.isLetter(start) || !Character.isLetter(end)) {
+                                    request.getSession().setAttribute("msgError", "Hàng bắt đầu và kết thúc phải là chữ cái!");
+                                    response.sendRedirect("seat-config?hallId=" + hallId);
+                                    return;
+                                }
+                                if (start > end) {
+                                    request.getSession().setAttribute("msgError", "Hàng bắt đầu phải đứng trước hoặc bằng hàng kết thúc!");
+                                    response.sendRedirect("seat-config?hallId=" + hallId);
+                                    return;
+                                }
                                 for (char r = start; r <= end; r++) {
                                     if (seatService.insertSeat(hallId, String.valueOf(r), bulkCol, bulkSeatType, maintenance)) {
                                         insertedCount++;
@@ -145,9 +169,26 @@ public class SeatConfigController extends HttpServlet {
                             String bulkRowStart = request.getParameter("bulkRowStart").trim().toUpperCase();
                             String bulkRowEnd = request.getParameter("bulkRowEnd").trim().toUpperCase();
                             int bulkSeatCount = Integer.parseInt(request.getParameter("bulkSeatCount").trim());
-                            if (bulkRowStart.length() == 1 && bulkRowEnd.length() == 1 && bulkSeatCount > 0) {
+                            
+                            if (bulkSeatCount <= 0 || bulkSeatCount > 30) {
+                                request.getSession().setAttribute("msgError", "Số lượng ghế mỗi hàng phải từ 1 đến 30!");
+                                response.sendRedirect("seat-config?hallId=" + hallId);
+                                return;
+                            }
+                            
+                            if (bulkRowStart.length() == 1 && bulkRowEnd.length() == 1) {
                                 char start = bulkRowStart.charAt(0);
                                 char end = bulkRowEnd.charAt(0);
+                                if (!Character.isLetter(start) || !Character.isLetter(end)) {
+                                    request.getSession().setAttribute("msgError", "Hàng bắt đầu và kết thúc phải là chữ cái!");
+                                    response.sendRedirect("seat-config?hallId=" + hallId);
+                                    return;
+                                }
+                                if (start > end) {
+                                    request.getSession().setAttribute("msgError", "Hàng bắt đầu phải đứng trước hoặc bằng hàng kết thúc!");
+                                    response.sendRedirect("seat-config?hallId=" + hallId);
+                                    return;
+                                }
                                 for (char r = start; r <= end; r++) {
                                     for (int i = 1; i <= bulkSeatCount; i++) {
                                         if (seatService.insertSeat(hallId, String.valueOf(r), i, bulkSeatType, maintenance)) {
@@ -171,6 +212,13 @@ public class SeatConfigController extends HttpServlet {
                             try {
                                 String seatRow = tempCode.substring(0, 1).toUpperCase();
                                 int seatNumber = Integer.parseInt(tempCode.substring(1));
+                                
+                                if (seatNumber <= 0 || seatNumber > 30) {
+                                    request.getSession().setAttribute("msgError", "Số thứ tự ghế phải từ 1 đến 30!");
+                                    response.sendRedirect("seat-config?hallId=" + hallId);
+                                    return;
+                                }
+                                
                                 String seatType = request.getParameter("seatType");
                                 String statusStr = request.getParameter("status");
                                 boolean maintenance = "MAINTENANCE".equalsIgnoreCase(statusStr);

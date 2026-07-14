@@ -112,7 +112,7 @@ public class ShowtimeDAO {
     public List<Showtime> getActiveShowtimesByBranch(int branchId) {
         List<Showtime> list = new ArrayList<>();
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
-                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
+                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name, h.branch_id AS branch_id "
                 + "FROM dbo.SHOWTIMES st "
                 + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
                 + "JOIN dbo.HALLS h ON st.hall_id = h.id "
@@ -134,6 +134,7 @@ public class ShowtimeDAO {
                     st.setMovieTitle(rs.getString("movie_title"));
                     st.setMoviePoster(rs.getString("movie_poster"));
                     st.setHallName(rs.getString("hall_name"));
+                    st.setBranchId(rs.getInt("branch_id"));
                     list.add(st);
                 }
             }
@@ -181,7 +182,7 @@ public class ShowtimeDAO {
     // READ SINGLE: Lấy thông tin một suất chiếu cụ thể
     public Showtime getShowtimeById(int id) {
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
-                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
+                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name, h.branch_id AS branch_id "
                 + "FROM dbo.SHOWTIMES st "
                 + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
                 + "JOIN dbo.HALLS h ON st.hall_id = h.id "
@@ -202,6 +203,7 @@ public class ShowtimeDAO {
                     st.setMovieTitle(rs.getString("movie_title"));
                     st.setMoviePoster(rs.getString("movie_poster"));
                     st.setHallName(rs.getString("hall_name"));
+                    st.setBranchId(rs.getInt("branch_id"));
                     return st;
                 }
             }

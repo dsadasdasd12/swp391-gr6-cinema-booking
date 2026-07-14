@@ -24,6 +24,29 @@ public class TicketValidationController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
 
+        HttpSession session = request.getSession(false);
+        User currentUser = session == null ? null : (User) session.getAttribute("user");
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String role = currentUser.getRole();
+        if (!"STAFF".equalsIgnoreCase(role)
+                && !"MANAGER".equalsIgnoreCase(role)
+                && !"ADMIN".equalsIgnoreCase(role)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        int staffId = currentUser.getId();
+        service.UserService userService = new service.UserService();
+        int branchId = userService.getBranchIdOfStaff(staffId);
+        dao.BranchDAO branchDAO = new dao.BranchDAO();
+        model.Branch staffBranch = branchDAO.getBranchById(branchId);
+        String staffBranchName = (staffBranch != null) ? staffBranch.getName() : "Không xác định";
+        request.setAttribute("staffBranchName", staffBranchName);
+
         String action = request.getParameter("action");
         if ("validate".equalsIgnoreCase(action)) {
             String bookingIdStr = request.getParameter("bookingId");
@@ -37,24 +60,6 @@ public class TicketValidationController extends HttpServlet {
             try {
                 // Hỗ trợ trích xuất và chuẩn hóa bookingId thông qua TicketService
                 int bookingId = ticketService.parseBookingId(bookingIdStr);
-                
-                // Record the authenticated operator instead of a seed-data-specific ID.
-                HttpSession session = request.getSession(false);
-                User currentUser = session == null ? null : (User) session.getAttribute("user");
-                if (currentUser == null) {
-                    response.sendRedirect(request.getContextPath() + "/login");
-                    return;
-                }
-
-                String role = currentUser.getRole();
-                if (!"STAFF".equalsIgnoreCase(role)
-                        && !"MANAGER".equalsIgnoreCase(role)
-                        && !"ADMIN".equalsIgnoreCase(role)) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                    return;
-                }
-
-                int staffId = currentUser.getId();
                 
                 String result = ticketService.checkInTicket(bookingId, staffId);
                 

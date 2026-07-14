@@ -425,7 +425,7 @@
 
     <!-- Header Navigation -->
     <header class="navbar">
-        <h1>RAPVIET CONSOLE</h1>
+        <h1>RAPVIET CONSOLE <span style="font-size: 13px; color: var(--muted-text); margin-left: 10px; font-weight: normal; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); vertical-align: middle;">CN: ${staffBranchName}</span></h1>
         <nav class="nav-links">
             <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
                 <a href="ShowtimeManager">Suất Chiếu & Giá Vé</a>
@@ -490,7 +490,7 @@
                                             <c:set var="isBooked" value="true" />
                                         </c:if>
                                     </c:forEach>
-                                    <c:set var="seatPrice" value="${showtimeService.getSeatPrice(selectedShowtime.id, s.seatType, selectedShowtime.basePrice)}" />
+                                    <c:set var="seatPrice" value="${not empty seatPricesMap[s.seatType] ? seatPricesMap[s.seatType] : selectedShowtime.basePrice}" />
                                     <button class="seat ${isBooked ? 'OCCUPIED' : (s.maintenance ? 'MAINTENANCE' : s.seatType)}"
                                             style="grid-column: ${s.seatNumber}; grid-row: ${s.getRowIndex()};"
                                             ${isBooked || s.maintenance ? 'disabled' : ''}

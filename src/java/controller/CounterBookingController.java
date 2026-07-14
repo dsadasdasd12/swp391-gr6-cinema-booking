@@ -47,6 +47,10 @@ public class CounterBookingController extends HttpServlet {
 
         int staffId = user.getId();
         int branchId = userService.getBranchIdOfStaff(staffId);
+        dao.BranchDAO branchDAO = new dao.BranchDAO();
+        model.Branch staffBranch = branchDAO.getBranchById(branchId);
+        String staffBranchName = (staffBranch != null) ? staffBranch.getName() : "Không xác định";
+        request.setAttribute("staffBranchName", staffBranchName);
         String action = request.getParameter("action");
 
         // API CHECK PAYMENT STATUS: Truy vấn trạng thái đơn hàng (PENDING / CONFIRMED) phục vụ AJAX polling
@@ -147,6 +151,15 @@ public class CounterBookingController extends HttpServlet {
         if ("book".equalsIgnoreCase(action)) {
             try {
                 int showtimeId = Integer.parseInt(request.getParameter("showtimeId"));
+                Showtime st = showtimeService.getShowtimeById(showtimeId);
+                if (!"ADMIN".equalsIgnoreCase(role)) {
+                    if (st == null || st.getBranchId() != branchId) {
+                        request.getSession().setAttribute("msgError", "Lỗi phân quyền: Không được phép đặt vé cho suất chiếu ở chi nhánh khác!");
+                        response.sendRedirect("CounterBooking");
+                        return;
+                    }
+                }
+                
                 String seatsParam = request.getParameter("selectedSeats");
                 
                 if (seatsParam == null || seatsParam.trim().isEmpty()) {
@@ -160,8 +173,6 @@ public class CounterBookingController extends HttpServlet {
                 List<Integer> seatIds = new ArrayList<>();
                 List<Double> seatPrices = new ArrayList<>();
                 double seatsTotal = 0;
-
-                Showtime st = showtimeService.getShowtimeById(showtimeId);
                 for (String seatIdStr : seatArr) {
                     int seatId = Integer.parseInt(seatIdStr.trim());
                     seatIds.add(seatId);
@@ -236,6 +247,12 @@ public class CounterBookingController extends HttpServlet {
                 
                 if (booking != null) {
                     Showtime st = showtimeService.getShowtimeById(booking.getShowtimeId());
+                    if (!"ADMIN".equalsIgnoreCase(role)) {
+                        if (st == null || st.getBranchId() != branchId) {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Lỗi phân quyền: Không được phép in vé của chi nhánh khác!");
+                            return;
+                        }
+                    }
                     request.setAttribute("booking", booking);
                     request.setAttribute("showtime", st);
                     
@@ -265,14 +282,21 @@ public class CounterBookingController extends HttpServlet {
                 String newSeatsStr = request.getParameter("newSeats");
                 int showtimeId = Integer.parseInt(request.getParameter("showtimeId"));
 
+                Showtime st = showtimeService.getShowtimeById(showtimeId);
+                if (!"ADMIN".equalsIgnoreCase(role)) {
+                    if (st == null || st.getBranchId() != branchId) {
+                        request.getSession().setAttribute("msgError", "Lỗi phân quyền: Không được phép thao tác đổi ghế cho suất chiếu của chi nhánh khác!");
+                        response.sendRedirect("CounterBooking");
+                        return;
+                    }
+                }
+
                 String[] oldArr = oldSeatsStr.split(",");
                 String[] newArr = newSeatsStr.split(",");
 
                 List<Integer> oldSeatIds = new ArrayList<>();
                 List<Integer> newSeatIds = new ArrayList<>();
                 List<Double> newPrices = new ArrayList<>();
-
-                Showtime st = showtimeService.getShowtimeById(showtimeId);
                 List<Seat> allSeats = seatService.getSeatsByHall(st.getHallId());
 
                 for (String s : oldArr) oldSeatIds.add(Integer.parseInt(s.trim()));
@@ -312,7 +336,8 @@ public class CounterBookingController extends HttpServlet {
 
         // Fetch seat types to render dynamic styling on staff/counter booking map
         dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
-        request.setAttribute("allSeatTypes", seatTypeDAO.findAll());
+        List<model.SeatType> allSeatTypes = seatTypeDAO.findAll();
+        request.setAttribute("allSeatTypes", allSeatTypes);
 
         String showtimeIdStr = request.getParameter("showtimeId");
         if (showtimeIdStr != null) {
@@ -338,6 +363,15 @@ public class CounterBookingController extends HttpServlet {
                     request.setAttribute("bookedSeatIds", bookedSeatIds);
                     request.setAttribute("showtimeService", showtimeService);
                     request.setAttribute("maxSeatNumber", maxSeatNumber);
+
+                    // Optimize N+1 queries by calculating seat prices in memory
+                    java.util.Map<String, Double> seatPricesMap = new java.util.HashMap<>();
+                    for (model.SeatType stype : allSeatTypes) {
+                        double multiplier = stype.getDefaultPrice();
+                        double price = selectedShowtime.getBasePrice() * (multiplier > 0 ? multiplier : 1.0);
+                        seatPricesMap.put(stype.getCode(), price);
+                    }
+                    request.setAttribute("seatPricesMap", seatPricesMap);
                 }
             } catch (NumberFormatException e) {
                 // Ignore
