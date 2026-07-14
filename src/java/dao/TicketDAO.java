@@ -64,7 +64,7 @@ public class TicketDAO {
      */
     public List<Integer> findBookingIdsWithoutQR() {
         String sql = "SELECT id FROM dbo.BOOKINGS "
-                   + "WHERE (qr_code IS NULL OR qr_code LIKE 'DEMO%') "
+                   + "WHERE (qr_code IS NULL OR qr_code LIKE 'DEMO%' OR qr_code LIKE 'RV-WALK%' OR qr_code LIKE 'RV-ONLINE%') "
                    + "AND status IN ('CONFIRMED','CHECKED_IN','COMPLETED','PENDING')";
         List<Integer> ids = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
@@ -178,8 +178,8 @@ public class TicketDAO {
         if (statusFilter != null && !statusFilter.isBlank()) {
             switch (statusFilter) {
                 case "USED" -> sql.append(" AND b.status IN ('USED','COMPLETED')");
-                case "ISSUED" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL");
-                case "PENDING_MANUAL" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NULL");
+                case "ISSUED" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL AND b.qr_code NOT LIKE 'DEMO%' AND b.qr_code NOT LIKE 'RV-WALK%' AND b.qr_code NOT LIKE 'RV-ONLINE%'");
+                case "PENDING_MANUAL" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND (b.qr_code IS NULL OR b.qr_code LIKE 'DEMO%' OR b.qr_code LIKE 'RV-WALK%' OR b.qr_code LIKE 'RV-ONLINE%')");
                 default -> {}
             }
         }
@@ -216,7 +216,7 @@ public class TicketDAO {
     /**
      * Lấy trang ticket theo keyword + status.
      */
-    public List<Ticket> findPaged(String keyword, String statusFilter, int offset, int pageSize) {
+    public List<Ticket> findPaged(String keyword, String statusFilter, String sortField, String sortOrder, int offset, int pageSize) {
         String kw = keyword == null ? "" : keyword.trim();
         String like = "%" + kw + "%";
 
@@ -235,8 +235,8 @@ public class TicketDAO {
         if (statusFilter != null && !statusFilter.isBlank()) {
             switch (statusFilter) {
                 case "USED" -> sql.append(" AND b.status IN ('USED','COMPLETED')");
-                case "ISSUED" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL");
-                case "PENDING_MANUAL" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NULL");
+                case "ISSUED" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL AND b.qr_code NOT LIKE 'DEMO%' AND b.qr_code NOT LIKE 'RV-WALK%' AND b.qr_code NOT LIKE 'RV-ONLINE%'");
+                case "PENDING_MANUAL" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND (b.qr_code IS NULL OR b.qr_code LIKE 'DEMO%' OR b.qr_code LIKE 'RV-WALK%' OR b.qr_code LIKE 'RV-ONLINE%')");
                 default -> {}
             }
         }
@@ -250,7 +250,14 @@ public class TicketDAO {
                     .append(")");
         }
 
-        sql.append(" ORDER BY b.booked_at DESC ")
+        String orderCol = "b.booked_at";
+        if ("customerName".equals(sortField)) orderCol = "u.full_name";
+        else if ("movieTitle".equals(sortField)) orderCol = "m.title";
+        else if ("showtime".equals(sortField)) orderCol = "s.start_time";
+
+        String orderDir = "ASC".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+
+        sql.append(" ORDER BY ").append(orderCol).append(" ").append(orderDir)
                 .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
 
         List<Ticket> list = new ArrayList<>();
@@ -323,7 +330,7 @@ public class TicketDAO {
             t.setTicketStatus("USED");
         } else {
             t.setUsed(false);
-            t.setTicketStatus(qrCode == null || qrCode.startsWith("DEMO") ? "PENDING_MANUAL" : "ISSUED");
+            t.setTicketStatus(qrCode == null || qrCode.startsWith("DEMO") || qrCode.startsWith("RV-WALK") || qrCode.startsWith("RV-ONLINE") ? "PENDING_MANUAL" : "ISSUED");
         }
         
         t.setQrCodeBase64    (rs.getString("qr_code"));

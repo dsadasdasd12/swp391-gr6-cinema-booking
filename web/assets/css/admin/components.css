@@ -344,7 +344,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--n-800);
-  color: #fff;
+  color: var(--n-50);
   font-size: var(--text-xs);
   font-weight: 500;
   padding: 4px 8px;

@@ -114,7 +114,7 @@ public class NotificationLogDAO {
      * Lấy trang log (đã loại PROMOTION).
      */
     public List<NotificationLog> findPaged(String keyword, String type, String status,
-                                           int offset, int pageSize) {
+                                           String sortField, String sortOrder, int offset, int pageSize) {
         String kw = keyword == null ? "" : keyword.trim();
         String like = "%" + kw + "%";
 
@@ -140,7 +140,13 @@ public class NotificationLogDAO {
             sql.append(" AND (u.email LIKE ? OR n.title LIKE ?)");
         }
 
-        sql.append(" ORDER BY n.sent_at DESC ")
+        String orderCol = "n.sent_at";
+        if ("recipient".equals(sortField)) orderCol = "u.email";
+        else if ("subject".equals(sortField)) orderCol = "n.title";
+        
+        String orderDir = "ASC".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+
+        sql.append(" ORDER BY ").append(orderCol).append(" ").append(orderDir)
                 .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
 
         List<NotificationLog> list = new ArrayList<>();

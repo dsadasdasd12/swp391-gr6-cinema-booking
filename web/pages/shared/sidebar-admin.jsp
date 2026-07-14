@@ -69,19 +69,9 @@
             </a>
         </div>
 
-        <div class="rv-nav__group">
-            <a href="${ctx}/admin/settings#panel-cinema" class="rv-nav__item ${uri.contains('/admin/settings') ? 'active' : ''}">
-                <i class="bi bi-building-fill"></i>
-                Quản lý Chuỗi rạp
-            </a>
-        </div>
 
-        <div class="rv-nav__group">
-            <a href="${ctx}/admin/branches" class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">
-                <i class="bi bi-geo-alt-fill"></i>
-                Quản lý Chi nhánh
-            </a>
-        </div>
+
+
 
         <div class="rv-nav__group">
             <a href="${ctx}/admin/seat-types" class="rv-nav__item ${uri.contains('/admin/seat-types') ? 'active' : ''}">

@@ -69,6 +69,8 @@
     </form>
 </div>
 
+
+
 <!-- ── DATA TABLE ── -->
 <div class="rv-card">
     <c:choose>
@@ -91,9 +93,25 @@
                         <tr>
                             <th style="width: 60px; text-align: center;">No.</th>
                             <th style="width: 80px; text-align: center;">Poster</th>
-                            <th>Tên phim</th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/moviesmanagement?action=list&keyword=${keyword}&status=${status}&pageSize=${pageSize}&sortField=title&sortOrder=${sortField == 'title' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Tên phim
+                                <c:if test="${sortField == 'title'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'title'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
                             <th>Thể loại</th>
-                            <th>Thời lượng</th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/moviesmanagement?action=list&keyword=${keyword}&status=${status}&pageSize=${pageSize}&sortField=duration&sortOrder=${sortField == 'duration' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Thời lượng
+                                <c:if test="${sortField == 'duration'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'duration'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
                             <th>Trạng thái</th>
                             <c:if test="${sessionScope.user.admin}">
                                 <th style="width: 140px; text-align: center;">Thao tác</th>
@@ -215,6 +233,25 @@
 <!-- Layout ends -->
 </main>
 </div>
+
+<!-- ── SCRIPT CHO BULK ACTIONS ── -->
+<style>
+.sortable-col {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+.sortable-col:hover {
+    background-color: var(--n-50);
+}
+.sortable-col i {
+    margin-left: 4px;
+    font-size: 12px;
+}
+</style>
+<script>
+// UI/UX code
+</script>
 
 </body>
 </html>

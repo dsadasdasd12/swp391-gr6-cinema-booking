@@ -605,16 +605,15 @@ public class MovieService {
     // ════════════════════════════════════════════════════════
 
      public List<MovieDTO> getAllMoviesForAdmin() {
-        return getAllMoviesForAdmin(null, null);
+        return getAllMoviesForAdminPaged(null, null, null, null, 0, Integer.MAX_VALUE);
     }
 
-    /**
-     * Trả về danh sách phim DTO cho admin, lọc theo keyword và status.
-     * @param keyword từ khóa tìm theo tên, đạo diễn, diễn viên (null = tất cả)
-     * @param status  COMING_SOON / NOW_SHOWING / ENDED (null = tất cả)
-     */
     public List<MovieDTO> getAllMoviesForAdmin(String keyword, String status) {
-        List<Movie> movies = movieDAO.findAll(keyword, status);
+        return getAllMoviesForAdminPaged(keyword, status, null, null, 0, Integer.MAX_VALUE);
+    }
+
+    public List<MovieDTO> getAllMoviesForAdminPaged(String keyword, String status, String sortField, String sortOrder, int offset, int limit) {
+        List<Movie> movies = movieDAO.findAllPaged(keyword, status, sortField, sortOrder, offset, limit);
         List<MovieDTO> dtos = new ArrayList<>();
         for (Movie m : movies) {
             boolean active = movieDAO.hasActiveShowtimes(m.getId());
@@ -625,6 +624,10 @@ public class MovieService {
             dtos.add(dto);
         }
         return dtos;
+    }
+
+    public int countAllAdmin(String keyword, String status) {
+        return movieDAO.countAllAdmin(keyword, status);
     }
 
     /**

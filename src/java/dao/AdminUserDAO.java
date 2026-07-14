@@ -16,7 +16,6 @@ import java.util.List;
 
 /**
  * Truy vấn tài khoản CMS (khách hàng / nhân viên) — tách khỏi {@link UserDAO}
- * auth của Trường.
  */
 public class AdminUserDAO {
 
@@ -47,7 +46,7 @@ public class AdminUserDAO {
         return null;
     }
 
-    public List<ManagedUser> findCustomersPaged(String keyword, String status, int offset, int limit) {
+    public List<ManagedUser> findCustomersPaged(String keyword, String status, String sortField, String sortOrder, int offset, int limit) {
         List<ManagedUser> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT id, full_name, email, phone, role, active, email_verified, created_at "
@@ -71,7 +70,16 @@ public class AdminUserDAO {
                 sql.append("AND active = 1 AND email_verified = 0 ");
             }
         }
-        sql.append("ORDER BY created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        String orderCol = "created_at";
+        if ("fullName".equals(sortField)) orderCol = "full_name";
+        else if ("email".equals(sortField)) orderCol = "email";
+        else if ("createdAt".equals(sortField)) orderCol = "created_at";
+        
+        String orderDir = "ASC".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+        
+        sql.append("ORDER BY ").append(orderCol).append(" ").append(orderDir)
+           .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add(offset);
         params.add(limit);
 
@@ -134,7 +142,7 @@ public class AdminUserDAO {
         return 0;
     }
 
-    public List<ManagedUser> findStaffPaged(String keyword, Integer roleId, Integer branchId, int offset, int limit) {
+    public List<ManagedUser> findStaffPaged(String keyword, Integer roleId, Integer branchId, String sortField, String sortOrder, int offset, int limit) {
         List<ManagedUser> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT u.id, u.full_name, u.email, u.phone, u.role, u.active, u.created_at, "
@@ -159,7 +167,14 @@ public class AdminUserDAO {
             sql.append("AND sb.branch_id = ? ");
             params.add(branchId);
         }
-        sql.append("ORDER BY u.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        String orderCol = "u.created_at";
+        if ("fullName".equals(sortField)) orderCol = "u.full_name";
+        else if ("email".equals(sortField)) orderCol = "u.email";
+        else if ("role".equals(sortField)) orderCol = "u.role";
+        
+        String orderDir = "ASC".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+
+        sql.append("ORDER BY ").append(orderCol).append(" ").append(orderDir).append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add(offset);
         params.add(limit);
 

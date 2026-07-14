@@ -28,7 +28,7 @@ import service.ShowtimeService;
  *
  * @author HuyPD
  */
-@WebServlet("/showtimes")
+@WebServlet("/showtimes-old")
 public class CustomerShowtimeController extends HttpServlet {
 
     /*

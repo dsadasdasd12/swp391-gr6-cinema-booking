@@ -92,12 +92,11 @@ public class TicketService {
             throw new NumberFormatException("Mã vé không đúng định dạng. Vui lòng quét mã QR hoặc nhập đầy đủ tiền tố (ví dụ: RV-ONLINE-5, RV-WALK-1).");
         }
         
-        // 3. Truy vấn từ Database để xác nhận mã vé khớp hoàn toàn với cột qr_code
-        String sql = "SELECT id FROM dbo.BOOKINGS WHERE id = ? AND qr_code = ?";
+        // 3. Truy vấn từ Database để xác nhận mã vé có QR hợp lệ
+        String sql = "SELECT id FROM dbo.BOOKINGS WHERE id = ? AND qr_code IS NOT NULL";
         try (Connection conn = new util.DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, resolvedId);
-            ps.setString(2, expectedDbQrCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("id");
@@ -107,7 +106,7 @@ public class TicketService {
             ex.printStackTrace();
         }
         
-        throw new NumberFormatException("Mã vé không tồn tại hoặc không khớp với thông tin trong hệ thống.");
+        throw new NumberFormatException("Mã vé không tồn tại hoặc chưa được sinh mã QR hợp lệ trong hệ thống.");
     }
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
@@ -235,13 +234,13 @@ public class TicketService {
     /**
      * Lấy trang ticket theo keyword + status.
      */
-    public PageResult<Ticket> getTicketsPaged(String keyword, String statusFilter, int page, int pageSize) {
+    public PageResult<Ticket> getTicketsPaged(String keyword, String statusFilter, String sortField, String sortOrder, int page, int pageSize) {
         int safePage = page < 1 ? 1 : page;
         int safeSize = pageSize < 1 ? 10 : pageSize;
         int offset = (safePage - 1) * safeSize;
 
         long total = ticketDAO.countTickets(keyword, statusFilter);
-        List<Ticket> items = ticketDAO.findPaged(keyword, statusFilter, offset, safeSize);
+        List<Ticket> items = ticketDAO.findPaged(keyword, statusFilter, sortField, sortOrder, offset, safeSize);
 
         return new PageResult<>(items, total, safePage, safeSize);
     }

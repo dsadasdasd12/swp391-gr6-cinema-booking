@@ -29,9 +29,10 @@
 </c:if>
 
 <div class="rv-pagination">
-    <!-- Showing items summary -->
-    <div class="rv-pagination__summary">
-        Hiển thị <span>${startItem}</span> - <span>${endItem}</span> trong tổng số <span>${items}</span> mục
+    <!-- Showing items summary and Page Size Selector -->
+    <div class="rv-pagination__summary d-flex align-items-center gap-3">
+        <div>Hiển thị <span>${startItem}</span> - <span>${endItem}</span> trong tổng số <span>${items}</span> mục</div>
+
     </div>
 
     <!-- Navigation links -->
@@ -40,10 +41,10 @@
             <!-- First and Prev Page -->
             <c:choose>
                 <c:when test="${curr > 1}">
-                    <a href="${base}&page=1" class="rv-pagination__btn" title="Trang đầu">
+                    <a href="${base}&page=1&pageSize=${size}" class="rv-pagination__btn" title="Trang đầu">
                         <i class="bi bi-chevron-double-left"></i>
                     </a>
-                    <a href="${base}&page=${curr - 1}" class="rv-pagination__btn" title="Trang trước">
+                    <a href="${base}&page=${curr - 1}&pageSize=${size}" class="rv-pagination__btn" title="Trang trước">
                         <i class="bi bi-chevron-left"></i>
                     </a>
                 </c:when>
@@ -77,7 +78,7 @@
                         <span class="rv-pagination__btn active">${p}</span>
                     </c:when>
                     <c:otherwise>
-                        <a href="${base}&page=${p}" class="rv-pagination__btn">${p}</a>
+                        <a href="${base}&page=${p}&pageSize=${size}" class="rv-pagination__btn">${p}</a>
                     </c:otherwise>
                 </c:choose>
             </c:forEach>
@@ -85,10 +86,10 @@
             <!-- Next and Last Page -->
             <c:choose>
                 <c:when test="${curr < total}">
-                    <a href="${base}&page=${curr + 1}" class="rv-pagination__btn" title="Trang sau">
+                    <a href="${base}&page=${curr + 1}&pageSize=${size}" class="rv-pagination__btn" title="Trang sau">
                         <i class="bi bi-chevron-right"></i>
                     </a>
-                    <a href="${base}&page=${total}" class="rv-pagination__btn" title="Trang cuối">
+                    <a href="${base}&page=${total}&pageSize=${size}" class="rv-pagination__btn" title="Trang cuối">
                         <i class="bi bi-chevron-double-right"></i>
                     </a>
                 </c:when>

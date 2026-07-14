@@ -12,6 +12,21 @@
 <%@ include file="/pages/shared/header-admin.jsp" %>
 <%@ include file="/pages/shared/sidebar-admin.jsp" %>
 
+<style>
+    .sortable-col {
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
+    }
+    .sortable-col:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .sortable-col i {
+        margin-left: 4px;
+        font-size: 12px;
+    }
+</style>
+
 <c:if test="${not empty sessionScope.flashSuccess}">
     <div class="flash-success"><i class="bi bi-check-circle-fill"></i> <c:out value="${sessionScope.flashSuccess}"/></div>
     <c:remove var="flashSuccess" scope="session"/>
@@ -85,8 +100,24 @@
                         <tr>
                             <th>#</th>
                             <th>Loại</th>
-                            <th>Người nhận</th>
-                            <th>Tiêu đề</th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/notifications?action=list&keyword=${param.keyword}&type=${param.type}&status=${param.status}&pageSize=${pageSize}&sortField=recipient&sortOrder=${sortField == 'recipient' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Người nhận
+                                <c:if test="${sortField == 'recipient'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'recipient'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/notifications?action=list&keyword=${param.keyword}&type=${param.type}&status=${param.status}&pageSize=${pageSize}&sortField=subject&sortOrder=${sortField == 'subject' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Tiêu đề
+                                <c:if test="${sortField == 'subject'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'subject'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
                             <th>Trạng thái</th>
                             <th>Thử lại</th>
                             <th>Ngày gửi</th>
@@ -140,7 +171,7 @@
                 <jsp:param name="totalPages" value="${totalPages}" />
                 <jsp:param name="totalItems" value="${totalItems}" />
                 <jsp:param name="pageSize" value="${pageSize}" />
-                <jsp:param name="baseUrl" value="${ctx}/admin/notifications?action=list&keyword=${param.keyword}&type=${param.type}&status=${param.status}" />
+                <jsp:param name="baseUrl" value="${ctx}/admin/notifications?action=list&keyword=${param.keyword}&type=${param.type}&status=${param.status}&sortField=${sortField}&sortOrder=${sortOrder}" />
             </jsp:include>
         </c:if>
     </div>

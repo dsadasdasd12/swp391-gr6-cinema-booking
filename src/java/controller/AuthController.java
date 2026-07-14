@@ -272,6 +272,14 @@ public class AuthController extends HttpServlet {
         }
 
         verifyUser.setEmailVerified(true);
+        
+        // Send Registration Success Email
+        new service.NotificationService().sendRegistrationSuccess(
+            verifyUser.getId(), 
+            verifyUser.getFullName(), 
+            verifyUser.getEmail(), 
+            getServletContext()
+        );
 
         session.removeAttribute("emailOtp");
         session.removeAttribute("otpExpiredAt");

@@ -42,7 +42,10 @@ public class CustomerAccountServlet extends HttpServlet {
         int pageSize = 10;
         int offset = (currentPage - 1) * pageSize;
 
-        List<ManagedUser> customers = userDAO.findCustomersPaged(keyword, status, offset, pageSize);
+        String sortField = req.getParameter("sortField");
+        String sortOrder = req.getParameter("sortOrder");
+
+        List<ManagedUser> customers = userDAO.findCustomersPaged(keyword, status, sortField, sortOrder, offset, pageSize);
         int totalItems = userDAO.countCustomers(keyword, status);
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
         if (totalPages == 0) totalPages = 1;
@@ -52,6 +55,8 @@ public class CustomerAccountServlet extends HttpServlet {
         req.setAttribute("totalPages", totalPages);
         req.setAttribute("totalItems", totalItems);
         req.setAttribute("pageSize", pageSize);
+        req.setAttribute("sortField", sortField);
+        req.setAttribute("sortOrder", sortOrder);
 
         req.getRequestDispatcher("/pages/accounts/customers.jsp").forward(req, resp);
     }

@@ -121,6 +121,18 @@
         border-radius: 4px;
         user-select: all;
     }
+    .sortable-col {
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
+    }
+    .sortable-col:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .sortable-col i {
+        margin-left: 4px;
+        font-size: 12px;
+    }
 </style>
 
 <!-- ── PAGE HEADER ── -->
@@ -173,12 +185,9 @@
             <a href="${ctx}/admin/tickets?action=list" class="rv-btn rv-btn--ghost rv-btn--sm">
                 Xóa lọc
             </a>
-            <button type="button" class="rv-btn rv-btn--primary rv-btn--sm" onclick="bulkGenerateQR()" id="btnBulkQR" title="Sinh QR cho tất cả vé chưa có mã">
-                <i class="bi bi-qr-code me-1"></i>Tạo QR hàng loạt
+            <button type="button" class="rv-btn rv-btn--primary rv-btn--sm" onclick="bulkGenerateQR()" id="btnBulkQR" title="Sinh lại QR cho tất cả vé chưa có mã hoặc lỗi mã">
+                <i class="bi bi-arrow-clockwise me-1"></i>Tải lại QR code
             </button>
-            <a href="javascript:location.reload();" class="rv-btn rv-btn--refresh" title="Làm mới">
-                <i class="bi bi-arrow-clockwise"></i>
-            </a>
         </div>
     </form>
 </div>
@@ -206,9 +215,33 @@
                         <tr>
                             <th class="text-center" style="width: 70px;">QR</th>
                             <th style="width: 120px;">Mã UUID</th>
-                            <th>Khách hàng</th>
-                            <th>Phim</th>
-                            <th>Suất chiếu</th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/tickets?action=list&keyword=${param.keyword}&status=${param.status}&pageSize=${pageSize}&sortField=customerName&sortOrder=${sortField == 'customerName' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Khách hàng
+                                <c:if test="${sortField == 'customerName'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'customerName'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/tickets?action=list&keyword=${param.keyword}&status=${param.status}&pageSize=${pageSize}&sortField=movieTitle&sortOrder=${sortField == 'movieTitle' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Phim
+                                <c:if test="${sortField == 'movieTitle'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'movieTitle'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/tickets?action=list&keyword=${param.keyword}&status=${param.status}&pageSize=${pageSize}&sortField=showtime&sortOrder=${sortField == 'showtime' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Suất chiếu
+                                <c:if test="${sortField == 'showtime'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'showtime'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
                             <th>Trạng thái</th>
                             <th>Ngày tạo</th>
                             <th class="text-center" style="width: 90px;">Thao tác</th>
@@ -221,7 +254,7 @@
                                 data-search="${fn:toLowerCase(t.customerName)} ${fn:toLowerCase(t.customerEmail)} ${fn:toLowerCase(t.ticketUuid)} ${fn:toLowerCase(t.movieTitle)}">
                                 <td class="text-center">
                                     <c:choose>
-                                        <c:when test="${not empty t.qrCodeBase64}">
+                                        <c:when test="${not empty t.qrCodeBase64 && fn:length(t.qrCodeBase64) > 100}">
                                             <div class="qr-thumb-box mx-auto">
                                                 <img src="data:image/png;base64,${t.qrCodeBase64}"
                                                      alt="QR vé" class="qr-thumb-img">
@@ -298,7 +331,7 @@
                 <jsp:param name="totalPages" value="${totalPages}" />
                 <jsp:param name="totalItems" value="${totalItems}" />
                 <jsp:param name="pageSize" value="${pageSize}" />
-                <jsp:param name="baseUrl" value="${ctx}/admin/tickets?action=list&keyword=${param.keyword}&status=${param.status}" />
+                <jsp:param name="baseUrl" value="${ctx}/admin/tickets?action=list&keyword=${param.keyword}&status=${param.status}&sortField=${sortField}&sortOrder=${sortOrder}" />
             </jsp:include>
         </c:if>
     </div>

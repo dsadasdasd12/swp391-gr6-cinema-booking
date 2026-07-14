@@ -48,6 +48,7 @@
 
         <!-- Action buttons -->
         <div class="d-flex align-items-center gap-2 ms-auto">
+
             <button type="submit" class="rv-btn rv-btn--secondary rv-btn--sm">
                 Lọc dữ liệu
             </button>
@@ -60,6 +61,8 @@
         </div>
     </form>
 </div>
+
+
 
 <!-- ── CUSTOMERS TABLE ── -->
 <div class="rv-card">
@@ -77,10 +80,22 @@
                     <thead>
                         <tr>
                             <th style="width: 60px; text-align: center;">No.</th>
-                            <th>Họ và tên</th>
-                            <th>Địa chỉ Email</th>
+                            <th>
+                                <a href="?keyword=${param.keyword}&status=${param.status}&pageSize=${pageSize}&sortField=fullName&sortOrder=${sortField == 'fullName' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}" style="color: inherit; text-decoration: none;">
+                                    Họ và tên <i class="bi bi-arrow-${sortField == 'fullName' ? (sortOrder == 'ASC' ? 'up' : 'down') : 'down-up'} ms-1"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?keyword=${param.keyword}&status=${param.status}&pageSize=${pageSize}&sortField=email&sortOrder=${sortField == 'email' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}" style="color: inherit; text-decoration: none;">
+                                    Địa chỉ Email <i class="bi bi-arrow-${sortField == 'email' ? (sortOrder == 'ASC' ? 'up' : 'down') : 'down-up'} ms-1"></i>
+                                </a>
+                            </th>
                             <th>Số điện thoại</th>
-                            <th>Ngày tham gia</th>
+                            <th>
+                                <a href="?keyword=${param.keyword}&status=${param.status}&pageSize=${pageSize}&sortField=createdAt&sortOrder=${sortField == 'createdAt' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}" style="color: inherit; text-decoration: none;">
+                                    Ngày tham gia <i class="bi bi-arrow-${sortField == 'createdAt' ? (sortOrder == 'ASC' ? 'up' : 'down') : 'down-up'} ms-1"></i>
+                                </a>
+                            </th>
                             <th>Trạng thái</th>
                             <th style="width: 320px; text-align: center;">Thao tác hành động</th>
                         </tr>
@@ -88,6 +103,7 @@
                     <tbody>
                         <c:forEach var="c" items="${customers}" varStatus="status">
                             <tr>
+
                                 <!-- No. -->
                                 <td style="text-align: center; font-weight: 600; color: var(--n-500);">
                                     ${status.index + 1}
@@ -177,12 +193,8 @@
                                             </c:otherwise>
                                         </c:choose>
 
-                                        <!-- View Detail Button -->
-                                        <a href="${ctx}/admin/accounts/customers?action=detail&id=${c.id}" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Xem chi tiết" style="border: none;">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </div>
-                                </td>
+                                        </div>
+                                    </td>
                             </tr>
                         </c:forEach>
                     </tbody>
@@ -195,7 +207,7 @@
                 <jsp:param name="totalPages" value="${not empty totalPages ? totalPages : 1}" />
                 <jsp:param name="totalItems" value="${not empty totalItems ? totalItems : fn:length(customers)}" />
                 <jsp:param name="pageSize" value="${not empty pageSize ? pageSize : 10}" />
-                <jsp:param name="baseUrl" value="${ctx}/admin/accounts/customers?keyword=${param.keyword}&status=${param.status}" />
+                <jsp:param name="baseUrl" value="${ctx}/admin/accounts/customers?keyword=${param.keyword}&status=${param.status}&sortField=${sortField}&sortOrder=${sortOrder}" />
             </jsp:include>
         </c:otherwise>
     </c:choose>
@@ -203,6 +215,8 @@
 
 </main>
 </div>
+
+
 
 </body>
 </html>

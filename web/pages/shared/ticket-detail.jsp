@@ -231,16 +231,8 @@
                     <div class="qr-box">
                         <c:choose>
                             <c:when test="${not empty ticket.qrCodeBase64}">
-                                <c:choose>
-                                    <c:when test="${fn:startsWith(ticket.qrCodeBase64, 'RV-WALK-')}">
-                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${ticket.qrCodeBase64}"
-                                             alt="QR Code" class="qr-img" style="background:#fff;">
-                                    </c:when>
-                                    <c:otherwise>
                                         <img src="data:image/png;base64,${ticket.qrCodeBase64}"
                                              alt="QR Code" class="qr-img">
-                                    </c:otherwise>
-                                </c:choose>
                             </c:when>
                             <c:otherwise>
                                 <div style="width:190px;height:190px;border-radius:8px;background:rgba(229,9,20,.05);

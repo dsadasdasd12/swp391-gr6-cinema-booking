@@ -54,9 +54,9 @@ public class AdminMovieController extends HttpServlet {
 
         switch (action) {
             case "list"   -> handleList  (req, resp);
+            case "detail" -> handleDetail(req, resp);
             case "new"    -> handleNew   (req, resp);
             case "edit"   -> handleEdit  (req, resp);
-            case "detail" -> handleDetail(req, resp);
             case "delete" -> handleDelete(req, resp);
             default       -> resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -87,15 +87,42 @@ public class AdminMovieController extends HttpServlet {
             throws ServletException, IOException {
         String keyword = trim(req.getParameter("keyword"));
         String status  = trim(req.getParameter("status"));
+        String sortField = req.getParameter("sortField");
+        String sortOrder = req.getParameter("sortOrder");
+        
         // Chuyển chuỗi rỗng thành null để DAO hiểu là "không lọc"
         if (keyword != null && keyword.isBlank()) keyword = null;
         if (status  != null && status.isBlank())  status  = null;
 
-        List<MovieDTO> movies = movieService.getAllMoviesForAdmin(keyword, status);
+        int currentPage = 1;
+        String pageStr = req.getParameter("page");
+        if (pageStr != null && !pageStr.trim().isEmpty()) {
+            try { currentPage = Integer.parseInt(pageStr); } catch (NumberFormatException e) {}
+        }
+        
+        int pageSize = 10;
+        String pageSizeStr = req.getParameter("pageSize");
+        if (pageSizeStr != null && !pageSizeStr.trim().isEmpty()) {
+            try { pageSize = Integer.parseInt(pageSizeStr); } catch (NumberFormatException ignored) {}
+        }
+        
+        int offset = (currentPage - 1) * pageSize;
+
+        List<MovieDTO> movies = movieService.getAllMoviesForAdminPaged(keyword, status, sortField, sortOrder, offset, pageSize);
+        int totalItems = movieService.countAllAdmin(keyword, status);
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        if (totalPages == 0) totalPages = 1;
+
         req.setAttribute("movies",  movies);
         req.setAttribute("keyword", keyword != null ? keyword : "");
         req.setAttribute("status",  status  != null ? status  : "");
-        req.setAttribute("totalItems", movies.size());
+        req.setAttribute("sortField", sortField);
+        req.setAttribute("sortOrder", sortOrder);
+        req.setAttribute("currentPage", currentPage);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("totalItems", totalItems);
+        req.setAttribute("pageSize", pageSize);
+        
         req.getRequestDispatcher("/pages/admin/movie-list.jsp").forward(req, resp);
     }
 
@@ -208,15 +235,27 @@ public class AdminMovieController extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
     }
 
-    /**  Xóa phim (chặn nếu có suất chiếu). */
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         int id = parseId(req.getParameter("id"));
+        Movie movie = movieService.getMovieById(id);
+        String movieTitle = (movie != null) ? movie.getTitle() : ("ID " + id);
+        
         String error = movieService.deleteMovie(id);
         if (error != null) {
             req.getSession().setAttribute("flashError", error);
         } else {
             req.getSession().setAttribute("flashSuccess", "Xóa phim thành công!");
+            
+            // Lấy thông tin admin
+            model.User admin = (model.User) req.getSession().getAttribute("adminUser");
+            if (admin != null) {
+                new service.NotificationService().logSystemNotification(
+                    admin.getId(), 
+                    "Đã xóa phim: " + movieTitle, 
+                    admin.getEmail()
+                );
+            }
         }
         resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
     }
@@ -243,6 +282,8 @@ public class AdminMovieController extends HttpServlet {
             out.print("{\"success\":false,\"message\":\"" + escapeJson(result) + "\"}");
         }
     }
+    
+
 
     /**
      *  Upload poster hoặc trailer.
