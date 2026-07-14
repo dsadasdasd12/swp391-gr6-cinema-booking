@@ -94,11 +94,12 @@ public class MovieManagementDAO {
         return items;
     }
 
-    /**
-     * Lấy các phim đã được gán cho một phòng.
-     *
-     * Phương thức này sẽ dùng sau trong form tạo suất chiếu.
-     */
+    /*
+ * Lấy Movie có thể dùng để tạo Showtime cho Hall.
+ * Chỉ lấy Movie:
+    - Đã được phân bổ vào HALL_MOVIES.
+    - Có trạng thái NOW_SHOWING hoặc COMING_SOON.
+    */
     public List<Movie> findMoviesAssignedToHall(int hallId) {
         String sql = "SELECT m.id, m.title, m.duration_min, m.status "
                 + "FROM dbo.HALL_MOVIES hm "
