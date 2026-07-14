@@ -74,7 +74,6 @@ public class AdminMovieController extends HttpServlet {
             case "update" -> handleUpdate(req, resp);
             case "delete" -> handleDelete(req, resp);
             case "status" -> handleStatus(req, resp);   // AJAX
-            case "upload"         -> handleUpload(req, resp);
             case "update-trailer" -> handleUpdateTrailer(req, resp);
             default       -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
@@ -281,55 +280,6 @@ public class AdminMovieController extends HttpServlet {
      * Request: POST, multipart/form-data; field "type" = poster|trailer, "movieId" = id
      * File lưu vào: {contextPath}/assets/uploads/movies/{movieId}/
      */
-    private void handleUpload(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        int    movieId = parseId(req.getParameter("movieId"));
-        String type    = req.getParameter("type");    // "poster" | "trailer"
-        Part   part    = req.getPart("file");
-
-        if (movieId <= 0) {
-            req.getSession().setAttribute("flashError", "Không xác định được phim cần upload.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
-            return;
-        }
-        if (part == null || part.getSize() == 0) {
-            req.getSession().setAttribute("flashError", "Vui lòng chọn file trước khi bấm Upload.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-            return;
-        }
-
-        String fileName      = getFileName(part);
-        String fileExtension = getExtension(fileName).toLowerCase();
-
-        // Validate định dạng file ảnh/video trước khi lưu
-        if (!"poster".equals(type)) {
-            req.getSession().setAttribute("flashError",
-                    "Chỉ hỗ trợ upload poster. Trailer: dùng link YouTube trên form sửa phim hoặc ô bên dưới.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-            return;
-        }
-        boolean validPoster = fileExtension.equals("jpg") || fileExtension.equals("png")
-                || fileExtension.equals("jpeg") || fileExtension.equals("webp");
-        if (!validPoster) {
-            req.getSession().setAttribute("flashError", "Poster chỉ nhận jpg, png hoặc webp.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-            return;
-        }
-
-        // Tạo thư mục lưu trữ: webRoot/assets/uploads/movies/{movieId}/
-        String uploadRoot = getServletContext().getRealPath("/assets/uploads/movies/" + movieId);
-        File dir = new File(uploadRoot);
-        if (!dir.exists()) dir.mkdirs();
-
-        String savedName = type + "_" + System.currentTimeMillis() + "." + fileExtension;
-        part.write(uploadRoot + File.separator + savedName);
-
-        String relativeUrl = "assets/uploads/movies/" + movieId + "/" + savedName;
-
-        movieService.updatePoster(movieId, relativeUrl);
-        req.getSession().setAttribute("flashSuccess", "Upload poster thành công.");
-        resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-    }
 
     /** Cập nhật link trailer YouTube từ trang chi tiết / sửa. */
     private void handleUpdateTrailer(HttpServletRequest req, HttpServletResponse resp)
