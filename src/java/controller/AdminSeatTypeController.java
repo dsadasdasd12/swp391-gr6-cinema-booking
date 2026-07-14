@@ -63,13 +63,33 @@ public class AdminSeatTypeController extends HttpServlet {
         String color = request.getParameter("color");
         String status = request.getParameter("status");
 
+        if (code == null || code.trim().isEmpty() || !code.matches("^[A-Za-z0-9_]+$")) {
+            request.getSession().setAttribute("msgError", "Mã loại ghế không hợp lệ! Chỉ cho phép dùng chữ cái, chữ số và dấu gạch dưới (Ví dụ: VIP_PRO).");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
+        }
+
+        if (name == null || name.trim().isEmpty()) {
+            request.getSession().setAttribute("msgError", "Tên loại ghế không được để trống!");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
+        }
+
         double defaultPrice = 0.0;
         try {
             if (defaultPriceStr != null) {
                 defaultPrice = Double.parseDouble(defaultPriceStr);
             }
         } catch (NumberFormatException e) {
-            // Ignore
+            request.getSession().setAttribute("msgError", "Giá mặc định phải là số hợp lệ!");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
+        }
+
+        if (defaultPrice < 0 || defaultPrice > 10000000.0) {
+            request.getSession().setAttribute("msgError", "Giá mặc định/Hệ số nhân không được âm và không được vượt quá 10.000.000!");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
         }
 
         SeatType st = new SeatType();
@@ -97,13 +117,33 @@ public class AdminSeatTypeController extends HttpServlet {
         String color = request.getParameter("color");
         String status = request.getParameter("status");
 
+        if (code == null || code.trim().isEmpty() || !code.matches("^[A-Za-z0-9_]+$")) {
+            request.getSession().setAttribute("msgError", "Mã loại ghế không hợp lệ! Chỉ cho phép dùng chữ cái, chữ số và dấu gạch dưới (Ví dụ: VIP_PRO).");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
+        }
+
+        if (name == null || name.trim().isEmpty()) {
+            request.getSession().setAttribute("msgError", "Tên loại ghế không được để trống!");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
+        }
+
         double defaultPrice = 0.0;
         try {
             if (defaultPriceStr != null) {
                 defaultPrice = Double.parseDouble(defaultPriceStr);
             }
         } catch (NumberFormatException e) {
-            // Ignore
+            request.getSession().setAttribute("msgError", "Giá mặc định phải là số hợp lệ!");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
+        }
+
+        if (defaultPrice < 0 || defaultPrice > 10000000.0) {
+            request.getSession().setAttribute("msgError", "Giá mặc định/Hệ số nhân không được âm và không được vượt quá 10.000.000!");
+            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            return;
         }
 
         SeatType st = new SeatType();

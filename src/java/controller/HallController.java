@@ -316,12 +316,17 @@ public class HallController extends HttpServlet {
             return;
         }
 
-        boolean success = hallService.changeHallStatus(id, branchId, status);
+        try {
+            boolean success = hallService.changeHallStatus(id, branchId, status);
 
-        if (success) {
-            setFlash(request, "success", "Cập nhật trạng thái phòng chiếu thành công.");
-        } else {
-            setFlash(request, "error", "Không thể cập nhật trạng thái phòng chiếu.");
+            if (success) {
+                setFlash(request, "success", "Cập nhật trạng thái phòng chiếu thành công.");
+            } else {
+                setFlash(request, "error", "Không thể cập nhật trạng thái phòng chiếu.");
+            }
+
+        } catch (IllegalArgumentException e) {
+            setFlash(request, "error", e.getMessage());
         }
 
         response.sendRedirect(request.getContextPath() + "/manager/halls");

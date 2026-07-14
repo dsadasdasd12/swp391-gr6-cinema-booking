@@ -404,7 +404,8 @@ public class BookingDAO {
     }
 
     public int createPendingBooking(int userId, int showtimeId, List<Integer> seatIds,
-                                    List<Double> seatPrices, double totalPrice) {
+                                    List<Double> seatPrices, double totalPrice,
+                                    String voucherCode, double voucherDiscount) {
         if (userId <= 0 || showtimeId <= 0 || seatIds == null || seatIds.isEmpty()
                 || seatPrices == null || seatPrices.size() != seatIds.size()) {
             return -1;
@@ -446,10 +447,31 @@ public class BookingDAO {
                 + "(booking_id, type, method, transaction_id, status, amount, paid_at, gateway, last_update) "
                 + "VALUES (?, 'ONLINE', 'BANKING', ?, 'PENDING', ?, NULL, 'MANUAL', GETDATE())";
 
+        String consumeVoucherSql = "UPDATE dbo.DISCOUNT_CODES SET used_count = used_count + 1, last_update = GETDATE() "
+                + "OUTPUT INSERTED.id "
+                + "WHERE code = ? AND status = 'ACTIVE' AND start_date <= GETDATE() AND end_date >= GETDATE() "
+                + "AND used_count < max_uses";
+        String insertVoucherHistorySql = "INSERT INTO dbo.VOUCHER_HISTORY "
+                + "(booking_id, user_id, discount_code_id, discount_amount, used_at) VALUES (?, ?, ?, ?, GETDATE())";
+
         Connection conn = null;
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
+
+            int voucherCodeId = 0;
+            if (voucherCode != null && !voucherCode.trim().isEmpty() && voucherDiscount > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(consumeVoucherSql)) {
+                    ps.setString(1, voucherCode.trim().toUpperCase());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return -1;
+                        }
+                        voucherCodeId = rs.getInt(1);
+                    }
+                }
+            }
 
             try (PreparedStatement ps = conn.prepareStatement(checkShowtimeSql)) {
                 ps.setInt(1, showtimeId);
@@ -534,6 +556,16 @@ public class BookingDAO {
                 ps.setString(2, "RVS" + bookingId);
                 ps.setDouble(3, totalPrice);
                 ps.executeUpdate();
+            }
+
+            if (voucherCodeId > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(insertVoucherHistorySql)) {
+                    ps.setInt(1, bookingId);
+                    ps.setInt(2, userId);
+                    ps.setInt(3, voucherCodeId);
+                    ps.setDouble(4, voucherDiscount);
+                    ps.executeUpdate();
+                }
             }
 
             conn.commit();

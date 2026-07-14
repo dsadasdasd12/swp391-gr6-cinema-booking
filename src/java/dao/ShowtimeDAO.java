@@ -112,7 +112,7 @@ public class ShowtimeDAO {
     public List<Showtime> getActiveShowtimesByBranch(int branchId) {
         List<Showtime> list = new ArrayList<>();
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
-                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
+                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name, h.branch_id AS branch_id "
                 + "FROM dbo.SHOWTIMES st "
                 + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
                 + "JOIN dbo.HALLS h ON st.hall_id = h.id "
@@ -134,6 +134,7 @@ public class ShowtimeDAO {
                     st.setMovieTitle(rs.getString("movie_title"));
                     st.setMoviePoster(rs.getString("movie_poster"));
                     st.setHallName(rs.getString("hall_name"));
+                    st.setBranchId(rs.getInt("branch_id"));
                     list.add(st);
                 }
             }
@@ -181,7 +182,7 @@ public class ShowtimeDAO {
     // READ SINGLE: Lấy thông tin một suất chiếu cụ thể
     public Showtime getShowtimeById(int id) {
         String sql = "SELECT st.id, st.hall_id, st.movie_id, st.start_time, st.end_time, st.base_price, st.status, "
-                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name "
+                + "       m.title AS movie_title, m.poster_url AS movie_poster, h.name AS hall_name, h.branch_id AS branch_id "
                 + "FROM dbo.SHOWTIMES st "
                 + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
                 + "JOIN dbo.HALLS h ON st.hall_id = h.id "
@@ -202,6 +203,7 @@ public class ShowtimeDAO {
                     st.setMovieTitle(rs.getString("movie_title"));
                     st.setMoviePoster(rs.getString("movie_poster"));
                     st.setHallName(rs.getString("hall_name"));
+                    st.setBranchId(rs.getInt("branch_id"));
                     return st;
                 }
             }
@@ -209,45 +211,6 @@ public class ShowtimeDAO {
             e.printStackTrace();
         }
         return null;
-    }
-
-    // WRITE: Thiết lập cấu hình giá vé riêng cho loại ghế
-    public boolean setSeatPricing(int showtimeId, String seatType, double price) {
-        String checkSql = "SELECT id FROM dbo.SEAT_PRICING WHERE showtime_id = ? AND seat_type = ?";
-        String updateSql = "UPDATE dbo.SEAT_PRICING SET price = ?, last_update = GETDATE() WHERE showtime_id = ? AND seat_type = ?";
-        String insertSql = "INSERT INTO dbo.SEAT_PRICING (showtime_id, seat_type, price) VALUES (?, ?, ?)";
-
-        try (Connection conn = new DBContext().getConnection()) {
-            boolean exists = false;
-            try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
-                ps.setInt(1, showtimeId);
-                ps.setString(2, seatType);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        exists = true;
-                    }
-                }
-            }
-
-            if (exists) {
-                try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-                    ps.setDouble(1, price);
-                    ps.setInt(2, showtimeId);
-                    ps.setString(3, seatType);
-                    return ps.executeUpdate() > 0;
-                }
-            } else {
-                try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
-                    ps.setInt(1, showtimeId);
-                    ps.setString(2, seatType);
-                    ps.setDouble(3, price);
-                    return ps.executeUpdate() > 0;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     // CALCULATE: Lấy giá vé thực tế của ghế bằng cách nhân giá gốc (basePrice) với hệ số nhân (multiplier) của loại ghế đó trong SEAT_TYPES

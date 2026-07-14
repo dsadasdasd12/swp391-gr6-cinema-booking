@@ -11,6 +11,31 @@ import util.DBContext;
 
 public class DiscountDAO {
 
+    public DiscountCode findByCode(String code) {
+        if (code == null || code.trim().isEmpty()) {
+            return null;
+        }
+        String sql = "SELECT * FROM dbo.DISCOUNT_CODES WHERE code = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code.trim().toUpperCase());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Double maxDiscount = rs.getObject("max_discount_amount") != null
+                            ? rs.getDouble("max_discount_amount") : null;
+                    return new DiscountCode(rs.getInt("id"), rs.getString("code"),
+                            rs.getString("discount_type"), rs.getDouble("discount_value"),
+                            maxDiscount, rs.getDouble("min_order_value"), rs.getInt("max_uses"),
+                            rs.getInt("used_count"), rs.getTimestamp("start_date"),
+                            rs.getTimestamp("end_date"), rs.getString("status"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     // 1. READ: Lấy toàn bộ mã giảm giá
     public List<DiscountCode> getAllDiscountCodes() {
         List<DiscountCode> list = new ArrayList<>();

@@ -490,7 +490,7 @@
                                             <c:set var="isBooked" value="true" />
                                         </c:if>
                                     </c:forEach>
-                                    <c:set var="seatPrice" value="${showtimeService.getSeatPrice(selectedShowtime.id, s.seatType, selectedShowtime.basePrice)}" />
+                                    <c:set var="seatPrice" value="${not empty seatPricesMap[s.seatType] ? seatPricesMap[s.seatType] : selectedShowtime.basePrice}" />
                                     <button class="seat ${isBooked ? 'OCCUPIED' : (s.maintenance ? 'MAINTENANCE' : s.seatType)}"
                                             style="grid-column: ${s.seatNumber}; grid-row: ${s.getRowIndex()};"
                                             ${isBooked || s.maintenance ? 'disabled' : ''}

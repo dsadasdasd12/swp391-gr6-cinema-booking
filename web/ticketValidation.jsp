@@ -201,37 +201,14 @@
             color: #fff;
         }
 
-        /* Scanner quick test tags */
-        .quick-tests {
-            margin-top: 30px;
-            text-align: left;
-        }
 
-        .test-tag {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            color: #a5b4fc;
-            cursor: pointer;
-            display: inline-block;
-            margin: 5px;
-            transition: all 0.3s;
-        }
-
-        .test-tag:hover {
-            background: var(--primary);
-            color: white;
-            border-color: #fff;
-        }
     </style>
 </head>
 <body>
 
     <!-- Header Navigation -->
     <header class="navbar">
-        <h1>RAPVIET CONSOLE</h1>
+        <h1>RAPVIET CONSOLE <span style="font-size: 13px; color: var(--muted-text); margin-left: 10px; font-weight: normal; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); vertical-align: middle;">CN: ${staffBranchName}</span></h1>
         <nav class="nav-links">
             <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
                 <a href="ShowtimeManager">Suất Chiếu & Giá Vé</a>
@@ -270,12 +247,7 @@
                 </div>
             </form>
 
-            <!-- Bộ giả lập vé nhanh cho Dev/Tester -->
-            <div class="quick-tests">
-                <div style="font-size: 13px; font-weight: 700; color: var(--muted-text); margin-bottom: 8px;">PHÍM TẮT GIẢ LẬP NHANH (TEST SHORTCUTS):</div>
-                <div class="test-tag" onclick="simulateScan('RV-WALK-1')">Giả lập Vé #1 (Valid)</div>
-                <div class="test-tag" onclick="simulateScan('RV-WALK-9999')">Giả lập Vé sai (#9999)</div>
-            </div>
+
         </div>
 
         <!-- HIỂN THỊ KẾT QUẢ QUÉT VÉ -->
@@ -290,7 +262,7 @@
 
                 <div class="result-row">
                     <span>Mã vé:</span>
-                    <strong>RV-WALK-${booking.id}</strong>
+                    <strong>${booking.source == 'ONLINE' ? 'RV-ONLINE-' : 'RV-WALK-'}${booking.id}</strong>
                 </div>
                 <div class="result-row">
                     <span>Tên phim:</span>
@@ -341,10 +313,6 @@
     </main>
 
     <script>
-        function simulateScan(code) {
-            document.getElementById('scanInputId').value = code;
-            document.getElementById('btnSubmitScan').click();
-        }
 
         window.onload = function() {
             const timeDisp = document.getElementById('scanTimeDisplay');
@@ -361,8 +329,8 @@
                     clearTimeout(scanTimeout);
                     const val = this.value.trim();
                     
-                    // 1. Nếu khớp định dạng vé tiêu chuẩn (RV-WALK-XXX hoặc TICKET-XXX)
-                    if (/^(RV-WALK-|TICKET-)\d+$/i.test(val)) {
+                    // 1. Nếu khớp định dạng vé tiêu chuẩn (RV-WALK-XXX, RV-ONLINE-XXX, RAPVIET-BOOKING-XXX hoặc TICKET-XXX)
+                    if (/^(RV-WALK-|RV-ONLINE-|RAPVIET-BOOKING-|TICKET-)\d+$/i.test(val)) {
                         scanTimeout = setTimeout(() => {
                             document.getElementById('btnSubmitScan').click();
                         }, 100);

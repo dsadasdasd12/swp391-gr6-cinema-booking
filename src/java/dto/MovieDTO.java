@@ -4,8 +4,6 @@
  */
 package dto;
 
-import model.Movie;
-
 /**
  * DTO nhẹ phục vụ trang danh sách phim của admin (movie-list.jsp).
  * Chỉ chứa các trường cần hiển thị trong bảng; tránh đưa toàn bộ model xuống JSP.
@@ -70,12 +68,11 @@ public class MovieDTO {
         if (posterUrl == null || posterUrl.isBlank()) {
             return "";
         }
-        String p = Movie.normalizePosterPath(posterUrl);
-        return p == null ? "" : p;
-    }
-
-    public boolean isPosterExternalUrl() {
-        return Movie.isAbsoluteUrl(posterUrl);
+        String p = posterUrl.trim();
+        while (p.startsWith("/")) {
+            p = p.substring(1);
+        }
+        return p;
     }
 
     public String getDirector()            { return director; }

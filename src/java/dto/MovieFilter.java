@@ -14,7 +14,7 @@ package dto;
 public class MovieFilter {
 
     /** Số phim mặc định trên mỗi trang. */
-    public static final int DEFAULT_PAGE_SIZE = 10;
+    public static final int DEFAULT_PAGE_SIZE = 8;
 
     private String keyword;         // tìm theo tên phim / diễn viên / đạo diễn
     private Integer categoryId;     // lọc theo thể loại (dbo.CATEGORY.id)

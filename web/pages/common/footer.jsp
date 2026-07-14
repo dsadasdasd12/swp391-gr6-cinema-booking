@@ -23,13 +23,6 @@
             </ul>
         </div>
         <div>
-            <h4>Tài khoản</h4>
-            <ul class="footer-links">
-                <li><a href="${ctx}/login">Đăng nhập</a></li>
-                <li><a href="${ctx}/register">Đăng ký</a></li>
-            </ul>
-        </div>
-        <div>
             <h4>Liên hệ</h4>
             <p>Hotline: 1900-6017</p>
             <p>Email: support@rapviet.vn</p>

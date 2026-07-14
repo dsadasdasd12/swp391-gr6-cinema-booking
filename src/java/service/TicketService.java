@@ -43,21 +43,71 @@ public class TicketService {
             throw new NumberFormatException("Empty input");
         }
         String cleanIdStr = bookingIdStr.trim();
+        
+        // 1. Kiểm tra nếu là URL chứa tham số bookingId= (hỗ trợ in ấn/link trực tiếp)
         if (cleanIdStr.contains("bookingId=")) {
             int index = cleanIdStr.indexOf("bookingId=");
-            cleanIdStr = cleanIdStr.substring(index + 10);
-            int ampersandIndex = cleanIdStr.indexOf("&");
+            String idPart = cleanIdStr.substring(index + 10);
+            int ampersandIndex = idPart.indexOf("&");
             if (ampersandIndex != -1) {
-                cleanIdStr = cleanIdStr.substring(0, ampersandIndex);
+                idPart = idPart.substring(0, ampersandIndex);
             }
-        } else if (cleanIdStr.toUpperCase().startsWith("RV-WALK-")) {
-            cleanIdStr = cleanIdStr.substring(8);
-        } else if (cleanIdStr.toUpperCase().startsWith("TICKET-")) {
-            cleanIdStr = cleanIdStr.substring(7);
-        } else if (cleanIdStr.toUpperCase().startsWith("RAPVIET-BOOKING-")) {
-            cleanIdStr = cleanIdStr.substring(16);
+            try {
+                return Integer.parseInt(idPart.trim());
+            } catch (NumberFormatException e) {
+                // Tiếp tục xử lý
+            }
+
         }
-        return Integer.parseInt(cleanIdStr.trim());
+        
+        // 2. Kiểm tra định dạng tiền tố của chuỗi nhập vào
+        String upper = cleanIdStr.toUpperCase();
+        int resolvedId = -1;
+        String expectedDbQrCode = null;
+        
+        if (upper.startsWith("RAPVIET-BOOKING-")) {
+            try {
+                resolvedId = Integer.parseInt(cleanIdStr.substring(16).trim());
+                expectedDbQrCode = "RV-ONLINE-" + resolvedId;
+            } catch (NumberFormatException e) {}
+        } else if (upper.startsWith("RV-ONLINE-")) {
+            try {
+                resolvedId = Integer.parseInt(cleanIdStr.substring(10).trim());
+                expectedDbQrCode = "RV-ONLINE-" + resolvedId;
+            } catch (NumberFormatException e) {}
+        } else if (upper.startsWith("RV-WALK-")) {
+            try {
+                resolvedId = Integer.parseInt(cleanIdStr.substring(8).trim());
+                expectedDbQrCode = "RV-WALK-" + resolvedId;
+            } catch (NumberFormatException e) {}
+        } else if (upper.startsWith("TICKET-")) {
+            try {
+                resolvedId = Integer.parseInt(cleanIdStr.substring(7).trim());
+                expectedDbQrCode = "RV-ONLINE-" + resolvedId;
+            } catch (NumberFormatException e) {}
+        }
+        
+        // Nếu không khớp bất kỳ tiền tố hợp lệ nào
+        if (resolvedId == -1 || expectedDbQrCode == null) {
+            throw new NumberFormatException("Mã vé không đúng định dạng. Vui lòng quét mã QR hoặc nhập đầy đủ tiền tố (ví dụ: RV-ONLINE-5, RV-WALK-1).");
+        }
+        
+        // 3. Truy vấn từ Database để xác nhận mã vé khớp hoàn toàn với cột qr_code
+        String sql = "SELECT id FROM dbo.BOOKINGS WHERE id = ? AND qr_code = ?";
+        try (Connection conn = new util.DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, resolvedId);
+            ps.setString(2, expectedDbQrCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        
+        throw new NumberFormatException("Mã vé không tồn tại hoặc không khớp với thông tin trong hệ thống.");
     }
 /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet

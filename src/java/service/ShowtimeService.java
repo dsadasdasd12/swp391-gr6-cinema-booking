@@ -13,6 +13,7 @@ import dao.StaffBranchDAO;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -110,6 +111,7 @@ public class ShowtimeService {
         );
 
         validateAndPrepare(showtime, false);
+        validateWithinOperatingHours(branch, showtime);
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
@@ -187,6 +189,14 @@ public class ShowtimeService {
         showtime.setHallId(current.getHallId());
 
         validateAndPrepare(showtime, true);
+        validateWithinOperatingHours(branch, showtime);
+
+        if (showtimeDAO.hasBookings(showtime.getId())
+                && hasBookingSensitiveChanges(current, showtime)) {
+            throw new IllegalArgumentException(
+                    "Không thể thay đổi phim, thời gian hoặc giá của suất chiếu đã có vé đặt."
+            );
+        }
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
@@ -210,13 +220,17 @@ public class ShowtimeService {
             int managerId
     ) {
         if (id <= 0 || managerId <= 0) {
-            return false;
+            throw new IllegalArgumentException(
+                    "Không xác định được suất chiếu cần hủy."
+            );
         }
 
         Branch branch = getAssignedBranch(managerId);
 
         if (branch == null) {
-            return false;
+            throw new IllegalArgumentException(
+                    "Tài khoản Manager chưa được Admin phân công chi nhánh."
+            );
         }
 
         Showtime current = showtimeDAO.findByIdAndBranchId(
@@ -225,13 +239,30 @@ public class ShowtimeService {
         );
 
         if (current == null) {
-            return false;
+            throw new IllegalArgumentException(
+                    "Không tìm thấy suất chiếu hoặc bạn không có quyền thao tác."
+            );
         }
 
-        if ("CANCELLED".equalsIgnoreCase(
-                current.getStatus()
-        )) {
-            return false;
+        if ("CANCELLED".equalsIgnoreCase(current.getStatus())) {
+            throw new IllegalArgumentException(
+                    "Suất chiếu này đã được hủy trước đó."
+            );
+        }
+
+        if (current.getStartTime() == null
+                || !current.getStartTime().toLocalDateTime()
+                        .isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException(
+                    "Không thể hủy suất chiếu đã bắt đầu hoặc đã kết thúc."
+            );
+        }
+
+        if (showtimeDAO.hasBookings(id)) {
+            throw new IllegalArgumentException(
+                    "Không thể hủy suất chiếu đã có vé đặt. "
+                    + "Cần xử lý hủy vé hoặc hoàn tiền trước."
+            );
         }
 
         return showtimeDAO.cancel(id);
@@ -249,6 +280,12 @@ public class ShowtimeService {
         if (branch == null) {
             throw new IllegalArgumentException(
                     "Tài khoản Manager chưa được Admin phân công chi nhánh."
+            );
+        }
+
+        if (!"ACTIVE".equalsIgnoreCase(branch.getStatus())) {
+            throw new IllegalArgumentException(
+                    "Chi nhánh đang ngừng hoạt động nên không thể tạo hoặc cập nhật suất chiếu."
             );
         }
 
@@ -388,6 +425,96 @@ public class ShowtimeService {
         showtime.setEndTime(endTime);
     }
 
+    private void validateWithinOperatingHours(
+        Branch branch,
+        Showtime showtime
+) {
+    LocalTime openTime = branch.getOpenTime();
+    LocalTime closeTime = branch.getCloseTime();
+
+    if (openTime == null || closeTime == null) {
+        return;
+    }
+
+    LocalDateTime startTime
+            = showtime.getStartTime().toLocalDateTime();
+
+    LocalDateTime endTime
+            = showtime.getEndTime().toLocalDateTime();
+
+    LocalDateTime openingDateTime;
+    LocalDateTime closingDateTime;
+
+    if (openTime.isBefore(closeTime)) {
+        // Ví dụ: 08:00–23:00, hoạt động trong cùng ngày
+        openingDateTime = LocalDateTime.of(
+                startTime.toLocalDate(),
+                openTime
+        );
+
+        closingDateTime = LocalDateTime.of(
+                startTime.toLocalDate(),
+                closeTime
+        );
+    } else {
+        // Ví dụ: 20:00–03:00, hoạt động xuyên đêm
+        if (!startTime.toLocalTime().isBefore(openTime)) {
+            // Suất bắt đầu từ 20:00 trở đi
+            openingDateTime = LocalDateTime.of(
+                    startTime.toLocalDate(),
+                    openTime
+            );
+        } else {
+            // Suất bắt đầu sau 00:00, thuộc ca mở từ ngày hôm trước
+            openingDateTime = LocalDateTime.of(
+                    startTime.toLocalDate().minusDays(1),
+                    openTime
+            );
+        }
+
+        closingDateTime = LocalDateTime.of(
+                openingDateTime.toLocalDate().plusDays(1),
+                closeTime
+        );
+    }
+
+    boolean invalidStart
+            = startTime.isBefore(openingDateTime)
+            || !startTime.isBefore(closingDateTime);
+
+    boolean invalidEnd
+            = endTime.isAfter(closingDateTime)
+            || !endTime.isAfter(startTime);
+
+    if (invalidStart || invalidEnd) {
+        throw new IllegalArgumentException(
+                "Suất chiếu phải bắt đầu và kết thúc "
+                + "trong giờ hoạt động của chi nhánh ("
+                + openTime + " - " + closeTime + ")."
+        );
+    }
+}
+
+    private boolean hasBookingSensitiveChanges(
+            Showtime current,
+            Showtime updated
+    ) {
+        if (current.getMovieId() != updated.getMovieId()) {
+            return true;
+        }
+
+        if (current.getStartTime() == null || updated.getStartTime() == null
+                || !current.getStartTime().toLocalDateTime()
+                        .equals(updated.getStartTime().toLocalDateTime())) {
+            return true;
+        }
+
+        return Double.compare(
+                current.getBasePrice(),
+                updated.getBasePrice()
+        ) != 0;
+    }
+
     private String normalize(String value) {
         if (value == null) {
             return null;
@@ -423,10 +550,6 @@ public class ShowtimeService {
         }
 
         return showtimeDAO.findBookableByBranchMovieAndDate(branchId, movieId, date);
-    }
-
-    public boolean setSeatPricing(int showtimeId, String seatType, double price) {
-        return showtimeDAO.setSeatPricing(showtimeId, seatType, price);
     }
 
     public double getSeatPrice(int showtimeId, String seatType, double basePrice) {

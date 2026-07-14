@@ -137,9 +137,21 @@ public class MovieDAO {
                 }
             }
         } catch (SQLException e) {
-            System.getLogger(MovieDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findById thất bại", e);
+            System.err.println(
+                    "[MovieDAO.findById] Lỗi truy vấn phim ID "
+                            + id
+                            + ": "
+                            + e.getMessage()
+            );
+            
+            e.printStackTrace();
+            
+            throw new RuntimeException(
+                    "Không thể truy vấn dữ liệu phim ID " + id,
+                    e
+            );
         }
+        
         return null;
     }
 

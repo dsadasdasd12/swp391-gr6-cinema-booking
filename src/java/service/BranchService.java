@@ -45,6 +45,18 @@ public class BranchService {
     public boolean updateBranch(Branch branch) {
         validateBranch(branch, true);
 
+        Branch current = branchDAO.findById(branch.getId());
+        if (current == null) {
+            throw new IllegalArgumentException("Không tìm thấy chi nhánh cần cập nhật.");
+        }
+
+        if (isChangingToInactive(current.getStatus(), branch.getStatus())
+                && branchDAO.hasUnfinishedShowtimes(branch.getId())) {
+            throw new IllegalArgumentException(
+                    "Không thể ngừng hoạt động chi nhánh vì vẫn còn suất chiếu chưa kết thúc."
+            );
+        }
+
         if (branchDAO.existsByNameAndAddressExceptId(
                 branch.getName(),
                 branch.getAddress(),
@@ -78,6 +90,18 @@ public class BranchService {
             return false;
         }
 
+        Branch current = branchDAO.findById(id);
+        if (current == null) {
+            return false;
+        }
+
+        if (isChangingToInactive(current.getStatus(), status)
+                && branchDAO.hasUnfinishedShowtimes(id)) {
+            throw new IllegalArgumentException(
+                    "Không thể ngừng hoạt động chi nhánh vì vẫn còn suất chiếu chưa kết thúc."
+            );
+        }
+
         return branchDAO.updateStatus(id, status);
     }
 
@@ -107,12 +131,11 @@ public class BranchService {
             throw new IllegalArgumentException("Địa chỉ chi nhánh không được để trống.");
         }
         
-        if (branch.getPhone() == null) {
-            throw new IllegalArgumentException("Số điện thoại không được để trống.");
-        }
-
-        if (!branch.getPhone().matches("0\\d{9,10}")) {
-            throw new IllegalArgumentException("Số điện thoại phải bắt đầu bằng 0 và có 10 đến 11 chữ số.");
+        if (branch.getPhone() != null
+                && !branch.getPhone().matches("0\\d{9,10}")) {
+            throw new IllegalArgumentException(
+                    "Số điện thoại phải bắt đầu bằng 0 và có 10 đến 11 chữ số."
+            );
         }
 
         if (branch.getStatus() == null) {
@@ -126,9 +149,20 @@ public class BranchService {
         LocalTime openTime = branch.getOpenTime();
         LocalTime closeTime = branch.getCloseTime();
 
-        if (openTime != null && closeTime != null && !openTime.isBefore(closeTime)) {
+        if ((openTime == null) != (closeTime == null)) {
+            throw new IllegalArgumentException(
+                    "Vui lòng nhập đầy đủ cả giờ mở cửa và giờ đóng cửa, hoặc để trống cả hai."
+            );
+        }
+
+        if (openTime != null && openTime.equals(closeTime)) {
             throw new IllegalArgumentException("Giờ mở cửa phải nhỏ hơn giờ đóng cửa.");
         }
+    }
+
+    private boolean isChangingToInactive(String currentStatus, String newStatus) {
+        return !"INACTIVE".equalsIgnoreCase(currentStatus)
+                && "INACTIVE".equalsIgnoreCase(newStatus);
     }
 
     private String trimToNull(String value) {

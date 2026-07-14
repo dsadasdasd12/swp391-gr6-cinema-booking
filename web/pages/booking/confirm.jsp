@@ -52,6 +52,14 @@
                             <div><span class="k">Tổng tiền</span> ${draftView.totalPriceLabel}</div>
                         </div>
 
+                        <c:if test="${not empty voucherQuote}">
+                            <div class="notice ok">
+                                Mã <strong><c:out value="${voucherQuote.code}"/></strong> đã được áp dụng:
+                                giảm ${voucherQuote.discountAmount} đ. Tổng thanh toán:
+                                ${draftView.totalPrice - voucherQuote.discountAmount} đ.
+                            </div>
+                        </c:if>
+
                         <div class="booking-seat-lines">
                             <c:forEach var="line" items="${draftView.seats}">
                                 <div class="booking-seat-line">
@@ -60,6 +68,12 @@
                                 </div>
                             </c:forEach>
                         </div>
+
+                        <form method="post" action="${ctx}/booking/confirm" style="margin: 14px 0;">
+                            <label for="voucherCode" class="k" style="display:block; margin-bottom:6px;">Mã giảm giá</label>
+                            <input id="voucherCode" name="voucherCode" type="text" value="${voucherQuote.code}" placeholder="VD: GIAM20K" style="text-transform:uppercase;">
+                            <button type="submit" name="action" value="applyVoucher" class="btn btn-ghost">Áp dụng mã</button>
+                        </form>
 
                         <div class="bd-actions">
                             <a class="btn btn-ghost" href="${ctx}/booking/seats?showtimeId=${st.id}">Chọn lại ghế</a>

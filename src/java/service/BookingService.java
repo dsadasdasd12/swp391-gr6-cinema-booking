@@ -1,22 +1,28 @@
 package service;
 
 import dao.BookingDAO;
+import dao.BookingStatusHistoryDAO;
+import dao.DiscountDAO;
 import dto.BookingDraftView;
 import dto.BookingSeatLine;
 import dto.BookingView;
 import dto.SeatView;
+import dto.VoucherQuote;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import model.Booking;
+import model.BookingStatusHistory;
 import model.Seat;
 import model.Showtime;
 
 public class BookingService {
     private final BookingDAO bookingDAO = new BookingDAO();
+    private final BookingStatusHistoryDAO bookingStatusHistoryDAO = new BookingStatusHistoryDAO();
     private final ShowtimeService showtimeService = new ShowtimeService();
     private final SeatService seatService = new SeatService();
+    private final DiscountDAO discountDAO = new DiscountDAO();
 
     public int createWalkinBooking(int userId, int showtimeId, List<Integer> seatIds, List<Double> seatPrices,
                                    double totalPrice, String paymentMethod, double discountAmount, 
@@ -93,7 +99,28 @@ public class BookingService {
         return draftView;
     }
 
-    public int createPendingBooking(int userId, BookingDraftView draftView) {
+    public VoucherQuote quoteVoucher(String voucherCode, double subtotal) {
+        if (voucherCode == null || voucherCode.trim().isEmpty()) {
+            return VoucherQuote.invalid("Vui lòng nhập mã giảm giá.");
+        }
+        model.DiscountCode voucher = discountDAO.findByCode(voucherCode);
+        if (voucher == null) return VoucherQuote.invalid("Mã giảm giá không tồn tại.");
+        long now = System.currentTimeMillis();
+        if (!"ACTIVE".equalsIgnoreCase(voucher.getStatus())) return VoucherQuote.invalid("Mã giảm giá hiện không hoạt động.");
+        if (voucher.getStartDate() == null || voucher.getStartDate().getTime() > now) return VoucherQuote.invalid("Mã giảm giá chưa đến thời gian áp dụng.");
+        if (voucher.getEndDate() == null || voucher.getEndDate().getTime() < now) return VoucherQuote.invalid("Mã giảm giá đã hết hạn.");
+        if (voucher.getUsedCount() >= voucher.getMaxUses()) return VoucherQuote.invalid("Mã giảm giá đã hết lượt sử dụng.");
+        if (subtotal < voucher.getMinOrderValue()) return VoucherQuote.invalid("Đơn hàng chưa đạt giá trị tối thiểu để dùng mã này.");
+
+        double discount = "PERCENT".equalsIgnoreCase(voucher.getDiscountType())
+                ? subtotal * voucher.getDiscountValue() / 100.0 : voucher.getDiscountValue();
+        if (voucher.getMaxDiscountAmount() != null) {
+            discount = Math.min(discount, voucher.getMaxDiscountAmount());
+        }
+        return VoucherQuote.valid(voucher.getCode(), voucher.getId(), Math.min(discount, subtotal));
+    }
+
+    public int createPendingBooking(int userId, BookingDraftView draftView, VoucherQuote voucherQuote) {
         if (userId <= 0 || draftView == null || draftView.getShowtime() == null
                 || draftView.getSeats() == null || draftView.getSeats().isEmpty()) {
             return -1;
@@ -109,12 +136,16 @@ public class BookingService {
             prices.add(line.getPrice());
         }
 
+        double discount = voucherQuote != null && voucherQuote.isValid() ? voucherQuote.getDiscountAmount() : 0;
+        String voucherCode = discount > 0 ? voucherQuote.getCode() : null;
         return bookingDAO.createPendingBooking(
                 userId,
                 draftView.getShowtime().getId(),
                 seatIds,
                 prices,
-                draftView.getTotalPrice()
+                Math.max(0, draftView.getTotalPrice() - discount),
+                voucherCode,
+                discount
         );
     }
 
@@ -130,6 +161,13 @@ public class BookingService {
             return null;
         }
         return bookingDAO.findDetailByIdAndUser(bookingId, userId);
+    }
+
+    public List<BookingStatusHistory> getStatusHistory(int bookingId) {
+        if (bookingId <= 0) {
+            return new ArrayList<>();
+        }
+        return bookingStatusHistoryDAO.findByBookingId(bookingId);
     }
 
     public boolean cancel(int bookingId, int userId) {

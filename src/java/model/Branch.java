@@ -36,8 +36,11 @@ public class Branch {
         this.lastUpdate = lastUpdate;
     }
 
-    public Branch(int aInt, String string, String string0, String string1) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public Branch(int id, String name, String address, String phone) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
     }
 
     public int getId() {
