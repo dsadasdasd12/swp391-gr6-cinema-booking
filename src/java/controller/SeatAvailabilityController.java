@@ -60,8 +60,9 @@ public class SeatAvailabilityController extends HttpServlet {
 
         // Dua SeatMap sang JSP de JSP lap qua danh sach ghe va ve so do ghe.
         request.setAttribute("seatMap", seatMap);
-
         // forward sang view; khong redirect vi can giu attribute "seatMap" trong request.
+        dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
+        request.setAttribute("allSeatTypes", seatTypeDAO.findAll());
         request.getRequestDispatcher("/pages/seat/availability.jsp").forward(request, response);
     }
 

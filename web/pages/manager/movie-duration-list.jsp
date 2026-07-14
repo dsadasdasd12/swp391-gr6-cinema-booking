@@ -43,302 +43,7 @@
     <link rel="stylesheet"
           href="${ctx}/assets/css/admin/forms.css?v=redblack">
 
-    <style>
-        /*
-         * CSS chỉ áp dụng cho movie-duration-list.jsp.
-         * Không ảnh hưởng trang Admin, Customer hay trang Manager khác.
-         */
-
-        .manager-duration-page .manager-topbar-context {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            padding-right: var(--s-4);
-            border-right: 1px solid var(--border);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-duration-page .manager-topbar-context i {
-            color: var(--primary-light);
-        }
-
-        .manager-duration-page .manager-sidebar-info {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            margin: 0 var(--s-4) var(--s-4);
-            padding: var(--s-4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--r-lg);
-            background: linear-gradient(
-                145deg,
-                rgba(229, 9, 20, 0.18),
-                rgba(255, 255, 255, 0.02)
-            );
-            color: rgba(255, 255, 255, 0.76);
-            font-size: var(--text-xs);
-            line-height: 1.5;
-        }
-
-        .manager-duration-page .manager-sidebar-info__label {
-            color: rgba(255, 255, 255, 0.42);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        .manager-duration-page .manager-sidebar-info strong {
-            color: #ffffff;
-            font-size: var(--text-base);
-        }
-
-        .manager-duration-page .manager-duration-note {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #BFDBFE;
-            border-radius: var(--r-md);
-            background: #EFF6FF;
-            color: #1E40AF;
-            font-size: var(--text-base);
-            line-height: 1.65;
-        }
-
-        .manager-duration-page .manager-duration-note i {
-            margin-top: 2px;
-            color: #2563EB;
-            font-size: var(--text-md);
-        }
-
-        .manager-duration-page .manager-duration-note strong {
-            color: #1E3A8A;
-        }
-
-        .manager-duration-page .manager-duration-toolbar {
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            gap: var(--s-5);
-            margin-bottom: var(--s-5);
-            flex-wrap: wrap;
-        }
-
-        .manager-duration-page .manager-search-group {
-            width: min(100%, 430px);
-            margin: 0;
-        }
-
-        .manager-duration-page .manager-search-input {
-            position: relative;
-        }
-
-        .manager-duration-page .manager-search-input i {
-            position: absolute;
-            top: 50%;
-            left: var(--s-3);
-            z-index: 1;
-            color: var(--n-400);
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        .manager-duration-page .manager-search-input .rv-input {
-            padding-left: 42px;
-        }
-
-        .manager-duration-page .manager-total-movies {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            min-height: var(--input-h);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            white-space: nowrap;
-        }
-
-        .manager-duration-page .manager-total-movies strong {
-            color: var(--n-900);
-        }
-
-        .manager-duration-page .movie-information {
-            display: flex;
-            align-items: center;
-            gap: var(--s-3);
-        }
-
-        .manager-duration-page .movie-poster-small {
-            width: 48px;
-            height: 64px;
-            flex-shrink: 0;
-            border: 1px solid var(--border);
-            border-radius: var(--r-sm);
-            background: var(--n-100);
-            object-fit: cover;
-        }
-
-        .manager-duration-page .movie-poster-placeholder {
-            display: flex;
-            width: 48px;
-            height: 64px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border: 1px solid var(--border);
-            border-radius: var(--r-sm);
-            background: var(--n-100);
-            color: var(--n-400);
-            font-size: 10px;
-            line-height: 1.4;
-            text-align: center;
-        }
-
-        .manager-duration-page .movie-name {
-            display: block;
-            margin-bottom: 4px;
-            color: var(--n-900);
-            font-weight: 700;
-            line-height: 1.45;
-        }
-
-        .manager-duration-page .movie-id {
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-duration-page .current-duration {
-            color: var(--n-900);
-            font-weight: 700;
-        }
-
-        .manager-duration-page .duration-hours {
-            display: block;
-            margin-top: 4px;
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-duration-page .duration-form {
-            display: flex;
-            align-items: center;
-            gap: var(--s-2);
-        }
-
-        .manager-duration-page .duration-input-wrapper {
-            position: relative;
-            width: 145px;
-        }
-
-        .manager-duration-page .duration-input-wrapper .rv-input {
-            padding-right: 48px;
-        }
-
-        .manager-duration-page .duration-unit {
-            position: absolute;
-            top: 50%;
-            right: var(--s-3);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        .manager-duration-page .manager-empty-state {
-            display: flex;
-            min-height: 240px;
-            align-items: center;
-            justify-content: center;
-            padding: var(--s-8);
-            text-align: center;
-        }
-
-        .manager-duration-page .manager-empty-state__content {
-            max-width: 460px;
-        }
-
-        .manager-duration-page .manager-empty-state__icon {
-            display: inline-flex;
-            width: 56px;
-            height: 56px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: var(--s-4);
-            border-radius: var(--r-lg);
-            background: var(--n-100);
-            color: var(--n-400);
-            font-size: 25px;
-        }
-
-        .manager-duration-page .manager-empty-state h2 {
-            margin: 0 0 var(--s-2);
-            color: var(--n-800);
-            font-size: var(--text-md);
-            font-weight: 700;
-        }
-
-        .manager-duration-page .manager-empty-state p {
-            margin: 0;
-            color: var(--n-500);
-            font-size: var(--text-base);
-            line-height: 1.65;
-        }
-
-        .manager-duration-page .manager-no-search-result {
-            display: none;
-            padding: var(--s-8) var(--s-4);
-            color: var(--n-500);
-            text-align: center;
-        }
-
-        .manager-duration-page .manager-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #FECACA;
-            border-radius: var(--r-md);
-            background: var(--danger-bg);
-            color: #B91C1C;
-            font-size: var(--text-base);
-            line-height: 1.55;
-        }
-
-        .manager-duration-page .manager-alert i {
-            margin-top: 2px;
-            font-size: var(--text-md);
-        }
-
-        @media (max-width: 900px) {
-            .manager-duration-page .manager-topbar-context {
-                display: none;
-            }
-
-            .manager-duration-page .manager-duration-toolbar {
-                align-items: stretch;
-                flex-direction: column;
-            }
-
-            .manager-duration-page .manager-search-group {
-                width: 100%;
-            }
-
-            .manager-duration-page .manager-total-movies {
-                min-height: auto;
-            }
-
-            .manager-duration-page .duration-form {
-                align-items: stretch;
-                flex-direction: column;
-            }
-
-            .manager-duration-page .duration-input-wrapper {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="${ctx}/assets/css/manager/movie-management.css?v=1">
 
     <script src="${ctx}/assets/js/main.js"
             charset="UTF-8"
@@ -425,9 +130,7 @@
             <span>Phân hệ Quản lý chi nhánh</span>
         </div>
 
-            <a href="${ctx}/manager/showtimesmanagement">
-                Quản lý lịch chiếu
-            </a>
+
 
             <div class="rv-topbar__avatar">
                 <c:choose>
@@ -456,7 +159,7 @@
             <div class="rv-topbar__dropdown">
 
                 <div class="rv-topbar__dropdown-header">
-                    <div style="font-weight: 600; color: var(--n-800);">
+                    <div class="manager-dropdown-name">
                         <c:out value="${not empty topUser
                                        ? topUser.fullName
                                        : 'Branch Manager'}" />
@@ -521,6 +224,14 @@
             </a>
         </div>
 
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/seat-config"
+               class="rv-nav__item">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                Cấu hình ghế
+            </a>
+        </div>
+
         <div class="rv-nav__group open">
 
             <div class="rv-nav__item active"
@@ -561,9 +272,13 @@
             </a>
         </div>
 
-        <div class="rv-nav__spacer"></div>
-
-        <div class="rv-nav__divider"></div>
+        <div class="rv-nav__group">
+            <a href="${ctx}/DiscountManager"
+               class="rv-nav__item">
+                <i class="bi bi-tags-fill"></i>
+                Quản lý mã giảm giá
+            </a>
+        </div>
 
         <div class="rv-nav__group">
             <a href="${ctx}/logout"
@@ -639,8 +354,7 @@
 
             <div class="rv-card__header">
                 <span class="rv-card__title">
-                    <i class="bi bi-clock-history"
-                       style="margin-right: 8px; color: var(--primary-light);"></i>
+                    <i class="bi bi-clock-history manager-duration-title-icon"></i>
                     Danh sách phim
                 </span>
             </div>
@@ -702,8 +416,7 @@
 
                     <c:otherwise>
 
-                        <div class="rv-table-wrapper"
-                             style="overflow-x: auto;">
+                        <div class="rv-table-wrapper manager-duration-table-wrapper">
 
                             <table class="rv-table"
                                    id="movieDurationTable">
@@ -714,15 +427,15 @@
                                             Phim
                                         </th>
 
-                                        <th style="width: 180px;">
+                                        <th class="manager-duration-status-col">
                                             Trạng thái
                                         </th>
 
-                                        <th style="width: 190px;">
+                                        <th class="manager-duration-current-col">
                                             Thời lượng hiện tại
                                         </th>
 
-                                        <th style="width: 330px;">
+                                        <th class="manager-duration-update-col">
                                             Cập nhật thời lượng
                                         </th>
                                     </tr>
@@ -750,8 +463,7 @@
                                                                  onerror="this.style.display='none';
                                                                           this.nextElementSibling.style.display='flex';">
 
-                                                            <div class="movie-poster-placeholder"
-                                                                 style="display: none;">
+                                                            <div class="movie-poster-placeholder is-hidden">
 
                                                                 Không có
                                                                 <br>
@@ -892,8 +604,7 @@
                         <div id="noSearchResult"
                              class="manager-no-search-result">
 
-                            <i class="bi bi-search"
-                               style="margin-right: 6px;"></i>
+                            <i class="bi bi-search"></i>
 
                             Không tìm thấy Movie phù hợp.
                         </div>

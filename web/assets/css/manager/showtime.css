@@ -1,0 +1,614 @@
+/* Showtime Management CSS */
+
+/* ===============================
+   From showtime-list.jsp
+   =============================== */
+.manager-showtime-list-page .manager-topbar-context {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--s-2);
+            padding-right: var(--s-4);
+            border-right: 1px solid var(--border);
+            color: var(--n-500);
+            font-size: var(--text-sm);
+        }
+
+        .manager-showtime-list-page .manager-topbar-context i {
+            color: var(--primary-light);
+        }
+
+        .manager-showtime-list-page .manager-sidebar-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin: 0 var(--s-4) var(--s-4);
+            padding: var(--s-4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--r-lg);
+            background: linear-gradient(
+                145deg,
+                rgba(229, 9, 20, 0.18),
+                rgba(255, 255, 255, 0.02)
+            );
+            color: rgba(255, 255, 255, 0.76);
+            font-size: var(--text-xs);
+            line-height: 1.5;
+        }
+
+        .manager-showtime-list-page .manager-sidebar-info__label {
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .manager-showtime-list-page .manager-sidebar-info strong {
+            color: #ffffff;
+            font-size: var(--text-base);
+        }
+
+        .manager-showtime-list-page .manager-showtime-note {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--s-3);
+            margin-bottom: var(--s-6);
+            padding: var(--s-4);
+            border: 1px solid #BFDBFE;
+            border-radius: var(--r-md);
+            background: #EFF6FF;
+            color: #1E40AF;
+            font-size: var(--text-base);
+            line-height: 1.65;
+        }
+
+        .manager-showtime-list-page .manager-showtime-note i {
+            margin-top: 2px;
+            color: #2563EB;
+            font-size: var(--text-md);
+        }
+
+        .manager-showtime-list-page .manager-showtime-note strong {
+            color: #1E3A8A;
+        }
+
+        .manager-showtime-list-page .manager-branch-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--s-4);
+            flex-wrap: wrap;
+        }
+
+        .manager-showtime-list-page .manager-branch-card__info {
+            display: flex;
+            align-items: center;
+            gap: var(--s-3);
+            min-width: 0;
+        }
+
+        .manager-showtime-list-page .manager-branch-card__icon {
+            display: inline-flex;
+            width: 42px;
+            height: 42px;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border-radius: var(--r-md);
+            background: rgba(229, 9, 20, 0.14);
+            color: var(--primary-light);
+            font-size: 19px;
+        }
+
+        .manager-showtime-list-page .manager-branch-card__name {
+            margin: 0;
+            color: var(--n-900);
+            font-size: var(--text-md);
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .manager-showtime-list-page .manager-branch-card__address {
+            margin-top: 3px;
+            color: var(--n-500);
+            font-size: var(--text-sm);
+            line-height: 1.45;
+        }
+
+        .manager-showtime-list-page .manager-showtime-id {
+            color: var(--n-500);
+            font-size: var(--text-sm);
+            font-weight: 600;
+        }
+
+        .manager-showtime-list-page .manager-movie-name,
+        .manager-showtime-list-page .manager-hall-name,
+        .manager-showtime-list-page .manager-branch-name {
+            display: block;
+            color: var(--n-900);
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .manager-showtime-list-page .manager-row-subtext {
+            display: block;
+            margin-top: 3px;
+            color: var(--n-500);
+            font-size: var(--text-sm);
+            line-height: 1.45;
+        }
+
+        .manager-showtime-list-page .manager-showtime-time {
+            display: block;
+            color: var(--n-900);
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .manager-showtime-list-page .manager-showtime-price {
+            color: var(--n-900);
+            font-weight: 700;
+        }
+
+        .manager-showtime-list-page .manager-action-group {
+            display: flex;
+            align-items: center;
+            gap: var(--s-2);
+            flex-wrap: wrap;
+        }
+
+        .manager-showtime-list-page .manager-action-group form {
+            display: inline-flex;
+            margin: 0;
+        }
+
+        .manager-showtime-list-page .manager-cancelled-text {
+            color: var(--n-500);
+            font-size: var(--text-sm);
+            font-style: italic;
+        }
+
+        .manager-showtime-list-page .manager-empty-state {
+            display: flex;
+            min-height: 250px;
+            align-items: center;
+            justify-content: center;
+            padding: var(--s-8);
+            text-align: center;
+        }
+
+        .manager-showtime-list-page .manager-empty-state__content {
+            max-width: 480px;
+        }
+
+        .manager-showtime-list-page .manager-empty-state__icon {
+            display: inline-flex;
+            width: 56px;
+            height: 56px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--s-4);
+            border-radius: var(--r-lg);
+            background: var(--n-100);
+            color: var(--n-400);
+            font-size: 25px;
+        }
+
+        .manager-showtime-list-page .manager-empty-state h2 {
+            margin: 0 0 var(--s-2);
+            color: var(--n-800);
+            font-size: var(--text-md);
+            font-weight: 700;
+        }
+
+        .manager-showtime-list-page .manager-empty-state p {
+            margin: 0;
+            color: var(--n-500);
+            font-size: var(--text-base);
+            line-height: 1.65;
+        }
+
+        .manager-showtime-list-page .manager-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--s-3);
+            margin-bottom: var(--s-6);
+            padding: var(--s-4);
+            border-radius: var(--r-md);
+            font-size: var(--text-base);
+            line-height: 1.55;
+        }
+
+        .manager-showtime-list-page .manager-alert--success {
+            border: 1px solid #BBF7D0;
+            background: var(--success-bg);
+            color: #166534;
+        }
+
+        .manager-showtime-list-page .manager-alert--error {
+            border: 1px solid #FECACA;
+            background: var(--danger-bg);
+            color: #B91C1C;
+        }
+
+        .manager-showtime-list-page .manager-alert i {
+            margin-top: 2px;
+            font-size: var(--text-md);
+        }
+
+        @media (max-width: 900px) {
+            .manager-showtime-list-page .manager-topbar-context {
+                display: none;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .manager-showtime-list-page .manager-branch-card {
+                align-items: stretch;
+            }
+
+            .manager-showtime-list-page .manager-branch-card > .rv-badge {
+                align-self: flex-start;
+            }
+
+            .manager-showtime-list-page .manager-action-group {
+                min-width: 180px;
+            }
+        }
+
+/* ===============================
+   From showtime-form.jsp
+   =============================== */
+/*
+         * CSS chỉ áp dụng riêng cho showtime-form.jsp.
+         * Không ảnh hưởng Admin, Customer hay các trang Manager khác.
+         */
+
+        .manager-showtime-form-page .manager-topbar-context {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--s-2);
+            padding-right: var(--s-4);
+            border-right: 1px solid var(--border);
+            color: var(--n-500);
+            font-size: var(--text-sm);
+        }
+
+        .manager-showtime-form-page .manager-topbar-context i {
+            color: var(--primary-light);
+        }
+
+        .manager-showtime-form-page .manager-sidebar-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin: 0 var(--s-4) var(--s-4);
+            padding: var(--s-4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--r-lg);
+            background: linear-gradient(
+                145deg,
+                rgba(229, 9, 20, 0.18),
+                rgba(255, 255, 255, 0.02)
+            );
+            color: rgba(255, 255, 255, 0.76);
+            font-size: var(--text-xs);
+            line-height: 1.5;
+        }
+
+        .manager-showtime-form-page .manager-sidebar-info__label {
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .manager-showtime-form-page .manager-sidebar-info strong {
+            color: #ffffff;
+            font-size: var(--text-base);
+        }
+
+        .manager-showtime-form-page .manager-showtime-info {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--s-3);
+            margin-bottom: var(--s-6);
+            padding: var(--s-4);
+            border: 1px solid #bfdbfe;
+            border-radius: var(--r-md);
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: var(--text-base);
+            line-height: 1.65;
+        }
+
+        .manager-showtime-form-page .manager-showtime-info i {
+            margin-top: 2px;
+            color: #2563eb;
+            font-size: var(--text-md);
+        }
+
+        .manager-showtime-form-page .manager-showtime-info strong {
+            color: #1e3a8a;
+        }
+
+        .manager-showtime-form-page .manager-form-card-heading {
+            display: flex;
+            align-items: center;
+            gap: var(--s-3);
+        }
+
+        .manager-showtime-form-page .manager-form-card-heading__icon {
+            display: inline-flex;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border-radius: var(--r-md);
+            background: rgba(229, 9, 20, 0.14);
+            color: var(--primary-light);
+            font-size: 18px;
+        }
+
+        .manager-showtime-form-page .manager-form-card-heading__title {
+            margin: 0;
+            color: var(--n-900);
+            font-size: var(--text-md);
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .manager-showtime-form-page .manager-form-card-heading__description {
+            margin-top: 3px;
+            color: var(--n-500);
+            font-size: var(--text-sm);
+            line-height: 1.45;
+        }
+
+        .manager-showtime-form-page .field-note {
+            display: block;
+            margin-top: var(--s-2);
+            color: var(--n-500);
+            font-size: var(--text-sm);
+            line-height: 1.55;
+        }
+
+        .manager-showtime-form-page .manager-input-icon {
+            position: relative;
+        }
+
+        .manager-showtime-form-page .manager-input-icon i {
+            position: absolute;
+            top: 50%;
+            left: var(--s-3);
+            z-index: 1;
+            color: var(--n-400);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .manager-showtime-form-page .manager-input-icon .rv-input,
+        .manager-showtime-form-page .manager-input-icon .rv-select {
+            padding-left: 42px;
+        }
+
+        .manager-showtime-form-page .manager-input-icon--top i {
+            top: 23px;
+        }
+
+        .manager-showtime-form-page .manager-readonly-input {
+            background: var(--n-50);
+            color: var(--n-600);
+        }
+
+        .manager-showtime-form-page .schedule-information {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--s-4);
+            margin-top: var(--s-6);
+            padding: var(--s-5);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            background: var(--n-50);
+        }
+
+        .manager-showtime-form-page .schedule-information h3 {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: var(--s-2);
+            margin: 0;
+            color: var(--n-900);
+            font-size: var(--text-md);
+            font-weight: 700;
+        }
+
+        .manager-showtime-form-page .schedule-information h3 i {
+            color: var(--primary-light);
+        }
+
+        .manager-showtime-form-page .schedule-information p {
+            margin: 0;
+            padding: var(--s-4);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            background: var(--surface);
+            color: var(--n-600);
+            font-size: var(--text-sm);
+            line-height: 1.55;
+        }
+
+        .manager-showtime-form-page .schedule-information strong {
+            display: block;
+            margin-top: var(--s-2);
+            color: var(--n-900);
+            font-size: var(--text-base);
+        }
+
+        .manager-showtime-form-page .movie-assignment-warning {
+            display: none;
+            margin-top: var(--s-3);
+            padding: var(--s-3) var(--s-4);
+            border: 1px solid #fed7aa;
+            border-radius: var(--r-md);
+            background: var(--warning-bg);
+            color: #9a3412;
+            font-size: var(--text-sm);
+            line-height: 1.55;
+        }
+
+        .manager-showtime-form-page .movie-assignment-warning a {
+            color: #7c2d12;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        .manager-showtime-form-page .movie-autocomplete {
+            position: relative;
+            width: 100%;
+        }
+
+        .manager-showtime-form-page .movie-suggestion-list {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            left: 0;
+            z-index: 1000;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: var(--s-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            background: var(--surface);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .manager-showtime-form-page .movie-suggestion-item {
+            display: block;
+            width: 100%;
+            padding: var(--s-3);
+            border: 0;
+            border-radius: var(--r-md);
+            background: transparent;
+            color: var(--n-800);
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .manager-showtime-form-page .movie-suggestion-item:hover,
+        .manager-showtime-form-page .movie-suggestion-item.active {
+            background: rgba(229, 9, 20, 0.1);
+        }
+
+        .manager-showtime-form-page .movie-suggestion-title {
+            display: block;
+            color: var(--n-900);
+            font-size: var(--text-base);
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .manager-showtime-form-page .movie-suggestion-duration {
+            display: block;
+            margin-top: 4px;
+            color: var(--n-500);
+            font-size: var(--text-sm);
+        }
+
+        .manager-showtime-form-page .movie-suggestion-empty {
+            padding: var(--s-3);
+            color: var(--n-500);
+            font-size: var(--text-sm);
+        }
+
+        .manager-showtime-form-page .manager-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--s-3);
+            margin-top: var(--s-6);
+            padding-top: var(--s-5);
+            border-top: 1px solid var(--border);
+        }
+
+        .manager-showtime-form-page .manager-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--s-3);
+            margin-bottom: var(--s-6);
+            padding: var(--s-4);
+            border: 1px solid #fecaca;
+            border-radius: var(--r-md);
+            background: var(--danger-bg);
+            color: #b91c1c;
+            font-size: var(--text-base);
+            line-height: 1.55;
+        }
+
+        .manager-showtime-form-page .manager-alert i {
+            margin-top: 2px;
+            font-size: var(--text-md);
+        }
+
+        @media (max-width: 1024px) {
+            .manager-showtime-form-page .schedule-information {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .manager-showtime-form-page .manager-topbar-context {
+                display: none;
+            }
+
+            .manager-showtime-form-page .rv-form-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .manager-showtime-form-page .manager-form-actions {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
+
+            .manager-showtime-form-page .manager-form-actions .rv-btn {
+                width: 100%;
+            }
+        }
+
+/* ===============================
+   Extracted inline utilities
+   =============================== */
+
+.manager-showtime-list-page .manager-dropdown-name,
+.manager-showtime-form-page .manager-dropdown-name {
+    font-weight: 600;
+    color: var(--n-800);
+}
+
+.manager-showtime-list-page .manager-warning-icon {
+    margin-right: 8px;
+    color: var(--warning);
+}
+
+.manager-showtime-list-page .manager-card-spacing {
+    margin-bottom: var(--s-6);
+}
+
+.manager-showtime-list-page .manager-title-icon {
+    margin-right: 8px;
+    color: var(--primary-light);
+}
+
+.manager-showtime-list-page .manager-empty-action {
+    margin-top: var(--s-5);
+}
+
+.manager-showtime-list-page .manager-table-scroll {
+    overflow-x: auto;
+}
+
+.manager-showtime-form-page .manager-hidden-select {
+    display: none;
+}

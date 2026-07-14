@@ -214,7 +214,8 @@ public class ShowtimeController extends HttpServlet {
         int showtimeId = parseInt(
                 request.getParameter("id")
         );
-
+        
+        /*check showtime thuoc branch*/
         Showtime showtime = showtimeService.getShowtimeByIdAndManagerId(
                 showtimeId,
                 manager.getId()
@@ -234,6 +235,7 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
+            /* lay hall hien tai cua showtime */
         Hall hall = hallDAO.findByIdAndBranchId(
                 showtime.getHallId(),
                 branch.getId()
@@ -253,10 +255,10 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-        prepareFormData(
+        prepareEditFormData(
                 request,
                 branch,
-                showtime.getHallId()
+                hall
         );
 
         request.setAttribute("showtime", showtime);
@@ -414,13 +416,18 @@ public class ShowtimeController extends HttpServlet {
             );
         }
 
-        int selectedHallId = prepareFormData(
-                request,
-                branch,
-                showtime.getHallId()
+        Hall lockedHall = hallDAO.findByIdAndBranchId(
+                current.getHallId(),
+                branch.getId()
         );
 
-        showtime.setHallId(selectedHallId);
+        showtime.setHallId(current.getHallId());
+
+        prepareEditFormData(
+                request,
+                branch,
+                lockedHall
+        );
 
         request.setAttribute("showtime", showtime);
         request.setAttribute("formMode", "edit");
@@ -500,7 +507,8 @@ public class ShowtimeController extends HttpServlet {
 
         return showtime;
     }
-
+    
+    /*form create*/
     private int prepareFormData(
             HttpServletRequest request,
             Branch branch,
@@ -518,20 +526,23 @@ public class ShowtimeController extends HttpServlet {
             List<Hall> branchHalls = hallDAO.findByBranchId(
                     branch.getId()
             );
-
+            
+            /*hall active*/
             for (Hall hall : branchHalls) {
                 if (isHallActive(hall)) {
                     halls.add(hall);
                 }
             }
-
+            
+            /*hall mac dinh*/
             if (containsHall(halls, requestedHallId)) {
                 selectedHallId = requestedHallId;
 
             } else if (!halls.isEmpty()) {
                 selectedHallId = halls.get(0).getId();
             }
-
+            
+            /*lay danh sach phim*/
             for (Hall hall : halls) {
                 List<Movie> assignedMovies
                         = movieManagementDAO.findMoviesAssignedToHall(
@@ -560,6 +571,42 @@ public class ShowtimeController extends HttpServlet {
         request.setAttribute("selectedHallId", selectedHallId);
 
         return selectedHallId;
+    }
+
+        /*form edit*/
+    private void prepareEditFormData(
+            HttpServletRequest request,
+            Branch branch,
+            Hall lockedHall
+    ) {
+        List<Hall> halls = new ArrayList<>();
+        Map<Integer, List<Movie>> moviesByHall
+                = new LinkedHashMap<>();
+
+        List<Movie> selectedHallMovies = new ArrayList<>();
+        int selectedHallId = 0;
+
+        if (branch != null && isHallActive(lockedHall)) {
+            halls.add(lockedHall);
+            selectedHallId = lockedHall.getId();
+
+            selectedHallMovies
+                    = movieManagementDAO.findMoviesAssignedToHall(
+                            selectedHallId
+                    );
+
+            moviesByHall.put(
+                    selectedHallId,
+                    selectedHallMovies
+            );
+        }
+
+        request.setAttribute("branch", branch);
+        request.setAttribute("halls", halls);
+        request.setAttribute("moviesByHall", moviesByHall);
+        request.setAttribute("movies", selectedHallMovies);
+        request.setAttribute("selectedHallId", selectedHallId);
+        request.setAttribute("lockHallOnEdit", true);
     }
 
     private boolean isHallActive(Hall hall) {

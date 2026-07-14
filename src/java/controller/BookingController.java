@@ -246,6 +246,10 @@ public class BookingController extends HttpServlet {
 
         // error co the null; neu co thi JSP hien loi validate ghe.
         request.setAttribute("error", error);
+        
+        dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
+        request.setAttribute("allSeatTypes", seatTypeDAO.findAll());
+        
         request.getRequestDispatcher("/pages/booking/seats.jsp").forward(request, response);
     }
 

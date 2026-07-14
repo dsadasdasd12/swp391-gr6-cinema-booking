@@ -122,8 +122,8 @@
     max-width: 680px; margin: 20px auto 26px; text-align: center; color: #9aa0aa;
     border-top: 4px solid #4a505c; padding-top: 8px; letter-spacing: 2px; font-size: 12px;
 }
-.seat-map { display: flex; flex-direction: column; gap: 8px; align-items: center; overflow-x: auto; padding-bottom: 8px; }
-.seat-row { display: flex; align-items: center; gap: 8px; min-height: 36px; }
+.seat-map { display: flex; flex-direction: column; gap: 8px; overflow-x: auto; padding-bottom: 8px; width: 100%; }
+.seat-row { display: flex; align-items: center; gap: 8px; min-height: 36px; width: fit-content; margin: 0 auto; }
 .row-label { width: 28px; color: #9aa0aa; font-weight: 700; text-align: center; }
 .seat {
     width: 34px; height: 34px; border-radius: 8px; display: inline-flex;

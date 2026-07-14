@@ -42,260 +42,8 @@
 
     <link rel="stylesheet"
           href="${ctx}/assets/css/admin/forms.css?v=redblack">
-
-    <style>
-        .manager-showtime-list-page .manager-topbar-context {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--s-2);
-            padding-right: var(--s-4);
-            border-right: 1px solid var(--border);
-            color: var(--n-500);
-            font-size: var(--text-sm);
-        }
-
-        .manager-showtime-list-page .manager-topbar-context i {
-            color: var(--primary-light);
-        }
-
-        .manager-showtime-list-page .manager-sidebar-info {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            margin: 0 var(--s-4) var(--s-4);
-            padding: var(--s-4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--r-lg);
-            background: linear-gradient(
-                145deg,
-                rgba(229, 9, 20, 0.18),
-                rgba(255, 255, 255, 0.02)
-            );
-            color: rgba(255, 255, 255, 0.76);
-            font-size: var(--text-xs);
-            line-height: 1.5;
-        }
-
-        .manager-showtime-list-page .manager-sidebar-info__label {
-            color: rgba(255, 255, 255, 0.42);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        .manager-showtime-list-page .manager-sidebar-info strong {
-            color: #ffffff;
-            font-size: var(--text-base);
-        }
-
-        .manager-showtime-list-page .manager-showtime-note {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border: 1px solid #BFDBFE;
-            border-radius: var(--r-md);
-            background: #EFF6FF;
-            color: #1E40AF;
-            font-size: var(--text-base);
-            line-height: 1.65;
-        }
-
-        .manager-showtime-list-page .manager-showtime-note i {
-            margin-top: 2px;
-            color: #2563EB;
-            font-size: var(--text-md);
-        }
-
-        .manager-showtime-list-page .manager-showtime-note strong {
-            color: #1E3A8A;
-        }
-
-        .manager-showtime-list-page .manager-branch-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--s-4);
-            flex-wrap: wrap;
-        }
-
-        .manager-showtime-list-page .manager-branch-card__info {
-            display: flex;
-            align-items: center;
-            gap: var(--s-3);
-            min-width: 0;
-        }
-
-        .manager-showtime-list-page .manager-branch-card__icon {
-            display: inline-flex;
-            width: 42px;
-            height: 42px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border-radius: var(--r-md);
-            background: rgba(229, 9, 20, 0.14);
-            color: var(--primary-light);
-            font-size: 19px;
-        }
-
-        .manager-showtime-list-page .manager-branch-card__name {
-            margin: 0;
-            color: var(--n-900);
-            font-size: var(--text-md);
-            font-weight: 700;
-            line-height: 1.35;
-        }
-
-        .manager-showtime-list-page .manager-branch-card__address {
-            margin-top: 3px;
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            line-height: 1.45;
-        }
-
-        .manager-showtime-list-page .manager-showtime-id {
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            font-weight: 600;
-        }
-
-        .manager-showtime-list-page .manager-movie-name,
-        .manager-showtime-list-page .manager-hall-name,
-        .manager-showtime-list-page .manager-branch-name {
-            display: block;
-            color: var(--n-900);
-            font-weight: 700;
-            line-height: 1.45;
-        }
-
-        .manager-showtime-list-page .manager-row-subtext {
-            display: block;
-            margin-top: 3px;
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            line-height: 1.45;
-        }
-
-        .manager-showtime-list-page .manager-showtime-time {
-            display: block;
-            color: var(--n-900);
-            font-weight: 700;
-            line-height: 1.45;
-        }
-
-        .manager-showtime-list-page .manager-showtime-price {
-            color: var(--n-900);
-            font-weight: 700;
-        }
-
-        .manager-showtime-list-page .manager-action-group {
-            display: flex;
-            align-items: center;
-            gap: var(--s-2);
-            flex-wrap: wrap;
-        }
-
-        .manager-showtime-list-page .manager-action-group form {
-            display: inline-flex;
-            margin: 0;
-        }
-
-        .manager-showtime-list-page .manager-cancelled-text {
-            color: var(--n-500);
-            font-size: var(--text-sm);
-            font-style: italic;
-        }
-
-        .manager-showtime-list-page .manager-empty-state {
-            display: flex;
-            min-height: 250px;
-            align-items: center;
-            justify-content: center;
-            padding: var(--s-8);
-            text-align: center;
-        }
-
-        .manager-showtime-list-page .manager-empty-state__content {
-            max-width: 480px;
-        }
-
-        .manager-showtime-list-page .manager-empty-state__icon {
-            display: inline-flex;
-            width: 56px;
-            height: 56px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: var(--s-4);
-            border-radius: var(--r-lg);
-            background: var(--n-100);
-            color: var(--n-400);
-            font-size: 25px;
-        }
-
-        .manager-showtime-list-page .manager-empty-state h2 {
-            margin: 0 0 var(--s-2);
-            color: var(--n-800);
-            font-size: var(--text-md);
-            font-weight: 700;
-        }
-
-        .manager-showtime-list-page .manager-empty-state p {
-            margin: 0;
-            color: var(--n-500);
-            font-size: var(--text-base);
-            line-height: 1.65;
-        }
-
-        .manager-showtime-list-page .manager-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--s-3);
-            margin-bottom: var(--s-6);
-            padding: var(--s-4);
-            border-radius: var(--r-md);
-            font-size: var(--text-base);
-            line-height: 1.55;
-        }
-
-        .manager-showtime-list-page .manager-alert--success {
-            border: 1px solid #BBF7D0;
-            background: var(--success-bg);
-            color: #166534;
-        }
-
-        .manager-showtime-list-page .manager-alert--error {
-            border: 1px solid #FECACA;
-            background: var(--danger-bg);
-            color: #B91C1C;
-        }
-
-        .manager-showtime-list-page .manager-alert i {
-            margin-top: 2px;
-            font-size: var(--text-md);
-        }
-
-        @media (max-width: 900px) {
-            .manager-showtime-list-page .manager-topbar-context {
-                display: none;
-            }
-        }
-
-        @media (max-width: 680px) {
-            .manager-showtime-list-page .manager-branch-card {
-                align-items: stretch;
-            }
-
-            .manager-showtime-list-page .manager-branch-card > .rv-badge {
-                align-self: flex-start;
-            }
-
-            .manager-showtime-list-page .manager-action-group {
-                min-width: 180px;
-            }
-        }
-    </style>
+    <link rel="stylesheet"
+          href="${ctx}/assets/css/manager/showtime.css?v=1">
 
     <script src="${ctx}/assets/js/main.js"
             charset="UTF-8"
@@ -412,7 +160,7 @@
             <div class="rv-topbar__dropdown">
 
                 <div class="rv-topbar__dropdown-header">
-                    <div style="font-weight: 600; color: var(--n-800);">
+                    <div class="manager-dropdown-name">
                         <c:out value="${not empty topUser
                                        ? topUser.fullName
                                        : 'Branch Manager'}" />
@@ -478,6 +226,14 @@
         </div>
 
         <div class="rv-nav__group">
+            <a href="${ctx}/manager/seat-config"
+               class="rv-nav__item">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+                Cấu hình ghế
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
 
             <div class="rv-nav__item"
                  role="button"
@@ -517,9 +273,13 @@
             </a>
         </div>
 
-        <div class="rv-nav__spacer"></div>
-
-        <div class="rv-nav__divider"></div>
+        <div class="rv-nav__group">
+            <a href="${ctx}/DiscountManager"
+               class="rv-nav__item">
+                <i class="bi bi-tags-fill"></i>
+                Quản lý mã giảm giá
+            </a>
+        </div>
 
         <div class="rv-nav__group">
             <a href="${ctx}/logout"
@@ -580,8 +340,7 @@
 
                     <div class="rv-card__header">
                         <span class="rv-card__title">
-                            <i class="bi bi-building-x"
-                               style="margin-right: 8px; color: var(--warning);"></i>
+                            <i class="bi bi-building-x manager-warning-icon"></i>
                             Chưa được phân công chi nhánh
                         </span>
                     </div>
@@ -623,8 +382,7 @@
                     </div>
                 </div>
 
-                <div class="rv-card"
-                     style="margin-bottom: var(--s-6);">
+                <div class="rv-card manager-card-spacing">
 
                     <div class="rv-card__header">
 
@@ -661,8 +419,7 @@
                     <div class="rv-card__header">
 
                         <span class="rv-card__title">
-                            <i class="bi bi-calendar-week-fill"
-                               style="margin-right: 8px; color: var(--primary-light);"></i>
+                            <i class="bi bi-calendar-week-fill manager-title-icon"></i>
                             Danh sách suất chiếu
                         </span>
                     </div>
@@ -687,8 +444,7 @@
                                             cho chi nhánh và Hall phù hợp.
                                         </p>
 
-                                        <a class="rv-btn rv-btn--primary"
-                                           style="margin-top: var(--s-5);"
+                                        <a class="rv-btn rv-btn--primary manager-empty-action"
                                            href="${ctx}/manager/showtimesmanagement/create">
 
                                             <i class="bi bi-plus-lg"></i>
@@ -700,8 +456,7 @@
 
                             <c:otherwise>
 
-                                <div class="rv-table-wrapper"
-                                     style="overflow-x: auto;">
+                                <div class="rv-table-wrapper manager-table-scroll">
 
                                     <table class="rv-table">
 
@@ -742,7 +497,8 @@
                                         </thead>
 
                                         <tbody>
-
+                                            
+                                          <%--du lieu showtime--%>
                                             <c:forEach var="s"
                                                        items="${showtimes}">
 

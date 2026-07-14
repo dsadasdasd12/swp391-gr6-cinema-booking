@@ -22,8 +22,9 @@ public class MovieManagementDAO {
     /**
      * Lấy toàn bộ phim để hiển thị trên màn hình
      * phân bổ phim cho một chi nhánh.
-     *
-     * assigned = true nếu phim đã được gán cho chi nhánh.
+     * Toàn bộ phim trong bảng MOVIES
+     * Đánh dấu phim nào đã nằm trong BRANCH_MOVIES của Branch hiện tại.
+     * assigned = true nếu phim đã được gán cho chi nhánh. ( LEFT JOIN )
      */
     public List<MovieAssignmentItem> findItemsForBranch(int branchId) {
         String sql = "SELECT m.id, m.title, m.duration_min, m.status, "

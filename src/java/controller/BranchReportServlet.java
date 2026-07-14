@@ -12,6 +12,7 @@ import model.User;
 import util.DBContext;
 import util.EncodingUtil;
 
+import service.UserService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -25,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/admin/reports/branch")
+@WebServlet(urlPatterns = {"/admin/reports/branch", "/manager/reports/branch"})
 public class BranchReportServlet extends HttpServlet {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -77,6 +78,7 @@ public class BranchReportServlet extends HttpServlet {
         req.setAttribute("allBranches", allBranches);
         req.setAttribute("selectedBranchId", branchId);
         req.setAttribute("report", report);
+        req.setAttribute("reportUrl", req.getContextPath() + req.getServletPath());
         req.getRequestDispatcher("/pages/reports/branch.jsp").forward(req, resp);
     }
 
@@ -99,6 +101,12 @@ public class BranchReportServlet extends HttpServlet {
         var managed = adminUserDAO.findById(user.getId());
         if (managed != null && managed.getBranchId() > 0) {
             return managed.getBranchId();
+        }
+        if ("MANAGER".equalsIgnoreCase(user.getRole())) {
+            int fallbackId = new UserService().getBranchIdOfStaff(user.getId());
+            if (fallbackId > 0) {
+                return fallbackId;
+            }
         }
         return allBranches.isEmpty() ? 1 : allBranches.get(0).getId();
     }

@@ -22,6 +22,8 @@ import java.time.LocalDate;
  */
 public class ShowtimeDAO {
 
+    private static final int SHOWTIME_GAP_MINUTES = 15;
+
     // ==========================================
     // 1. Movie Browsing Module (Original Git Method)
     // ==========================================
@@ -141,6 +143,7 @@ public class ShowtimeDAO {
         return list;
     }
 
+    /*manage chi sua id showtime thuoc branch hien tai*/
     public Showtime findByIdAndBranchId(int id, int branchId) {
         String sql = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
                 + "s.base_price, s.status, "
@@ -247,15 +250,18 @@ public class ShowtimeDAO {
         return false;
     }
 
-    // READ: Lấy giá vé thực tế của ghế cho suất chiếu (Bảng SEAT_PRICING hoặc fallback về SHOWTIMES.base_price)
+    // CALCULATE: Lấy giá vé thực tế của ghế bằng cách nhân giá gốc (basePrice) với hệ số nhân (multiplier) của loại ghế đó trong SEAT_TYPES
     public double getSeatPrice(int showtimeId, String seatType, double basePrice) {
-        String sql = "SELECT price FROM dbo.SEAT_PRICING WHERE showtime_id = ? AND seat_type = ?";
-        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, showtimeId);
-            ps.setString(2, seatType);
+        String sql = "SELECT default_price FROM dbo.SEAT_TYPES WHERE code = ?";
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, seatType);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getDouble("price");
+                    double multiplier = rs.getDouble("default_price");
+                    // Tránh trường hợp hệ số nhân bị cấu hình sai <= 0
+                    if (multiplier > 0) {
+                        return basePrice * multiplier;
+                    }
                 }
             }
         } catch (Exception e) {
@@ -505,13 +511,24 @@ public class ShowtimeDAO {
 
     /**
      * Check trùng lịch trong cùng một Hall.
+     * Công thức mới mở rộng khoảng cần kiểm tra thêm 15 phút ở cả 2 đầu:
+     * oldStart < newEnd + 15 phút
+     * AND oldEnd > newStart - 15 phút
      *
-     * Điều kiện trùng: newStart < oldEnd AND newEnd > oldStart
+     * exceptShowtimeId dùng cho update để loại trừ chính suất chiếu đang sửa.
      */
     public boolean hasScheduleConflict(int hallId,
             LocalDateTime startTime,
             LocalDateTime endTime,
             int exceptShowtimeId) {
+
+        LocalDateTime conflictStartTime = startTime.minusMinutes(
+                SHOWTIME_GAP_MINUTES
+        );
+
+        LocalDateTime conflictEndTime = endTime.plusMinutes(
+                SHOWTIME_GAP_MINUTES
+        );
 
         String sql = "SELECT COUNT(*) "
                 + "FROM dbo.SHOWTIMES "
@@ -525,8 +542,8 @@ public class ShowtimeDAO {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hallId);
-            ps.setObject(2, endTime);
-            ps.setObject(3, startTime);
+            ps.setObject(2, conflictEndTime);
+            ps.setObject(3, conflictStartTime);
             ps.setInt(4, exceptShowtimeId);
             ps.setInt(5, exceptShowtimeId);
 
@@ -734,5 +751,35 @@ public class ShowtimeDAO {
         }
 
         return result;
+    }
+
+    public boolean hasFutureShowtimes(int hallId) {
+        String sql = "SELECT COUNT(*) FROM dbo.SHOWTIMES WHERE hall_id = ? AND start_time > GETDATE() AND status != 'CANCELLED'";
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, hallId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean hasBookings(int showtimeId) {
+        String sql = "SELECT COUNT(*) FROM dbo.BOOKINGS WHERE showtime_id = ? AND status != 'CANCELLED'";
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, showtimeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
