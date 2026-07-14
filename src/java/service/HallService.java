@@ -68,6 +68,7 @@ public class HallService {
             );
         }
 
+        /* kiem tra so hanh so ghe co thay doi khong*/
         boolean layoutChanged
                 = current.getSeatRows() != hall.getSeatRows()
                 || current.getSeatsPerRow() != hall.getSeatsPerRow();

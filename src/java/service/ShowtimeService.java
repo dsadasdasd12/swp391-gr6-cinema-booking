@@ -426,36 +426,74 @@ public class ShowtimeService {
     }
 
     private void validateWithinOperatingHours(
-            Branch branch,
-            Showtime showtime
-    ) {
-        LocalTime openTime = branch.getOpenTime();
-        LocalTime closeTime = branch.getCloseTime();
+        Branch branch,
+        Showtime showtime
+) {
+    LocalTime openTime = branch.getOpenTime();
+    LocalTime closeTime = branch.getCloseTime();
 
-        // Nếu chi nhánh chưa cấu hình đầy đủ giờ hoạt động thì không ép kiểm tra.
-        if (openTime == null || closeTime == null) {
-            return;
-        }
+    if (openTime == null || closeTime == null) {
+        return;
+    }
 
-        LocalDateTime startTime = showtime.getStartTime().toLocalDateTime();
-        LocalDateTime endTime = showtime.getEndTime().toLocalDateTime();
-        LocalDateTime openingDateTime = LocalDateTime.of(
+    LocalDateTime startTime
+            = showtime.getStartTime().toLocalDateTime();
+
+    LocalDateTime endTime
+            = showtime.getEndTime().toLocalDateTime();
+
+    LocalDateTime openingDateTime;
+    LocalDateTime closingDateTime;
+
+    if (openTime.isBefore(closeTime)) {
+        // Ví dụ: 08:00–23:00, hoạt động trong cùng ngày
+        openingDateTime = LocalDateTime.of(
                 startTime.toLocalDate(),
                 openTime
         );
-        LocalDateTime closingDateTime = LocalDateTime.of(
+
+        closingDateTime = LocalDateTime.of(
                 startTime.toLocalDate(),
                 closeTime
         );
-
-        if (startTime.isBefore(openingDateTime)
-                || endTime.isAfter(closingDateTime)) {
-            throw new IllegalArgumentException(
-                    "Suất chiếu phải bắt đầu và kết thúc trong giờ hoạt động của chi nhánh ("
-                    + openTime + " - " + closeTime + ")."
+    } else {
+        // Ví dụ: 20:00–03:00, hoạt động xuyên đêm
+        if (!startTime.toLocalTime().isBefore(openTime)) {
+            // Suất bắt đầu từ 20:00 trở đi
+            openingDateTime = LocalDateTime.of(
+                    startTime.toLocalDate(),
+                    openTime
+            );
+        } else {
+            // Suất bắt đầu sau 00:00, thuộc ca mở từ ngày hôm trước
+            openingDateTime = LocalDateTime.of(
+                    startTime.toLocalDate().minusDays(1),
+                    openTime
             );
         }
+
+        closingDateTime = LocalDateTime.of(
+                openingDateTime.toLocalDate().plusDays(1),
+                closeTime
+        );
     }
+
+    boolean invalidStart
+            = startTime.isBefore(openingDateTime)
+            || !startTime.isBefore(closingDateTime);
+
+    boolean invalidEnd
+            = endTime.isAfter(closingDateTime)
+            || !endTime.isAfter(startTime);
+
+    if (invalidStart || invalidEnd) {
+        throw new IllegalArgumentException(
+                "Suất chiếu phải bắt đầu và kết thúc "
+                + "trong giờ hoạt động của chi nhánh ("
+                + openTime + " - " + closeTime + ")."
+        );
+    }
+}
 
     private boolean hasBookingSensitiveChanges(
             Showtime current,

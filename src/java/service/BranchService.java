@@ -155,7 +155,7 @@ public class BranchService {
             );
         }
 
-        if (openTime != null && !openTime.isBefore(closeTime)) {
+        if (openTime != null && openTime.equals(closeTime)) {
             throw new IllegalArgumentException("Giờ mở cửa phải nhỏ hơn giờ đóng cửa.");
         }
     }

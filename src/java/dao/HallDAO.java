@@ -78,6 +78,7 @@ public class HallDAO {
         });
     }
 
+    /* Nếu phòng chưa từng có suất chiếu,xóa sơ đồ cũ và tạo lại sơ đồ mới*/
     public boolean update(Hall hall) {
         return inTransaction(conn -> {
             int[] oldLayout = findLayout(conn, hall.getId(), hall.getBranchId());
