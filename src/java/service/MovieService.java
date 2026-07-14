@@ -670,8 +670,24 @@ public class MovieService {
         if (m.getReleaseDate() != null
                 && m.getEndDate() != null
                 && m.getEndDate().isBefore(m.getReleaseDate())) {
-
             errors.add("Ngày kết thúc chiếu không được trước ngày khởi chiếu.");
+        }
+        if (m.getStatus() != null && m.getReleaseDate() != null && m.getEndDate() != null) {
+            java.time.LocalDate today = java.time.LocalDate.now();
+            if ("COMING_SOON".equals(m.getStatus()) && !m.getReleaseDate().isAfter(today)) {
+                errors.add("Phim Sắp chiếu phải có ngày khởi chiếu trong tương lai.");
+            }
+            if ("NOW_SHOWING".equals(m.getStatus())) {
+                if (m.getReleaseDate().isAfter(today)) {
+                    errors.add("Phim Đang chiếu không được có ngày khởi chiếu trong tương lai.");
+                }
+                if (m.getEndDate().isBefore(today)) {
+                    errors.add("Phim Đang chiếu không được có ngày kết thúc trong quá khứ.");
+                }
+            }
+            if ("ENDED".equals(m.getStatus()) && !m.getEndDate().isBefore(today)) {
+                errors.add("Phim Đã kết thúc phải có ngày kết thúc trong quá khứ.");
+            }
         }
         if (categoryIds == null || categoryIds.isEmpty()) {
             errors.add("Vui lòng chọn ít nhất một thể loại.");

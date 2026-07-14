@@ -123,6 +123,7 @@
 .rv-input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.5;
+  filter: invert(1);
 }
 
 /* ══════════════════════════════════════

@@ -78,78 +78,32 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCounter();
   }
 
-  const uploadZone = document.getElementById('rv-upload-zone');
   const posterInput = document.getElementById('rv-poster-input');
-  const posterPreview = document.getElementById('rv-poster-preview');
   const previewImg = document.getElementById('rv-preview-img');
-  const uploadPlaceholder = document.getElementById('rv-upload-placeholder');
-  const clearPosterBtn = document.getElementById('rv-clear-poster');
+  const previewPlaceholder = document.getElementById('rv-preview-placeholder');
 
-  if (uploadZone && posterInput) {
-    uploadZone.addEventListener('click', (e) => {
-      if (e.target.closest('#rv-clear-poster')) return;
-      posterInput.click();
-    });
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-      uploadZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-      }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      uploadZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-      }, false);
-    });
-
-    uploadZone.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files.length) {
-        posterInput.files = files;
-        handlePosterSelect(files[0]);
-      }
-    });
-
-    posterInput.addEventListener('change', (e) => {
-      if (posterInput.files && posterInput.files[0]) {
-        handlePosterSelect(posterInput.files[0]);
-      }
-    });
-
-    if (clearPosterBtn) {
-      clearPosterBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        posterInput.value = '';
+  if (posterInput && previewImg && previewPlaceholder) {
+    posterInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        previewImg.src = url;
+        previewImg.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+      } else {
         previewImg.src = '';
-        posterPreview.style.display = 'none';
-        uploadPlaceholder.style.display = 'flex';
-        markDirty();
-      });
-    }
-  }
-
-  function handlePosterSelect(file) {
-    if (!file.type.match('image.*')) {
-      showToast(RV_MOVIE_VN.FORMAT_ERROR_TITLE, RV_MOVIE_VN.FORMAT_ERROR_MSG, 'error');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      showToast(RV_MOVIE_VN.FILE_TOO_LARGE_TITLE, RV_MOVIE_VN.FILE_TOO_LARGE_MSG, 'error');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewImg.src = e.target.result;
-      uploadPlaceholder.style.display = 'none';
-      posterPreview.style.display = 'block';
+        previewImg.style.display = 'none';
+        previewPlaceholder.style.display = 'block';
+      }
       markDirty();
-    };
-    reader.readAsDataURL(file);
+    });
+    
+    // Fallback if image fails to load
+    previewImg.addEventListener('error', () => {
+      if (posterInput.value.trim()) {
+        previewImg.style.display = 'none';
+        previewPlaceholder.style.display = 'block';
+      }
+    });
   }
 
   const tagContainer = document.getElementById('rv-genre-tags-container');
