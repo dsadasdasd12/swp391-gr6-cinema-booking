@@ -47,7 +47,8 @@ public class AttendanceDAO {
     // 3. WRITE: Soát vé vào cổng (Check-in Transaction)
     public String checkInTicket(int bookingId, int staffId) {
         // Kiểm tra tính hợp lệ của đơn đặt vé trước
-        String bookingCheckSql = "SELECT status, total_price FROM dbo.BOOKINGS WHERE id = ?";
+        String bookingCheckSql = "SELECT b.status, h.branch_id FROM dbo.BOOKINGS b JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id JOIN dbo.HALLS h ON s.hall_id = h.id WHERE b.id = ?";
+        String staffCheckSql = "SELECT u.role, sb.branch_id FROM dbo.[USER] u LEFT JOIN dbo.STAFF_BRANCH sb ON u.id = sb.user_id WHERE u.id = ?";
         String insertAttendanceSql = "INSERT INTO dbo.ATTENDANCE (booking_id, checked_by, checked_at) VALUES (?, ?, GETDATE())";
         String updateBookingStatusSql = "UPDATE dbo.BOOKINGS SET status = 'USED', last_update = GETDATE() WHERE id = ?";
         
@@ -56,17 +57,46 @@ public class AttendanceDAO {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
-            // Bước A: Kiểm tra trạng thái đơn vé
+            // Bước A: Kiểm tra trạng thái đơn vé và chi nhánh của vé
             String status = null;
+            int bookingBranchId = -1;
             try (PreparedStatement ps = conn.prepareStatement(bookingCheckSql)) {
                 ps.setInt(1, bookingId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         status = rs.getString("status");
+                        bookingBranchId = rs.getInt("branch_id");
                     } else {
                         conn.rollback();
                         return "VÉ KHÔNG TỒN TẠI: Không tìm thấy hóa đơn mã số #" + bookingId;
                     }
+                }
+            }
+
+            // Kiểm tra phân quyền và chi nhánh của nhân viên soát vé
+            String staffRole = null;
+            Integer staffBranchId = null;
+            try (PreparedStatement ps = conn.prepareStatement(staffCheckSql)) {
+                ps.setInt(1, staffId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        staffRole = rs.getString("role");
+                        if (rs.getObject("branch_id") != null) {
+                            staffBranchId = rs.getInt("branch_id");
+                        }
+                    }
+                }
+            }
+
+            // Nếu không phải ADMIN, kiểm tra xem có đúng chi nhánh không
+            if (!"ADMIN".equalsIgnoreCase(staffRole)) {
+                if (staffBranchId == null) {
+                    conn.rollback();
+                    return "LỖI PHÂN QUYỀN: Nhân viên soát vé chưa được gán vào chi nhánh nào.";
+                }
+                if (staffBranchId != bookingBranchId) {
+                    conn.rollback();
+                    return "SAI CHI NHÁNH: Vé này thuộc chi nhánh khác, không thể soát tại đây!";
                 }
             }
 
