@@ -56,18 +56,7 @@ public class SystemSettingsServlet extends HttpServlet {
                 }
                 resp.sendRedirect(ctx + "/admin/settings#panel-cinema");
             }
-            case "smtp" -> {
-                servletCtx.setAttribute("mail.smtp.host", trim(req.getParameter("smtpHost")));
-                servletCtx.setAttribute("mail.smtp.port", trim(req.getParameter("smtpPort")));
-                servletCtx.setAttribute("mail.smtp.user", trim(req.getParameter("smtpUser")));
-                servletCtx.setAttribute("mail.smtp.auth", trim(req.getParameter("smtpAuth")));
-                String pwd = req.getParameter("smtpPassword");
-                if (pwd != null && !pwd.isBlank()) {
-                    servletCtx.setAttribute("mail.smtp.password", pwd.trim());
-                }
-                session.setAttribute("flashSuccess", "Đã lưu cấu hình SMTP.");
-                resp.sendRedirect(ctx + "/admin/settings#panel-smtp");
-            }
+
             case "maintenance" -> {
                 boolean on = "on".equals(req.getParameter("maintenance"));
                 servletCtx.setAttribute(ATTR_MAINTENANCE, on);
@@ -83,13 +72,7 @@ public class SystemSettingsServlet extends HttpServlet {
         req.setAttribute("cinema", loadCinema());
 
         var ctx = req.getServletContext();
-        req.setAttribute("smtpHost", initOrAttr(ctx, "mail.smtp.host"));
-        req.setAttribute("smtpPort", initOrAttr(ctx, "mail.smtp.port"));
-        req.setAttribute("smtpUser", initOrAttr(ctx, "mail.smtp.user"));
-        req.setAttribute("smtpAuth", initOrAttr(ctx, "mail.smtp.auth"));
 
-        String pwd = initOrAttr(ctx, "mail.smtp.password");
-        req.setAttribute("smtpPasswordSet", pwd != null && !pwd.isBlank());
 
         Object maint = ctx.getAttribute(ATTR_MAINTENANCE);
         req.setAttribute("maintenanceMode", Boolean.TRUE.equals(maint));
@@ -117,7 +100,7 @@ public class SystemSettingsServlet extends HttpServlet {
     }
 
     private boolean updateCinema(int id, String name, String phone, String address, String status) {
-        String sql = "UPDATE dbo.CINEMA SET name=?, phone=?, address=?, status=?, last_update=GETDATE WHERE id=?";
+        String sql = "UPDATE dbo.CINEMA SET name=?, phone=?, address=?, status=?, last_update=GETDATE() WHERE id=?";
         Connection conn = DBContext.getInstance().getConnection();
         if (conn == null) return false;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

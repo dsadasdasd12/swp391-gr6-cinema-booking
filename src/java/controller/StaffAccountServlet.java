@@ -38,6 +38,11 @@ public class StaffAccountServlet extends HttpServlet {
         if (bStr != null && !bStr.trim().isEmpty()) {
             try { branchId = Integer.parseInt(bStr); } catch (NumberFormatException ignored) {}
         }
+        
+        String sortField = req.getParameter("sortField");
+        String sortOrder = req.getParameter("sortOrder");
+
+
 
         int currentPage = 1;
         String pageStr = req.getParameter("page");
@@ -46,9 +51,13 @@ public class StaffAccountServlet extends HttpServlet {
         }
 
         int pageSize = 10;
+        String pageSizeStr = req.getParameter("pageSize");
+        if (pageSizeStr != null && !pageSizeStr.trim().isEmpty()) {
+            try { pageSize = Integer.parseInt(pageSizeStr); } catch (NumberFormatException ignored) {}
+        }
         int offset = (currentPage - 1) * pageSize;
 
-        List<ManagedUser> staffList = userDAO.findStaffPaged(keyword, roleId, branchId, offset, pageSize);
+        List<ManagedUser> staffList = userDAO.findStaffPaged(keyword, roleId, branchId, sortField, sortOrder, offset, pageSize);
         int totalItems = userDAO.countStaff(keyword, roleId, branchId);
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
         if (totalPages == 0) totalPages = 1;
@@ -59,6 +68,8 @@ public class StaffAccountServlet extends HttpServlet {
         req.setAttribute("staffList", staffList);
         req.setAttribute("branches", branches);
         req.setAttribute("roles", roles);
+        req.setAttribute("sortField", sortField);
+        req.setAttribute("sortOrder", sortOrder);
         req.setAttribute("currentPage", currentPage);
         req.setAttribute("totalPages", totalPages);
         req.setAttribute("totalItems", totalItems);
@@ -78,6 +89,8 @@ public class StaffAccountServlet extends HttpServlet {
         if (idStr != null && !idStr.trim().isEmpty()) {
             try { userId = Integer.parseInt(idStr); } catch (NumberFormatException ignored) {}
         }
+        
+
 
         if ("add".equalsIgnoreCase(action)) {
             String fullName = req.getParameter("fullName");

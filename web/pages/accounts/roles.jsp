@@ -80,6 +80,20 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Style for read-only checkboxes */
+    .matrix-chk {
+        transform: scale(1.4);
+        cursor: not-allowed;
+        accent-color: var(--primary); /* Use primary color for checked */
+        transition: opacity 0.2s;
+    }
+    .matrix-chk:not(:checked) {
+        opacity: 0.15; /* Make unchecked checkboxes very faint */
+    }
+    .matrix-chk:checked {
+        opacity: 1; /* Make checked checkboxes stand out completely */
+    }
 </style>
 
 <!-- ── PAGE HEADER ── -->
@@ -95,9 +109,7 @@
         <p class="rv-page-subtitle">Cấu hình các quyền hạn thao tác cụ thể cho từng nhóm người dùng trên hệ thống.</p>
     </div>
     <div class="rv-page-header__right">
-        <button type="button" class="rv-btn rv-btn--primary" onclick="openAddRoleModal()">
-            <i class="bi bi-plus-lg"></i>Thêm vai trò mới
-        </button>
+        <!-- Empty or can add another read-only badge here if needed -->
     </div>
 </div>
 
@@ -147,24 +159,20 @@
             </div>
         </div>
         
-        <form method="post" action="${ctx}/admin/accounts/roles" id="matrix-form">
-            <input type="hidden" name="action" value="update-permissions">
-            <input type="hidden" name="roleId" value="${selectedRole.id}">
-
-            <div class="rv-card__body" style="padding: 0;">
-                <div style="overflow-x: auto;">
-                    <table class="matrix-table" id="permissionsMatrix">
-                        <thead>
-                            <tr>
-                                <th>Chức năng hệ thống (Module)</th>
-                                <th>Xem (View)<br><input type="checkbox" onclick="checkAllColumn(1, this.checked)" style="cursor: pointer;"></th>
-                                <th>Thêm mới (Create)<br><input type="checkbox" onclick="checkAllColumn(2, this.checked)" style="cursor: pointer;"></th>
-                                <th>Sửa (Edit)<br><input type="checkbox" onclick="checkAllColumn(3, this.checked)" style="cursor: pointer;"></th>
-                                <th>Xóa (Delete)<br><input type="checkbox" onclick="checkAllColumn(4, this.checked)" style="cursor: pointer;"></th>
-                                <th>Xuất file (Export)<br><input type="checkbox" onclick="checkAllColumn(5, this.checked)" style="cursor: pointer;"></th>
-                                <th>Tất cả (Manage)<br><input type="checkbox" onclick="checkAllColumn(6, this.checked)" style="cursor: pointer;"></th>
-                            </tr>
-                        </thead>
+        <div class="rv-card__body" style="padding: 0;">
+            <div style="overflow-x: auto;">
+                <table class="matrix-table" id="permissionsMatrix">
+                    <thead>
+                        <tr>
+                            <th>Chức năng hệ thống (Module)</th>
+                            <th>Xem (View)</th>
+                            <th>Thêm mới (Create)</th>
+                            <th>Sửa (Edit)</th>
+                            <th>Xóa (Delete)</th>
+                            <th>Xuất file (Export)</th>
+                            <th>Tất cả (Manage)</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             <c:forEach var="m" items="${modules}">
                                 <c:set var="mKey" value="${m.key}"/>
@@ -176,51 +184,36 @@
                                         <div style="font-size: 11px; color: var(--n-400); font-weight: normal; margin-top: 2px;"><c:out value="${m.description}"/></div>
                                     </td>
                                     
-                                    <!-- View Checkbox -->
-                                    <td>
-                                        <input type="checkbox" name="permissions" value="${mKey}:view" class="col-1-chk" ${perms.view ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                    </td>
-                                    <!-- Create Checkbox -->
-                                    <td>
-                                        <input type="checkbox" name="permissions" value="${mKey}:create" class="col-2-chk" ${perms.create ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                    </td>
-                                    <!-- Edit Checkbox -->
-                                    <td>
-                                        <input type="checkbox" name="permissions" value="${mKey}:edit" class="col-3-chk" ${perms.edit ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                    </td>
-                                    <!-- Delete Checkbox -->
-                                    <td>
-                                        <input type="checkbox" name="permissions" value="${mKey}:delete" class="col-4-chk" ${perms.delete ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                    </td>
-                                    <!-- Export Checkbox -->
-                                    <td>
-                                        <input type="checkbox" name="permissions" value="${mKey}:export" class="col-5-chk" ${perms.export ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                    </td>
-                                    <!-- Manage Checkbox -->
-                                    <td>
-                                        <input type="checkbox" name="permissions" value="${mKey}:manage" class="col-6-chk" ${perms.manage ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                    </td>
+                                <!-- View Checkbox -->
+                                <td>
+                                    <input type="checkbox" name="permissions" value="${mKey}:view" class="matrix-chk" ${perms.view ? 'checked' : ''} onclick="return false;">
+                                </td>
+                                <!-- Create Checkbox -->
+                                <td>
+                                    <input type="checkbox" name="permissions" value="${mKey}:create" class="matrix-chk" ${perms.create ? 'checked' : ''} onclick="return false;">
+                                </td>
+                                <!-- Edit Checkbox -->
+                                <td>
+                                    <input type="checkbox" name="permissions" value="${mKey}:edit" class="matrix-chk" ${perms.edit ? 'checked' : ''} onclick="return false;">
+                                </td>
+                                <!-- Delete Checkbox -->
+                                <td>
+                                    <input type="checkbox" name="permissions" value="${mKey}:delete" class="matrix-chk" ${perms.delete ? 'checked' : ''} onclick="return false;">
+                                </td>
+                                <!-- Export Checkbox -->
+                                <td>
+                                    <input type="checkbox" name="permissions" value="${mKey}:export" class="matrix-chk" ${perms.export ? 'checked' : ''} onclick="return false;">
+                                </td>
+                                <!-- Manage Checkbox -->
+                                <td>
+                                    <input type="checkbox" name="permissions" value="${mKey}:manage" class="matrix-chk" ${perms.manage ? 'checked' : ''} onclick="return false;">
+                                </td>
                                 </tr>
                             </c:forEach>
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <!-- Matrix Footer Save Bar -->
-            <div style="background: var(--n-50); border-top: 1px solid var(--border); padding: var(--s-4) var(--s-6); display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 var(--r-lg) var(--r-lg);">
-                <div style="font-size: 12px; color: var(--n-500); display: flex; align-items: center; gap: 6px;">
-                    <i class="bi bi-info-circle-fill" style="color: var(--primary);"></i>
-                    Thay đổi quyền sẽ áp dụng lập tức cho tất cả người dùng thuộc vai trò này.
-                </div>
-                <div style="display: flex; gap: var(--s-3);">
-                    <a href="javascript:location.reload();" class="rv-btn rv-btn--ghost rv-btn--sm">Hủy bỏ</a>
-                    <button type="submit" class="rv-btn rv-btn--primary rv-btn--sm">
-                        <i class="bi bi-shield-check"></i>Lưu thay đổi ma trận
-                    </button>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
 
     <!-- ── PHẢI: ROLE INFORMATION (280px) ── -->
@@ -229,26 +222,23 @@
             <span class="rv-card__title">Thông tin vai trò</span>
         </div>
         <div class="rv-card__body" style="padding: var(--s-4);">
-            <form method="post" action="${ctx}/admin/accounts/roles" style="display: flex; flex-direction: column; gap: var(--s-3);">
-                <input type="hidden" name="action" value="update-role-info">
-                <input type="hidden" name="roleId" value="${selectedRole.id}">
-
+            <div style="display: flex; flex-direction: column; gap: var(--s-3);">
                 <!-- Role Name -->
                 <div class="rv-form-group">
                     <label class="rv-label" for="roleName">Tên nhóm quyền</label>
-                    <input type="text" id="roleName" name="name" class="rv-input" value="<c:out value='${selectedRole.name}'/>" required ${selectedRole.id <= 4 ? 'readonly' : ''}>
+                    <input type="text" id="roleName" name="name" class="rv-input" value="<c:out value='${selectedRole.name}'/>" readonly>
                 </div>
 
                 <!-- Description -->
                 <div class="rv-form-group">
                     <label class="rv-label" for="roleDesc">Mô tả tóm tắt</label>
-                    <textarea id="roleDesc" name="description" class="rv-textarea" rows="3" required ${selectedRole.id <= 4 ? 'readonly' : ''}><c:out value="${selectedRole.description}"/></textarea>
+                    <textarea id="roleDesc" name="description" class="rv-textarea" rows="3" readonly><c:out value="${selectedRole.description}"/></textarea>
                 </div>
 
                 <!-- Scope -->
                 <div class="rv-form-group">
                     <label class="rv-label" for="roleScope">Phạm vi mặc định</label>
-                    <select id="roleScope" name="scope" class="rv-select" ${selectedRole.id <= 4 ? 'disabled' : ''}>
+                    <select id="roleScope" name="scope" class="rv-select" disabled>
                         <option value="ALL_BRANCHES" ${selectedRole.scope == 'ALL_BRANCHES' ? 'selected' : ''}>Toàn hệ thống (All Branches)</option>
                         <option value="ASSIGNED_BRANCH" ${selectedRole.scope == 'ASSIGNED_BRANCH' ? 'selected' : ''}>Tại chi nhánh được gán</option>
                     </select>
@@ -257,96 +247,19 @@
                 <!-- Details Readonly Info -->
                 <div style="font-size: 11px; color: var(--n-400); display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--border); padding-top: var(--s-3); margin-top: var(--s-1);">
                     <div>Ngày khởi tạo: <strong>01/01/2026 08:00</strong></div>
-                    <div>Cập nhật cuối: <strong>Vừa xong</strong></div>
+                    <div>Trạng thái: <strong>Cố định (Chỉ xem)</strong></div>
                 </div>
 
-                <!-- Save Info Buttons (Only enable for editable custom roles) -->
-                <c:choose>
-                    <c:when test="${selectedRole.id > 3}">
-                        <button type="submit" class="rv-btn rv-btn--secondary rv-btn--sm w-100" style="margin-top: var(--s-2);">
-                            <i class="bi bi-save"></i>Cập nhật thông tin
-                        </button>
-                    </c:when>
-                    <c:otherwise>
-                        <div style="font-size: 11px; color: var(--n-400); font-style: italic; text-align: center; margin-top: 10px;">
-                            🔒 Nhóm vai trò mặc định hệ thống. Không thể sửa thông tin hành chính.
-                        </div>
-                    </c:otherwise>
-                </c:choose>
-            </form>
-
-            <!-- Delete Role Action (Only for non-default roles) -->
-            <c:if test="${selectedRole.id > 3}">
-                <div style="border-top: 1px solid var(--border); padding-top: var(--s-4); margin-top: var(--s-4);">
-                    <form method="post" action="${ctx}/admin/accounts/roles" style="margin: 0;">
-                        <input type="hidden" name="action" value="delete-role">
-                        <input type="hidden" name="roleId" value="${selectedRole.id}">
-                        <button type="submit" class="rv-btn rv-btn--danger rv-btn--sm w-100"
-                                data-confirm
-                                data-confirm-title="Xóa nhóm vai trò?"
-                                data-confirm-message="Bạn chắc chắn muốn xóa vai trò '<strong>${selectedRole.name}</strong>'? Toàn bộ nhân viên được gán nhóm vai trò này sẽ mất quyền truy cập hệ thống và bạn phải gán lại nhóm vai trò khác cho họ."
-                                data-confirm-type="danger"
-                                data-confirm-text="Xóa vĩnh viễn">
-                            <i class="bi bi-trash3-fill"></i>Xóa nhóm vai trò
-                        </button>
-                    </form>
+                <div style="font-size: 11px; color: var(--n-400); font-style: italic; text-align: center; margin-top: 10px;">
+                    🔒 Nhóm vai trò và quyền hạn được cấu hình cứng từ đầu, không thể thay đổi.
                 </div>
-            </c:if>
+            </div>
         </div>
     </div>
 
 </div>
 
-<!-- ── ADD ROLE MODAL (POPUP) ── -->
-<div id="add-role-modal-overlay" class="rv-modal-overlay">
-    <div class="rv-modal">
-        <form method="post" action="${ctx}/admin/accounts/roles" id="add-role-form">
-            <input type="hidden" name="action" value="add-role">
-
-            <div class="rv-modal__header">
-                <div class="rv-modal__icon success">
-                    <i class="bi bi-plus-circle"></i>
-                </div>
-                <h3 class="rv-modal__title">Tạo nhóm vai trò mới</h3>
-            </div>
-            
-            <div class="rv-modal__body" style="display: flex; flex-direction: column; gap: var(--s-3);">
-                <div class="rv-form-group">
-                    <label class="rv-label" for="newRoleName">Tên nhóm quyền *</label>
-                    <input type="text" id="newRoleName" name="name" class="rv-input" placeholder="Ví dụ: Giám Sát Chi Nhánh" required>
-                </div>
-
-                <div class="rv-form-group">
-                    <label class="rv-label" for="newRoleDesc">Mô tả chức năng *</label>
-                    <textarea id="newRoleDesc" name="description" class="rv-textarea" rows="3" placeholder="Mô tả tóm tắt quyền hạn công việc..." required></textarea>
-                </div>
-
-                <div class="rv-form-group">
-                    <label class="rv-label" for="newRoleScope">Phạm vi hoạt động</label>
-                    <select id="newRoleScope" name="scope" class="rv-select">
-                        <option value="ASSIGNED_BRANCH">Chỉ tại chi nhánh được gán</option>
-                        <option value="ALL_BRANCHES">Toàn bộ hệ thống</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="rv-modal__footer">
-                <button type="button" class="rv-btn rv-btn--ghost rv-btn--sm" onclick="closeAddRoleModal()">Hủy bỏ</button>
-                <button type="submit" class="rv-btn rv-btn--success rv-btn--sm">Tạo vai trò</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <script>
-    // Check all checkboxes in a column (View, Create, etc.)
-    function checkAllColumn(colNum, isChecked) {
-        const checkboxes = document.querySelectorAll('.col-' + colNum + '-chk');
-        checkboxes.forEach(chk => {
-            chk.checked = isChecked;
-        });
-    }
-
     // Filter matrix table modules via search box (on button click or Enter)
     function filterMatrix() {
         const query = document.getElementById('matrixSearch').value.toLowerCase().trim();
@@ -374,22 +287,6 @@
         }
     });
 
-    // Modal toggles
-    const addRoleModal = document.getElementById('add-role-modal-overlay');
-    
-    function openAddRoleModal() {
-        addRoleModal.classList.add('show');
-    }
-    
-    function closeAddRoleModal() {
-        addRoleModal.classList.remove('show');
-    }
-
-    addRoleModal.addEventListener('click', (e) => {
-        if (e.target === addRoleModal) {
-            closeAddRoleModal();
-        }
-    });
 </script>
 
 </main>

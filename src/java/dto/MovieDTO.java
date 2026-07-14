@@ -75,6 +75,10 @@ public class MovieDTO {
         return p;
     }
 
+    public boolean isPosterExternalUrl() {
+        return posterUrl != null && (posterUrl.startsWith("http://") || posterUrl.startsWith("https://"));
+    }
+
     public String getDirector()            { return director; }
     public void setDirector(String director) { this.director = director; }
 

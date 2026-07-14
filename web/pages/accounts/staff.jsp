@@ -76,6 +76,8 @@
     </form>
 </div>
 
+
+
 <!-- ── STAFF TABLE ── -->
 <div class="rv-card">
     <c:choose>
@@ -92,9 +94,33 @@
                     <thead>
                         <tr>
                             <th style="width: 60px; text-align: center;">No.</th>
-                            <th>Họ và tên</th>
-                            <th>Địa chỉ Email</th>
-                            <th>Vai trò</th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/accounts/staff?keyword=${param.keyword}&roleId=${param.roleId}&branchId=${param.branchId}&pageSize=${pageSize}&sortField=fullName&sortOrder=${sortField == 'fullName' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Họ và tên
+                                <c:if test="${sortField == 'fullName'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'fullName'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/accounts/staff?keyword=${param.keyword}&roleId=${param.roleId}&branchId=${param.branchId}&pageSize=${pageSize}&sortField=email&sortOrder=${sortField == 'email' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Địa chỉ Email
+                                <c:if test="${sortField == 'email'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'email'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
+                            <th class="sortable-col" onclick="location.href='${ctx}/admin/accounts/staff?keyword=${param.keyword}&roleId=${param.roleId}&branchId=${param.branchId}&pageSize=${pageSize}&sortField=role&sortOrder=${sortField == 'role' && sortOrder == 'ASC' ? 'DESC' : 'ASC'}'">
+                                Vai trò
+                                <c:if test="${sortField == 'role'}">
+                                    <i class="bi bi-arrow-${sortOrder == 'ASC' ? 'up' : 'down'}"></i>
+                                </c:if>
+                                <c:if test="${sortField != 'role'}">
+                                    <i class="bi bi-arrow-down-up text-muted" style="opacity: 0.3;"></i>
+                                </c:if>
+                            </th>
                             <th>Chi nhánh</th>
                             <th>Trạng thái</th>
                             <th>Đăng nhập cuối</th>
@@ -278,7 +304,7 @@
                         <select id="roleIdSelect" name="roleId" class="rv-select" required>
                             <option value="">-- Chọn vai trò --</option>
                             <c:forEach var="r" items="${roles}">
-                                <option value="${r.id}"><c:out value="${r.name}"/></option>
+                                <option value="${r.id}" data-role-name="${r.name}"><c:out value="${r.name}"/></option>
                             </c:forEach>
                         </select>
                     </div>
@@ -287,7 +313,7 @@
                     <div class="rv-form-group">
                         <label class="rv-label" for="branchIdSelect">Chi nhánh quản lý *</label>
                         <select id="branchIdSelect" name="branchId" class="rv-select" required>
-                            <option value="0">Hệ Thống (Toàn bộ)</option>
+                            <option value="0" id="opt-branch-all">Hệ Thống (Toàn bộ)</option>
                             <c:forEach var="b" items="${branches}">
                                 <option value="${b.id}"><c:out value="${b.name}"/></option>
                             </c:forEach>
@@ -346,6 +372,10 @@
             branchSelect.value = data.branchId || '0';
             statusSelect.value = data.status;
             statusGroup.style.display = 'block';
+            
+            // Re-show all options in edit mode (just in case they were hidden)
+            Array.from(roleSelect.options).forEach(opt => opt.style.display = 'block');
+            document.getElementById('opt-branch-all').style.display = 'block';
         } else {
             // Add mode
             formAction.value = 'add';
@@ -355,8 +385,18 @@
             emailInput.value = '';
             emailInput.readOnly = false;
             roleSelect.value = '';
-            branchSelect.value = '0';
+            branchSelect.value = ''; // Force them to pick a branch
             statusGroup.style.display = 'none';
+
+            // Hide ADMIN role and Hệ thống branch
+            Array.from(roleSelect.options).forEach(opt => {
+                if (opt.getAttribute('data-role-name') === 'ADMIN') {
+                    opt.style.display = 'none';
+                } else {
+                    opt.style.display = 'block';
+                }
+            });
+            document.getElementById('opt-branch-all').style.display = 'none';
         }
         modalOverlay.classList.add('show');
     }
@@ -371,6 +411,22 @@
         }
     });
 </script>
+
+<!-- ── SCRIPT CHO THIẾT LẬP SORT COLUMNS ── -->
+<style>
+.sortable-col {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+.sortable-col:hover {
+    background-color: var(--n-50);
+}
+.sortable-col i {
+    margin-left: 4px;
+    font-size: 12px;
+}
+</style>
 
 </body>
 </html>

@@ -47,10 +47,11 @@ public class TicketController extends HttpServlet {
         if (action == null) action = "";
 
         switch (action) {
-            case "use"   -> handleUse  (req, resp);
-            case "retry" -> handleRetry(req, resp);
-            case "issue" -> handleIssue(req, resp);
-            default      -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            case "use"            -> handleUse  (req, resp);
+            case "retry"          -> handleRetry(req, resp);
+            case "issue"          -> handleIssue(req, resp);
+            case "bulk-generate"  -> handleBulkGenerate(req, resp);
+            default               -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
@@ -63,8 +64,10 @@ public class TicketController extends HttpServlet {
         int pageSize = parsePageSize(req.getParameter("pageSize"));
         String keyword = trim(req.getParameter("keyword"));
         String status = trim(req.getParameter("status"));
+        String sortField = req.getParameter("sortField");
+        String sortOrder = req.getParameter("sortOrder");
 
-        var pageResult = ticketService.getTicketsPaged(keyword, status, page, pageSize);
+        var pageResult = ticketService.getTicketsPaged(keyword, status, sortField, sortOrder, page, pageSize);
         req.setAttribute("tickets", pageResult.getItems());
         req.setAttribute("currentPage", pageResult.getPage());
         req.setAttribute("totalPages", pageResult.getTotalPages());
@@ -74,8 +77,11 @@ public class TicketController extends HttpServlet {
         // for JSP EL convenience
         req.setAttribute("keyword", keyword);
         req.setAttribute("status", status);
+        req.setAttribute("sortField", sortField);
+        req.setAttribute("sortOrder", sortOrder);
         req.getRequestDispatcher("/pages/admin/ticket-list.jsp").forward(req, resp);
     }
+
 
     /** Chi tiết một ticket (hiển thị QR để admin kiểm tra / in lại). */
     private void handleDetail(HttpServletRequest req, HttpServletResponse resp)
@@ -171,6 +177,20 @@ public class TicketController extends HttpServlet {
         } else {
             out.print("{\"success\":false,\"message\":\"Tạo QR thất bại sau 3 lần thử. Vui lòng liên hệ kỹ thuật.\"}");
         }
+    }
+
+    /**
+     * Sinh QR hàng loạt cho tất cả booking chưa có QR code.
+     * POST ?action=bulk-generate
+     * Response: JSON {"success":true,"generated":N,"failed":M}
+     */
+    private void handleBulkGenerate(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType("application/json; charset=UTF-8");
+        PrintWriter out = resp.getWriter();
+        int[] result = ticketService.bulkGenerateQR();
+        out.print("{\"success\":true,\"generated\":" + result[0]
+                + ",\"failed\":" + result[1] + "}");
     }
 
     // ── Helpers ───────────────────────────────────────────────

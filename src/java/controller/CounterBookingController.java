@@ -218,6 +218,10 @@ public class CounterBookingController extends HttpServlet {
                                                                  discountReason, staffId);
 
                 if (bookingId != -1) {
+                    if ("CASH".equalsIgnoreCase(paymentMethod)) {
+                        ticketService.generateTicket(bookingId, null, null);
+                    }
+                    
                     // Nếu sử dụng mã giảm giá, tự động tăng số lần sử dụng của mã
                     if (discountReason != null && discountReason.startsWith("Mã giảm giá: ")) {
                         String vCode = discountReason.substring(13).trim();

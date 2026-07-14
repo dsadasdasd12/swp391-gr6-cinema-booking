@@ -128,6 +128,55 @@ public class NotificationService {
         sendWithRetry(ctx, info.email, subject, body, log);
     }
 
+    /**
+     * Gửi email thông báo đăng ký tài khoản thành công.
+     */
+    public void sendRegistrationSuccess(int userId, String customerName, String email, ServletContext ctx) {
+        String subject = "RapViet — Đăng ký tài khoản thành công";
+        String body = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>"
+                + "<h2 style='color:#e50914;'>Chào mừng đến với RapViet Cinema!</h2>"
+                + "<p>Xin chào <strong>" + esc(customerName) + "</strong>,</p>"
+                + "<p>Tài khoản của bạn đã được đăng ký và kích hoạt thành công.</p>"
+                + "<p>Giờ đây bạn có thể đăng nhập để bắt đầu đặt vé xem phim.</p>"
+                + "<p>Cảm ơn bạn đã tham gia RapViet Cinema!</p>"
+                + "</div>";
+
+        NotificationLog log = new NotificationLog();
+        log.setUserId(userId);
+        log.setBookingId(0);
+        log.setType("REGISTRATION");
+        log.setSubject(subject);
+        log.setRecipientEmail(email);
+        log.setStatus("PENDING");
+        log.setRetryCount(0);
+        logDAO.insert(log);
+
+        List<NotificationLog> logs = logDAO.findAll();
+        for (NotificationLog l : logs) {
+            if (l.getUserId() == userId && "REGISTRATION".equals(l.getType()) && "PENDING".equals(l.getStatus())) {
+                log.setNotificationId(l.getNotificationId());
+                break;
+            }
+        }
+
+        sendWithRetry(ctx, email, subject, body, log);
+    }
+
+    /**
+     * Ghi log sự kiện hệ thống (ví dụ: xoá phim) mà không gửi email.
+     */
+    public void logSystemNotification(int userId, String eventDesc, String adminEmail) {
+        NotificationLog log = new NotificationLog();
+        log.setUserId(userId);
+        log.setBookingId(0);
+        log.setType("SYSTEM_EVENT");
+        log.setSubject("HỆ THỐNG: " + eventDesc);
+        log.setRecipientEmail(adminEmail != null ? adminEmail : "system@rapviet.vn");
+        log.setStatus("SENT"); // Không gửi email thực, chỉ log
+        log.setRetryCount(0);
+        logDAO.insert(log);
+    }
+
     // ═══════════════════════════════════════════════════════════
     //  — Promotion / Batch Emails
     // ═══════════════════════════════════════════════════════════
@@ -213,14 +262,14 @@ public class NotificationService {
     /**
      * Lấy trang log để hiển thị trang admin.
      */
-    public PageResult<NotificationLog> getLogsPaged(String keyword, String type, String status,
+    public PageResult<NotificationLog> getLogsPaged(String keyword, String type, String status, String sortField, String sortOrder,
                                                      int page, int pageSize) {
         int safePage = page < 1 ? 1 : page;
         int safeSize = pageSize < 1 ? 10 : pageSize;
         int offset = (safePage - 1) * safeSize;
 
         long total = logDAO.countLogs(keyword, type, status);
-        List<NotificationLog> items = logDAO.findPaged(keyword, type, status, offset, safeSize);
+        List<NotificationLog> items = logDAO.findPaged(keyword, type, status, sortField, sortOrder, offset, safeSize);
         return new PageResult<>(items, total, safePage, safeSize);
     }
 

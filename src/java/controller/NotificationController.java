@@ -30,11 +30,12 @@ public class NotificationController extends HttpServlet {
             throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
-        if (action == null || "list".equals(action)) {
-            handleList(req, resp);
-            return;
+        if (action == null) action = "list";
+        
+        switch (action) {
+            case "list" -> handleList(req, resp);
+            default -> resp.sendRedirect(req.getContextPath() + "/admin/notifications?action=list");
         }
-        resp.sendRedirect(req.getContextPath() + "/admin/notifications?action=list");
     }
 
     @Override
@@ -50,8 +51,10 @@ public class NotificationController extends HttpServlet {
         String keyword = trim(req.getParameter("keyword"));
         String type = trim(req.getParameter("type"));
         String status = trim(req.getParameter("status"));
+        String sortField = req.getParameter("sortField");
+        String sortOrder = req.getParameter("sortOrder");
 
-        var pageResult = notifService.getLogsPaged(keyword, type, status, page, pageSize);
+        var pageResult = notifService.getLogsPaged(keyword, type, status, sortField, sortOrder, page, pageSize);
 
         req.setAttribute("logs", pageResult.getItems());
         req.setAttribute("currentPage", pageResult.getPage());
@@ -63,8 +66,12 @@ public class NotificationController extends HttpServlet {
         req.setAttribute("keyword", keyword);
         req.setAttribute("type", type);
         req.setAttribute("status", status);
+        req.setAttribute("sortField", sortField);
+        req.setAttribute("sortOrder", sortOrder);
         req.getRequestDispatcher("/pages/admin/notification-list.jsp").forward(req, resp);
     }
+    
+
 
     private static int parsePage(String s) {
         try {

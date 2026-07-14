@@ -342,6 +342,10 @@ public class MovieDAO {
      * @param status   COMING_SOON / NOW_SHOWING / ENDED (null = không lọc)
      */
     public List<Movie> findAll(String keyword, String status) {
+        return findAllPaged(keyword, status, null, null, 0, Integer.MAX_VALUE);
+    }
+
+    public List<Movie> findAllPaged(String keyword, String status, String sortField, String sortOrder, int offset, int limit) {
         List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT m.id, m.title, m.duration_min, m.description, m.release_date, "
@@ -352,14 +356,24 @@ public class MovieDAO {
 
         if (keyword != null && !keyword.isBlank()) {
             String kw = "%" + keyword.trim() + "%";
-            sql.append("AND (m.title LIKE ? OR m.director LIKE ?) ");
-            params.add(kw); params.add(kw);
+            sql.append("AND (m.title LIKE ? OR m.director LIKE ? OR m.actor LIKE ?) ");
+            params.add(kw); params.add(kw); params.add(kw);
         }
         if (status != null && !status.isBlank()) {
             sql.append("AND m.status = ? ");
             params.add(status);
         }
-        sql.append("ORDER BY m.last_update DESC");
+        
+        String orderCol = "m.last_update";
+        if ("title".equals(sortField)) orderCol = "m.title";
+        else if ("duration".equals(sortField)) orderCol = "m.duration_min";
+        
+        String orderDir = "ASC".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
+        
+        sql.append("ORDER BY ").append(orderCol).append(" ").append(orderDir);
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add(offset);
+        params.add(limit);
 
         List<Movie> movies = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
@@ -374,10 +388,37 @@ public class MovieDAO {
             }
         } catch (SQLException e) {
             System.getLogger(MovieDAO.class.getName())
-                    .log(System.Logger.Level.ERROR, "findAll admin thất bại", e);
+                    .log(System.Logger.Level.ERROR, "findAllPaged admin thất bại", e);
         }
         attachCategories(movies);
         return movies;
+    }
+
+    public int countAllAdmin(String keyword, String status) {
+        List<Object> params = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM dbo.MOVIES m WHERE 1=1 ");
+        if (keyword != null && !keyword.isBlank()) {
+            String kw = "%" + keyword.trim() + "%";
+            sql.append("AND (m.title LIKE ? OR m.director LIKE ? OR m.actor LIKE ?) ");
+            params.add(kw); params.add(kw); params.add(kw);
+        }
+        if (status != null && !status.isBlank()) {
+            sql.append("AND m.status = ? ");
+            params.add(status);
+        }
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.getLogger(MovieDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "countAllAdmin thất bại", e);
+        }
+        return 0;
     }
 
     /**

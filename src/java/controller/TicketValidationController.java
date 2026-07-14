@@ -61,6 +61,7 @@ public class TicketValidationController extends HttpServlet {
                 // Hỗ trợ trích xuất và chuẩn hóa bookingId thông qua TicketService
                 int bookingId = ticketService.parseBookingId(bookingIdStr);
                 
+
                 String result = ticketService.checkInTicket(bookingId, staffId);
                 
                 if ("SUCCESS".equalsIgnoreCase(result)) {

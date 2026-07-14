@@ -85,13 +85,13 @@ public class BookingDAO {
                 return -1;
             }
 
-            // B. Cập nhật mã QR dạng mã đặt vé (Ví dụ: RV-WALK-10024)
-            String qrCode = "RV-WALK-" + bookingId;
-            try (PreparedStatement ps = conn.prepareStatement(updateQrSql)) {
-                ps.setString(1, qrCode);
-                ps.setInt(2, bookingId);
-                ps.executeUpdate();
-            }
+            // B. Mã QR sẽ được xử lý riêng (generate Base64 sau)
+            // String qrCode = "RV-WALK-" + bookingId;
+            // try (PreparedStatement ps = conn.prepareStatement(updateQrSql)) {
+            //     ps.setString(1, qrCode);
+            //     ps.setInt(2, bookingId);
+            //     ps.executeUpdate();
+            // }
 
             // C. Chèn từng ghế ngồi vào BOOKING_SEATS
             try (PreparedStatement ps = conn.prepareStatement(insertBookingSeatsSql)) {
@@ -535,11 +535,12 @@ public class BookingDAO {
                 return -1;
             }
 
-            try (PreparedStatement ps = conn.prepareStatement(updateQrSql)) {
-                ps.setString(1, "RV-ONLINE-" + bookingId);
-                ps.setInt(2, bookingId);
-                ps.executeUpdate();
-            }
+            // Mã QR sẽ được xử lý riêng (generate Base64 sau)
+            // try (PreparedStatement ps = conn.prepareStatement(updateQrSql)) {
+            //     ps.setString(1, "RV-ONLINE-" + bookingId);
+            //     ps.setInt(2, bookingId);
+            //     ps.executeUpdate();
+            // }
 
             try (PreparedStatement ps = conn.prepareStatement(insertSeatSql)) {
                 for (int i = 0; i < seatIds.size(); i++) {
