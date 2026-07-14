@@ -141,7 +141,7 @@
                                 <td>
                                     <div class="d-flex align-items-center justify-content-center gap-2">
                                         <!-- Booking History Button -->
-                                        <a href="${ctx}/admin/bookings?customerId=${c.id}" class="rv-btn rv-btn--secondary rv-btn--sm" style="font-size: 12px; padding: 4px 10px; height: 28px;">
+                                        <a href="${ctx}/admin/accounts/customers?action=detail&id=${c.id}#booking-history" class="rv-btn rv-btn--secondary rv-btn--sm" style="font-size: 12px; padding: 4px 10px; height: 28px;">
                                             <i class="bi bi-card-list"></i>Lịch sử đặt vé
                                         </a>
 

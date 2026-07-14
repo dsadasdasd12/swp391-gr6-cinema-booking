@@ -49,6 +49,9 @@ public final class CloudinaryService {
     private static String requiredEnvironment(String name) throws IOException {
         String value = System.getenv(name);
         if (value == null || value.isBlank()) {
+            if ("CLOUDINARY_CLOUD_NAME".equals(name)) return "kykeunop";
+            if ("CLOUDINARY_API_KEY".equals(name)) return "234766488811881";
+            if ("CLOUDINARY_API_SECRET".equals(name)) return "iB9wFaKIASqd1X5z1DNsd3mS6-s";
             throw new IOException("Chua cau hinh bien moi truong " + name + ".");
         }
         return value;

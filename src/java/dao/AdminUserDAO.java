@@ -25,7 +25,7 @@ public class AdminUserDAO {
 
     public ManagedUser findById(int id) {
         String sql = "SELECT u.id, u.full_name, u.email, u.phone, u.role, u.active, u.email_verified, u.created_at, "
-                + "       sb.branch_id, b.name() AS branch_name "
+                + "       sb.branch_id, b.name AS branch_name "
                 + "FROM dbo.[USER] u "
                 + "LEFT JOIN dbo.STAFF_BRANCH sb ON u.id = sb.user_id "
                 + "LEFT JOIN dbo.BRANCHES b ON sb.branch_id = b.id "

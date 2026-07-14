@@ -99,10 +99,15 @@ public class CustomerAccountServlet extends HttpServlet {
         User customer = userDAO.findById(userId);
         if (customer != null) {
             req.setAttribute("c", customer);
-            req.getSession().setAttribute("flashInfo", "Thông tin khách hàng: " + customer.getFullName() + " - " + customer.getEmail());
+            
+            // Lấy lịch sử đặt vé của khách hàng này
+            service.BookingService bookingService = new service.BookingService();
+            req.setAttribute("bookingHistory", bookingService.getHistory(userId));
+            
+            req.getRequestDispatcher("/pages/accounts/customer-detail.jsp").forward(req, resp);
         } else {
             req.getSession().setAttribute("flashError", "Không tìm thấy khách hàng!");
+            resp.sendRedirect(req.getContextPath() + "/admin/accounts/customers");
         }
-        resp.sendRedirect(req.getContextPath() + "/admin/accounts/customers");
     }
 }

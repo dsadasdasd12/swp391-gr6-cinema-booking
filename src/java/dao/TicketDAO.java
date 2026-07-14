@@ -57,6 +57,29 @@ public class TicketDAO {
         return false;
     }
 
+    // ── 5a-2. FIND BOOKINGS WITHOUT QR ────────────────────────
+
+    /**
+     * Tìm tất cả booking đã xác nhận (CONFIRMED/COMPLETED) nhưng chưa có QR code.
+     */
+    public List<Integer> findBookingIdsWithoutQR() {
+        String sql = "SELECT id FROM dbo.BOOKINGS "
+                   + "WHERE (qr_code IS NULL OR qr_code LIKE 'DEMO%') "
+                   + "AND status IN ('CONFIRMED','CHECKED_IN','COMPLETED','PENDING')";
+        List<Integer> ids = new ArrayList<>();
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ids.add(rs.getInt("id"));
+            }
+        } catch (SQLException e) {
+            System.getLogger(TicketDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "findBookingIdsWithoutQR thất bại", e);
+        }
+        return ids;
+    }
+
     // ── 5b. SELECT BY BOOKING ID ───────────────────────────────
 
     public double getBookingTotalPrice(int bookingId) {
@@ -294,13 +317,13 @@ public class TicketDAO {
         String bStatus = rs.getString("booking_status");
         t.setBookingStatus   (bStatus);
         
-        // Trạng thái vé map tương ứng
+        String qrCode = rs.getString("qr_code");
         if ("COMPLETED".equals(bStatus) || "USED".equals(bStatus)) {
             t.setUsed(true);
             t.setTicketStatus("USED");
         } else {
             t.setUsed(false);
-            t.setTicketStatus(rs.getString("qr_code") == null ? "PENDING_MANUAL" : "ISSUED");
+            t.setTicketStatus(qrCode == null || qrCode.startsWith("DEMO") ? "PENDING_MANUAL" : "ISSUED");
         }
         
         t.setQrCodeBase64    (rs.getString("qr_code"));

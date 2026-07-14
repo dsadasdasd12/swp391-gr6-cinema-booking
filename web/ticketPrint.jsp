@@ -213,7 +213,19 @@
             </div>
             <div class="details-row">
                 <span>Nhân viên:</span>
-                <span>Staff #10</span>
+                <span>
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.adminUser}">
+                            ${sessionScope.adminUser.fullName}
+                        </c:when>
+                        <c:when test="${not empty sessionScope.user}">
+                            ${sessionScope.user.fullName}
+                        </c:when>
+                        <c:otherwise>
+                            Staff #${booking.staffId}
+                        </c:otherwise>
+                    </c:choose>
+                </span>
             </div>
         </section>
 

@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet — Chi tiết E-Ticket (ticket-detail.jsp)
     Dùng chung cho cả admin (qua TicketController) và customer (qua email link).
     Servlet: TicketController ?action=detail&id=X
@@ -6,6 +6,7 @@
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="pageTitle" value="E-Ticket #${ticket.bookingId} — RapViet" scope="request" />
 
@@ -230,8 +231,16 @@
                     <div class="qr-box">
                         <c:choose>
                             <c:when test="${not empty ticket.qrCodeBase64}">
-                                <img src="data:image/png;base64,${ticket.qrCodeBase64}"
-                                     alt="QR Code" class="qr-img">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(ticket.qrCodeBase64, 'RV-WALK-')}">
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${ticket.qrCodeBase64}"
+                                             alt="QR Code" class="qr-img" style="background:#fff;">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img src="data:image/png;base64,${ticket.qrCodeBase64}"
+                                             alt="QR Code" class="qr-img">
+                                    </c:otherwise>
+                                </c:choose>
                             </c:when>
                             <c:otherwise>
                                 <div style="width:190px;height:190px;border-radius:8px;background:rgba(229,9,20,.05);
@@ -306,7 +315,7 @@
                 </c:if>
                 <c:if test="${ticket.ticketStatus == 'PENDING_MANUAL'}">
                     <button class="rv-btn rv-btn--primary" id="btnRetryQr"
-                            style="background:#ffc107;color:#000;" data-uuid="${ticket.ticketUuid}">
+                            style="background:#ffc107;color:#000;" data-booking-id="${ticket.bookingId > 0 ? ticket.bookingId : ticket.id}">
                         <i class="bi bi-arrow-clockwise" style="margin-right: 6px;"></i>Thử lại QR
                     </button>
                 </c:if>
@@ -352,13 +361,13 @@ function printTicket() {
 var retryBtn = document.getElementById('btnRetryQr');
 if (retryBtn) {
     retryBtn.addEventListener('click', function() {
-        var uuid = this.dataset.uuid;
+        var bookingId = this.dataset.bookingId;
         this.disabled = true;
         this.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang thử...';
         fetch('${ctx}/admin/tickets', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'action=retry&uuid=' + encodeURIComponent(uuid)
+            body: 'action=retry&bookingId=' + encodeURIComponent(bookingId)
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {

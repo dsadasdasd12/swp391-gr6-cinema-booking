@@ -36,8 +36,13 @@ public class TicketValidationController extends HttpServlet {
                 // Hỗ trợ trích xuất và chuẩn hóa bookingId thông qua TicketService
                 int bookingId = ticketService.parseBookingId(bookingIdStr);
                 
-                // Sử dụng Staff ID = 10 (theo seed_data.sql) để kiểm soát check-in
-                int staffId = 10;
+                // Lấy thông tin user hiện tại từ session
+                model.User currentUser = (model.User) request.getSession().getAttribute("user");
+                if (currentUser == null) {
+                    currentUser = (model.User) request.getSession().getAttribute("adminUser");
+                }
+                
+                int staffId = (currentUser != null) ? currentUser.getId() : 10; // Fallback to 10 if not logged in (e.g., test environment)
                 
                 String result = ticketService.checkInTicket(bookingId, staffId);
                 

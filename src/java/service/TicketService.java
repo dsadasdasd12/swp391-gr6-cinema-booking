@@ -54,6 +54,8 @@ public class TicketService {
             cleanIdStr = cleanIdStr.substring(8);
         } else if (cleanIdStr.toUpperCase().startsWith("TICKET-")) {
             cleanIdStr = cleanIdStr.substring(7);
+        } else if (cleanIdStr.toUpperCase().startsWith("RAPVIET-BOOKING-")) {
+            cleanIdStr = cleanIdStr.substring(16);
         }
         return Integer.parseInt(cleanIdStr.trim());
     }
@@ -101,7 +103,7 @@ public class TicketService {
     public Ticket generateTicket(int bookingId, String customerEmail, ServletContext ctx) {
         // Kiểm tra xem booking này đã có ticket chưa (tránh tạo trùng)
         Ticket existing = ticketDAO.findByBookingId(bookingId);
-        if (existing != null && existing.getQrCodeBase64() != null) {
+        if (existing != null && existing.getQrCodeBase64() != null && !existing.getQrCodeBase64().startsWith("DEMO")) {
             return existing;
         }
 
@@ -215,6 +217,23 @@ public class TicketService {
         Ticket t = ticketDAO.findByBookingId(bookingId);
         if (t == null || "COMPLETED".equals(t.getBookingStatus())) return false;
         return ticketDAO.markUsed(bookingId);
+    }
+
+    /**
+     * Sinh QR hàng loạt cho tất cả booking chưa có QR.
+     * @return int[]{successCount, failCount}
+     */
+    public int[] bulkGenerateQR() {
+        List<Integer> ids = ticketDAO.findBookingIdsWithoutQR();
+        int success = 0, fail = 0;
+        for (int bookingId : ids) {
+            if (retryQrGeneration(bookingId)) {
+                success++;
+            } else {
+                fail++;
+            }
+        }
+        return new int[]{success, fail};
     }
 
     /**

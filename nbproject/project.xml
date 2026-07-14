@@ -45,10 +45,7 @@
                     <file>${file.reference.mssql-jdbc-13.2.0.jre11.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-                <library dirs="200">
-                    <file>${file.reference.sqljdbc42.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
+
                 <library dirs="200">
                     <file>${file.reference.cloudinary-http44-1.39.0.jar}</file>
                 </library>

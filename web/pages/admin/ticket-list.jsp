@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Danh sách E-Ticket (ticket-list.jsp)
     Servlet: TicketController ?action=list
     (Long — )
@@ -11,6 +11,117 @@
 
 <%@ include file="/pages/shared/header-admin.jsp" %>
 <%@ include file="/pages/shared/sidebar-admin.jsp" %>
+
+<style>
+    /* Premium Table Redesign */
+    .rv-table-premium {
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        width: 100%;
+        margin-top: -10px;
+    }
+    .rv-table-premium thead th {
+        background: transparent !important;
+        border: none !important;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #8b8fa8;
+        font-weight: 600;
+        padding: 0 1rem 0.5rem;
+    }
+    .rv-table-premium tbody tr {
+        background: #1e2130;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .rv-table-premium tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        background: #252838;
+    }
+    .rv-table-premium tbody td {
+        border: none !important;
+        padding: 1rem;
+        vertical-align: middle;
+        color: #e4e6eb;
+        font-size: 0.9rem;
+    }
+    .rv-table-premium tbody td:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+    .rv-table-premium tbody td:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+    
+    /* Enhance the QR Thumbnail */
+    .qr-thumb-box {
+        width: 48px;
+        height: 48px;
+        background: #fff;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    .qr-thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .qr-thumb-missing {
+        background: rgba(229, 9, 20, 0.1);
+        border-color: rgba(229, 9, 20, 0.3);
+        color: #e50914;
+        font-size: 1.25rem;
+    }
+
+    /* Customer Info cell */
+    .customer-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .customer-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #fff;
+        letter-spacing: 0.2px;
+    }
+    .customer-email {
+        font-size: 0.8rem;
+        color: #8b8fa8;
+    }
+    .movie-title-cell {
+        font-weight: 500;
+        color: #fff;
+        font-size: 0.95rem;
+    }
+    .showtime-cell {
+        font-size: 0.85rem;
+        color: #adb5bd;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .uuid-cell {
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-size: 0.8rem;
+        color: #adb5bd;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 3px 8px;
+        border-radius: 4px;
+        user-select: all;
+    }
+</style>
 
 <!-- ── PAGE HEADER ── -->
 <div class="rv-page-header">
@@ -55,7 +166,6 @@
             </select>
         </div>
 
-        <!-- Action buttons -->
         <div class="d-flex align-items-center gap-2 ms-auto">
             <button type="submit" class="rv-btn rv-btn--secondary rv-btn--sm">
                 Lọc dữ liệu
@@ -63,6 +173,9 @@
             <a href="${ctx}/admin/tickets?action=list" class="rv-btn rv-btn--ghost rv-btn--sm">
                 Xóa lọc
             </a>
+            <button type="button" class="rv-btn rv-btn--primary rv-btn--sm" onclick="bulkGenerateQR()" id="btnBulkQR" title="Sinh QR cho tất cả vé chưa có mã">
+                <i class="bi bi-qr-code me-1"></i>Tạo QR hàng loạt
+            </button>
             <a href="javascript:location.reload();" class="rv-btn rv-btn--refresh" title="Làm mới">
                 <i class="bi bi-arrow-clockwise"></i>
             </a>
@@ -87,18 +200,18 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div class="rv-table-responsive">
-                <table class="table table-hover table-striped align-middle mb-0 rv-table" id="ticketTable">
-                    <thead class="table-light">
+            <div class="rv-table-responsive" style="overflow-x: auto; padding-bottom: 1rem;">
+                <table class="rv-table-premium" id="ticketTable">
+                    <thead>
                         <tr>
-                            <th class="text-center" style="width:72px;">QR</th>
-                            <th>UUID Vé</th>
+                            <th class="text-center" style="width: 70px;">QR</th>
+                            <th style="width: 120px;">Mã UUID</th>
                             <th>Khách hàng</th>
                             <th>Phim</th>
                             <th>Suất chiếu</th>
                             <th>Trạng thái</th>
                             <th>Ngày tạo</th>
-                            <th class="text-center" style="width:100px;">Thao tác</th>
+                            <th class="text-center" style="width: 90px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="ticketTbody">
@@ -109,30 +222,33 @@
                                 <td class="text-center">
                                     <c:choose>
                                         <c:when test="${not empty t.qrCodeBase64}">
-                                            <img src="data:image/png;base64,${t.qrCodeBase64}"
-                                                 alt="QR vé"
-                                                 class="rounded border shadow-sm"
-                                                 style="width:52px;height:52px;object-fit:contain;background:#fff;">
+                                            <div class="qr-thumb-box mx-auto">
+                                                <img src="data:image/png;base64,${t.qrCodeBase64}"
+                                                     alt="QR vé" class="qr-thumb-img">
+                                            </div>
                                         </c:when>
                                         <c:otherwise>
-                                            <div class="d-inline-flex align-items-center justify-content-center rounded border border-danger border-opacity-25 bg-danger bg-opacity-10"
-                                                 style="width:52px;height:52px;">
-                                                <i class="bi bi-exclamation-triangle text-danger"></i>
+                                            <div class="qr-thumb-box qr-thumb-missing mx-auto">
+                                                <i class="bi bi-qr-code-scan"></i>
                                             </div>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td>
-                                    <code class="small text-muted user-select-all">
-                                        <c:out value="${fn:substring(t.ticketUuid, 0, 8)}"/>…
-                                    </code>
+                                    <span class="uuid-cell">
+                                        <c:out value="${fn:substring(t.ticketUuid, 0, 8)}"/>
+                                    </span>
                                 </td>
                                 <td>
-                                    <div class="fw-semibold"><c:out value="${t.customerName}"/></div>
-                                    <div class="small text-muted"><c:out value="${t.customerEmail}"/></div>
+                                    <div class="customer-info">
+                                        <span class="customer-name"><c:out value="${t.customerName}"/></span>
+                                        <span class="customer-email"><c:out value="${t.customerEmail}"/></span>
+                                    </div>
                                 </td>
-                                <td><c:out value="${t.movieTitle}"/></td>
-                                <td class="text-muted small"><c:out value="${t.showtimeStart}"/></td>
+                                <td class="movie-title-cell"><c:out value="${t.movieTitle}"/></td>
+                                <td>
+                                    <span class="showtime-cell"><c:out value="${t.showtimeStart}"/></span>
+                                </td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${t.ticketStatus == 'ISSUED'}">
@@ -202,9 +318,9 @@
 </div>
 
 <script>
-(function () {
     var CTX = '${ctx}';
 
+(function () {
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
         new bootstrap.Tooltip(el);
     });
@@ -241,6 +357,28 @@
         });
     });
 })();
+
+function bulkGenerateQR() {
+    var btn = document.getElementById('btnBulkQR');
+    if (!confirm('Sinh mã QR cho tất cả vé chưa có QR? Quá trình có thể mất vài giây.')) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Đang tạo...';
+    fetch(CTX + '/admin/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=bulk-generate'
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        alert('Hoàn tất! Đã tạo QR cho ' + data.generated + ' vé. Thất bại: ' + data.failed);
+        location.reload();
+    })
+    .catch(function () {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-qr-code me-1"></i>Tạo QR hàng loạt';
+        alert('Lỗi kết nối.');
+    });
+}
 </script>
 </body>
 </html>

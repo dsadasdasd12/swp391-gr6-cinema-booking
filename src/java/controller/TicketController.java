@@ -47,10 +47,11 @@ public class TicketController extends HttpServlet {
         if (action == null) action = "";
 
         switch (action) {
-            case "use"   -> handleUse  (req, resp);
-            case "retry" -> handleRetry(req, resp);
-            case "issue" -> handleIssue(req, resp);
-            default      -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            case "use"            -> handleUse  (req, resp);
+            case "retry"          -> handleRetry(req, resp);
+            case "issue"          -> handleIssue(req, resp);
+            case "bulk-generate"  -> handleBulkGenerate(req, resp);
+            default               -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
@@ -171,6 +172,20 @@ public class TicketController extends HttpServlet {
         } else {
             out.print("{\"success\":false,\"message\":\"Tạo QR thất bại sau 3 lần thử. Vui lòng liên hệ kỹ thuật.\"}");
         }
+    }
+
+    /**
+     * Sinh QR hàng loạt cho tất cả booking chưa có QR code.
+     * POST ?action=bulk-generate
+     * Response: JSON {"success":true,"generated":N,"failed":M}
+     */
+    private void handleBulkGenerate(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType("application/json; charset=UTF-8");
+        PrintWriter out = resp.getWriter();
+        int[] result = ticketService.bulkGenerateQR();
+        out.print("{\"success\":true,\"generated\":" + result[0]
+                + ",\"failed\":" + result[1] + "}");
     }
 
     // ── Helpers ───────────────────────────────────────────────
