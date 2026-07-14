@@ -115,7 +115,16 @@
                     <!-- Language Selection -->
                     <div class="rv-form-group">
                         <label class="rv-label" for="language">Ngôn ngữ chính *</label>
-                        <select id="language" name="language" class="rv-select" required>
+                        <select id="language" name="languageIds" class="rv-select" required>
+                            <option value="">-- Chọn ngôn ngữ --</option>
+                            <c:forEach items="${languages}" var="lang">
+                                <option value="${lang.id}" ${not empty movie.languages and movie.languages[0].id == lang.id ? 'selected' : ''}>
+                                    <c:out value="${lang.name}"/> (${lang.code})
+                                </option>
+                            </c:forEach>
+                        </select>
+                        <%-- Danh sách cũ hard-code, giữ tạm trong source để tránh mất lịch sử giao diện.
+                        <select id="legacyLanguage" name="language" class="rv-select">
                             <option value="">-- Chọn ngôn ngữ --</option>
                             <option value="Vietnamese" ${movie.primaryLanguageFormValue == 'Vietnamese' ? 'selected' : ''}>Tiếng Việt (Phụ đề / Lồng tiếng)</option>
                             <option value="English" ${movie.primaryLanguageFormValue == 'English' ? 'selected' : ''}>Tiếng Anh (Phụ đề)</option>
@@ -123,6 +132,7 @@
                             <option value="Japanese" ${movie.primaryLanguageFormValue == 'Japanese' ? 'selected' : ''}>Tiếng Nhật (Phụ đề)</option>
                             <option value="Mixed" ${movie.primaryLanguageFormValue == 'Mixed' ? 'selected' : ''}>Hỗn hợp (Lồng tiếng + Phụ đề)</option>
                         </select>
+                        --%>
                     </div>
 
                     <!-- Status Selection -->

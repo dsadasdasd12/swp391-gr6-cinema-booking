@@ -5,6 +5,7 @@ package controller;
 import dto.BookingDraft;
 import dto.BookingDraftView;
 import dto.SeatMap;
+import dto.VoucherQuote;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class BookingController extends HttpServlet {
      * Draft chi ton tai trong luc user dang chon ghe va chua bam xac nhan cuoi.
      */
     private static final String DRAFT_SESSION_KEY = "bookingDraft";
+    private static final String VOUCHER_SESSION_KEY = "bookingVoucherCode";
 
     /*
      * Cac service ben duoi dai dien cho cac nhom nghiep vu khac nhau.
@@ -312,6 +314,16 @@ public class BookingController extends HttpServlet {
             );
             // Dua draftView sang JSP confirm de user kiem tra lai truoc khi dat.
             request.setAttribute("draftView", draftView);
+            String voucherCode = currentVoucherCode(request);
+            if (voucherCode != null) {
+                VoucherQuote voucherQuote = bookingService.quoteVoucher(voucherCode, draftView.getTotalPrice());
+                if (voucherQuote.isValid()) {
+                    request.setAttribute("voucherQuote", voucherQuote);
+                } else {
+                    request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
+                    request.setAttribute("voucherError", voucherQuote.getMessage());
+                }
+            }
             // error co the null; neu submit confirm loi thi hien lai o man confirm.
             request.setAttribute("error", error);
         } catch (IllegalArgumentException e) {
@@ -347,11 +359,39 @@ public class BookingController extends HttpServlet {
                     draft.getShowtimeId(),
                     draft.getSeatIds()
             );
+            String requestedAction = request.getParameter("action");
+            String submittedVoucher = request.getParameter("voucherCode");
+            if ("applyVoucher".equals(requestedAction)) {
+                if (submittedVoucher == null || submittedVoucher.trim().isEmpty()) {
+                    request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
+                    showConfirm(request, response, "Vui lòng nhập mã giảm giá.");
+                    return;
+                }
+                VoucherQuote voucherQuote = bookingService.quoteVoucher(submittedVoucher, draftView.getTotalPrice());
+                if (!voucherQuote.isValid()) {
+                    showConfirm(request, response, voucherQuote.getMessage());
+                    return;
+                }
+                request.getSession().setAttribute(VOUCHER_SESSION_KEY, voucherQuote.getCode());
+                showConfirm(request, response, null);
+                return;
+            }
+
+            VoucherQuote voucherQuote = null;
+            String voucherCode = currentVoucherCode(request);
+            if (voucherCode != null) {
+                voucherQuote = bookingService.quoteVoucher(voucherCode, draftView.getTotalPrice());
+                if (!voucherQuote.isValid()) {
+                    request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
+                    showConfirm(request, response, voucherQuote.getMessage());
+                    return;
+                }
+            }
             /*
              * Tao booking pending trong DB.
              * Service se tao BOOKING, BOOKING_SEATS va PAYMENT pending neu thanh cong.
              */
-            int bookingId = bookingService.createPendingBooking(user.getId(), draftView);
+            int bookingId = bookingService.createPendingBooking(user.getId(), draftView, voucherQuote);
             if (bookingId <= 0) {
                 showConfirm(request, response, "Không thể tạo booking. Ghế có thể vừa được người khác đặt.");
                 return;
@@ -359,6 +399,7 @@ public class BookingController extends HttpServlet {
 
             // Tao booking xong thi xoa draft de user khong submit lai booking cu.
             request.getSession().removeAttribute(DRAFT_SESSION_KEY);
+            request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
             // Dua user sang trang chi tiet booking de xem QR/thanh toan/theo doi trang thai.
             response.sendRedirect(request.getContextPath()
                     + "/my-booking?id=" + bookingId + "&msg=booking_created");
@@ -390,6 +431,14 @@ public class BookingController extends HttpServlet {
         // Lay object bookingDraft trong session va ep kieu an toan.
         Object value = session.getAttribute(DRAFT_SESSION_KEY);
         return value instanceof BookingDraft ? (BookingDraft) value : null;
+    }
+
+    private String currentVoucherCode(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+        Object value = session.getAttribute(VOUCHER_SESSION_KEY);
+        return value instanceof String && !((String) value).trim().isEmpty()
+                ? ((String) value).trim() : null;
     }
 
     private User currentUser(HttpServletRequest request) {
