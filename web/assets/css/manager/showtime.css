@@ -612,3 +612,185 @@
 .manager-showtime-form-page .manager-hidden-select {
     display: none;
 }
+
+/* Card grid và tìm kiếm của showtime-list.jsp */
+.manager-showtime-list-page .showtime-search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-bottom: var(--s-5);
+}
+
+.manager-showtime-list-page .showtime-search-box {
+    position: relative;
+    width: min(620px, 100%);
+}
+
+.manager-showtime-list-page .showtime-search-box > i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    z-index: 1;
+    color: var(--n-400);
+    transform: translateY(-50%);
+}
+
+.manager-showtime-list-page .showtime-search-box .rv-input {
+    width: 100%;
+    padding-left: 42px;
+    padding-right: 42px;
+}
+
+.manager-showtime-list-page .showtime-search-clear {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    border: 0;
+    background: transparent;
+    color: var(--n-500);
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+
+.manager-showtime-list-page .showtime-result-count {
+    flex-shrink: 0;
+    color: var(--n-500);
+    font-size: var(--text-sm);
+    font-weight: 600;
+}
+
+.manager-showtime-list-page .showtime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--s-4);
+}
+
+.manager-showtime-list-page .showtime-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.manager-showtime-list-page .showtime-card[hidden] {
+    display: none;
+}
+
+.manager-showtime-list-page .showtime-card__header,
+.manager-showtime-list-page .showtime-card__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    background: var(--n-50);
+}
+
+.manager-showtime-list-page .showtime-card__header {
+    border-bottom: 1px solid var(--border);
+}
+
+.manager-showtime-list-page .showtime-card__body {
+    flex: 1;
+    padding: var(--s-4);
+}
+
+.manager-showtime-list-page .showtime-card__title {
+    margin: 0;
+    color: var(--n-900);
+    font-size: var(--text-md);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.manager-showtime-list-page .showtime-card__duration {
+    margin-top: 4px;
+    color: var(--n-500);
+    font-size: var(--text-sm);
+}
+
+.manager-showtime-list-page .showtime-card__details {
+    display: grid;
+    gap: var(--s-3);
+    margin-top: var(--s-4);
+}
+
+.manager-showtime-list-page .showtime-card__details > div {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+}
+
+.manager-showtime-list-page .showtime-card__details i {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    background: var(--n-100);
+    color: var(--primary-light);
+}
+
+.manager-showtime-list-page .showtime-card__details span,
+.manager-showtime-list-page .showtime-card__details strong,
+.manager-showtime-list-page .showtime-card__details small {
+    display: block;
+}
+
+.manager-showtime-list-page .showtime-card__details strong {
+    color: var(--n-800);
+    font-size: var(--text-sm);
+}
+
+.manager-showtime-list-page .showtime-card__details small {
+    margin-top: 2px;
+    color: var(--n-500);
+}
+
+.manager-showtime-list-page .showtime-card__actions {
+    justify-content: flex-end;
+    border-top: 1px solid var(--border);
+}
+
+.manager-showtime-list-page .showtime-search-extra {
+    display: none;
+}
+
+.manager-showtime-list-page .showtime-no-result {
+    padding: var(--s-8);
+    color: var(--n-500);
+    text-align: center;
+}
+
+.manager-showtime-list-page .showtime-no-result i,
+.manager-showtime-list-page .showtime-no-result strong,
+.manager-showtime-list-page .showtime-no-result span {
+    display: block;
+}
+
+.manager-showtime-list-page .showtime-no-result i {
+    margin-bottom: var(--s-2);
+    font-size: 28px;
+}
+
+.manager-showtime-list-page .showtime-no-result strong {
+    color: var(--n-800);
+}
+
+@media (max-width: 680px) {
+    .manager-showtime-list-page .showtime-search-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .manager-showtime-list-page .showtime-grid {
+        grid-template-columns: 1fr;
+    }
+}

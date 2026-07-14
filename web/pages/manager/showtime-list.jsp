@@ -456,182 +456,147 @@
 
                             <c:otherwise>
 
-                                <div class="rv-table-wrapper manager-table-scroll">
+                                <div class="showtime-search-bar">
+                                    <div class="showtime-search-box">
+                                        <i class="bi bi-search"></i>
+                                        <input id="showtimeSearch"
+                                               type="search"
+                                               class="rv-input"
+                                               list="showtimeSuggestions"
+                                               autocomplete="off"
+                                               placeholder="Tìm phim, phòng, ngày, giờ, trạng thái hoặc ID...">
+                                        <button id="clearShowtimeSearch"
+                                                type="button"
+                                                class="showtime-search-clear"
+                                                aria-label="Xóa tìm kiếm"
+                                                hidden>
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
 
-                                    <table class="rv-table">
+                                    <span id="showtimeResultCount" class="showtime-result-count"></span>
 
-                                        <thead>
-                                            <tr>
-                                                <th class="col-no">
-                                                    ID
-                                                </th>
+                                    <datalist id="showtimeSuggestions">
+                                        <c:forEach var="s" items="${showtimes}">
+                                            <option value='<c:out value="${s.movieTitle}" />'></option>
+                                            <option value='<c:out value="${s.hallName}" />'></option>
+                                            <option value='<c:out value="${s.showDate}" />'></option>
+                                            <option value='<c:out value="${s.status}" />'></option>
+                                        </c:forEach>
+                                    </datalist>
+                                </div>
 
-                                                <th>
-                                                    Phim
-                                                </th>
+                                <div id="showtimeGrid" class="showtime-grid">
+                                    <c:forEach var="s" items="${showtimes}">
+                                        <article class="showtime-card">
+                                            <span class="showtime-search-extra">
+                                                <c:out value="${s.branchName}" />
+                                                <c:out value="${s.branchAddress}" />
+                                                <c:choose>
+                                                    <c:when test="${s.status eq 'ON_SALE'}">đang bán</c:when>
+                                                    <c:when test="${s.status eq 'CANCELLED'}">đã hủy</c:when>
+                                                    <c:otherwise>đã lên lịch</c:otherwise>
+                                                </c:choose>
+                                            </span>
 
-                                                <th>
-                                                    Chi nhánh
-                                                </th>
+                                            <div class="showtime-card__header">
+                                                <span class="manager-showtime-id">
+                                                    #<c:out value="${s.id}" />
+                                                </span>
 
-                                                <th>
-                                                    Phòng chiếu
-                                                </th>
-
-                                                <th>
-                                                    Thời gian
-                                                </th>
-
-                                                <th>
-                                                    Giá vé
-                                                </th>
-
-                                                <th>
-                                                    Trạng thái
-                                                </th>
-
-                                                <th class="col-actions">
-                                                    Thao tác
-                                                </th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            
-                                          <%--du lieu showtime--%>
-                                            <c:forEach var="s"
-                                                       items="${showtimes}">
-
-                                                <tr>
-
-                                                    <td class="col-no">
-                                                        <span class="manager-showtime-id">
-                                                            #<c:out value="${s.id}" />
+                                                <c:choose>
+                                                    <c:when test="${s.status eq 'CANCELLED'}">
+                                                        <span class="rv-badge rv-badge--inactive">
+                                                            <i class="bi bi-x-circle-fill"></i>
+                                                            <c:out value="${s.status}" />
                                                         </span>
-                                                    </td>
-
-                                                    <td>
-                                                        <span class="manager-movie-name">
-                                                            <c:out value="${s.movieTitle}" />
+                                                    </c:when>
+                                                    <c:when test="${s.status eq 'ON_SALE'}">
+                                                        <span class="rv-badge rv-badge--active">
+                                                            <i class="bi bi-check-circle-fill"></i>
+                                                            <c:out value="${s.status}" />
                                                         </span>
-
-                                                        <span class="manager-row-subtext">
-                                                            <i class="bi bi-clock"></i>
-                                                            <c:out value="${s.movieDurationMin}" />
-                                                            phút
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="rv-badge rv-badge--pending">
+                                                            <i class="bi bi-clock-fill"></i>
+                                                            <c:out value="${s.status}" />
                                                         </span>
-                                                    </td>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
 
-                                                    <td>
-                                                        <span class="manager-branch-name">
-                                                            <c:out value="${s.branchName}" />
+                                            <div class="showtime-card__body">
+                                                <h3 class="showtime-card__title">
+                                                    <c:out value="${s.movieTitle}" />
+                                                </h3>
+
+                                                <div class="showtime-card__duration">
+                                                    <i class="bi bi-clock"></i>
+                                                    <c:out value="${s.movieDurationMin}" /> phút
+                                                </div>
+
+                                                <div class="showtime-card__details">
+                                                    <div>
+                                                        <i class="bi bi-door-open"></i>
+                                                        <span>
+                                                            <strong><c:out value="${s.hallName}" /></strong>
+                                                            <small><c:out value="${s.hallType}" /></small>
                                                         </span>
+                                                    </div>
 
-                                                        <span class="manager-row-subtext">
-                                                            <i class="bi bi-geo-alt"></i>
-                                                            <c:out value="${s.branchAddress}" />
+                                                    <div>
+                                                        <i class="bi bi-calendar-event"></i>
+                                                        <span>
+                                                            <strong><c:out value="${s.showDate}" /></strong>
+                                                            <small>
+                                                                <c:out value="${s.startHour}" /> -
+                                                                <c:out value="${s.endHour}" />
+                                                            </small>
                                                         </span>
-                                                    </td>
+                                                    </div>
 
-                                                    <td>
-                                                        <span class="manager-hall-name">
-                                                            <c:out value="${s.hallName}" />
+                                                    <div>
+                                                        <i class="bi bi-ticket-perforated"></i>
+                                                        <span>
+                                                            <strong><c:out value="${s.basePrice}" /></strong>
+                                                            <small>Giá vé cơ bản</small>
                                                         </span>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                        <span class="manager-row-subtext">
-                                                            <i class="bi bi-stars"></i>
-                                                            <c:out value="${s.hallType}" />
-                                                        </span>
-                                                    </td>
+                                            <div class="showtime-card__actions manager-action-group">
+                                                <c:if test="${s.status ne 'CANCELLED'}">
+                                                    <a class="rv-btn rv-btn--ghost rv-btn--sm"
+                                                       href="${ctx}/manager/showtimesmanagement/edit?id=${s.id}">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                        Sửa
+                                                    </a>
 
-                                                    <td>
-                                                        <span class="manager-showtime-time">
-                                                            <i class="bi bi-calendar-event"></i>
-                                                            <c:out value="${s.showDate}" />
-                                                        </span>
+                                                    <form method="post"
+                                                          action="${ctx}/manager/showtimesmanagement/cancel"
+                                                          onsubmit="return confirm('Bạn có chắc muốn hủy suất chiếu này?');">
+                                                        <input type="hidden" name="id" value="${s.id}">
+                                                        <button type="submit" class="rv-btn rv-btn--danger rv-btn--sm">
+                                                            <i class="bi bi-x-circle-fill"></i>
+                                                            Hủy
+                                                        </button>
+                                                    </form>
+                                                </c:if>
 
-                                                        <span class="manager-row-subtext">
-                                                            <i class="bi bi-clock-history"></i>
-                                                            <c:out value="${s.startHour}" />
-                                                            -
-                                                            <c:out value="${s.endHour}" />
-                                                        </span>
-                                                    </td>
+                                                <c:if test="${s.status eq 'CANCELLED'}">
+                                                    <span class="manager-cancelled-text">Đã hủy</span>
+                                                </c:if>
+                                            </div>
+                                        </article>
+                                    </c:forEach>
+                                </div>
 
-                                                    <td>
-                                                        <span class="manager-showtime-price">
-                                                            <c:out value="${s.basePrice}" />
-                                                        </span>
-                                                    </td>
-
-                                                    <td>
-
-                                                        <c:choose>
-
-                                                            <c:when test="${s.status eq 'CANCELLED'}">
-                                                                <span class="rv-badge rv-badge--inactive">
-                                                                    <i class="bi bi-x-circle-fill"></i>
-                                                                    <c:out value="${s.status}" />
-                                                                </span>
-                                                            </c:when>
-
-                                                            <c:when test="${s.status eq 'ON_SALE'}">
-                                                                <span class="rv-badge rv-badge--active">
-                                                                    <i class="bi bi-check-circle-fill"></i>
-                                                                    <c:out value="${s.status}" />
-                                                                </span>
-                                                            </c:when>
-
-                                                            <c:otherwise>
-                                                                <span class="rv-badge rv-badge--pending">
-                                                                    <i class="bi bi-clock-fill"></i>
-                                                                    <c:out value="${s.status}" />
-                                                                </span>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </td>
-
-                                                    <td class="col-actions">
-
-                                                        <div class="manager-action-group">
-
-                                                            <c:if test="${s.status ne 'CANCELLED'}">
-
-                                                                <a class="rv-btn rv-btn--ghost rv-btn--sm"
-                                                                   href="${ctx}/manager/showtimesmanagement/edit?id=${s.id}">
-
-                                                                    <i class="bi bi-pencil-square"></i>
-                                                                    Sửa
-                                                                </a>
-
-                                                                <form method="post"
-                                                                      action="${ctx}/manager/showtimesmanagement/cancel"
-                                                                      onsubmit="return confirm('Bạn có chắc muốn hủy suất chiếu này?');">
-
-                                                                    <input type="hidden"
-                                                                           name="id"
-                                                                           value="${s.id}">
-
-                                                                    <button type="submit"
-                                                                            class="rv-btn rv-btn--danger rv-btn--sm">
-
-                                                                        <i class="bi bi-x-circle-fill"></i>
-                                                                        Hủy
-                                                                    </button>
-                                                                </form>
-                                                            </c:if>
-
-                                                            <c:if test="${s.status eq 'CANCELLED'}">
-                                                                <span class="manager-cancelled-text">
-                                                                    Đã hủy
-                                                                </span>
-                                                            </c:if>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </c:forEach>
-                                        </tbody>
-                                    </table>
+                                <div id="showtimeNoResult" class="showtime-no-result" hidden>
+                                    <i class="bi bi-search"></i>
+                                    <strong>Không tìm thấy suất chiếu</strong>
+                                    <span>Hãy thử tên phim, phòng, ngày, giờ hoặc trạng thái khác.</span>
                                 </div>
                             </c:otherwise>
                         </c:choose>
@@ -641,6 +606,50 @@
         </c:choose>
     </main>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('showtimeSearch');
+    if (!input) return;
+
+    const cards = Array.from(document.querySelectorAll('.showtime-card'));
+    const count = document.getElementById('showtimeResultCount');
+    const empty = document.getElementById('showtimeNoResult');
+    const clear = document.getElementById('clearShowtimeSearch');
+
+    const normalize = text => String(text || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    function filterShowtimes() {
+        const words = normalize(input.value).split(' ').filter(Boolean);
+        let visible = 0;
+
+        cards.forEach(card => {
+            const matched = words.every(word => normalize(card.textContent).includes(word));
+            card.hidden = !matched;
+            if (matched) visible++;
+        });
+
+        count.textContent = `Hiển thị ${visible} / ${cards.length} suất chiếu`;
+        empty.hidden = visible !== 0;
+        clear.hidden = input.value.length === 0;
+    }
+
+    input.addEventListener('input', filterShowtimes);
+    clear.addEventListener('click', function () {
+        input.value = '';
+        input.focus();
+        filterShowtimes();
+    });
+
+    filterShowtimes();
+});
+</script>
 
 </body>
 </html>
