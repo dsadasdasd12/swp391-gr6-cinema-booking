@@ -7,9 +7,14 @@ import dto.BookingDraftView;
 import dto.SeatMap;
 import dto.VoucherQuote;
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,6 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Branch;
 import model.Movie;
+import model.Showtime;
 import model.User;
 import service.BookingService;
 import service.BranchService;
@@ -53,6 +59,9 @@ import service.ShowtimeService;
     "/booking/confirm"
 })
 public class BookingController extends HttpServlet {
+
+    private static final DateTimeFormatter WEEK_DAY_LABEL_FORMAT
+            = DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", new Locale("vi", "VN"));
 
 
     /*
@@ -205,6 +214,8 @@ public class BookingController extends HttpServlet {
         int branchId = parsePositiveInt(request.getParameter("branchId"));
         int movieId = parsePositiveInt(request.getParameter("movieId"));
         LocalDate date = parseDateOrToday(request.getParameter("date"));
+        // The weekly calendar always starts on Monday, regardless of selected day.
+        LocalDate weekStart = date.with(DayOfWeek.MONDAY);
 
         // Kiem tra branch va movie co hop le khong truoc khi lay suat chieu.
         Branch branch = activeBranch(branchId);
@@ -215,11 +226,27 @@ public class BookingController extends HttpServlet {
             return;
         }
 
-        // Gui thong tin bo loc va ket qua sang JSP chon suat chieu.
+        // Keep all seven days in display order, including days with no available showtime.
+        Map<String, List<Showtime>> weeklyShowtimes = new LinkedHashMap<>();
+        for (int offset = 0; offset < 7; offset++) {
+            LocalDate day = weekStart.plusDays(offset);
+            weeklyShowtimes.put(day.format(WEEK_DAY_LABEL_FORMAT), new ArrayList<>());
+        }
+        for (Showtime showtime : showtimeService.getBookableShowtimesForWeek(branchId, movieId, weekStart)) {
+            LocalDate showDate = showtime.getStartTime().toLocalDateTime().toLocalDate();
+            List<Showtime> dayShowtimes = weeklyShowtimes.get(showDate.format(WEEK_DAY_LABEL_FORMAT));
+            if (dayShowtimes != null) {
+                dayShowtimes.add(showtime);
+            }
+        }
+
+        // Send the full Monday-Sunday calendar to the JSP, not a single-day result.
         request.setAttribute("branch", branch);
         request.setAttribute("movie", movie);
         request.setAttribute("selectedDate", date);
-        request.setAttribute("showtimes", showtimeService.getBookableShowtimes(branchId, movieId, date));
+        request.setAttribute("selectedDayLabel", date.format(WEEK_DAY_LABEL_FORMAT));
+        request.setAttribute("weekStart", weekStart);
+        request.setAttribute("weeklyShowtimes", weeklyShowtimes);
         request.getRequestDispatcher("/pages/booking/select-showtime.jsp").forward(request, response);
     }
 

@@ -654,6 +654,48 @@ public class ShowtimeDAO {
         return list;
     }
 
+    /**
+     * Returns all bookable showtimes of one movie in one calendar week.
+     * weekStart is Monday inclusive; the following Monday is exclusive.
+     */
+    public List<Showtime> findBookableByBranchMovieAndWeek(
+            int branchId, int movieId, LocalDate weekStart) {
+        List<Showtime> list = new ArrayList<>();
+        LocalDate weekEndExclusive = weekStart.plusDays(7);
+        String sql
+                = "SELECT s.id, s.movie_id, s.hall_id, s.start_time, s.end_time, "
+                + "       s.base_price, s.status, "
+                + "       m.title AS movie_title, m.duration_min AS movie_duration_min, "
+                + "       h.name AS hall_name, h.hall_type, "
+                + "       b.id AS branch_id, b.name AS branch_name, b.address AS branch_address "
+                + "FROM dbo.SHOWTIMES s "
+                + "JOIN dbo.MOVIES m ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
+                + "WHERE h.branch_id = ? "
+                + "AND s.movie_id = ? "
+                + "AND s.start_time >= ? "
+                + "AND s.start_time < ? "
+                + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                + "AND s.start_time > GETDATE() "
+                + "ORDER BY s.start_time, h.name";
+        try (Connection conn = DBContext.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, branchId);
+            ps.setInt(2, movieId);
+            ps.setTimestamp(3, Timestamp.valueOf(weekStart.atStartOfDay()));
+            ps.setTimestamp(4, Timestamp.valueOf(weekEndExclusive.atStartOfDay()));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<MovieShowtimes> findByBranchAndDate(
             int branchId,
             LocalDate date) {
