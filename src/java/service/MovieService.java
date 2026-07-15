@@ -664,14 +664,11 @@ public class MovieService {
         if (m.getEndDate() == null) {
             errors.add("Vui lòng chọn ngày kết thúc chiếu.");
         }
-        if (m.getReleaseDate() != null && m.getEndDate() != null) {
-            if (m.getEndDate().isBefore(m.getReleaseDate())) {
-                errors.add("Ngày kết thúc chiếu không được trước ngày khởi chiếu.");
-            }
-            // Logic chuẩn: Phim MỚI thêm (id = 0) thì Ngày kết thúc không được nằm trong quá khứ
-            if (m.getId() <= 0 && m.getEndDate().isBefore(java.time.LocalDate.now())) {
-                errors.add("Phim mới không thể có ngày kết thúc chiếu nằm trong quá khứ.");
-            }
+        if (m.getReleaseDate() != null
+                && m.getEndDate() != null
+                && m.getEndDate().isBefore(m.getReleaseDate())) {
+
+            errors.add("Ngày kết thúc chiếu không được trước ngày khởi chiếu.");
         }
         if (categoryIds == null || categoryIds.isEmpty()) {
             errors.add("Vui lòng chọn ít nhất một thể loại.");
