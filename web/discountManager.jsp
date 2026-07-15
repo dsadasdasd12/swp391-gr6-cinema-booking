@@ -155,6 +155,7 @@
                 box-sizing: border-box !important;
                 box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important;
                 position: relative !important;
+                overflow: hidden !important;
             }
             .custom-discount-modal-title {
                 font-size: 20px;
@@ -165,25 +166,36 @@
             .form-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 15px;
+                gap: 16px;
+                width: 100%;
+                box-sizing: border-box;
             }
             .form-group {
                 margin-bottom: 18px;
                 display: flex;
                 flex-direction: column;
             }
+            .custom-discount-modal-content .form-group {
+                margin-bottom: 0;
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
             .form-group.full-width {
                 grid-column: span 2;
             }
-            label {
+            .custom-discount-modal-content label {
+                flex-grow: 1;
+                display: flex;
+                align-items: flex-end;
+                padding-bottom: 6px;
                 font-size: 12px;
                 font-weight: 700;
                 color: #9ca3af;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                margin-bottom: 6px;
             }
-            input, select {
+            .custom-discount-modal-content input, .custom-discount-modal-content select {
                 background: #0f172a !important;
                 border: 1px solid rgba(255, 255, 255, 0.08) !important;
                 border-radius: 8px !important;
@@ -196,7 +208,7 @@
                 width: 100% !important;
                 box-sizing: border-box !important;
             }
-            select {
+            .custom-discount-modal-content select {
                 appearance: none;
                 -webkit-appearance: none;
                 -moz-appearance: none;
@@ -205,9 +217,10 @@
                 background-position: right 10px center;
                 padding-right: 30px !important;
             }
-            input:focus, select:focus {
-                border-color: #3b82f6;
-                box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+            .custom-discount-modal-content input:focus,
+            .custom-discount-modal-content select:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 8px rgba(59, 130, 246, 0.2) !important;
             }
             .custom-discount-modal-footer {
                 display: flex;

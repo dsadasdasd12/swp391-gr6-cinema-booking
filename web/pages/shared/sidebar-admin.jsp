@@ -141,7 +141,7 @@
         </div>
     </c:if>
 
-    <c:if test="${isAdminRole || isManagerRole}">
+    <c:if test="${isAdminRole}">
         <div class="rv-nav__group">
             <a href="${ctx}/DiscountManager" class="rv-nav__item ${uri.contains('/DiscountManager') ? 'active' : ''}">
                 <i class="bi bi-tags-fill"></i>
