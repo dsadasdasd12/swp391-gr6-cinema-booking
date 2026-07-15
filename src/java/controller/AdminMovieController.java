@@ -91,11 +91,32 @@ public class AdminMovieController extends HttpServlet {
         if (keyword != null && keyword.isBlank()) keyword = null;
         if (status  != null && status.isBlank())  status  = null;
 
-        List<MovieDTO> movies = movieService.getAllMoviesForAdmin(keyword, status);
-        req.setAttribute("movies",  movies);
+        List<MovieDTO> allMovies = movieService.getAllMoviesForAdmin(keyword, status);
+        
+        int currentPage = 1;
+        String pageStr = req.getParameter("page");
+        if (pageStr != null && !pageStr.trim().isEmpty()) {
+            try { currentPage = Integer.parseInt(pageStr); } catch (NumberFormatException ignored) {}
+        }
+        int pageSize = 10;
+        int totalItems = allMovies.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<MovieDTO> pagedMovies = totalItems > 0 ? allMovies.subList(fromIndex, toIndex) : allMovies;
+
+        req.setAttribute("movies",  pagedMovies);
         req.setAttribute("keyword", keyword != null ? keyword : "");
         req.setAttribute("status",  status  != null ? status  : "");
-        req.setAttribute("totalItems", movies.size());
+        req.setAttribute("currentPage", currentPage);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("totalItems", totalItems);
+        req.setAttribute("pageSize", pageSize);
+        
         req.getRequestDispatcher("/pages/admin/movie-list.jsp").forward(req, resp);
     }
 
@@ -281,6 +302,9 @@ public class AdminMovieController extends HttpServlet {
         // releaseDate
         try { m.setReleaseDate(LocalDate.parse(req.getParameter("releaseDate"))); }
         catch (Exception e) { m.setReleaseDate(null); }
+        // endDate
+        try { m.setEndDate(LocalDate.parse(req.getParameter("endDate"))); }
+        catch (Exception e) { m.setEndDate(null); }
         return m;
     }
 

@@ -32,8 +32,8 @@
     </div>
 
     <!-- 🎬 Movie Management (Admin / Manager / Staff view only) -->
-    <div class="rv-nav__group ${isMovie ? 'open' : ''}">
-        <div class="rv-nav__item ${isMovie ? 'active' : ''}">
+    <div class="rv-nav__group ${isMovie || isGenre || isLanguage ? 'open' : ''}">
+        <div class="rv-nav__item ${isMovie || isGenre || isLanguage ? 'active' : ''}">
             <i class="bi bi-film"></i>
             Quản lý phim
             <i class="bi bi-chevron-right rv-nav__arrow"></i>
@@ -47,8 +47,6 @@
                     Thêm phim mới
                 </a>
             </c:if>
-        </div>
-                <div class="rv-nav__sub">
             <c:if test="${isAdminRole}">
                 <a href="${ctx}/admin/genres" class="rv-nav__sub-item ${isGenre ? 'active' : ''}">
                      Thể loại
@@ -69,12 +67,7 @@
             </a>
         </div>
 
-        <div class="rv-nav__group">
-            <a href="${ctx}/admin/settings#panel-cinema" class="rv-nav__item ${uri.contains('/admin/settings') ? 'active' : ''}">
-                <i class="bi bi-building-fill"></i>
-                Quản lý Chuỗi rạp
-            </a>
-        </div>
+
 
         <div class="rv-nav__group">
             <a href="${ctx}/admin/branches" class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">

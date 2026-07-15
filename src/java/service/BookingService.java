@@ -150,10 +150,14 @@ public class BookingService {
     }
 
     public List<BookingView> getHistory(int userId) {
+        return getHistory(userId, null);
+    }
+
+    public List<BookingView> getHistory(int userId, String status) {
         if (userId <= 0) {
             return new ArrayList<>();
         }
-        return bookingDAO.findHistoryByUser(userId);
+        return bookingDAO.findHistoryByUser(userId, status);
     }
 
     public BookingView getDetail(int bookingId, int userId) {

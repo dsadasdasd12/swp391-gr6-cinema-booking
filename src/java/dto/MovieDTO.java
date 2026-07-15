@@ -63,6 +63,10 @@ public class MovieDTO {
     public String getPosterUrl()           { return posterUrl; }
     public void setPosterUrl(String s)     { this.posterUrl = s; }
 
+    public boolean isPosterExternalUrl() {
+        return posterUrl != null && (posterUrl.startsWith("http://") || posterUrl.startsWith("https://"));
+    }
+
     /** Đường dẫn poster không có dấu / đầu — dùng trong &lt;img src="${ctx}/..."&gt;. */
     public String getPosterWebPath() {
         if (posterUrl == null || posterUrl.isBlank()) {

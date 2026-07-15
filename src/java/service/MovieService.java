@@ -661,9 +661,7 @@ public class MovieService {
         if (m.getReleaseDate() == null) {
             errors.add("Vui lòng chọn ngày khởi chiếu.");
         }
-        if (m.getEndDate() == null) {
-            errors.add("Vui lòng chọn ngày kết thúc chiếu.");
-        }
+
         if (m.getReleaseDate() != null && m.getEndDate() != null) {
             if (m.getEndDate().isBefore(m.getReleaseDate())) {
                 errors.add("Ngày kết thúc chiếu không được trước ngày khởi chiếu.");

@@ -112,8 +112,8 @@
 
                     <!-- End Date -->
                     <div class="rv-form-group">
-                        <label class="rv-label" for="endDate">Ngày kết thúc chiếu *</label>
-                        <input type="date" id="endDate" name="endDate" class="rv-input" required value="${movie.endDateForInput}">
+                        <label class="rv-label" for="endDate">Ngày kết thúc chiếu (Không bắt buộc)</label>
+                        <input type="date" id="endDate" name="endDate" class="rv-input" value="${movie.endDateForInput}">
                     </div>
                 </div>
 
@@ -191,11 +191,34 @@
 
                     <!-- Local Preview -->
                     <div id="rv-poster-preview" style="width: 100%; aspect-ratio: 2/3; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--n-50);">
-                        <img id="rv-preview-img" src="${not empty movie.posterWebPath ? ctx.concat('/').concat(movie.posterWebPath) : ''}" alt="poster-preview" style="width: 100%; height: 100%; object-fit: cover; display: ${not empty movie.posterWebPath ? 'block' : 'none'};">
-                        <i id="rv-preview-placeholder" class="bi bi-image" style="font-size: 40px; color: var(--n-400); display: ${not empty movie.posterWebPath ? 'none' : 'block'};"></i>
+                        <img id="rv-preview-img" src="${not empty movie.posterUrl ? movie.posterUrl : ''}" alt="poster-preview" style="width: 100%; height: 100%; object-fit: cover; display: ${not empty movie.posterUrl ? 'block' : 'none'};">
+                        <i id="rv-preview-placeholder" class="bi bi-image" style="font-size: 40px; color: var(--n-400); display: ${not empty movie.posterUrl ? 'none' : 'block'};"></i>
                     </div>
                 </div>
             </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const posterInput = document.getElementById('rv-poster-input');
+                const previewImg = document.getElementById('rv-preview-img');
+                const placeholder = document.getElementById('rv-preview-placeholder');
+
+                if (posterInput && previewImg && placeholder) {
+                    posterInput.addEventListener('input', function() {
+                        const url = this.value.trim();
+                        if (url) {
+                            previewImg.src = url;
+                            previewImg.style.display = 'block';
+                            placeholder.style.display = 'none';
+                        } else {
+                            previewImg.src = '';
+                            previewImg.style.display = 'none';
+                            placeholder.style.display = 'block';
+                        }
+                    });
+                }
+            });
+            </script>
 
             <!-- Trailer: chỉ link YouTube -->
             <div class="rv-card">
