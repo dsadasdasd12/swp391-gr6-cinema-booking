@@ -131,7 +131,6 @@
         </div>
 
 
-
             <div class="rv-topbar__avatar">
                 <c:choose>
                     <c:when test="${not empty topUser and not empty topUser.fullName}">
@@ -272,13 +271,6 @@
             </a>
         </div>
 
-        <div class="rv-nav__group">
-            <a href="${ctx}/DiscountManager"
-               class="rv-nav__item">
-                <i class="bi bi-tags-fill"></i>
-                Quản lý mã giảm giá
-            </a>
-        </div>
 
         <div class="rv-nav__group">
             <a href="${ctx}/logout"

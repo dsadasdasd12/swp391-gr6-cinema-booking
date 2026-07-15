@@ -352,13 +352,6 @@
             </a>
         </div>
 
-        <div class="rv-nav__group">
-            <a href="${ctx}/DiscountManager"
-               class="rv-nav__item">
-                <i class="bi bi-tags-fill"></i>
-                Quản lý mã giảm giá
-            </a>
-        </div>
 
         <div class="rv-nav__group">
             <a href="${ctx}/logout"

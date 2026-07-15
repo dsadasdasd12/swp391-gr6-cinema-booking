@@ -432,9 +432,7 @@
             </c:if>
             <a href="CounterBooking" class="active">Quầy Bán Vé (POS)</a>
             <a href="TicketValidation">Soát Vé Cổng</a>
-            <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
-                <a href="DiscountManager" style="margin-left: 20px;">Mã Giảm Giá</a>
-            </c:if>
+
             <a href="logout" style="margin-left: 20px; color: #ff3366; font-weight: bold;">Đăng Xuất</a>
         </nav>
     </header>
@@ -757,7 +755,7 @@
             if (!code) {
                 feedback.style.color = '#f87171';
                 feedback.innerText = 'Vui lòng nhập mã giảm giá!';
-                resetAppliedVoucher();
+                resetAppliedVoucher(true);
                 return;
             }
             
@@ -766,7 +764,7 @@
             if (subtotal === 0) {
                 feedback.style.color = '#f87171';
                 feedback.innerText = 'Vui lòng chọn ghế trước khi áp dụng mã!';
-                resetAppliedVoucher();
+                resetAppliedVoucher(true);
                 return;
             }
 
@@ -787,13 +785,13 @@
                     } else {
                         feedback.style.color = '#f87171';
                         feedback.innerText = '✗ ' + data.message;
-                        resetAppliedVoucher();
+                        resetAppliedVoucher(true);
                     }
                 })
                 .catch(err => {
                     feedback.style.color = '#f87171';
                     feedback.innerText = 'Lỗi kết nối kiểm tra mã!';
-                    resetAppliedVoucher();
+                    resetAppliedVoucher(true);
                 });
         }
 
@@ -830,11 +828,11 @@
                 });
         }
 
-        function resetAppliedVoucher() {
+        function resetAppliedVoucher(keepFeedback) {
             document.getElementById('discountAmount').value = 0;
             document.getElementById('discountReason').value = '';
             const feedback = document.getElementById('voucherFeedback');
-            if (feedback) feedback.innerText = '';
+            if (feedback && !keepFeedback) feedback.innerText = '';
             updateTotalSum();
         }
 

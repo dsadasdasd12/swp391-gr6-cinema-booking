@@ -163,7 +163,7 @@
             <a href="${ctx}/manager/movie-assignments/branches">Phim tại chi nhánh</a>
             <a href="${ctx}/manager/movie-assignments/halls">Phim tại phòng chiếu</a>
             <a href="${ctx}/manager/movie-durations">Quản lý thời lượng phim</a>
-            <a href="${ctx}/DiscountManager">Quản lý mã giảm giá</a>
+
             <a href="${ctx}/logout">Đăng xuất</a>
         </nav>
     </aside>

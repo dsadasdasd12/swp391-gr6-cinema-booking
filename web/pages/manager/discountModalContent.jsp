@@ -2,9 +2,9 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!-- Create Voucher Popup Modal Dialog -->
-<div id="addDiscountModal" class="modal">
-    <div class="modal-content">
-        <h3 class="modal-title">Tạo Mã Giảm Giá Mới</h3>
+<div id="addDiscountModal" class="custom-discount-modal">
+    <div class="custom-discount-modal-content">
+        <h3 class="custom-discount-modal-title">Tạo Mã Giảm Giá Mới</h3>
         
         <form action="DiscountManager" method="POST" onsubmit="return validateForm()">
             <input type="hidden" name="action" value="create">
@@ -25,20 +25,20 @@
                 
                 <div class="form-group">
                     <label for="discountValue" id="valueLabel">Mức Giảm (đ)</label>
-                    <input type="number" id="discountValue" name="discountValue" min="1" placeholder="Ví dụ: 20000" required>
+                    <input type="number" id="discountValue" name="discountValue" min="1" max="10000000" placeholder="Ví dụ: 20000" required>
                 </div>
 
                 <div class="form-group" id="maxDiscountGroup" style="display: none;">
                     <label for="maxDiscountAmount">Mức Giảm Tối Đa (đ)</label>
-                    <input type="number" id="maxDiscountAmount" name="maxDiscountAmount" placeholder="Bỏ trống nếu không hạn chế">
+                    <input type="number" id="maxDiscountAmount" name="maxDiscountAmount" max="10000000" placeholder="Bỏ trống nếu không hạn chế">
                 </div>
                 
                 <div class="form-group" id="minOrderGroup">
                     <label for="minOrderValue">Đơn Tối Thiểu (đ)</label>
-                    <input type="number" id="minOrderValue" name="minOrderValue" min="0" value="0" required>
+                    <input type="number" id="minOrderValue" name="minOrderValue" min="0" max="10000000" value="0" required>
                 </div>
 
-                <div class="form-group full-width">
+                <div class="form-group">
                     <label for="maxUses">Số lượt sử dụng tối đa</label>
                     <input type="number" id="maxUses" name="maxUses" min="1" value="100" required>
                 </div>
@@ -54,7 +54,7 @@
                 </div>
             </div>
 
-            <div class="modal-footer">
+            <div class="custom-discount-modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal()">Hủy Bỏ</button>
                 <button type="submit" class="btn-modal-submit">Xác Nhận Tạo</button>
             </div>
@@ -130,11 +130,11 @@
             document.getElementById('maxDiscountAmount').value = '';
             valueLabel.innerText = "Mức Giảm (đ)";
             discountValue.placeholder = "Ví dụ: 20000";
-            discountValue.removeAttribute('max');
+            discountValue.max = "10000000";
         }
     }
 
-    // Validate ngày bắt đầu và ngày kết thúc
+    // Validate ngày bắt đầu và ngày kết thúc, cùng các giới hạn số tiền tối đa 10.000.000đ
     function validateForm() {
         const start = new Date(document.getElementById('startDate').value);
         const end = new Date(document.getElementById('endDate').value);
@@ -143,6 +143,34 @@
             alert("Ngày hết hạn phải xảy ra sau ngày hiệu lực!");
             return false;
         }
+        
+        const type = document.getElementById('discountType').value;
+        const value = parseFloat(document.getElementById('discountValue').value);
+        
+        if (type === 'FLAT' && value > 10000000) {
+            alert("Mức giảm giá tối đa là 10.000.000đ!");
+            return false;
+        }
+        if (type === 'PERCENT' && value > 100) {
+            alert("Mức phần trăm giảm giá tối đa là 100%!");
+            return false;
+        }
+        
+        const minOrder = parseFloat(document.getElementById('minOrderValue').value);
+        if (minOrder > 10000000) {
+            alert("Giá trị đơn tối thiểu tối đa là 10.000.000đ!");
+            return false;
+        }
+        
+        const maxDiscountInput = document.getElementById('maxDiscountAmount');
+        if (maxDiscountInput && maxDiscountInput.value) {
+            const maxDiscount = parseFloat(maxDiscountInput.value);
+            if (maxDiscount > 10000000) {
+                alert("Mức giảm giá tối đa tối đa là 10.000.000đ!");
+                return false;
+            }
+        }
+        
         return true;
     }
 </script>

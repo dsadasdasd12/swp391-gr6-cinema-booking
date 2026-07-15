@@ -28,7 +28,7 @@ public class DiscountManagerController extends HttpServlet {
         }
 
         String role = user.getRole();
-        if (!"MANAGER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+        if (!"ADMIN".equalsIgnoreCase(role)) {
             response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
@@ -53,8 +53,14 @@ public class DiscountManagerController extends HttpServlet {
                     return;
                 }
 
-                if ("PERCENT".equalsIgnoreCase(discountType) && discountValue > 100) {
+                 if ("PERCENT".equalsIgnoreCase(discountType) && discountValue > 100) {
                     request.getSession().setAttribute("msgError", "Giá trị phần trăm giảm giá không được vượt quá 100%!");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
+
+                if ("FLAT".equalsIgnoreCase(discountType) && discountValue > 10000000) {
+                    request.getSession().setAttribute("msgError", "Mức giảm giá tối đa là 10.000.000đ!");
                     response.sendRedirect("DiscountManager");
                     return;
                 }
@@ -68,11 +74,21 @@ public class DiscountManagerController extends HttpServlet {
                         response.sendRedirect("DiscountManager");
                         return;
                     }
+                    if (maxDiscountAmount > 10000000) {
+                        request.getSession().setAttribute("msgError", "Số tiền giảm tối đa không được vượt quá 10.000.000đ!");
+                        response.sendRedirect("DiscountManager");
+                        return;
+                    }
                 }
 
                 double minOrderValue = Double.parseDouble(request.getParameter("minOrderValue"));
                 if (minOrderValue < 0) {
                     request.getSession().setAttribute("msgError", "Giá trị đơn hàng tối thiểu không được âm!");
+                    response.sendRedirect("DiscountManager");
+                    return;
+                }
+                if (minOrderValue > 10000000) {
+                    request.getSession().setAttribute("msgError", "Giá trị đơn hàng tối thiểu tối đa là 10.000.000đ!");
                     response.sendRedirect("DiscountManager");
                     return;
                 }

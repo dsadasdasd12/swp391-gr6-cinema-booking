@@ -3,11 +3,9 @@
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
-<c:choose>
     <%-- ========================================================
          1. ADMIN ROLE VIEW (USING ADMIN CMS LAYOUT)
          ======================================================== --%>
-    <c:when test="${sessionScope.user.role == 'ADMIN'}">
         <c:set var="pageTitle" value="Quản lý mã giảm giá — Rạp Việt CMS" scope="request" />
         <%@ include file="/pages/shared/header-admin.jsp" %>
         <%@ include file="/pages/shared/sidebar-admin.jsp" %>
@@ -134,7 +132,7 @@
             }
 
             /* Custom Modal layout inside Admin page */
-            .modal {
+            .custom-discount-modal {
                 display: none;
                 position: fixed;
                 z-index: 10000;
@@ -147,18 +145,18 @@
                 align-items: center;
                 justify-content: center;
             }
-            .modal-content {
-                background: #1e293b;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 16px;
-                width: 95%;
-                max-width: 500px;
-                padding: 30px;
-                box-sizing: border-box;
-                box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-                position: relative;
+            .custom-discount-modal-content {
+                background: #1e293b !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 16px !important;
+                width: 95% !important;
+                max-width: 500px !important;
+                padding: 30px !important;
+                box-sizing: border-box !important;
+                box-shadow: 0 25px 50px rgba(0,0,0,0.5) !important;
+                position: relative !important;
             }
-            .modal-title {
+            .custom-discount-modal-title {
                 font-size: 20px;
                 font-weight: 700;
                 margin: 0 0 20px 0;
@@ -186,20 +184,32 @@
                 margin-bottom: 6px;
             }
             input, select {
-                background: #0f172a;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 8px;
-                padding: 10px 14px;
-                font-family: inherit;
-                font-size: 14px;
-                color: white;
-                outline: none;
+                background: #0f172a !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 8px !important;
+                padding: 10px 14px !important;
+                height: 42px !important;
+                font-family: inherit !important;
+                font-size: 14px !important;
+                color: white !important;
+                outline: none !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            select {
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+                background-repeat: no-repeat;
+                background-position: right 10px center;
+                padding-right: 30px !important;
             }
             input:focus, select:focus {
                 border-color: #3b82f6;
                 box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
             }
-            .modal-footer {
+            .custom-discount-modal-footer {
                 display: flex;
                 justify-content: flex-end;
                 gap: 12px;
@@ -239,333 +249,175 @@
             </div>
         </div>
 
+        <!-- SEARCH BAR CONTAINER -->
+        <div class="search-bar-container" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center;">
+            <div style="position: relative; flex: 1;">
+                <i class="bi bi-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+                <input type="text" id="voucherSearchInput" placeholder="Tìm kiếm theo mã voucher..." 
+                       style="padding: 10px 15px 10px 42px; background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; color: white; width: 100%; outline: none;"
+                       onkeyup="filterVouchers()">
+            </div>
+            <select id="voucherStatusFilter" onchange="filterVouchers()" 
+                    style="width: auto; min-width: 180px; padding: 10px 15px; background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; color: white; outline: none; cursor: pointer;">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="ACTIVE">Hoạt động</option>
+                <option value="PAUSED">Tạm dừng</option>
+                <option value="EXPIRED">Hết hạn</option>
+            </select>
+        </div>
+
         <div class="rv-card">
             <div class="rv-card__body p-0">
                 <jsp:include page="/pages/manager/discountTableContent.jsp" />
+                
+                <!-- PAGINATION CONTAINER -->
+                <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.01);">
+                    <div class="pagination-info" style="color: #9ca3af; font-size: 13px;">
+                        Hiển thị <span id="paginated-start" style="font-weight: 600; color: white;">0</span> - <span id="paginated-end" style="font-weight: 600; color: white;">0</span> trong số <span id="paginated-total" style="font-weight: 600; color: white;">0</span> mã giảm giá
+                    </div>
+                    <div class="pagination-buttons" style="display: flex; gap: 8px;">
+                        <button onclick="prevPage()" id="btn-prev-page" class="btn-action" style="padding: 6px 12px; font-weight: bold; border-radius: 6px;">&laquo; Trước</button>
+                        <div id="page-numbers-container" style="display: flex; gap: 5px;"></div>
+                        <button onclick="nextPage()" id="btn-next-page" class="btn-action" style="padding: 6px 12px; font-weight: bold; border-radius: 6px;">Sau &raquo;</button>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <jsp:include page="/pages/manager/discountModalContent.jsp" />
         
         </main>
         </div>
-        </body>
-        </html>
-    </c:when>
-
-    <%-- ========================================================
-         2. MANAGER ROLE VIEW (USING MANAGER DASHBOARD LAYOUT)
-         ======================================================== --%>
-    <c:otherwise>
-        <!DOCTYPE html>
-        <html lang="vi">
-        <head>
-            <meta charset="UTF-8">
-            <title>Quản lý mã giảm giá - RapViet Cinema</title>
-            <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-            <link rel="stylesheet" href="${ctx}/assets/css/admin.css">
-            <style>
-                :root {
-                    --bg-color: hsl(222, 47%, 6%);
-                    --glass-bg: hsla(222, 47%, 12%, 0.7);
-                    --border-color: hsla(217, 30%, 20%, 0.5);
-                    --primary: hsl(224, 89%, 60%);
-                    --emerald: hsl(150, 84%, 37%);
-                    --crimson: hsl(350, 80%, 50%);
-                    --text-color: hsl(0, 0%, 100%);
-                    --muted-text: hsl(215, 20%, 65%);
-                    --indigo: #4f46e5;
-                }
-                .code-text {
-                    font-family: monospace;
-                    font-size: 15px;
-                    font-weight: 700;
-                    background: rgba(99, 102, 241, 0.15);
-                    color: #a5b4fc;
-                    padding: 4px 10px;
-                    border-radius: 6px;
-                    border: 1px dashed rgba(99, 102, 241, 0.3);
-                    display: inline-block;
-                }
-                .value-text {
-                    font-weight: 700;
-                    color: #fff;
-                }
-                .max-value {
-                    font-size: 12px;
-                    color: var(--muted-text);
-                    display: block;
-                    margin-top: 3px;
-                }
-                .badge {
-                    display: inline-flex;
-                    align-items: center;
-                    padding: 4px 10px;
-                    border-radius: 12px;
-                    font-size: 11px;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-                .badge-active {
-                    background: rgba(16, 185, 129, 0.15);
-                    color: #34d399;
-                    border: 1px solid rgba(16, 185, 129, 0.3);
-                }
-                .badge-paused {
-                    background: rgba(217, 119, 6, 0.15);
-                    color: #fbbf24;
-                    border: 1px solid rgba(217, 119, 6, 0.3);
-                }
-                .badge-expired {
-                    background: rgba(239, 68, 68, 0.15);
-                    color: #f87171;
-                    border: 1px solid rgba(239, 68, 68, 0.3);
-                }
-                .usage-container {
-                    width: 140px;
-                }
-                .usage-text {
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: var(--text-color);
-                    margin-bottom: 5px;
-                    display: flex;
-                    justify-content: space-between;
-                }
-                .progress-bar-bg {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 4px;
-                    height: 6px;
-                    overflow: hidden;
-                    width: 100%;
-                }
-                .progress-bar-fill {
-                    height: 100%;
-                    border-radius: 4px;
-                    background: linear-gradient(90deg, var(--primary), var(--indigo));
-                }
-                .actions-cell {
-                    display: flex;
-                    gap: 8px;
-                }
-                .btn-action {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid var(--border-color);
-                    color: var(--muted-text);
-                    padding: 8px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                .btn-action:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #fff;
-                }
-                .btn-action.btn-delete:hover {
-                    background: rgba(239, 68, 68, 0.15);
-                    color: #f87171;
-                    border-color: rgba(239, 68, 68, 0.3);
-                }
-                
-                .vouchers-card {
-                    background: var(--glass-bg);
-                    border: 1px solid var(--border-color);
-                    border-radius: 16px;
-                    overflow: hidden;
-                    backdrop-filter: blur(16px);
-                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    text-align: left;
-                }
-                th {
-                    background: rgba(255, 255, 255, 0.03);
-                    padding: 18px 20px;
-                    font-size: 13px;
-                    font-weight: 700;
-                    color: var(--muted-text);
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    border-bottom: 1px solid var(--border-color);
-                }
-                td {
-                    padding: 18px 20px;
-                    font-size: 14px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-                    color: var(--text-color);
-                    vertical-align: middle;
-                }
-
-                .modal {
-                    display: none;
-                    position: fixed;
-                    z-index: 1000;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(3, 7, 18, 0.85);
-                    backdrop-filter: blur(12px);
-                    align-items: center;
-                    justify-content: center;
-                }
-                .modal-content {
-                    background: var(--glass-bg);
-                    border: 1px solid var(--border-color);
-                    border-radius: 16px;
-                    width: 95%;
-                    max-width: 500px;
-                    padding: 30px;
-                    box-sizing: border-box;
-                    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-                    position: relative;
-                }
-                .modal-title {
-                    font-size: 20px;
-                    font-weight: 700;
-                    margin: 0 0 20px 0;
-                    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                }
-                .form-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 15px;
-                }
-                .form-group {
-                    margin-bottom: 18px;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .form-group.full-width {
-                    grid-column: span 2;
-                }
-                label {
-                    font-size: 12px;
-                    font-weight: 700;
-                    color: var(--muted-text);
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    margin-bottom: 6px;
-                }
-                input, select {
-                    background: rgba(15, 23, 42, 0.6);
-                    border: 1px solid var(--border-color);
-                    border-radius: 8px;
-                    padding: 10px 14px;
-                    font-family: inherit;
-                    font-size: 14px;
-                    color: white;
-                    outline: none;
-                    box-sizing: border-box;
-                }
-                input:focus, select:focus {
-                    border-color: var(--primary);
-                    box-shadow: 0 0 8px rgba(255, 51, 102, 0.2);
-                }
-                .modal-footer {
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 12px;
-                    margin-top: 15px;
-                }
-                .btn-modal-cancel {
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid var(--border-color);
-                    color: var(--muted-text);
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    font-size: 14px;
-                    cursor: pointer;
-                }
-                .btn-modal-submit {
-                    background: linear-gradient(135deg, #ff3366 0%, #e11d48 100%);
-                    border: none;
-                    color: white;
-                    padding: 10px 24px;
-                    border-radius: 8px;
-                    font-weight: 700;
-                    font-size: 14px;
-                    cursor: pointer;
-                    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
-                }
-            </style>
-        </head>
-        <body>
-        <div class="admin-shell">
-            <%-- SIDEBAR --%>
-            <aside class="admin-sidebar">
-                <div class="admin-brand">
-                    RAPVIET SYSTEM
-                </div>
-                <div class="admin-role">
-                    <p>Phân hệ</p>
-                    <strong>Manager Dashboard</strong>
-                    <span>Quyền: Branch Manager</span>
-                </div>
-                <nav class="admin-menu">
-                    <a href="${ctx}/manager/dashboard">Dashboard</a>
-                    <a href="${ctx}/manager/halls">Quản lý phòng chiếu</a>
-                    <a href="${ctx}/manager/seat-config">Cấu hình ghế</a>
-                    <a href="${ctx}/manager/showtimesmanagement">Quản lý lịch chiếu</a>
-                    <a href="${ctx}/manager/movie-assignments/branches">Phim tại chi nhánh</a>
-                    <a href="${ctx}/manager/movie-assignments/halls">Phim tại phòng chiếu</a>
-                    <a href="${ctx}/manager/movie-durations">Quản lý thời lượng phim</a>
-                    <a class="active" href="${ctx}/DiscountManager">Quản lý mã giảm giá</a>
-                    <a href="${ctx}/logout">Đăng xuất</a>
-                </nav>
-            </aside>
-            
-            <%-- MAIN CONTENT --%>
-            <main class="admin-main">
-                <div class="admin-topbar">
-                    <div>
-                        <strong>Quản lý mã giảm giá</strong>
-                        <span>Thiết lập, thêm mới và cập nhật trạng thái các chương trình khuyến mãi, voucher</span>
-                    </div>
-                </div>
-                
-                <section class="admin-content">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2 style="font-size: 24px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Hệ Thống Quản Lý Mã Giảm Giá</h2>
-                        <button class="btn-modal-submit" onclick="openModal()" id="btnOpenAddModal" style="display: flex; align-items: center; gap: 8px; border: none;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            Thêm Mã Giảm Giá
-                        </button>
-                    </div>
-
-                    <!-- Alerts -->
-                    <c:if test="${not empty sessionScope.msgSuccess}">
-                        <div style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;">
-                            ${sessionScope.msgSuccess}
-                            <% session.removeAttribute("msgSuccess"); %>
-                        </div>
-                    </c:if>
-                    <c:if test="${not empty sessionScope.msgError}">
-                        <div style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold;">
-                            ${sessionScope.msgError}
-                            <% session.removeAttribute("msgError"); %>
-                        </div>
-                    </c:if>
-
-                    <jsp:include page="/pages/manager/discountTableContent.jsp" />
-                </section>
-            </main>
-        </div>
-
         <jsp:include page="/pages/manager/discountModalContent.jsp" />
-        </body>
+</body>
         </html>
-    </c:otherwise>
-</c:choose>
+
+<script>
+    let currentPage = 1;
+    const rowsPerPage = 5;
+    let filteredRows = [];
+
+    function initPagination() {
+        const tableBody = document.querySelector(".vouchers-card table tbody");
+        if (!tableBody) return;
+        
+        const rows = Array.from(tableBody.querySelectorAll("tr"));
+        filteredRows = rows;
+        
+        showPage(1);
+    }
+
+    function showPage(page) {
+        currentPage = page;
+        const totalRows = filteredRows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+        
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+        
+        const tableBody = document.querySelector(".vouchers-card table tbody");
+        if (tableBody) {
+            tableBody.querySelectorAll("tr").forEach(row => {
+                row.style.display = "none";
+            });
+        }
+        
+        for (let i = startIndex; i < endIndex; i++) {
+            if (filteredRows[i]) {
+                filteredRows[i].style.display = "";
+            }
+        }
+        
+        const infoStart = totalRows === 0 ? 0 : startIndex + 1;
+        const startEl = document.getElementById("paginated-start");
+        const endEl = document.getElementById("paginated-end");
+        const totalEl = document.getElementById("paginated-total");
+        
+        if (startEl) startEl.innerText = infoStart;
+        if (endEl) endEl.innerText = endIndex;
+        if (totalEl) totalEl.innerText = totalRows;
+        
+        const btnPrev = document.getElementById("btn-prev-page");
+        const btnNext = document.getElementById("btn-next-page");
+        
+        if (btnPrev) {
+            btnPrev.disabled = currentPage === 1;
+            btnPrev.style.opacity = currentPage === 1 ? "0.5" : "1";
+            btnPrev.style.cursor = currentPage === 1 ? "not-allowed" : "pointer";
+        }
+        if (btnNext) {
+            btnNext.disabled = currentPage === totalPages;
+            btnNext.style.opacity = currentPage === totalPages ? "0.5" : "1";
+            btnNext.style.cursor = currentPage === totalPages ? "not-allowed" : "pointer";
+        }
+        
+        const pageContainer = document.getElementById("page-numbers-container");
+        if (pageContainer) {
+            pageContainer.innerHTML = "";
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement("button");
+                btn.innerText = i;
+                btn.className = "btn-action";
+                btn.style.padding = "6px 12px";
+                btn.style.borderRadius = "6px";
+                btn.style.cursor = "pointer";
+                if (i === currentPage) {
+                    btn.style.background = "#3b82f6";
+                    btn.style.color = "white";
+                    btn.style.borderColor = "#3b82f6";
+                }
+                btn.onclick = () => showPage(i);
+                pageContainer.appendChild(btn);
+            }
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) showPage(currentPage - 1);
+    }
+
+    function nextPage() {
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        if (currentPage < totalPages) showPage(currentPage + 1);
+    }
+
+    function filterVouchers() {
+        const searchInput = document.getElementById("voucherSearchInput");
+        const statusFilter = document.getElementById("voucherStatusFilter");
+        if (!searchInput || !statusFilter) return;
+        
+        const searchVal = searchInput.value.trim().toLowerCase();
+        const statusVal = statusFilter.value;
+        
+        const tableBody = document.querySelector(".vouchers-card table tbody");
+        if (!tableBody) return;
+        
+        const allRows = Array.from(tableBody.querySelectorAll("tr"));
+        
+        filteredRows = allRows.filter(row => {
+            const codeEl = row.querySelector(".code-text");
+            const codeText = codeEl ? codeEl.innerText.trim().toLowerCase() : "";
+            
+            const badge = row.querySelector(".badge");
+            let status = "ACTIVE";
+            if (badge) {
+                if (badge.classList.contains("badge-paused")) {
+                    status = "PAUSED";
+                } else if (badge.classList.contains("badge-expired")) {
+                    status = "EXPIRED";
+                }
+            }
+            
+            const matchSearch = codeText.includes(searchVal);
+            const matchStatus = statusVal === "ALL" || status === statusVal;
+            
+            return matchSearch && matchStatus;
+        });
+        
+        showPage(1);
+    }
+
+    window.addEventListener("DOMContentLoaded", initPagination);
+</script>
