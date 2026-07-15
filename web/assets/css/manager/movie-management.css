@@ -963,3 +963,60 @@
 .manager-duration-page .manager-no-search-result i {
     margin-right: 6px;
 }
+
+/* ===== Seat Config Page (seatConfig.jsp) ===== */
+
+.manager-seat-config-page .manager-topbar-context {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding-right: var(--s-4);
+    border-right: 1px solid var(--border);
+    color: var(--n-500);
+    font-size: var(--text-sm);
+}
+
+.manager-seat-config-page .manager-topbar-context i {
+    color: var(--primary-light);
+}
+
+.manager-seat-config-page .manager-sidebar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0 var(--s-4) var(--s-4);
+    padding: var(--s-4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--r-lg);
+    background: linear-gradient(
+        145deg,
+        rgba(229, 9, 20, 0.18),
+        rgba(255, 255, 255, 0.02)
+    );
+    color: rgba(255, 255, 255, 0.76);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+
+.manager-seat-config-page .manager-sidebar-info__label {
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.manager-seat-config-page .manager-sidebar-info strong {
+    color: #ffffff;
+    font-size: var(--text-base);
+}
+
+.manager-seat-config-page .manager-dropdown-name {
+    font-weight: 600;
+    color: var(--n-800);
+}
+
+@media (max-width: 900px) {
+    .manager-seat-config-page .manager-topbar-context {
+        display: none;
+    }
+}

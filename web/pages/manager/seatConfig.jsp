@@ -2,54 +2,153 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="topUser" value="${sessionScope.user}" />
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Cấu hình ghế - RapViet Cinema</title>
-    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-    <link rel="stylesheet" href="${ctx}/assets/css/admin.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cấu hình ghế - Rạp Việt CMS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="${ctx}/assets/css/admin/variables.css?v=redblack">
+    <link rel="stylesheet" href="${ctx}/assets/css/admin/base.css?v=redblack">
+    <link rel="stylesheet" href="${ctx}/assets/css/admin/layout.css?v=redblack">
+    <link rel="stylesheet" href="${ctx}/assets/css/admin/components.css?v=redblack">
+    <link rel="stylesheet" href="${ctx}/assets/css/admin/tables.css?v=redblack">
+    <link rel="stylesheet" href="${ctx}/assets/css/admin/forms.css?v=redblack">
+    <link rel="stylesheet" href="${ctx}/assets/css/manager/movie-management.css?v=1">
+
+    <script src="${ctx}/assets/js/main.js" charset="UTF-8" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous" defer></script>
+
     <style>
-        .screen-container { display: flex; flex-direction: column; align-items: center; background: #0b0f19; padding: 20px; border-radius: 8px;}
+        /* === Seat diagram styles (unchanged from original) === */
+        .screen-container { display: flex; flex-direction: column; align-items: center; background: #0b0f19; padding: 20px; border-radius: 8px; }
         .grid-layout { display: grid; gap: 10px; margin-top: 20px; }
-        .seat-btn { width: 45px; height: 45px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; text-align: center; line-height: 45px; transition: transform 0.2s; background-color: #8b5cf6;}
+        .seat-btn { width: 45px; height: 45px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; text-align: center; line-height: 45px; transition: transform 0.2s; background-color: #8b5cf6; }
         .seat-btn:hover { transform: scale(1.1); }
-        .MAINTENANCE { background-color: #4b5563 !important; } /* Xám */
-        
-        /* Dynamic seat type background colors */
+        .MAINTENANCE { background-color: #4b5563 !important; }
+        /* Dynamic seat type colors */
         <c:forEach items="${allSeatTypes}" var="st">
         .${st.code} { background-color: ${st.color} !important; }
         </c:forEach>
-        
-        .seat-config-row {
-            display: flex;
-            gap: 24px;
-            margin-top: 24px;
-        }
-        .config-col-side {
-            width: 25%;
-        }
-        .config-col-main {
-            width: 50%;
-        }
+        .seat-config-row { display: flex; gap: 24px; margin-top: 0; }
+        .config-col-side { width: 25%; min-width: 200px; }
+        .config-col-main { flex: 1; }
         @media (max-width: 1024px) {
-            .seat-config-row {
-                flex-direction: column;
-            }
-            .config-col-side, .config-col-main {
-                width: 100%;
-            }
+            .seat-config-row { flex-direction: column; }
+            .config-col-side, .config-col-main { width: 100%; }
         }
-
-        /* Custom Vanilla Modal Style for Bulk Add */
+        /* === Seat page card overrides === */
+        .seat-panel {
+            background: var(--rv-card-bg, #1a1f2e);
+            border: 1px solid var(--rv-border, rgba(255,255,255,0.07));
+            border-radius: 12px;
+            overflow: hidden;
+            height: 100%;
+        }
+        .seat-panel__header {
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--rv-border, rgba(255,255,255,0.07));
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+        }
+        .seat-panel__body { padding: 16px; }
+        /* seat type list */
+        .seat-type-badge {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.15);
+            margin-bottom: 8px;
+        }
+        /* hall selector bar */
+        .seat-toolbar {
+            background: var(--rv-card-bg, #1a1f2e);
+            border: 1px solid var(--rv-border, rgba(255,255,255,0.07));
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .seat-toolbar label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #94a3b8;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .seat-toolbar select {
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+        .seat-toolbar select:focus { border-color: var(--rv-accent, #e63946); }
+        /* form inside side panel */
+        .seat-form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .seat-form-input, .seat-form-select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .seat-form-input:focus, .seat-form-select:focus {
+            outline: none;
+            border-color: var(--rv-accent, #e63946);
+            box-shadow: 0 0 0 3px rgba(230,57,70,0.15);
+        }
+        /* Custom Bulk Add Modal */
         .custom-modal {
             display: none;
             position: fixed;
             z-index: 9999;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(3, 7, 18, 0.85);
             backdrop-filter: blur(8px);
             align-items: center;
@@ -59,9 +158,8 @@
             background: #111827;
             border: 1px solid #374151;
             border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 90%; max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -69,283 +167,355 @@
         }
         @keyframes modalFadeIn {
             from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        .custom-modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #1f2937;
+        .custom-modal-header { padding: 20px 24px; border-bottom: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; }
+        .custom-modal-title  { font-size: 1.25rem; font-weight: bold; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .custom-modal-close  { background: none; border: none; color: #9ca3af; font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0; }
+        .custom-modal-close:hover { color: #fff; }
+        .custom-modal-body   { padding: 24px; max-height: 70vh; overflow-y: auto; }
+        .custom-modal-footer { padding: 16px 24px; border-top: 1px solid #1f2937; display: flex; justify-content: flex-end; gap: 12px; background: #0f172a; }
+        .custom-form-group   { margin-bottom: 18px; }
+        .custom-label        { display: block; font-weight: bold; margin-bottom: 6px; color: #a5b4fc; font-size: 0.9rem; }
+        .custom-input        { width: 100%; padding: 10px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
+        .custom-input:focus  { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+
+        /* === Sidebar info card === */
+        .manager-sidebar-info {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 3px;
+            margin: 0 16px 16px;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            background: linear-gradient(
+                145deg,
+                rgba(229, 9, 20, 0.18),
+                rgba(255, 255, 255, 0.02)
+            );
+            color: rgba(255, 255, 255, 0.76);
+            font-size: 12px;
+            line-height: 1.5;
         }
-        .custom-modal-title {
-            font-size: 1.25rem;
-            font-weight: bold;
+        .manager-sidebar-info__label {
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+        .manager-sidebar-info strong {
             color: #ffffff;
-            margin: 0;
-            display: flex;
+            font-size: 14px;
+        }
+        /* === Topbar context === */
+        .manager-topbar-context {
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            padding-right: 16px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
+            font-size: 13px;
         }
-        .custom-modal-close {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            font-size: 1.5rem;
-            cursor: pointer;
-            line-height: 1;
-            padding: 0;
-        }
-        .custom-modal-close:hover {
-            color: #ffffff;
-        }
-        .custom-modal-body {
-            padding: 24px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        .custom-modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #1f2937;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            background: #0f172a;
-        }
-        .custom-form-group {
-            margin-bottom: 18px;
-        }
-        .custom-label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 6px;
-            color: #a5b4fc;
-            font-size: 0.9rem;
-            text-transform: none;
-        }
-        .custom-input {
-            width: 100%;
-            padding: 10px;
-            background: #1f2937;
-            color: white;
-            border: 1px solid #4b5563;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 0.95rem;
-        }
-        .custom-input:focus {
-            outline: none;
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-        }
+        .manager-topbar-context i { color: #e63946; }
     </style>
 </head>
-<body>
-<div class="admin-shell">
+<body class="manager-seat-config-page">
 
-    <%-- SIDEBAR --%>
-    <aside class="admin-sidebar">
-        <div class="admin-brand">
-            RAPVIET SYSTEM
+<header class="rv-topbar">
+    <button type="button" class="rv-topbar__toggle" title="Mở menu" aria-label="Mở menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <a class="rv-topbar__brand" href="${ctx}/manager/dashboard">
+        <div class="rv-topbar__brand-icon"><i class="bi bi-film"></i></div>
+        <span class="rv-topbar__brand-text">RẠP VIỆT <span>CMS</span></span>
+    </a>
+
+    <div class="rv-topbar__actions">
+        <div class="manager-topbar-context">
+            <i class="bi bi-building"></i>
+            <span>Phân hệ Quản lý chi nhánh</span>
         </div>
 
-        <div class="admin-role">
-            <p>Phân hệ</p>
-            <strong>Manager Dashboard</strong>
-            <span>Quyền: Branch Manager</span>
+        <div class="rv-topbar__avatar">
+            <c:choose>
+                <c:when test="${not empty topUser and not empty topUser.fullName}">
+                    <c:out value="${topUser.fullName.substring(0, 1).toUpperCase()}" />
+                </c:when>
+                <c:otherwise>M</c:otherwise>
+            </c:choose>
         </div>
 
-        <nav class="admin-menu">
-            <a href="${ctx}/manager/dashboard">Dashboard</a>
-            <a href="${ctx}/manager/halls">Quản lý phòng chiếu</a>
-            <a class="active" href="${ctx}/manager/seat-config">Cấu hình ghế</a>
-            <a href="${ctx}/manager/showtimesmanagement">Quản lý lịch chiếu</a>
-            <a href="${ctx}/manager/movie-assignments/branches">Phim tại chi nhánh</a>
-            <a href="${ctx}/manager/movie-assignments/halls">Phim tại phòng chiếu</a>
-            <a href="${ctx}/manager/movie-durations">Quản lý thời lượng phim</a>
+        <div class="rv-topbar__user-info">
+            <span class="rv-topbar__user-name">
+                <c:out value="${not empty topUser ? topUser.fullName : 'Branch Manager'}" />
+            </span>
+            <span class="rv-topbar__user-role">Quản lý chi nhánh</span>
+        </div>
 
-            <a href="${ctx}/logout">Đăng xuất</a>
-        </nav>
+        <i class="bi bi-chevron-down rv-topbar__user-arrow"></i>
+
+        <div class="rv-topbar__dropdown">
+            <div class="rv-topbar__dropdown-header">
+                <div class="manager-dropdown-name">
+                    <c:out value="${not empty topUser ? topUser.fullName : 'Branch Manager'}" />
+                </div>
+                <div class="email">
+                    <c:out value="${not empty topUser ? topUser.email : ''}" />
+                </div>
+            </div>
+            <a href="${ctx}/manager/dashboard" class="rv-topbar__dropdown-item">
+                <i class="bi bi-grid-1x2-fill"></i> Bảng điều khiển
+            </a>
+            <div class="rv-topbar__dropdown-divider"></div>
+            <a href="${ctx}/logout" class="rv-topbar__dropdown-item danger">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="rv-wrapper">
+
+    <aside class="rv-sidebar">
+        <div class="manager-sidebar-info">
+            <span class="manager-sidebar-info__label">PHÂN HỆ</span>
+            <strong>Branch Manager</strong>
+            <span>Quản lý vận hành chi nhánh được phân công</span>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/dashboard" class="rv-nav__item">
+                <i class="bi bi-grid-1x2-fill"></i> Bảng điều khiển
+            </a>
+        </div>
+
+        <div class="rv-nav__label">Vận hành chi nhánh</div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/halls" class="rv-nav__item">
+                <i class="bi bi-door-open-fill"></i> Quản lý phòng chiếu
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/seat-config" class="rv-nav__item active">
+                <i class="bi bi-grid-3x3-gap-fill"></i> Cấu hình ghế
+            </a>
+        </div>
+
+        <div class="rv-nav__group open">
+            <div class="rv-nav__item" role="button" tabindex="0">
+                <i class="bi bi-film"></i> Phân bổ phim
+                <i class="bi bi-chevron-right rv-nav__arrow"></i>
+            </div>
+            <div class="rv-nav__sub">
+                <a href="${ctx}/manager/movie-assignments/branches" class="rv-nav__sub-item">Phim tại chi nhánh</a>
+                <a href="${ctx}/manager/movie-assignments/halls" class="rv-nav__sub-item">Phim tại phòng chiếu</a>
+                <a href="${ctx}/manager/movie-durations" class="rv-nav__sub-item">Thời lượng phim</a>
+            </div>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/showtimesmanagement" class="rv-nav__item">
+                <i class="bi bi-calendar-week-fill"></i> Quản lý lịch chiếu
+            </a>
+        </div>
+
+        <div class="rv-nav__group">
+            <a href="${ctx}/logout" class="rv-nav__item logout">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </a>
+        </div>
     </aside>
 
-    <%-- MAIN CONTENT --%>
-    <main class="admin-main">
+    <main class="rv-main">
 
-        <div class="admin-topbar">
-            <div>
-                <strong>Cấu hình sơ đồ ghế</strong>
-                <span>Thiết lập vị trí, loại ghế và trạng thái vận hành của phòng chiếu</span>
+        <div class="rv-page-header">
+            <div class="rv-page-header__left">
+                <div class="rv-breadcrumb">
+                    <a href="${ctx}/manager/dashboard">Quản lý chi nhánh</a>
+                    <i class="bi bi-chevron-right rv-breadcrumb__sep"></i>
+                    <span class="rv-breadcrumb__current">Cấu hình ghế</span>
+                </div>
+                <h1 class="rv-page-title">Cấu hình sơ đồ ghế</h1>
+                <p class="rv-page-subtitle">Thiết lập vị trí, loại ghế và trạng thái vận hành của phòng chiếu</p>
+            </div>
+            <div class="rv-page-header__right">
+                <a class="rv-btn rv-btn--ghost" href="${ctx}/manager/dashboard">
+                    <i class="bi bi-arrow-left"></i> Quay lại Dashboard
+                </a>
             </div>
         </div>
 
-        <section class="admin-content">
-            
-            <%-- Alert Messages --%>
-            <c:if test="${not empty sessionScope.msgSuccess}">
-                <div class="alert alert-success alert-dismissible fade show" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 15px; border-radius: 6px; margin-bottom: 20px; position: relative;">
-                    ${sessionScope.msgSuccess}
-                    <c:remove var="msgSuccess" scope="session" />
-                </div>
-            </c:if>
-            <c:if test="${not empty sessionScope.msgError}">
-                <div class="alert alert-danger alert-dismissible fade show" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 15px; border-radius: 6px; margin-bottom: 20px; position: relative;">
-                    ${sessionScope.msgError}
-                    <c:remove var="msgError" scope="session" />
-                </div>
-            </c:if>
+        <%-- Alert Messages --%>
+        <c:if test="${not empty sessionScope.msgSuccess}">
+            <div style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; display:flex; align-items:center; gap:10px;">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>${sessionScope.msgSuccess}</span>
+                <c:remove var="msgSuccess" scope="session" />
+            </div>
+        </c:if>
+        <c:if test="${not empty sessionScope.msgError}">
+            <div style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; display:flex; align-items:center; gap:10px;">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>${sessionScope.msgError}</span>
+                <c:remove var="msgError" scope="session" />
+            </div>
+        </c:if>
 
-            <%-- Lock State Warning --%>
-            <c:if test="${isLocked}">
-                <div style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px;">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span><strong>Lưu ý:</strong> Sơ đồ phòng chiếu này đã được khóa chỉnh sửa do đang có suất chiếu chưa diễn ra. Bạn chỉ được xem cấu hình hiện tại.</span>
+        <c:if test="${isLocked}">
+            <div style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+                <i class="bi bi-lock-fill"></i>
+                <span><strong>Lưu ý:</strong> Sơ đồ phòng chiếu này đã được khóa chỉnh sửa do đang có suất chiếu chưa diễn ra. Bạn chỉ được xem cấu hình hiện tại.</span>
+            </div>
+        </c:if>
+
+        <div class="seat-toolbar">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <label>Chọn Phòng Chiếu:</label>
+                <select onchange="location.href='seat-config?hallId=' + this.value">
+                    <c:forEach items="${hallList}" var="h">
+                        <option value="${h.id}" ${h.id == currentHallId ? 'selected' : ''}>
+                            ${h.name} (Tổng ${h.totalSeats} ghế)
+                        </option>
+                    </c:forEach>
+                </select>
+            </div>
+            <c:if test="${!isLocked && currentHallId > 0}">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button type="button" onclick="openBulkAddModal()" class="rv-btn rv-btn--success" style="display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-magic"></i> Thêm nhanh hàng loạt
+                    </button>
+                    <form action="seat-config" method="POST"
+                          onsubmit="return confirm('CẢNH BÁO: Hành động này sẽ xóa TOÀN BỘ ghế hiện có của phòng chiếu này! Bạn chắc chắn chứ?');"
+                          style="margin:0;">
+                        <input type="hidden" name="hallId" value="${currentHallId}">
+                        <input type="hidden" name="action" value="clearAll">
+                        <button type="submit" class="rv-btn rv-btn--danger" style="display:flex;align-items:center;gap:8px;">
+                            <i class="bi bi-trash3-fill"></i> Xóa toàn bộ sơ đồ ghế
+                        </button>
+                    </form>
                 </div>
             </c:if>
+        </div>
 
-            <div class="panel" style="margin-bottom: 24px;">
-                <div class="panel-body" style="display: flex; align-items: center; gap: 15px; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <label style="font-weight: bold; font-size: 15px; color: #a5b4fc; margin: 0;">Chọn Phòng Chiếu:</label>
-                        <select onchange="location.href='seat-config?hallId=' + this.value" style="padding: 8px 12px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; outline: none;">
-                            <c:forEach items="${hallList}" var="h">
-                                <option value="${h.id}" ${h.id == currentHallId ? 'selected' : ''}>
-                                    ${h.name} (Tổng ${h.totalSeats} ghế)
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    
-                    <c:if test="${!isLocked && currentHallId > 0}">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <button type="button" onclick="openBulkAddModal()" style="background: #10b981; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px 20px; border-radius: 6px; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-size: 0.95em;">
-                                <i class="bi bi-magic"></i> Thêm nhanh hàng loạt
-                            </button>
-                            
-                            <form action="seat-config" method="POST" onsubmit="return confirm('CẢNH BÁO: Hành động này sẽ xóa TOÀN BỘ ghế hiện có của phòng chiếu này! Bạn chắc chắn chứ?');" style="margin: 0;">
-                                <input type="hidden" name="hallId" value="${currentHallId}">
-                                <input type="hidden" name="action" value="clearAll">
-                                <button type="submit" style="background: #dc2626; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px 20px; border-radius: 6px; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; font-size: 0.95em;">
-                                    <i class="bi bi-trash3-fill"></i> Xóa toàn bộ sơ đồ ghế
-                                </button>
-                            </form>
+        <div class="seat-config-row">
+
+            <%-- CỘT TRÁI: LOẠI GHẾ --%>
+            <div class="config-col-side">
+                <div class="seat-panel">
+                    <div class="seat-panel__header">1. Loại ghế hiện có</div>
+                    <div class="seat-panel__body">
+                        <c:forEach items="${allSeatTypes}" var="st">
+                            <c:if test="${st.status == 'ACTIVE'}">
+                                <div class="seat-type-badge" style="background-color: ${st.color};">
+                                    <span>${st.name}</span>
+                                    <span style="font-size:0.82em; opacity:0.9;">
+                                        <fmt:formatNumber value="${st.defaultPrice}" pattern="#,##0"/>đ
+                                    </span>
+                                </div>
+                            </c:if>
+                        </c:forEach>
+                        <div class="seat-type-badge" style="background:#4b5563;">
+                            <span>Maintenance (Bảo Trì)</span>
                         </div>
-                    </c:if>
+                    </div>
                 </div>
             </div>
 
-            <div class="seat-config-row">
-                
-                <%-- DANH MỤC LOẠI GHẾ (ĐỌC) --%>
-                <div class="config-col-side">
-                    <div class="panel" style="height: 100%;">
-                        <div class="panel-header">1. LOẠI GHẾ HIỆN CÓ</div>
-                        <div class="panel-body" style="display: flex; flex-direction: column; gap: 10px;">
-                            <c:forEach items="${allSeatTypes}" var="st">
-                                <c:if test="${st.status == 'ACTIVE'}">
-                                    <div style="padding: 12px; background-color: ${st.color}; border-radius: 6px; font-weight: bold; text-align: center; color: white; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15);">
-                                        <span>${st.name}</span>
-                                        <span style="font-size: 0.85em; opacity: 0.9;"><fmt:formatNumber value="${st.defaultPrice}" pattern="#,##0"/>đ</span>
-                                    </div>
-                                </c:if>
-                            </c:forEach>
-                            <div style="padding: 12px; background: #4b5563; border-radius: 6px; font-weight: bold; text-align: center; color: white; border: 1px solid rgba(255,255,255,0.15);">
-                                Maintenance (Bảo Trì)
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <%-- SƠ ĐỒ MÀN HÌNH --%>
-                <div class="config-col-main">
-                    <div class="panel" style="height: 100%;">
-                        <div class="panel-header">SƠ ĐỒ PHÒNG CHIẾU</div>
-                        <div class="panel-body">
-                            <div class="screen-container">
-                                <div style="background: #374151; width: 80%; text-align: center; padding: 6px 0; border-radius: 0 0 15px 15px; font-weight: bold; font-size: 13px; color: #d1d5db; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px;">MÀN HÌNH CHIẾU (SCREEN)</div>
-                                
-                                <div class="grid-wrapper" style="width: 100%; overflow-x: auto; padding-bottom: 10px;">
-                                    <div class="grid-layout" style="grid-template-columns: repeat(${maxSeatNumber}, 45px); margin: 20px auto 0 auto; width: fit-content;">
-                                        <c:forEach items="${seatList}" var="s">
-                                            <button class="seat-btn ${s.maintenance ? 'MAINTENANCE' : s.seatType}" 
-                                                    style="grid-column: ${s.seatNumber}; grid-row: ${s.getRowIndex()};"
-                                                    onclick="selectSeat('${s.getSeatCode()}', '${s.seatType}', '${s.maintenance ? 'MAINTENANCE' : 'AVAILABLE'}')">
-                                                ${s.getSeatCode()}
-                                            </button>
-                                        </c:forEach>
-                                    </div>
+            <%-- CỘT GIỮA: SƠ ĐỒ PHÒNG CHIẾU --%>
+            <div class="config-col-main">
+                <div class="seat-panel" style="height:100%;">
+                    <div class="seat-panel__header">Sơ đồ phòng chiếu</div>
+                    <div class="seat-panel__body">
+                        <div class="screen-container">
+                            <div style="background:#374151; width:80%; text-align:center; padding:6px 0; border-radius:0 0 15px 15px; font-weight:bold; font-size:13px; color:#d1d5db; text-transform:uppercase; letter-spacing:2px; margin-bottom:20px;">MÀN HÌNH CHIẾU (SCREEN)</div>
+                            <div class="grid-wrapper" style="width:100%; overflow-x:auto; padding-bottom:10px;">
+                                <div class="grid-layout" style="grid-template-columns: repeat(${maxSeatNumber}, 45px); margin: 20px auto 0 auto; width:fit-content;">
+                                    <c:forEach items="${seatList}" var="s">
+                                        <button class="seat-btn ${s.maintenance ? 'MAINTENANCE' : s.seatType}"
+                                                style="grid-column: ${s.seatNumber}; grid-row: ${s.getRowIndex()};"
+                                                onclick="selectSeat('${s.getSeatCode()}', '${s.seatType}', '${s.maintenance ? 'MAINTENANCE' : 'AVAILABLE'}')">
+                                            ${s.getSeatCode()}
+                                        </button>
+                                    </c:forEach>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <%-- THAO TÁC SƠ ĐỒ (SỬA & THÊM HÀNG LOẠT) --%>
-                <div class="config-col-side">
-                    <%-- FORM SỬA THÔNG TIN GHẾ --%>
-                    <div class="panel">
-                        <div class="panel-header">2. SỬA THÔNG TIN GHẾ</div>
-                        <div class="panel-body">
-                            <c:choose>
-                                <c:when test="${isLocked}">
-                                    <div style="color: #9ca3af; text-align: center; padding: 20px 0; font-style: italic;">
-                                        Đã khóa chỉnh sửa sơ đồ phòng chiếu
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <form action="seat-config" method="POST">
-                                        <input type="hidden" name="hallId" value="${currentHallId}">
-                                        
-                                        <div class="form-group" style="margin-bottom: 15px;">
-                                            <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #a5b4fc;">Mã Vị Trí Ghế (Ví dụ: B7, C1):</label>
-                                            <input type="text" id="formSeatCode" name="seatCode" placeholder="Click ghế hoặc tự gõ mã..." style="width: 100%; padding: 10px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 6px; box-sizing: border-box;">
-                                        </div>
-
-                                        <div class="form-group" style="margin-bottom: 15px;">
-                                            <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #a5b4fc;">Thay Đổi Loại Ghế:</label>
-                                            <select id="formSeatType" name="seatType" style="width: 100%; padding: 10px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 6px; box-sizing: border-box; cursor: pointer;">
-                                                <c:forEach items="${activeSeatTypes}" var="st">
-                                                    <option value="${st.code}">${st.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-group" style="margin-bottom: 15px;">
-                                            <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #a5b4fc;">Trạng Thái Vận Hành:</label>
-                                            <select id="formStatus" name="status" style="width: 100%; padding: 10px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 6px; box-sizing: border-box; cursor: pointer;">
-                                                <option value="AVAILABLE">AVAILABLE (Hoạt động)</option>
-                                                <option value="MAINTENANCE">MAINTENANCE (Bảo trì)</option>
-                                            </select>
-                                        </div>
-
-                                        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                                            <div style="display: flex; gap: 10px;">
-                                                <button type="submit" name="action" value="update" class="btn" style="flex: 1; background: #2563eb; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 4px;">
-                                                    Cập Nhật
-                                                </button>
-                                                
-                                                <button type="submit" name="action" value="add" class="btn" style="flex: 1; background: #10b981; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 4px;">
-                                                    Thêm Ghế
-                                                </button>
-                                            </div>
-                                            
-                                            <button type="submit" name="action" value="delete" class="btn" style="width: 100%; background: #dc2626; color: white; border: none; font-weight: bold; cursor: pointer; padding: 10px; border-radius: 4px;" onclick="return confirm('Bạn chắc chắn muốn xóa ghế này?')">
-                                                Xóa Khỏi Sơ Đồ
-                                            </button>
-                                        </div>
-                                    </form>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
-        </section>
+            <%-- CỘT PHẢI: FORM SỬA GHẾ --%>
+            <div class="config-col-side">
+                <div class="seat-panel">
+                    <div class="seat-panel__header">2. Sửa thông tin ghế</div>
+                    <div class="seat-panel__body">
+                        <c:choose>
+                            <c:when test="${isLocked}">
+                                <div style="color:#9ca3af; text-align:center; padding:20px 0; font-style:italic;">
+                                    Đã khóa chỉnh sửa sơ đồ phòng chiếu
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <form action="seat-config" method="POST">
+                                    <input type="hidden" name="hallId" value="${currentHallId}">
+
+                                    <div style="margin-bottom:14px;">
+                                        <label class="seat-form-label">Mã vị trí ghế (VD: B7, C1)</label>
+                                        <input type="text" id="formSeatCode" name="seatCode"
+                                               placeholder="Click ghế hoặc tự gõ mã..."
+                                               class="seat-form-input">
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label class="seat-form-label">Loại ghế</label>
+                                        <select id="formSeatType" name="seatType" class="seat-form-select">
+                                            <c:forEach items="${activeSeatTypes}" var="st">
+                                                <option value="${st.code}">${st.name}</option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
+
+                                    <div style="margin-bottom:20px;">
+                                        <label class="seat-form-label">Trạng thái vận hành</label>
+                                        <select id="formStatus" name="status" class="seat-form-select">
+                                            <option value="AVAILABLE">AVAILABLE (Hoạt động)</option>
+                                            <option value="MAINTENANCE">MAINTENANCE (Bảo trì)</option>
+                                        </select>
+                                    </div>
+
+                                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                                        <button type="submit" name="action" value="update"
+                                                class="rv-btn rv-btn--primary" style="flex:1;">
+                                            <i class="bi bi-pencil-fill"></i> Cập nhật
+                                        </button>
+                                        <button type="submit" name="action" value="add"
+                                                class="rv-btn rv-btn--success" style="flex:1;">
+                                            <i class="bi bi-plus-lg"></i> Thêm ghế
+                                        </button>
+                                    </div>
+                                    <button type="submit" name="action" value="delete"
+                                            class="rv-btn rv-btn--danger" style="width:100%;"
+                                            onclick="return confirm('Bạn chắc chắn muốn xóa ghế này?')">
+                                        <i class="bi bi-trash3-fill"></i> Xóa khỏi sơ đồ
+                                    </button>
+                                </form>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+            </div>
+
+        </div><%-- seat-config-row --%>
 
     </main>
 
-</div>
+</div><%-- rv-wrapper --%>
+
 
 <script>
     function selectSeat(code, type, status) {
