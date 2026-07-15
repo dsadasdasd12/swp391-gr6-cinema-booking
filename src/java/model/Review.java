@@ -19,7 +19,7 @@ public class Review {
     private int userId;
     private int movieId;
     private int bookingId;
-    private int rating;             // 1..5 (dbo.REVIEWS.rating)
+    private double rating;          // 0.5..5.0, bước 0.5 (dbo.REVIEWS.rating)
     private String comment;
     private String status;          // ACTIVE | HIDDEN
     private LocalDateTime createdAt;
@@ -60,11 +60,11 @@ public class Review {
         this.bookingId = bookingId;
     }
 
-    public int getRating() {
+    public double getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(double rating) {
         this.rating = rating;
     }
 

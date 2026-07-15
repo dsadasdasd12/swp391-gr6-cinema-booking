@@ -45,6 +45,7 @@ public class StaffBranchDAO {
         return branches;
     }
 
+    /* Lay tu staffBranch*/
     public Branch findBranchByManagerId(int managerId) {
         String sql = "SELECT TOP 1 "
                 + "b.id, b.cinema_id, b.name, b.address, b.phone, "
@@ -74,6 +75,7 @@ public class StaffBranchDAO {
         return null;
     }
 
+    /*Kiem tra BranchID từ client co phan cong cho Manager*/
     public boolean isManagerAssignedToBranch(int userId, int branchId) {
         String sql = "SELECT COUNT(*) "
                 + "FROM dbo.STAFF_BRANCH "

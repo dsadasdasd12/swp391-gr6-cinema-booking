@@ -110,7 +110,7 @@ public class ReviewController extends HttpServlet {
             ok = reviewService.deleteReview(reviewId, user.getId());
         } else {
             // rating/comment la du lieu user nhap trong form.
-            int rating = parseInt(request.getParameter("rating"));
+            double rating = parseRating(request.getParameter("rating"));
             String comment = request.getParameter("comment");
             if (reviewId > 0) {
                 // Sửa đánh giá đã có
@@ -135,6 +135,18 @@ public class ReviewController extends HttpServlet {
         }
         try {
             return Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /** Đọc điểm sao nửa bước; trả -1 nếu thiếu hoặc sai định dạng. */
+    private static double parseRating(String s) {
+        if (s == null || s.isBlank()) {
+            return -1;
+        }
+        try {
+            return Double.parseDouble(s.trim());
         } catch (NumberFormatException e) {
             return -1;
         }

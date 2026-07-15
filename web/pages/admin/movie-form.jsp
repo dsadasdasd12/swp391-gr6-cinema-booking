@@ -171,34 +171,35 @@
 
         <!-- ── RIGHT PANEL: MEDIA & DESCRIPTION ── -->
         <div style="display: flex; flex-direction: column; gap: var(--s-6);">
-            <!-- Poster Image Upload Zone -->
+            <!-- Poster: upload file local hoặc dán URL Cloudinary -->
             <div class="rv-card">
                 <div class="rv-card__header">
                     <span class="rv-card__title">Poster phim *</span>
                 </div>
                 <div class="rv-card__body">
-                    <!-- Custom Drag and drop zone -->
                     <div id="rv-upload-zone" class="rv-upload-zone" style="border: 2px dashed var(--border); border-radius: var(--r-lg); background: var(--n-50); aspect-ratio: 2/3; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s-4); text-align: center; cursor: pointer; position: relative; transition: all var(--ease); overflow: hidden;">
-                        
-                        <!-- Upload placeholder -->
                         <div id="rv-upload-placeholder" style="display: ${not empty movie.posterWebPath ? 'none' : 'flex'}; flex-direction: column; align-items: center; gap: var(--s-2);">
                             <i class="bi bi-cloud-arrow-up" style="font-size: 40px; color: var(--n-400);"></i>
                             <div style="font-weight: 500; color: var(--n-700);">Kéo thả ảnh hoặc click để upload</div>
                             <div style="font-size: 11px; color: var(--n-400);">Chấp nhận JPG, PNG, WEBP tối đa 5MB</div>
                         </div>
-
-                        <!-- Local Preview -->
                         <div id="rv-poster-preview" style="display: ${not empty movie.posterWebPath ? 'block' : 'none'}; width: 100%; height: 100%;">
-                            <img id="rv-preview-img" src="${not empty movie.posterWebPath ? ctx.concat('/').concat(movie.posterWebPath) : ''}" alt="poster-preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-md);">
-                            
+                            <img id="rv-preview-img" src="${not empty movie.posterWebPath ? (movie.posterExternalUrl ? movie.posterWebPath : ctx.concat('/').concat(movie.posterWebPath)) : ''}" alt="poster-preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-md);">
                             <button type="button" id="rv-clear-poster" class="rv-btn rv-btn--danger rv-btn--icon" style="position: absolute; top: var(--s-3); right: var(--s-3); z-index: 10; border-radius: 50%; width: 32px; height: 32px;" title="Xóa ảnh poster">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </div>
-
-                    <!-- Hidden Input -->
                     <input type="file" name="posterFile" id="rv-poster-input" accept="image/jpeg, image/png, image/webp" style="display: none;">
+                    <div class="rv-form-group">
+                        <label class="rv-label" for="posterUrl">Hoặc dán URL poster Cloudinary</label>
+                        <input type="url" id="posterUrl" name="posterUrl" class="rv-input"
+                               placeholder="https://res.cloudinary.com/.../image/upload/..."
+                               value="<c:out value='${movie.posterUrl}'/>">
+                        <span style="font-size: 11px; color: var(--n-400); margin-top: 4px; display: block;">
+                            Dán link ảnh Cloudinary (hoặc URL ảnh HTTPS). Nếu đồng thời upload file, file upload sẽ được ưu tiên.
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -328,12 +329,14 @@ document.getElementById('rv-movie-form').addEventListener('submit', function(e) 
         }
     }
 
-    const posterInput = document.getElementById('rv-poster-input');
-    const hasPosterPreview = document.getElementById('rv-poster-preview').style.display !== 'none';
-    const hasFile = posterInput.files && posterInput.files.length > 0;
-    if (!hasFile && !hasPosterPreview) {
+    const posterFileInput = document.getElementById('rv-poster-input');
+    const posterUrlInput = document.getElementById('posterUrl');
+    const hasNewPosterFile = posterFileInput.files && posterFileInput.files.length > 0;
+    const hasPosterUrl = posterUrlInput && posterUrlInput.value.trim();
+    const hasExistingPoster = document.getElementById('rv-poster-preview').style.display !== 'none';
+    if (!hasNewPosterFile && !hasPosterUrl && !hasExistingPoster) {
         isValid = false;
-        window.showToast('Thiếu poster', 'Vui lòng tải lên poster phim.', 'error');
+        window.showToast('Thiếu poster', 'Vui lòng tải poster hoặc dán URL poster phim.', 'error');
     }
 
     if (!isValid) {

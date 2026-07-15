@@ -41,9 +41,9 @@
             <c:otherwise>
                 <div class="booking-list">
                     <c:forEach var="bk" items="${bookings}">
-                        <a class="booking-row" href="${ctx}/my-booking?id=${bk.booking.id}">
+                        <div class="booking-row">
                             <div class="booking-main">
-                                <h3><c:out value="${bk.movieTitle}"/></h3>
+                                <h3><a href="${ctx}/my-booking?id=${bk.booking.id}"><c:out value="${bk.movieTitle}"/></a></h3>
                                 <div class="booking-meta">
                                     🕒 ${bk.showTimeLabel}
                                     &middot; 🏢 <c:out value="${bk.branchName}"/>
@@ -57,8 +57,12 @@
                                 <span class="badge ${bk.statusBadgeClass}">${bk.statusLabel}</span>
                                 <div class="booking-total">${bk.totalPriceLabel}</div>
                                 <div class="booking-code">#${bk.booking.id}</div>
+                                <c:if test="${bk.reviewable}">
+                                    <a class="btn btn-primary booking-review-btn"
+                                       href="${ctx}/review?bookingId=${bk.booking.id}&movieId=${bk.movieId}">★ Đánh giá</a>
+                                </c:if>
                             </div>
-                        </a>
+                        </div>
                     </c:forEach>
                 </div>
             </c:otherwise>

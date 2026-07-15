@@ -84,42 +84,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewImg = document.getElementById('rv-preview-img');
   const uploadPlaceholder = document.getElementById('rv-upload-placeholder');
   const clearPosterBtn = document.getElementById('rv-clear-poster');
+  const posterUrlInput = document.getElementById('posterUrl');
 
   if (uploadZone && posterInput) {
     uploadZone.addEventListener('click', (e) => {
       if (e.target.closest('#rv-clear-poster')) return;
       posterInput.click();
     });
-
     ['dragenter', 'dragover'].forEach(eventName => {
       uploadZone.addEventListener(eventName, (e) => {
         e.preventDefault();
         uploadZone.classList.add('dragover');
       }, false);
     });
-
     ['dragleave', 'drop'].forEach(eventName => {
       uploadZone.addEventListener(eventName, (e) => {
         e.preventDefault();
         uploadZone.classList.remove('dragover');
       }, false);
     });
-
     uploadZone.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
+      const files = e.dataTransfer.files;
       if (files.length) {
         posterInput.files = files;
         handlePosterSelect(files[0]);
       }
     });
-
-    posterInput.addEventListener('change', (e) => {
-      if (posterInput.files && posterInput.files[0]) {
-        handlePosterSelect(posterInput.files[0]);
-      }
+    posterInput.addEventListener('change', () => {
+      if (posterInput.files && posterInput.files[0]) handlePosterSelect(posterInput.files[0]);
     });
-
     if (clearPosterBtn) {
       clearPosterBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -141,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(RV_MOVIE_VN.FILE_TOO_LARGE_TITLE, RV_MOVIE_VN.FILE_TOO_LARGE_MSG, 'error');
       return;
     }
-
     const reader = new FileReader();
     reader.onload = (e) => {
       previewImg.src = e.target.result;
@@ -150,6 +142,26 @@ document.addEventListener('DOMContentLoaded', () => {
       markDirty();
     };
     reader.readAsDataURL(file);
+  }
+
+  // Preview ngay khi admin dán URL Cloudinary/HTTPS; không cần upload file local.
+  if (posterUrlInput && previewImg && posterPreview && uploadPlaceholder) {
+    const previewExternalPoster = () => {
+      const url = posterUrlInput.value.trim();
+      if (!url) return;
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return;
+        previewImg.src = url;
+        uploadPlaceholder.style.display = 'none';
+        posterPreview.style.display = 'block';
+      } catch (ignored) {
+        // Browser validation sẽ báo URL không hợp lệ khi submit.
+      }
+    };
+    posterUrlInput.addEventListener('input', previewExternalPoster);
+    posterUrlInput.addEventListener('change', previewExternalPoster);
+    previewExternalPoster();
   }
 
   const tagContainer = document.getElementById('rv-genre-tags-container');

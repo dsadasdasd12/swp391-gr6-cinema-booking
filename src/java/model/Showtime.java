@@ -139,7 +139,7 @@ public class Showtime implements Serializable {
     }
 
     /**
-     * Format cho input type="datetime-local".
+    Form datetime-local: định dạng yyyy-MM-dd'T'HH:mm.
      */
     public String getStartInputValue() {
     if (this.startTime == null) return "";
