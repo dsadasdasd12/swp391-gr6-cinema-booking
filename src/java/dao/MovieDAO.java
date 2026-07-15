@@ -404,6 +404,46 @@ public class MovieDAO {
     }
 
     /**
+     * Kiểm tra tiêu đề phim đã tồn tại chưa (case insensitive, skip excludeMovieId).
+     */
+    public boolean isTitleExists(String title, int excludeMovieId) {
+        String sql = "SELECT TOP 1 1 FROM dbo.MOVIES WHERE LOWER(title) = LOWER(?) AND id != ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, title);
+            ps.setInt(2, excludeMovieId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.getLogger(MovieDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "isTitleExists thất bại", e);
+        }
+        return false;
+    }
+
+    /**
+     * Lấy ngày chiếu sớm nhất của một phim, trả về null nếu chưa có suất chiếu.
+     */
+    public LocalDate getEarliestShowtimeDate(int movieId) {
+        String sql = "SELECT MIN(start_time) FROM dbo.SHOWTIMES WHERE movie_id = ? AND status != 'CANCELLED'";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    LocalDateTime earliest = rs.getObject(1, LocalDateTime.class);
+                    return earliest != null ? earliest.toLocalDate() : null;
+                }
+            }
+        } catch (SQLException e) {
+            System.getLogger(MovieDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "getEarliestShowtimeDate thất bại", e);
+        }
+        return null;
+    }
+
+    /**
      * Thêm mới một phim + ghi vào bảng MOVIES_CATEGORY và MOVIE_LANGUAGES.
      * @return id tự sinh của bản ghi mới, hoặc -1 nếu thất bại
      */

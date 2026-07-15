@@ -6,7 +6,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="ctx"    value="${pageContext.request.contextPath}" />
-<c:set var="uri"    value="${pageContext.request.requestURI}" />
+<c:set var="forwardUri" value="${requestScope['javax.servlet.forward.request_uri']}" />
+<c:set var="uri"    value="${not empty forwardUri ? forwardUri : pageContext.request.requestURI}" />
 
 <%-- Helper checks for active menus --%>
 <c:set var="isMovie"        value="${uri.contains('/admin/moviesmanagement') || uri.contains('/moviesmanagement')}" />
