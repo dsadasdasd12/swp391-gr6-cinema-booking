@@ -20,6 +20,7 @@ import service.UserService;
 
 @WebServlet(name = "SeatConfigController", urlPatterns = "/manager/seat-config")
 public class SeatConfigController extends HttpServlet {
+
     private final SeatService seatService = new SeatService();
     private final SeatLayoutService layoutService = new SeatLayoutService();
     private final HallService hallService = new HallService();
@@ -32,11 +33,15 @@ public class SeatConfigController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        // Chỉ manager đã đăng nhập mới được sửa sơ đồ ghế.
         User user = manager(request, response);
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
         int hallId = selectedHallId(request, user.getId());
         try {
             request.setCharacterEncoding("UTF-8");
+            // Controller chỉ nhận dữ liệu; SeatLayoutService mới kiểm tra và áp dụng nghiệp vụ.
             String message = layoutService.apply(hallId, request.getParameter("action"), parameters(request));
             request.getSession().setAttribute("msgSuccess", message);
         } catch (IllegalArgumentException e) {
@@ -47,11 +52,16 @@ public class SeatConfigController extends HttpServlet {
 
     private void render(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         User user = manager(request, response);
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
         int hallId = selectedHallId(request, user.getId());
+        // Hall chỉ được lấy từ chi nhánh của manager, không tin hallId tùy ý trên URL.
         List<Seat> seats = hallId > 0 ? seatService.getSeatsByHall(hallId) : List.of();
         int max = 8;
-        for (Seat seat : seats) max = Math.max(max, seat.getSeatNumber());
+        for (Seat seat : seats) {
+            max = Math.max(max, seat.getSeatNumber());
+        }
         request.setAttribute("seatList", seats);
         request.setAttribute("hallList", halls(user.getId()));
         request.setAttribute("currentHallId", hallId);
@@ -65,26 +75,50 @@ public class SeatConfigController extends HttpServlet {
     private User manager(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         Object current = session == null ? null : session.getAttribute("user");
-        if (!(current instanceof User)) { response.sendRedirect(request.getContextPath() + "/login"); return null; }
+        if (!(current instanceof User)) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return null;
+        }
         User user = (User) current;
-        if (!"MANAGER".equalsIgnoreCase(user.getRole())) { response.sendRedirect(request.getContextPath() + "/home"); return null; }
+        // Phân quyền giao diện: không cho staff/admin dùng màn hình cấu hình sơ đồ ghế.
+        if (!"MANAGER".equalsIgnoreCase(user.getRole())) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return null;
+        }
         return user;
     }
 
-    private List<Hall> halls(int managerId) { return hallService.getHallsByBranchId(userService.getBranchIdOfStaff(managerId)); }
+    private List<Hall> halls(int managerId) {
+        // UserService lấy chi nhánh được phân công của manager từ STAFF_BRANCH.
+        return hallService.getHallsByBranchId(userService.getBranchIdOfStaff(managerId));
+    }
 
     private int selectedHallId(HttpServletRequest request, int managerId) {
         List<Hall> halls = halls(managerId);
         int requested = parseId(request.getParameter("hallId"));
-        for (Hall hall : halls) if (hall.getId() == requested) return requested;
+        // Chỉ chấp nhận hallId nằm trong danh sách hall mà manager được phép quản lý.
+        for (Hall hall : halls) {
+            if (hall.getId() == requested) {
+                return requested;
+            }
+        }
         return halls.isEmpty() ? 0 : halls.get(0).getId();
     }
 
-    private int parseId(String value) { try { return Integer.parseInt(value); } catch (Exception ignored) { return 0; } }
+    private int parseId(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception ignored) {
+            return 0;
+        }
+    }
 
     private Map<String, String> parameters(HttpServletRequest request) {
+        // Chỉ chuyển tiếp các trường được SeatLayoutService cho phép xử lý.
         Map<String, String> values = new HashMap<>();
-        for (String key : new String[] {"bulkType", "bulkSeatType", "bulkStatus", "bulkRow", "bulkSeatCount", "bulkCol", "bulkRowStart", "bulkRowEnd", "seatCode", "seatType", "status"}) values.put(key, request.getParameter(key));
+        for (String key : new String[]{"bulkType", "bulkSeatType", "bulkStatus", "bulkRow", "bulkSeatCount", "bulkCol", "bulkRowStart", "bulkRowEnd", "seatCode", "seatType", "status"}) {
+            values.put(key, request.getParameter(key));
+        }
         return values;
     }
 }

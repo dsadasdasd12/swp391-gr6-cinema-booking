@@ -125,6 +125,7 @@ public class AuthController extends HttpServlet {
 
         email = email == null ? "" : email.trim();
         
+        // Kiểm tra dữ liệu đầu vào trước khi gọi service xác thực.
         if (email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập email và mật khẩu");
             request.setAttribute("email", email);
@@ -143,6 +144,7 @@ public class AuthController extends HttpServlet {
 
         if (!user.isEmailVerified()) {
 
+            // Tài khoản chưa xác thực email không được tạo session đăng nhập hoàn chỉnh.
             HttpSession session = request.getSession();
 
             authService.sendVerifyOtp(getServletContext(), session, user);
@@ -151,6 +153,7 @@ public class AuthController extends HttpServlet {
             return;
         }
 
+        // Chỉ tạo session sau khi xác thực mật khẩu và trạng thái email đều hợp lệ.
         HttpSession session = request.getSession();
         session.setMaxInactiveInterval(LOGIN_SESSION_TIMEOUT_SECONDS);
         session.setAttribute("user", user);

@@ -17,6 +17,7 @@ public class DiscountManagerController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Mã giảm giá ảnh hưởng doanh thu toàn hệ thống nên chỉ ADMIN được xem/quản lý.
         if (!isAdmin(request)) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
@@ -27,6 +28,7 @@ public class DiscountManagerController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // Tất cả thao tác thay đổi voucher đều bắt buộc kiểm tra ADMIN một lần nữa ở server.
         if (!isAdmin(request)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -35,6 +37,7 @@ public class DiscountManagerController extends HttpServlet {
         try {
             boolean changed;
             if ("create".equalsIgnoreCase(action)) {
+                // Controller chỉ lấy dữ liệu form; DiscountService xác thực ngày, giá trị và giới hạn dùng.
                 changed = discountService.createDiscountCode(request.getParameter("code"), request.getParameter("discountType"),
                         request.getParameter("discountValue"), request.getParameter("maxDiscountAmount"),
                         request.getParameter("minOrderValue"), request.getParameter("maxUses"),
@@ -55,6 +58,7 @@ public class DiscountManagerController extends HttpServlet {
     }
 
     private int parseId(String value) {
+        // Không truyền id không hợp lệ xuống service/DAO.
         try {
             int id = Integer.parseInt(value);
             if (id > 0) {
@@ -66,6 +70,7 @@ public class DiscountManagerController extends HttpServlet {
     }
 
     private boolean isAdmin(HttpServletRequest request) {
+        // Không dựa vào nút ẩn trên JSP; role phải được kiểm tra từ session tại server.
         HttpSession session = request.getSession(false);
         Object current = session == null ? null : session.getAttribute("user");
         return current instanceof User && "ADMIN".equalsIgnoreCase(((User) current).getRole());

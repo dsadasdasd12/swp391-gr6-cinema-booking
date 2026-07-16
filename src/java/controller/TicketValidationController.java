@@ -31,6 +31,7 @@ public class TicketValidationController extends HttpServlet {
             return;
         }
 
+        // Quét/check-in vé tại cổng chỉ dành cho STAFF, không cho manager/admin/customer dùng thay.
         String role = currentUser.getRole();
         if (!"STAFF".equalsIgnoreCase(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -45,6 +46,7 @@ public class TicketValidationController extends HttpServlet {
         String staffBranchName = (staffBranch != null) ? staffBranch.getName() : "Không xác định";
         request.setAttribute("staffBranchName", staffBranchName);
 
+        // Check-in làm thay đổi trạng thái booking nên bắt buộc gửi bằng POST.
         String action = request.getParameter("action");
         if ("validate".equalsIgnoreCase(action) && !"POST".equalsIgnoreCase(request.getMethod())) {
             response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
@@ -61,8 +63,10 @@ public class TicketValidationController extends HttpServlet {
 
             try {
                 // Hỗ trợ trích xuất và chuẩn hóa bookingId thông qua TicketService
+                // TicketService xác minh mã quét với cột BOOKINGS.qr_code trong database.
                 int bookingId = ticketService.parseBookingId(bookingIdStr);
                 
+                // AttendanceDAO kiểm tra thêm branch, thời gian xem và trạng thái để cập nhật check-in an toàn.
                 String result = ticketService.checkInTicket(bookingId, staffId);
                 
                 if ("SUCCESS".equalsIgnoreCase(result)) {
@@ -74,6 +78,7 @@ public class TicketValidationController extends HttpServlet {
                     request.setAttribute("showtime", st);
                     
                     // Lấy mã ghế thông qua TicketService
+                    // Chỉ hiển thị thông tin ghế sau khi check-in thành công.
                     String seatCodes = ticketService.getSeatCodesByBookingId(bookingId);
                     request.setAttribute("seatCodes", seatCodes);
                     

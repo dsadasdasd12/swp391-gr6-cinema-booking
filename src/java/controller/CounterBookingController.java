@@ -39,17 +39,20 @@ public class CounterBookingController extends HttpServlet {
     }
 
     private void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Quầy bán vé là màn hình nội bộ: bắt buộc đăng nhập và chỉ role STAFF được dùng.
         HttpSession session = request.getSession(false);
         User user = session == null ? null : (User) session.getAttribute("user");
         if (user == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
         if (!"STAFF".equalsIgnoreCase(user.getRole())) { response.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
 
+        // Không có phân công chi nhánh thì không được bán/tra cứu vé ở bất kỳ chi nhánh nào.
         int staffId = user.getId();
         int branchId = userService.getBranchIdOfStaff(staffId);
         if (branchId <= 0) { response.sendError(HttpServletResponse.SC_FORBIDDEN, "Staff chưa được gán chi nhánh."); return; }
         model.Branch branch = new dao.BranchDAO().getBranchById(branchId);
         request.setAttribute("staffBranchName", branch == null ? "Không xác định" : branch.getName());
 
+        // Các action làm thay đổi trạng thái (hủy/tạo vé) bắt buộc phải là POST.
         String action = request.getParameter("action");
         if ("checkPaymentStatus".equalsIgnoreCase(action)) { writeStatus(response, bookingService.getCounterBookingStatus(staffId, parseId(request.getParameter("bookingId")))); return; }
         if ("cancelBooking".equalsIgnoreCase(action)) {
@@ -58,6 +61,7 @@ public class CounterBookingController extends HttpServlet {
         }
         if ("checkVoucher".equalsIgnoreCase(action)) { quoteVoucher(request, response, staffId); return; }
         if ("changeSeats".equalsIgnoreCase(action)) {
+            // Đổi ghế sau khi tạo vé đang khóa để tránh lệch giá và tranh chấp trạng thái ghế.
             session.setAttribute("msgError", "Đổi ghế tại quầy đang tạm khóa để bảo vệ giá vé và trạng thái ghế.");
             response.sendRedirect("CounterBooking");
             return;
@@ -73,10 +77,12 @@ public class CounterBookingController extends HttpServlet {
 
     private void quoteVoucher(HttpServletRequest request, HttpServletResponse response, int staffId) throws IOException {
         try {
+            // Không đọc discountAmount/total từ client: service tự đọc ghế, giá và voucher từ DB.
             CounterBookingQuote quote = bookingService.quoteCounterBooking(staffId,
                     parseId(request.getParameter("showtimeId")), parseSeatIds(request.getParameter("selectedSeats")),
                     request.getParameter("code"));
             if (!quote.isValid()) {
+                // Voucher sai vẫn trả báo giá gốc để nhân viên thông báo đúng số tiền cho khách.
                 CounterBookingQuote baseQuote = bookingService.quoteCounterBooking(staffId,
                         parseId(request.getParameter("showtimeId")), parseSeatIds(request.getParameter("selectedSeats")), null);
                 writeJson(response, "{\"success\":false,\"message\":\"" + json(quote.getMessage())
@@ -93,6 +99,7 @@ public class CounterBookingController extends HttpServlet {
     private void createBooking(HttpServletRequest request, HttpServletResponse response, int staffId) throws IOException {
         int showtimeId = parseId(request.getParameter("showtimeId"));
         try {
+            // Service tính lại toàn bộ trước lúc ghi DB, tránh sửa giá hoặc mã giảm ở trình duyệt.
             int bookingId = bookingService.createCounterBooking(staffId, showtimeId,
                     parseSeatIds(request.getParameter("selectedSeats")), request.getParameter("discountCode"),
                     request.getParameter("paymentMethod"));
@@ -106,6 +113,7 @@ public class CounterBookingController extends HttpServlet {
 
     private void printTicket(HttpServletRequest request, HttpServletResponse response, int staffId) throws ServletException, IOException {
         int bookingId = parseId(request.getParameter("bookingId"));
+        // Chỉ in được booking thuộc đúng chi nhánh của staff hiện tại.
         if (bookingService.getCounterBookingStatus(staffId, bookingId) == null) { response.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
         model.Booking booking = bookingService.getBookingById(bookingId);
         if (booking == null) { response.sendRedirect("CounterBooking"); return; }
@@ -116,6 +124,7 @@ public class CounterBookingController extends HttpServlet {
     }
 
     private void renderCounter(HttpServletRequest request, HttpServletResponse response, int branchId) throws ServletException, IOException {
+        // Danh sách suất chiếu và ghế luôn giới hạn theo chi nhánh đã phân công.
         request.setAttribute("showtimeList", showtimeService.getActiveShowtimesByBranch(branchId));
         List<model.SeatType> types = seatService.getAllSeatTypes();
         request.setAttribute("allSeatTypes", types);
@@ -125,6 +134,7 @@ public class CounterBookingController extends HttpServlet {
             List<Seat> seats = seatService.getSeatsByHall(selected.getHallId());
             int max = 8;
             java.util.Map<String, Double> prices = new java.util.HashMap<>();
+            // Giá dùng để hiển thị; giá cuối cùng vẫn được service tính lại khi tạo vé.
             for (model.SeatType type : types) prices.put(type.getCode(), selected.getBasePrice() * type.getDefaultPrice());
             for (Seat seat : seats) if (seat.getSeatNumber() > max) max = seat.getSeatNumber();
             request.setAttribute("selectedShowtime", selected);
@@ -142,6 +152,7 @@ public class CounterBookingController extends HttpServlet {
     }
 
     private List<Integer> parseSeatIds(String value) {
+        // Chỉ tách dữ liệu đầu vào; tính hợp lệ của ghế tiếp tục do BookingService xác nhận với DB.
         List<Integer> result = new ArrayList<>();
         if (value == null || value.trim().isEmpty()) return result;
         for (String item : value.split(",")) { int id = parseId(item); if (id <= 0) throw new IllegalArgumentException("Ghế không hợp lệ."); result.add(id); }

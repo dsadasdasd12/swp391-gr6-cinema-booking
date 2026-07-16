@@ -19,6 +19,7 @@ import model.Seat;
 import model.Showtime;
 
 public class BookingService {
+
     private final BookingDAO bookingDAO = new BookingDAO();
     private final BookingStatusHistoryDAO bookingStatusHistoryDAO = new BookingStatusHistoryDAO();
     private final ShowtimeService showtimeService = new ShowtimeService();
@@ -26,9 +27,14 @@ public class BookingService {
     private final DiscountDAO discountDAO = new DiscountDAO();
     private final UserService userService = new UserService();
 
+    /**
+     * Tạo vé bán tại quầy. Giá tiền, ghế và mã giảm giá đều được tính lại ở
+     * server; không sử dụng các trường tổng tiền/giảm giá do trình duyệt gửi lên.
+     */
     public int createCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds,
-                                    String voucherCode, String paymentMethod) {
+            String voucherCode, String paymentMethod) {
         CounterCalculation calculation = calculateCounterBooking(staffId, showtimeId, requestedSeatIds, voucherCode);
+        // Quầy chỉ hỗ trợ hai phương thức thanh toán đã được hệ thống định nghĩa.
         if (!"CASH".equalsIgnoreCase(paymentMethod) && !"BANKING".equalsIgnoreCase(paymentMethod)) {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
         }
@@ -38,7 +44,10 @@ public class BookingService {
                 calculation.voucher.isValid() ? calculation.voucher.getCode() : null, staffId);
     }
 
-    /** Returns the same server-side calculation that will be persisted on booking. */
+    /**
+     * Trả về báo giá để giao diện quầy hiển thị cho khách. Báo giá này dùng cùng
+     * công thức với lúc lưu vé, nên nhân viên thấy đúng số tiền sẽ thu.
+     */
     public CounterBookingQuote quoteCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds, String voucherCode) {
         try {
             return calculateCounterBooking(staffId, showtimeId, requestedSeatIds, voucherCode).quote;
@@ -48,7 +57,8 @@ public class BookingService {
     }
 
     private CounterCalculation calculateCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds,
-                                                        String voucherCode) {
+            String voucherCode) {
+        // Staff chỉ được bán vé cho suất chiếu thuộc chi nhánh được phân công.
         int branchId = userService.getBranchIdOfStaff(staffId);
         Showtime showtime = showtimeService.getShowtimeById(showtimeId);
         if (branchId <= 0 || showtime == null || showtime.getBranchId() != branchId) {
@@ -57,22 +67,33 @@ public class BookingService {
         if (!"SCHEDULED".equalsIgnoreCase(showtime.getStatus()) && !"ON_SALE".equalsIgnoreCase(showtime.getStatus())) {
             throw new IllegalArgumentException("Suất chiếu không mở bán.");
         }
+        // Chính sách bán vé tại quầy: chỉ bán đến 30 phút sau giờ bắt đầu suất chiếu.
         if (showtime.getStartTime() == null
                 || showtime.getStartTime().getTime() + 30L * 60L * 1000L <= System.currentTimeMillis()) {
             throw new IllegalArgumentException("Suất chiếu đã bắt đầu quá 30 phút, không thể tiếp tục bán vé.");
         }
+        // Loại id rỗng/trùng lặp trước khi kiểm tra ghế trong cơ sở dữ liệu.
         List<Integer> seatIds = cleanSeatIds(requestedSeatIds);
-        if (seatIds.isEmpty()) throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế.");
+        if (seatIds.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế.");
+        }
         List<SeatView> views = seatService.getSeatViewsByShowtimeAndIds(showtimeId, seatIds);
-        if (views.size() != seatIds.size()) throw new IllegalArgumentException("Ghế không thuộc suất chiếu này.");
+        if (views.size() != seatIds.size()) {
+            throw new IllegalArgumentException("Ghế không thuộc suất chiếu này.");
+        }
         List<Double> prices = new ArrayList<>();
         double subtotal = 0;
         for (SeatView view : views) {
-            if (view == null || !view.isSelectable()) throw new IllegalArgumentException("Ghế đã được đặt hoặc đang bảo trì.");
+            // Chỉ ghế còn chọn được mới được bán; trạng thái ghế lấy từ DB.
+            if (view == null || !view.isSelectable()) {
+                throw new IllegalArgumentException("Ghế đã được đặt hoặc đang bảo trì.");
+            }
+            // Giá từng ghế được lấy theo loại ghế và giá suất chiếu ở server.
             double price = showtimeService.getSeatPrice(showtimeId, view.getSeat().getSeatType(), showtime.getBasePrice());
             prices.add(price);
             subtotal += price;
         }
+        // Mã giảm giá cũng được kiểm tra lại ở server theo tổng tiền vừa tính.
         VoucherQuote quote = voucherCode == null || voucherCode.trim().isEmpty()
                 ? VoucherQuote.invalid("") : quoteVoucher(voucherCode, subtotal);
         if (voucherCode != null && !voucherCode.trim().isEmpty() && !quote.isValid()) {
@@ -83,12 +104,18 @@ public class BookingService {
     }
 
     private static class CounterCalculation {
+
+        // Dữ liệu nội bộ dùng chung cho bước báo giá và bước tạo vé tại quầy.
         final List<Integer> seatIds;
         final List<Double> prices;
         final VoucherQuote voucher;
         final CounterBookingQuote quote;
+
         CounterCalculation(List<Integer> seatIds, List<Double> prices, VoucherQuote voucher, CounterBookingQuote quote) {
-            this.seatIds = seatIds; this.prices = prices; this.voucher = voucher; this.quote = quote;
+            this.seatIds = seatIds;
+            this.prices = prices;
+            this.voucher = voucher;
+            this.quote = quote;
         }
     }
 
@@ -118,6 +145,7 @@ public class BookingService {
 
     public String getCounterBookingStatus(int staffId, int bookingId) {
         int branchId = userService.getBranchIdOfStaff(staffId);
+        // Không có chi nhánh thì không được tra cứu bất kỳ vé nào.
         return branchId <= 0 ? null : bookingDAO.getBookingStatusInBranch(bookingId, branchId);
     }
 
@@ -127,6 +155,7 @@ public class BookingService {
 
     public boolean cancelPendingCounterBooking(int staffId, int bookingId) {
         int branchId = userService.getBranchIdOfStaff(staffId);
+        // DAO chỉ hủy vé PENDING thuộc đúng chi nhánh của nhân viên.
         return branchId > 0 && bookingDAO.cancelPendingBookingInBranch(bookingId, branchId);
     }
 
@@ -172,20 +201,35 @@ public class BookingService {
     }
 
     public VoucherQuote quoteVoucher(String voucherCode, double subtotal) {
+        // Hàm này là nguồn kiểm tra voucher dùng chung cho web đặt vé và quầy vé.
         if (voucherCode == null || voucherCode.trim().isEmpty()) {
             return VoucherQuote.invalid("Vui lòng nhập mã giảm giá.");
         }
         model.DiscountCode voucher = discountDAO.findByCode(voucherCode);
-        if (voucher == null) return VoucherQuote.invalid("Mã giảm giá không tồn tại.");
+        if (voucher == null) {
+            return VoucherQuote.invalid("Mã giảm giá không tồn tại.");
+        }
         long now = System.currentTimeMillis();
-        if (!"ACTIVE".equalsIgnoreCase(voucher.getStatus())) return VoucherQuote.invalid("Mã giảm giá hiện không hoạt động.");
-        if (voucher.getStartDate() == null || voucher.getStartDate().getTime() > now) return VoucherQuote.invalid("Mã giảm giá chưa đến thời gian áp dụng.");
-        if (voucher.getEndDate() == null || voucher.getEndDate().getTime() < now) return VoucherQuote.invalid("Mã giảm giá đã hết hạn.");
-        if (voucher.getUsedCount() >= voucher.getMaxUses()) return VoucherQuote.invalid("Mã giảm giá đã hết lượt sử dụng.");
-        if (subtotal < voucher.getMinOrderValue()) return VoucherQuote.invalid("Đơn hàng chưa đạt giá trị tối thiểu để dùng mã này.");
+        // Voucher phải đang hoạt động, đúng thời gian, còn lượt và đạt đơn tối thiểu.
+        if (!"ACTIVE".equalsIgnoreCase(voucher.getStatus())) {
+            return VoucherQuote.invalid("Mã giảm giá hiện không hoạt động.");
+        }
+        if (voucher.getStartDate() == null || voucher.getStartDate().getTime() > now) {
+            return VoucherQuote.invalid("Mã giảm giá chưa đến thời gian áp dụng.");
+        }
+        if (voucher.getEndDate() == null || voucher.getEndDate().getTime() < now) {
+            return VoucherQuote.invalid("Mã giảm giá đã hết hạn.");
+        }
+        if (voucher.getUsedCount() >= voucher.getMaxUses()) {
+            return VoucherQuote.invalid("Mã giảm giá đã hết lượt sử dụng.");
+        }
+        if (subtotal < voucher.getMinOrderValue()) {
+            return VoucherQuote.invalid("Đơn hàng chưa đạt giá trị tối thiểu để dùng mã này.");
+        }
 
         double discount = "PERCENT".equalsIgnoreCase(voucher.getDiscountType())
                 ? subtotal * voucher.getDiscountValue() / 100.0 : voucher.getDiscountValue();
+        // Nếu là giảm phần trăm có mức trần thì không được giảm vượt mức trần đó.
         if (voucher.getMaxDiscountAmount() != null) {
             discount = Math.min(discount, voucher.getMaxDiscountAmount());
         }
@@ -193,6 +237,7 @@ public class BookingService {
     }
 
     public int createPendingBooking(int userId, BookingDraftView draftView, VoucherQuote voucherQuote) {
+        // Dữ liệu draft đã được build lại từ DB trước khi tới đây, không lấy giá từ client.
         if (userId <= 0 || draftView == null || draftView.getShowtime() == null
                 || draftView.getSeats() == null || draftView.getSeats().isEmpty()) {
             return -1;
@@ -289,6 +334,7 @@ public class BookingService {
     }
 
     private List<Integer> cleanSeatIds(List<Integer> seatIds) {
+        // LinkedHashSet vừa bỏ trùng id ghế vừa giữ thứ tự khách đã chọn.
         Set<Integer> unique = new LinkedHashSet<>();
         if (seatIds != null) {
             for (Integer seatId : seatIds) {
@@ -316,12 +362,12 @@ public class BookingService {
                 return null;
         }
     }
-    
-    public List<BookingView> getHistoryByUserPaging(int userId, int page, int pageSize) {
-    return bookingDAO.findHistoryByUserPaging(userId, page, pageSize);
-}
 
-public int countHistoryByUser(int userId) {
-    return bookingDAO.countHistoryByUser(userId);
-}
+    public List<BookingView> getHistoryByUserPaging(int userId, int page, int pageSize) {
+        return bookingDAO.findHistoryByUserPaging(userId, page, pageSize);
+    }
+
+    public int countHistoryByUser(int userId) {
+        return bookingDAO.countHistoryByUser(userId);
+    }
 }

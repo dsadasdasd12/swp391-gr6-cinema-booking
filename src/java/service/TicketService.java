@@ -17,6 +17,7 @@ public class TicketService {
     private final AttendanceDAO attendanceDAO = new AttendanceDAO();
 
     public String checkInTicket(int bookingId, int staffId) {
+        // AttendanceDAO kiểm tra branch, thời gian và cập nhật trạng thái check-in nguyên tử.
         return attendanceDAO.checkInTicket(bookingId, staffId);
     }
 
@@ -39,16 +40,19 @@ public class TicketService {
     }
 
     public int parseBookingId(String bookingIdStr) throws NumberFormatException {
+        // Chỉ chấp nhận token QR có tiền tố được hệ thống phát hành, không nhận trực tiếp id booking.
         if (bookingIdStr == null || bookingIdStr.trim().isEmpty()) {
             throw new NumberFormatException("Empty input");
         }
         String cleanIdStr = bookingIdStr.trim();
         
         // Only signed ticket tokens are accepted; a URL/id alone must never check a ticket in.
+        // Chuẩn hóa để mã quét không phân biệt hoa/thường, nhưng token DB vẫn được đối chiếu chính xác.
         String upper = cleanIdStr.toUpperCase();
         int resolvedId = -1;
         String expectedDbQrCode = null;
         
+        // Mỗi định dạng hợp lệ đều quy về id booking và qr_code chuẩn đang lưu trong BOOKINGS.
         if (upper.startsWith("RAPVIET-BOOKING-")) {
             try {
                 resolvedId = Integer.parseInt(cleanIdStr.substring(16).trim());
@@ -77,6 +81,7 @@ public class TicketService {
         }
         
         // 3. Truy vấn từ Database để xác nhận mã vé khớp hoàn toàn với cột qr_code
+        // Đây là bước bắt buộc: id suy ra từ QR chỉ hợp lệ khi qr_code trong DB khớp hoàn toàn.
         String sql = "SELECT id FROM dbo.BOOKINGS WHERE id = ? AND qr_code = ?";
         try (Connection conn = new util.DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
