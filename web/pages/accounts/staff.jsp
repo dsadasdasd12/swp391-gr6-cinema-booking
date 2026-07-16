@@ -97,8 +97,7 @@
                             <th>Vai trò</th>
                             <th>Chi nhánh</th>
                             <th>Trạng thái</th>
-                            <th>Đăng nhập cuối</th>
-                            <th style="width: 180px; text-align: center;">Thao tác</th>
+                            <th style="width: 120px; text-align: center;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -148,7 +147,7 @@
                                 <td>
                                     <c:choose>
                                         <c:when test="${s.status == 'ACTIVE'}">
-                                            <span class="rv-badge rv-badge--active">Hoạt động</span>
+                                            <span class="rv-badge rv-badge--success">Hoạt động</span>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="rv-badge rv-badge--blocked">Bị khóa</span>
@@ -156,21 +155,8 @@
                                     </c:choose>
                                 </td>
 
-                                <!-- Last Login -->
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${not empty s.lastLogin}">
-                                            <fmt:parseDate value="${s.lastLogin}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedLogin" type="both" />
-                                            <fmt:formatDate value="${parsedLogin}" pattern="dd/MM/yyyy HH:mm" />
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span style="color: var(--n-400); font-style: italic;">Chưa từng</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-
                                 <!-- Actions -->
-                                <td>
+                                <td style="text-align: center;">
                                     <div class="d-flex align-items-center justify-content-center gap-1">
                                         <!-- Edit trigger -->
                                         <button type="button" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Chỉnh sửa tài khoản" style="border: none;"
@@ -287,7 +273,7 @@
                     <div class="rv-form-group">
                         <label class="rv-label" for="branchIdSelect">Chi nhánh quản lý *</label>
                         <select id="branchIdSelect" name="branchId" class="rv-select" required>
-                            <option value="0">Hệ Thống (Toàn bộ)</option>
+                            <option value="">-- Chọn chi nhánh --</option>
                             <c:forEach var="b" items="${branches}">
                                 <option value="${b.id}"><c:out value="${b.name}"/></option>
                             </c:forEach>

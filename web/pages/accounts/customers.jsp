@@ -126,7 +126,7 @@
                                 <td>
                                     <c:choose>
                                         <c:when test="${c.status == 'ACTIVE'}">
-                                            <span class="rv-badge rv-badge--active">Hoạt động</span>
+                                            <span class="rv-badge rv-badge--success">Hoạt động</span>
                                         </c:when>
                                         <c:when test="${c.status == 'BLOCKED'}">
                                             <span class="rv-badge rv-badge--blocked">Bị khóa</span>
@@ -177,10 +177,6 @@
                                             </c:otherwise>
                                         </c:choose>
 
-                                        <!-- View Detail Button -->
-                                        <a href="${ctx}/admin/accounts/customers?action=detail&id=${c.id}" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Xem chi tiết" style="border: none;">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
                                     </div>
                                 </td>
                             </tr>

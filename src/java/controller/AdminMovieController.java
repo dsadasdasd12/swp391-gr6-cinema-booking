@@ -74,7 +74,7 @@ public class AdminMovieController extends HttpServlet {
             case "update" -> handleUpdate(req, resp);
             case "delete" -> handleDelete(req, resp);
             case "status" -> handleStatus(req, resp);   // AJAX
-            case "upload"         -> handleUpload(req, resp);
+
             case "update-trailer" -> handleUpdateTrailer(req, resp);
             default       -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
@@ -91,11 +91,32 @@ public class AdminMovieController extends HttpServlet {
         if (keyword != null && keyword.isBlank()) keyword = null;
         if (status  != null && status.isBlank())  status  = null;
 
-        List<MovieDTO> movies = movieService.getAllMoviesForAdmin(keyword, status);
-        req.setAttribute("movies",  movies);
+        List<MovieDTO> allMovies = movieService.getAllMoviesForAdmin(keyword, status);
+        
+        int currentPage = 1;
+        String pageStr = req.getParameter("page");
+        if (pageStr != null && !pageStr.trim().isEmpty()) {
+            try { currentPage = Integer.parseInt(pageStr); } catch (NumberFormatException ignored) {}
+        }
+        int pageSize = 10;
+        int totalItems = allMovies.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+        List<MovieDTO> pagedMovies = totalItems > 0 ? allMovies.subList(fromIndex, toIndex) : allMovies;
+
+        req.setAttribute("movies",  pagedMovies);
         req.setAttribute("keyword", keyword != null ? keyword : "");
         req.setAttribute("status",  status  != null ? status  : "");
-        req.setAttribute("totalItems", movies.size());
+        req.setAttribute("currentPage", currentPage);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("totalItems", totalItems);
+        req.setAttribute("pageSize", pageSize);
+        
         req.getRequestDispatcher("/pages/admin/movie-list.jsp").forward(req, resp);
     }
 
@@ -147,8 +168,8 @@ public class AdminMovieController extends HttpServlet {
         List<Integer> catIds  = resolveCategoryIds(req, categories);
         List<Integer> langIds = resolveLanguageIds(req, languages);
 
-        boolean hasNewPoster = hasPosterFile(req);
-        List<String> errors = movieService.validateMovie(m, catIds, langIds, !hasNewPoster);
+        boolean requirePoster = (m.getPosterUrl() == null || m.getPosterUrl().isBlank());
+        List<String> errors = movieService.validateMovie(m, catIds, langIds, requirePoster);
         if (!errors.isEmpty()) {
             req.setAttribute("errors",     errors);
             req.setAttribute("movie",      m);
@@ -161,10 +182,6 @@ public class AdminMovieController extends HttpServlet {
 
         int newId = movieService.addMovie(m, catIds, langIds);
         if (newId > 0) {
-            String uploaded = savePosterPart(req, newId);
-            if (uploaded != null) {
-                movieService.updatePoster(newId, uploaded);
-            }
             req.getSession().setAttribute("flashSuccess", "Thêm phim thành công!");
             resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
         } else {
@@ -187,9 +204,7 @@ public class AdminMovieController extends HttpServlet {
         List<Integer> catIds  = resolveCategoryIds(req, categories);
         List<Integer> langIds = resolveLanguageIds(req, languages);
 
-        boolean hasNewPoster = hasPosterFile(req);
-        boolean requirePoster = !hasNewPoster
-                && (m.getPosterUrl() == null || m.getPosterUrl().isBlank());
+        boolean requirePoster = (m.getPosterUrl() == null || m.getPosterUrl().isBlank());
         List<String> errors = movieService.editMovie(m, catIds, langIds, requirePoster);
         if (!errors.isEmpty()) {
             req.setAttribute("errors",     errors);
@@ -199,10 +214,6 @@ public class AdminMovieController extends HttpServlet {
             req.setAttribute("formAction", "update");
             req.getRequestDispatcher("/pages/admin/movie-form.jsp").forward(req, resp);
             return;
-        }
-        String uploaded = savePosterPart(req, m.getId());
-        if (uploaded != null) {
-            movieService.updatePoster(m.getId(), uploaded);
         }
         req.getSession().setAttribute("flashSuccess", "Cập nhật phim thành công!");
         resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
@@ -244,60 +255,6 @@ public class AdminMovieController extends HttpServlet {
         }
     }
 
-    /**
-     *  Upload poster hoặc trailer.
-     * Request: POST, multipart/form-data; field "type" = poster|trailer, "movieId" = id
-     * File lưu vào: {contextPath}/assets/uploads/movies/{movieId}/
-     */
-    private void handleUpload(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        int    movieId = parseId(req.getParameter("movieId"));
-        String type    = req.getParameter("type");    // "poster" | "trailer"
-        Part   part    = req.getPart("file");
-
-        if (movieId <= 0) {
-            req.getSession().setAttribute("flashError", "Không xác định được phim cần upload.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=list");
-            return;
-        }
-        if (part == null || part.getSize() == 0) {
-            req.getSession().setAttribute("flashError", "Vui lòng chọn file trước khi bấm Upload.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-            return;
-        }
-
-        String fileName      = getFileName(part);
-        String fileExtension = getExtension(fileName).toLowerCase();
-
-        // Validate định dạng file ảnh/video trước khi lưu
-        if (!"poster".equals(type)) {
-            req.getSession().setAttribute("flashError",
-                    "Chỉ hỗ trợ upload poster. Trailer: dùng link YouTube trên form sửa phim hoặc ô bên dưới.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-            return;
-        }
-        boolean validPoster = fileExtension.equals("jpg") || fileExtension.equals("png")
-                || fileExtension.equals("jpeg") || fileExtension.equals("webp");
-        if (!validPoster) {
-            req.getSession().setAttribute("flashError", "Poster chỉ nhận jpg, png hoặc webp.");
-            resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-            return;
-        }
-
-        // Tạo thư mục lưu trữ: webRoot/assets/uploads/movies/{movieId}/
-        String uploadRoot = getServletContext().getRealPath("/assets/uploads/movies/" + movieId);
-        File dir = new File(uploadRoot);
-        if (!dir.exists()) dir.mkdirs();
-
-        String savedName = type + "_" + System.currentTimeMillis() + "." + fileExtension;
-        part.write(uploadRoot + File.separator + savedName);
-
-        String relativeUrl = "assets/uploads/movies/" + movieId + "/" + savedName;
-
-        movieService.updatePoster(movieId, relativeUrl);
-        req.getSession().setAttribute("flashSuccess", "Upload poster thành công.");
-        resp.sendRedirect(req.getContextPath() + "/admin/moviesmanagement?action=detail&id=" + movieId);
-    }
 
     /** Cập nhật link trailer YouTube từ trang chi tiết / sửa. */
     private void handleUpdateTrailer(HttpServletRequest req, HttpServletResponse resp)
@@ -345,6 +302,9 @@ public class AdminMovieController extends HttpServlet {
         // releaseDate
         try { m.setReleaseDate(LocalDate.parse(req.getParameter("releaseDate"))); }
         catch (Exception e) { m.setReleaseDate(null); }
+        // endDate
+        try { m.setEndDate(LocalDate.parse(req.getParameter("endDate"))); }
+        catch (Exception e) { m.setEndDate(null); }
         return m;
     }
 
@@ -418,47 +378,6 @@ public class AdminMovieController extends HttpServlet {
             ids.add(matched);
         }
         return ids;
-    }
-    /** Kiểm tra form có poster upload mới hay không. */
-    private boolean hasPosterFile(HttpServletRequest req) throws ServletException, IOException {
-        Part part = req.getPart("posterFile");
-        return part != null && part.getSize() > 0;
-    }
-
-    /** Lưu poster local và trả về path tương đối để ghi vào MOVIES.poster_url. */
-    private String savePosterPart(HttpServletRequest req, int movieId) throws IOException, ServletException {
-        Part part = req.getPart("posterFile");
-        if (part == null || part.getSize() == 0) return null;
-
-        String ext = getExtension(getFileName(part)).toLowerCase();
-        if (!ext.equals("jpg") && !ext.equals("jpeg") && !ext.equals("png") && !ext.equals("webp")) {
-            return null;
-        }
-        String uploadRoot = getServletContext().getRealPath("/assets/uploads/movies/" + movieId);
-        File dir = new File(uploadRoot);
-        if (!dir.exists() && !dir.mkdirs()) return null;
-
-        String savedName = "poster_" + System.currentTimeMillis() + "." + ext;
-        part.write(uploadRoot + File.separator + savedName);
-        return "assets/uploads/movies/" + movieId + "/" + savedName;
-    }
-
-    private String getFileName(Part part) {
-        String header = part.getHeader("content-disposition");
-        if (header == null) return "upload";
-        for (String cd : header.split(";")) {
-            if (cd.trim().startsWith("filename")) {
-                String name = cd.substring(cd.indexOf('=') + 1).trim().replace("\"", "");
-                int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
-                return slash >= 0 ? name.substring(slash + 1) : name;
-            }
-        }
-        return "upload";
-    }
-
-    private String getExtension(String fileName) {
-        int dot = fileName.lastIndexOf('.');
-        return dot >= 0 ? fileName.substring(dot + 1) : "";
     }
 
     private String trim(String s) { return (s != null) ? s.trim() : null; }

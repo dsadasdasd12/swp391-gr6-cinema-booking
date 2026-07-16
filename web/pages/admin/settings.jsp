@@ -127,27 +127,26 @@
                     Thay đổi tại đây có hiệu lực ngay trên máy chủ đang chạy. Để lưu vĩnh viễn sau khi khởi động lại,
                     cập nhật <code>web.xml</code> (context-param <code>mail.smtp.*</code>).
                 </div>
-                <form method="post" action="${ctx}/admin/settings" class="row g-3">
-                    <input type="hidden" name="section" value="smtp">
+                <form class="row g-3">
                     <div class="col-md-8">
                         <label class="form-label fw-medium" for="smtpHost">SMTP Host</label>
-                        <input type="text" class="form-control" id="smtpHost" name="smtpHost" required
+                        <input type="text" class="form-control" id="smtpHost" name="smtpHost" readonly
                                placeholder="smtp.gmail.com" value="<c:out value='${smtpHost}'/>">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-medium" for="smtpPort">Cổng</label>
                         <c:set var="smtpPortDisplay" value="${empty smtpPort ? '587' : smtpPort}" />
-                        <input type="number" class="form-control" id="smtpPort" name="smtpPort" required
+                        <input type="number" class="form-control" id="smtpPort" name="smtpPort" readonly
                                min="1" max="65535" value="<c:out value='${smtpPortDisplay}'/>">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-medium" for="smtpUser">Email gửi (From)</label>
-                        <input type="email" class="form-control" id="smtpUser" name="smtpUser" required
+                        <input type="email" class="form-control" id="smtpUser" name="smtpUser" readonly
                                value="<c:out value='${smtpUser}'/>">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-medium" for="smtpAuth">Xác thực</label>
-                        <select class="form-select" id="smtpAuth" name="smtpAuth">
+                        <select class="form-select" id="smtpAuth" name="smtpAuth" disabled>
                             <option value="true" ${smtpAuth == 'true' ? 'selected' : ''}>Bật (true)</option>
                             <option value="false" ${smtpAuth == 'false' ? 'selected' : ''}>Tắt (false)</option>
                         </select>
@@ -155,13 +154,8 @@
                     <div class="col-md-6">
                         <label class="form-label fw-medium" for="smtpPassword">Mật khẩu / App Password</label>
                         <input type="password" class="form-control" id="smtpPassword" name="smtpPassword"
-                               autocomplete="new-password"
-                               placeholder="${smtpPasswordSet ? '•••••••• (đã cấu hình — để trống nếu không đổi)' : 'Nhập mật khẩu SMTP'}">
-                    </div>
-                    <div class="col-12 d-flex justify-content-end pt-2">
-                        <button type="submit" class="rv-btn rv-btn--primary">
-                            <i class="bi bi-check-lg"></i> Lưu cấu hình SMTP
-                        </button>
+                               autocomplete="new-password" readonly
+                               placeholder="${smtpPasswordSet ? '•••••••• (đã cấu hình)' : 'Chưa cấu hình mật khẩu'}">
                     </div>
                 </form>
             </div>

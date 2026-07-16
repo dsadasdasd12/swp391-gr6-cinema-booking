@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Chi tiết phim (movie-detail.jsp)
     Servlet: AdminMovieController ?action=detail&id=X
     (Long — )
@@ -39,8 +39,8 @@
         <div class="admin-card text-center">
             <!-- Poster -->
             <c:choose>
-                <c:when test="${not empty movie.posterWebPath}">
-                    <img src="${ctx}/${movie.posterWebPath}" alt="Poster ${movie.title}"
+                <c:when test="${not empty movie.posterUrl}">
+                    <img src="${movie.posterUrl}" alt="Poster ${movie.title}"
                          style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:2/3;margin-bottom:1rem;">
                 </c:when>
                 <c:otherwise>
@@ -71,41 +71,7 @@
             </div>
         </div>
 
-        <!-- Upload poster -->
-        <div class="admin-card mt-3">
-            <h3 style="font-size:.9rem;font-weight:600;margin-bottom:.75rem;">Upload poster mới</h3>
-            <form method="post" action="${ctx}/admin/moviesmanagement" enctype="multipart/form-data">
-                <input type="hidden" name="action"  value="upload">
-                <input type="hidden" name="movieId" value="${movie.id}">
-                <input type="hidden" name="type"    value="poster">
-                <input type="file" name="file" accept="image/jpeg,image/png,image/webp"
-                       class="form-ctrl-admin mb-2" style="padding:.4rem;" id="uploadPosterInput">
-                <button type="submit" class="btn-admin-ghost w-100" id="btnUploadPosterDetail">
-                    <i class="bi bi-upload"></i> Upload
-                </button>
-            </form>
-        </div>
 
-        <!-- Trailer YouTube (chỉ link, không upload file) -->
-        <div class="admin-card mt-3">
-            <h3 style="font-size:.9rem;font-weight:600;margin-bottom:.75rem;">
-                <i class="bi bi-youtube" style="color:#dc2626;margin-right:4px;"></i>Trailer YouTube
-            </h3>
-            <form method="post" action="${ctx}/admin/moviesmanagement">
-                <input type="hidden" name="action"  value="update-trailer">
-                <input type="hidden" name="movieId" value="${movie.id}">
-                <label class="form-label-admin" for="trailerUrlDetail" style="font-size:.78rem;">Link YouTube</label>
-                <input type="url" id="trailerUrlDetail" name="trailerUrl" class="form-ctrl-admin mb-2"
-                       placeholder="https://www.youtube.com/watch?v=..."
-                       value="<c:out value='${movie.trailerUrl}'/>">
-                <span style="font-size:.7rem;color:var(--clr-muted);display:block;margin-bottom:.5rem;">
-                    Dán link watch hoặc youtu.be — không upload file mp4.
-                </span>
-                <button type="submit" class="btn-admin-ghost w-100">
-                    <i class="bi bi-check-lg"></i> Lưu link trailer
-                </button>
-            </form>
-        </div>
     </div>
 
     <!-- ── Right: Info + Trailer ── -->
