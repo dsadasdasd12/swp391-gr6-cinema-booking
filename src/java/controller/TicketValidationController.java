@@ -32,9 +32,7 @@ public class TicketValidationController extends HttpServlet {
         }
 
         String role = currentUser.getRole();
-        if (!"STAFF".equalsIgnoreCase(role)
-                && !"MANAGER".equalsIgnoreCase(role)
-                && !"ADMIN".equalsIgnoreCase(role)) {
+        if (!"STAFF".equalsIgnoreCase(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -48,6 +46,10 @@ public class TicketValidationController extends HttpServlet {
         request.setAttribute("staffBranchName", staffBranchName);
 
         String action = request.getParameter("action");
+        if ("validate".equalsIgnoreCase(action) && !"POST".equalsIgnoreCase(request.getMethod())) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
         if ("validate".equalsIgnoreCase(action)) {
             String bookingIdStr = request.getParameter("bookingId");
             

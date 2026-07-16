@@ -68,6 +68,21 @@ public class SeatTypeDAO {
         return null;
     }
 
+    public SeatType findByCode(String code) {
+        String sql = "SELECT id, code, name, default_price, color, status, last_update "
+                + "FROM dbo.SEAT_TYPES WHERE code = ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, normalizeCode(code));
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        } catch (SQLException e) {
+            System.getLogger(SeatTypeDAO.class.getName()).log(System.Logger.Level.ERROR, "findByCode failed", e);
+        }
+        return null;
+    }
+
     public boolean insert(SeatType st) {
         String sql = "INSERT INTO dbo.SEAT_TYPES (code, name, default_price, color, status) VALUES (?, ?, ?, ?, ?)";
         Connection conn = DBContext.getInstance().getConnection();
@@ -103,7 +118,7 @@ public class SeatTypeDAO {
 
     public boolean delete(int id) {
         // Thử hard-delete trước (xóa hoàn toàn khỏi database nếu chưa được sử dụng)
-        String sql = "DELETE FROM dbo.SEAT_TYPES WHERE id = ?";
+        String sql = "UPDATE dbo.SEAT_TYPES SET status = 'INACTIVE', last_update = GETDATE() WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);

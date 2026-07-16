@@ -1,178 +1,74 @@
 package controller;
 
-import dao.SeatTypeDAO;
-import java.io.IOException;
-import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import model.SeatType;
 import model.User;
+import service.SeatTypeService;
 
 @WebServlet(name = "AdminSeatTypeController", urlPatterns = {"/admin/seat-types"})
 public class AdminSeatTypeController extends HttpServlet {
-
-    private final SeatTypeDAO seatTypeDAO = new SeatTypeDAO();
+    private final SeatTypeService seatTypeService = new SeatTypeService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        User user = (User) request.getSession().getAttribute("user");
-        if (user == null || !"ADMIN".equalsIgnoreCase(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
-        String action = request.getParameter("action");
-        if ("delete".equals(action)) {
-            deleteSeatType(request, response);
-        } else {
-            List<SeatType> allSeatTypes = seatTypeDAO.findAll();
-            request.setAttribute("allSeatTypes", allSeatTypes);
-            request.getRequestDispatcher("/pages/admin/seat-types.jsp").forward(request, response);
-        }
+        if (!isAdmin(request)) { response.sendRedirect(request.getContextPath() + "/login"); return; }
+        // State changes must use POST; a GET link cannot deactivate data.
+        request.setAttribute("allSeatTypes", seatTypeService.getAll());
+        request.getRequestDispatcher("/pages/admin/seat-types.jsp").forward(request, response);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        User user = (User) request.getSession().getAttribute("user");
-        if (user == null || !"ADMIN".equalsIgnoreCase(user.getRole())) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-            return;
-        }
-
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!isAdmin(request)) { response.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
         String action = request.getParameter("action");
-
-        if ("add".equals(action)) {
-            addSeatType(request, response);
-        } else if ("update".equals(action)) {
-            updateSeatType(request, response);
-        } else {
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-        }
-    }
-
-    private void addSeatType(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        String code = request.getParameter("code");
-        String name = request.getParameter("name");
-        String defaultPriceStr = request.getParameter("defaultPrice");
-        String color = request.getParameter("color");
-        String status = request.getParameter("status");
-
-        if (code == null || code.trim().isEmpty() || !code.matches("^[A-Za-z0-9_]+$")) {
-            request.getSession().setAttribute("msgError", "Mã loại ghế không hợp lệ! Chỉ cho phép dùng chữ cái, chữ số và dấu gạch dưới (Ví dụ: VIP_PRO).");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
-        }
-
-        if (name == null || name.trim().isEmpty()) {
-            request.getSession().setAttribute("msgError", "Tên loại ghế không được để trống!");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
-        }
-
-        double defaultPrice = 0.0;
         try {
-            if (defaultPriceStr != null) {
-                defaultPrice = Double.parseDouble(defaultPriceStr);
+            if ("add".equals(action)) {
+                seatTypeService.create(readSeatType(request, 0));
+                request.getSession().setAttribute("msgSuccess", "Thêm loại ghế thành công.");
+            } else if ("update".equals(action)) {
+                seatTypeService.update(readSeatType(request, parsePositiveInt(request.getParameter("id"))));
+                request.getSession().setAttribute("msgSuccess", "Cập nhật loại ghế thành công.");
+            } else if ("delete".equals(action)) {
+                seatTypeService.deactivate(parsePositiveInt(request.getParameter("id")));
+                request.getSession().setAttribute("msgSuccess", "Đã khóa loại ghế.");
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
             }
-        } catch (NumberFormatException e) {
-            request.getSession().setAttribute("msgError", "Giá mặc định phải là số hợp lệ!");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
+        } catch (IllegalArgumentException e) {
+            request.getSession().setAttribute("msgError", e.getMessage());
         }
-
-        if (defaultPrice < 0 || defaultPrice > 10000000.0) {
-            request.getSession().setAttribute("msgError", "Giá mặc định/Hệ số nhân không được âm và không được vượt quá 10.000.000!");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
-        }
-
-        SeatType st = new SeatType();
-        st.setCode(code);
-        st.setName(name);
-        st.setDefaultPrice(defaultPrice);
-        st.setColor(color != null ? color : "#10b981");
-        st.setStatus(status != null ? status : "ACTIVE");
-
-        if (seatTypeDAO.insert(st)) {
-            request.getSession().setAttribute("msgSuccess", "Thêm loại ghế thành công.");
-        } else {
-            request.getSession().setAttribute("msgError", "Lỗi khi thêm loại ghế (Mã loại ghế có thể đã tồn tại).");
-        }
-
         response.sendRedirect(request.getContextPath() + "/admin/seat-types");
     }
 
-    private void updateSeatType(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        String code = request.getParameter("code");
-        String name = request.getParameter("name");
-        String defaultPriceStr = request.getParameter("defaultPrice");
-        String color = request.getParameter("color");
-        String status = request.getParameter("status");
+    private SeatType readSeatType(HttpServletRequest request, int id) {
+        SeatType value = new SeatType();
+        value.setId(id);
+        value.setCode(request.getParameter("code"));
+        value.setName(request.getParameter("name"));
+        value.setColor(request.getParameter("color"));
+        value.setStatus(request.getParameter("status"));
+        try { value.setDefaultPrice(Double.parseDouble(request.getParameter("defaultPrice"))); }
+        catch (Exception e) { throw new IllegalArgumentException("Hệ số nhân giá không hợp lệ."); }
+        return value;
+    }
 
-        if (code == null || code.trim().isEmpty() || !code.matches("^[A-Za-z0-9_]+$")) {
-            request.getSession().setAttribute("msgError", "Mã loại ghế không hợp lệ! Chỉ cho phép dùng chữ cái, chữ số và dấu gạch dưới (Ví dụ: VIP_PRO).");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
-        }
-
-        if (name == null || name.trim().isEmpty()) {
-            request.getSession().setAttribute("msgError", "Tên loại ghế không được để trống!");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
-        }
-
-        double defaultPrice = 0.0;
+    private int parsePositiveInt(String value) {
         try {
-            if (defaultPriceStr != null) {
-                defaultPrice = Double.parseDouble(defaultPriceStr);
-            }
-        } catch (NumberFormatException e) {
-            request.getSession().setAttribute("msgError", "Giá mặc định phải là số hợp lệ!");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
-        }
-
-        if (defaultPrice < 0 || defaultPrice > 10000000.0) {
-            request.getSession().setAttribute("msgError", "Giá mặc định/Hệ số nhân không được âm và không được vượt quá 10.000.000!");
-            response.sendRedirect(request.getContextPath() + "/admin/seat-types");
-            return;
-        }
-
-        SeatType st = new SeatType();
-        st.setId(id);
-        st.setCode(code);
-        st.setName(name);
-        st.setDefaultPrice(defaultPrice);
-        st.setColor(color != null ? color : "#10b981");
-        st.setStatus(status);
-
-        if (seatTypeDAO.update(st)) {
-            request.getSession().setAttribute("msgSuccess", "Cập nhật loại ghế thành công.");
-        } else {
-            request.getSession().setAttribute("msgError", "Lỗi khi cập nhật loại ghế.");
-        }
-
-        response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+            int id = Integer.parseInt(value);
+            if (id > 0) return id;
+        } catch (Exception ignored) { }
+        throw new IllegalArgumentException("Loại ghế không hợp lệ.");
     }
 
-    private void deleteSeatType(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-
-        if (seatTypeDAO.delete(id)) {
-            request.getSession().setAttribute("msgSuccess", "Xóa hoặc Khóa trạng thái loại ghế thành công.");
-        } else {
-            request.getSession().setAttribute("msgError", "Lỗi khi thực hiện xóa hoặc khóa loại ghế.");
-        }
-
-        response.sendRedirect(request.getContextPath() + "/admin/seat-types");
+    private boolean isAdmin(HttpServletRequest request) {
+        Object current = request.getSession(false) == null ? null : request.getSession(false).getAttribute("user");
+        return current instanceof User && "ADMIN".equalsIgnoreCase(((User) current).getRole());
     }
 }

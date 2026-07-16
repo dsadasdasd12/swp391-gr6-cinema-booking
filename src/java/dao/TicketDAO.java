@@ -26,7 +26,8 @@ public class TicketDAO {
     // ── 5a. UPDATE BOOKING QR ──────────────────────────────────
 
     /**
-     * Cập nhật chuỗi QR Base64 trực tiếp vào bảng BOOKINGS.
+     * Persists only the canonical scan token. QR images are generated at read
+     * time and must never overwrite BOOKINGS.qr_code.
      */
     /** Xác nhận booking sau thanh toán (PENDING → CONFIRMED). */
     public boolean confirmBooking(int bookingId) {
@@ -43,11 +44,14 @@ public class TicketDAO {
         return false;
     }
 
-    public boolean updateBookingQR(int bookingId, String qrCodeBase64) {
+    public boolean updateBookingQR(int bookingId, String qrCodeToken) {
+        if (qrCodeToken == null || !qrCodeToken.matches("RV-(ONLINE|WALK)-" + bookingId)) {
+            return false;
+        }
         String sql = "UPDATE dbo.BOOKINGS SET qr_code = ? WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, qrCodeBase64);
+            ps.setString(1, qrCodeToken);
             ps.setInt   (2, bookingId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -275,8 +279,8 @@ public class TicketDAO {
 
     // ── 5f. UPDATE QR CODE ─────────────────────────────────────
 
-    public boolean updateQrCode(int bookingId, String qrBase64) {
-        return updateBookingQR(bookingId, qrBase64);
+    public boolean updateQrCode(int bookingId, String qrCodeToken) {
+        return updateBookingQR(bookingId, qrCodeToken);
     }
 
     // ── Helper Mapping ────────────────────────────────────────
@@ -303,8 +307,8 @@ public class TicketDAO {
             t.setTicketStatus(rs.getString("qr_code") == null ? "PENDING_MANUAL" : "ISSUED");
         }
         
-        t.setQrCodeBase64    (rs.getString("qr_code"));
         t.setQrCode          (rs.getString("qr_code"));
+        t.setQrCodeBase64    (null);
         t.setCustomerName    (EncodingUtil.getString(rs, "customer_name"));
         t.setCustomerEmail   (rs.getString("customer_email"));
         t.setMovieTitle      (EncodingUtil.getString(rs, "movie_title"));

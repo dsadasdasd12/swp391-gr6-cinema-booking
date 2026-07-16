@@ -6,6 +6,7 @@ import dao.DiscountDAO;
 import dto.BookingDraftView;
 import dto.BookingSeatLine;
 import dto.BookingView;
+import dto.CounterBookingQuote;
 import dto.SeatView;
 import dto.VoucherQuote;
 import java.util.ArrayList;
@@ -23,11 +24,72 @@ public class BookingService {
     private final ShowtimeService showtimeService = new ShowtimeService();
     private final SeatService seatService = new SeatService();
     private final DiscountDAO discountDAO = new DiscountDAO();
+    private final UserService userService = new UserService();
 
-    public int createWalkinBooking(int userId, int showtimeId, List<Integer> seatIds, List<Double> seatPrices,
-                                   double totalPrice, String paymentMethod, double discountAmount, 
-                                   String discountReason, int staffId) {
-        return bookingDAO.createWalkinBooking(userId, showtimeId, seatIds, seatPrices, totalPrice, paymentMethod, discountAmount, discountReason, staffId);
+    public int createCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds,
+                                    String voucherCode, String paymentMethod) {
+        CounterCalculation calculation = calculateCounterBooking(staffId, showtimeId, requestedSeatIds, voucherCode);
+        if (!"CASH".equalsIgnoreCase(paymentMethod) && !"BANKING".equalsIgnoreCase(paymentMethod)) {
+            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
+        }
+        return bookingDAO.createWalkinBooking(showtimeId, calculation.seatIds, calculation.prices,
+                calculation.quote.getTotal(), paymentMethod.toUpperCase(), calculation.quote.getDiscountAmount(),
+                calculation.voucher.isValid() ? "Mã giảm giá: " + calculation.voucher.getCode() : "",
+                calculation.voucher.isValid() ? calculation.voucher.getCode() : null, staffId);
+    }
+
+    /** Returns the same server-side calculation that will be persisted on booking. */
+    public CounterBookingQuote quoteCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds, String voucherCode) {
+        try {
+            return calculateCounterBooking(staffId, showtimeId, requestedSeatIds, voucherCode).quote;
+        } catch (IllegalArgumentException e) {
+            return CounterBookingQuote.invalid(e.getMessage());
+        }
+    }
+
+    private CounterCalculation calculateCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds,
+                                                        String voucherCode) {
+        int branchId = userService.getBranchIdOfStaff(staffId);
+        Showtime showtime = showtimeService.getShowtimeById(showtimeId);
+        if (branchId <= 0 || showtime == null || showtime.getBranchId() != branchId) {
+            throw new IllegalArgumentException("Bạn không được bán vé cho suất chiếu này.");
+        }
+        if (!"SCHEDULED".equalsIgnoreCase(showtime.getStatus()) && !"ON_SALE".equalsIgnoreCase(showtime.getStatus())) {
+            throw new IllegalArgumentException("Suất chiếu không mở bán.");
+        }
+        if (showtime.getStartTime() == null
+                || showtime.getStartTime().getTime() + 30L * 60L * 1000L <= System.currentTimeMillis()) {
+            throw new IllegalArgumentException("Suất chiếu đã bắt đầu quá 30 phút, không thể tiếp tục bán vé.");
+        }
+        List<Integer> seatIds = cleanSeatIds(requestedSeatIds);
+        if (seatIds.isEmpty()) throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế.");
+        List<SeatView> views = seatService.getSeatViewsByShowtimeAndIds(showtimeId, seatIds);
+        if (views.size() != seatIds.size()) throw new IllegalArgumentException("Ghế không thuộc suất chiếu này.");
+        List<Double> prices = new ArrayList<>();
+        double subtotal = 0;
+        for (SeatView view : views) {
+            if (view == null || !view.isSelectable()) throw new IllegalArgumentException("Ghế đã được đặt hoặc đang bảo trì.");
+            double price = showtimeService.getSeatPrice(showtimeId, view.getSeat().getSeatType(), showtime.getBasePrice());
+            prices.add(price);
+            subtotal += price;
+        }
+        VoucherQuote quote = voucherCode == null || voucherCode.trim().isEmpty()
+                ? VoucherQuote.invalid("") : quoteVoucher(voucherCode, subtotal);
+        if (voucherCode != null && !voucherCode.trim().isEmpty() && !quote.isValid()) {
+            throw new IllegalArgumentException(quote.getMessage());
+        }
+        double discount = quote.isValid() ? quote.getDiscountAmount() : 0;
+        return new CounterCalculation(seatIds, prices, quote, CounterBookingQuote.valid(subtotal, discount));
+    }
+
+    private static class CounterCalculation {
+        final List<Integer> seatIds;
+        final List<Double> prices;
+        final VoucherQuote voucher;
+        final CounterBookingQuote quote;
+        CounterCalculation(List<Integer> seatIds, List<Double> prices, VoucherQuote voucher, CounterBookingQuote quote) {
+            this.seatIds = seatIds; this.prices = prices; this.voucher = voucher; this.quote = quote;
+        }
     }
 
     public boolean changeBookingSeats(int bookingId, List<Integer> oldSeatIds, List<Integer> newSeatIds, List<Double> newPrices) {
@@ -54,8 +116,18 @@ public class BookingService {
         return bookingDAO.getBookingStatus(bookingId);
     }
 
+    public String getCounterBookingStatus(int staffId, int bookingId) {
+        int branchId = userService.getBranchIdOfStaff(staffId);
+        return branchId <= 0 ? null : bookingDAO.getBookingStatusInBranch(bookingId, branchId);
+    }
+
     public boolean cancelBooking(int bookingId) {
         return bookingDAO.cancelBooking(bookingId);
+    }
+
+    public boolean cancelPendingCounterBooking(int staffId, int bookingId) {
+        int branchId = userService.getBranchIdOfStaff(staffId);
+        return branchId > 0 && bookingDAO.cancelPendingBookingInBranch(bookingId, branchId);
     }
 
     public BookingDraftView buildDraftView(int showtimeId, List<Integer> seatIds) {

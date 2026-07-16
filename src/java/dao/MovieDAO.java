@@ -166,7 +166,7 @@ public class MovieDAO {
                 + "JOIN dbo.HALLS h ON h.id = s.hall_id "
                 + "WHERE h.branch_id = ? "
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
-                + "AND s.start_time > GETDATE() "
+                + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE() "
                 + "ORDER BY m.title";
 
         Connection conn = DBContext.getInstance().getConnection();

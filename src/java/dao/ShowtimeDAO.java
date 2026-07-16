@@ -116,7 +116,8 @@ public class ShowtimeDAO {
                 + "FROM dbo.SHOWTIMES st "
                 + "JOIN dbo.MOVIES m ON st.movie_id = m.id "
                 + "JOIN dbo.HALLS h ON st.hall_id = h.id "
-                + "WHERE h.branch_id = ? AND st.status IN ('ON_SALE', 'SCHEDULED') AND st.start_time >= GETDATE() "
+                + "WHERE h.branch_id = ? AND st.status IN ('ON_SALE', 'SCHEDULED') "
+                + "AND DATEADD(MINUTE, 30, st.start_time) > GETDATE() "
                 + "ORDER BY st.start_time ASC";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, branchId);
@@ -590,7 +591,7 @@ public class ShowtimeDAO {
                 + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
                 + "WHERE s.id = ? "
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
-                + "AND s.start_time > GETDATE()";
+                + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE()";
 
         try (Connection conn = DBContext.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -631,7 +632,7 @@ public class ShowtimeDAO {
                 + "AND s.movie_id = ? "
                 + "AND CONVERT(date, s.start_time) = ? "
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
-                + "AND s.start_time > GETDATE() "
+                + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE() "
                 + "ORDER BY s.start_time, h.name";
 
         try (Connection conn = DBContext.getInstance().getConnection();
@@ -717,7 +718,8 @@ public class ShowtimeDAO {
     }
 
     public boolean hasFutureShowtimes(int hallId) {
-        String sql = "SELECT COUNT(*) FROM dbo.SHOWTIMES WHERE hall_id = ? AND start_time > GETDATE() AND status != 'CANCELLED'";
+        String sql = "SELECT COUNT(*) FROM dbo.SHOWTIMES WHERE hall_id = ? "
+                + "AND end_time > GETDATE() AND status != 'CANCELLED'";
         try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, hallId);
             try (ResultSet rs = ps.executeQuery()) {

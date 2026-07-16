@@ -281,7 +281,7 @@
 
         <div class="rv-card">
             <div class="rv-card__body p-0">
-                <jsp:include page="/pages/manager/discountTableContent.jsp" />
+                <jsp:include page="/pages/admin/discountTableContent.jsp" />
                 
                 <!-- PAGINATION CONTAINER -->
                 <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.01);">
@@ -300,7 +300,7 @@
         
         </main>
         </div>
-        <jsp:include page="/pages/manager/discountModalContent.jsp" />
+        <jsp:include page="/pages/admin/discountModalContent.jsp" />
 </body>
         </html>
 

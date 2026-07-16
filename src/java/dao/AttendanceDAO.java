@@ -47,10 +47,13 @@ public class AttendanceDAO {
     // 3. WRITE: Soát vé vào cổng (Check-in Transaction)
     public String checkInTicket(int bookingId, int staffId) {
         // Kiểm tra tính hợp lệ của đơn đặt vé trước
-        String bookingCheckSql = "SELECT b.status, h.branch_id FROM dbo.BOOKINGS b JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id JOIN dbo.HALLS h ON s.hall_id = h.id WHERE b.id = ?";
+        String bookingCheckSql = "SELECT b.status, h.branch_id, s.start_time, s.end_time "
+                + "FROM dbo.BOOKINGS b JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id WHERE b.id = ?";
         String staffCheckSql = "SELECT u.role, sb.branch_id FROM dbo.[USER] u LEFT JOIN dbo.STAFF_BRANCH sb ON u.id = sb.user_id WHERE u.id = ?";
         String insertAttendanceSql = "INSERT INTO dbo.ATTENDANCE (booking_id, checked_by, checked_at) VALUES (?, ?, GETDATE())";
-        String updateBookingStatusSql = "UPDATE dbo.BOOKINGS SET status = 'USED', last_update = GETDATE() WHERE id = ?";
+        String updateBookingStatusSql = "UPDATE dbo.BOOKINGS SET status = 'USED', last_update = GETDATE() "
+                + "WHERE id = ? AND status = 'CONFIRMED'";
         
         Connection conn = null;
         try {
@@ -58,14 +61,18 @@ public class AttendanceDAO {
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
             // Bước A: Kiểm tra trạng thái đơn vé và chi nhánh của vé
-            String status = null;
-            int bookingBranchId = -1;
+        String status = null;
+        int bookingBranchId = -1;
+        java.sql.Timestamp startTime = null;
+        java.sql.Timestamp endTime = null;
             try (PreparedStatement ps = conn.prepareStatement(bookingCheckSql)) {
                 ps.setInt(1, bookingId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         status = rs.getString("status");
                         bookingBranchId = rs.getInt("branch_id");
+                        startTime = rs.getTimestamp("start_time");
+                        endTime = rs.getTimestamp("end_time");
                     } else {
                         conn.rollback();
                         return "VÉ KHÔNG TỒN TẠI: Không tìm thấy hóa đơn mã số #" + bookingId;
@@ -88,16 +95,19 @@ public class AttendanceDAO {
                 }
             }
 
-            // Nếu không phải ADMIN, kiểm tra xem có đúng chi nhánh không
-            if (!"ADMIN".equalsIgnoreCase(staffRole)) {
-                if (staffBranchId == null) {
-                    conn.rollback();
-                    return "LỖI PHÂN QUYỀN: Nhân viên soát vé chưa được gán vào chi nhánh nào.";
-                }
-                if (staffBranchId != bookingBranchId) {
-                    conn.rollback();
-                    return "SAI CHI NHÁNH: Vé này thuộc chi nhánh khác, không thể soát tại đây!";
-                }
+            if (!"STAFF".equalsIgnoreCase(staffRole)) {
+                conn.rollback();
+                return "LỖI PHÂN QUYỀN: Chỉ nhân viên được phép soát vé.";
+            }
+
+            if (staffBranchId == null) {
+                conn.rollback();
+                return "LỖI PHÂN QUYỀN: Nhân viên soát vé chưa được gán vào chi nhánh nào.";
+            }
+
+            if (!staffBranchId.equals(bookingBranchId)) {
+                conn.rollback();
+                return "SAI CHI NHÁNH: Vé này thuộc chi nhánh khác, không thể soát tại đây!";
             }
 
             // Kiểm tra các trường hợp không hợp lệ
@@ -120,15 +130,26 @@ public class AttendanceDAO {
             }
 
             // Bước B: Chèn bản ghi check-in cổng
+            long now = System.currentTimeMillis();
+            long early = startTime == null ? Long.MAX_VALUE : startTime.getTime() - 30L * 60L * 1000L;
+            long late = endTime == null ? Long.MIN_VALUE : endTime.getTime() + 30L * 60L * 1000L;
+            if (now < early || now > late) {
+                conn.rollback();
+                return "CHƯA ĐẾN GIỜ SOÁT VÉ: Chỉ được soát gần thời gian suất chiếu.";
+            }
+
+            // Claim the booking before inserting attendance so concurrent scanners cannot both succeed.
+            try (PreparedStatement ps = conn.prepareStatement(updateBookingStatusSql)) {
+                ps.setInt(1, bookingId);
+                if (ps.executeUpdate() != 1) {
+                    conn.rollback();
+                    return "CẢNH BÁO TRÙNG LẶP: Vé này đã được sử dụng hoặc không còn hợp lệ.";
+                }
+            }
+
             try (PreparedStatement ps = conn.prepareStatement(insertAttendanceSql)) {
                 ps.setInt(1, bookingId);
                 ps.setInt(2, staffId);
-                ps.executeUpdate();
-            }
-
-            // Bước C: Cập nhật trạng thái BOOKINGS thành 'USED'
-            try (PreparedStatement ps = conn.prepareStatement(updateBookingStatusSql)) {
-                ps.setInt(1, bookingId);
                 ps.executeUpdate();
             }
 

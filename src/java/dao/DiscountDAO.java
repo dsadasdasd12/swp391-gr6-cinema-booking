@@ -108,7 +108,7 @@ public class DiscountDAO {
 
     // 4. WRITE: Xóa mã giảm giá
     public boolean deleteDiscountCode(int id) {
-        String sql = "DELETE FROM dbo.DISCOUNT_CODES WHERE id = ?";
+        String sql = "UPDATE dbo.DISCOUNT_CODES SET status = 'PAUSED', last_update = GETDATE() WHERE id = ?";
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);

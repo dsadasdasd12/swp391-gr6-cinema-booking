@@ -172,7 +172,7 @@
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
                                     <c:if test="${st.code != 'STANDARD' && st.code != 'VIP' && st.code != 'COUPLE'}">
-                                        <form action="${ctx}/admin/seat-types" method="get" class="d-inline"
+                                        <form action="${ctx}/admin/seat-types" method="post" class="d-inline"
                                               onsubmit="return confirm('Bạn có chắc chắn muốn khóa loại ghế này?');">
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="id" value="${st.id}">

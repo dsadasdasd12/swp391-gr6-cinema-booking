@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- Create Voucher Popup Modal Dialog -->
+<!-- Admin voucher creation modal -->
 <div id="addDiscountModal" class="custom-discount-modal">
     <div class="custom-discount-modal-content">
         <h3 class="custom-discount-modal-title">Tạo Mã Giảm Giá Mới</h3>

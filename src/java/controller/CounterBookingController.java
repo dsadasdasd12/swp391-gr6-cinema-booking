@@ -1,409 +1,154 @@
 package controller;
 
-import service.BookingService;
-import service.SeatService;
-import service.ShowtimeService;
-import service.DiscountService;
-import service.TicketService;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import dto.CounterBookingQuote;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import model.Seat;
 import model.Showtime;
 import model.User;
-import jakarta.servlet.http.HttpSession;
+import service.BookingService;
+import service.SeatService;
+import service.ShowtimeService;
+import service.TicketService;
 import service.UserService;
 
 @WebServlet(name = "CounterBookingController", urlPatterns = {"/CounterBooking"})
 public class CounterBookingController extends HttpServlet {
-
     private final ShowtimeService showtimeService = new ShowtimeService();
     private final BookingService bookingService = new BookingService();
     private final SeatService seatService = new SeatService();
-    private final DiscountService discountService = new DiscountService();
     private final TicketService ticketService = new TicketService();
     private final UserService userService = new UserService();
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        processRequest(request, response);
+    }
 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        processRequest(request, response);
+    }
+
+    private void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("user") : null;
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        String role = user.getRole();
-        if (!"STAFF".equalsIgnoreCase(role) && !"MANAGER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
-            response.sendRedirect(request.getContextPath() + "/home");
-            return;
-        }
+        User user = session == null ? null : (User) session.getAttribute("user");
+        if (user == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
+        if (!"STAFF".equalsIgnoreCase(user.getRole())) { response.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
 
         int staffId = user.getId();
         int branchId = userService.getBranchIdOfStaff(staffId);
-        dao.BranchDAO branchDAO = new dao.BranchDAO();
-        model.Branch staffBranch = branchDAO.getBranchById(branchId);
-        String staffBranchName = (staffBranch != null) ? staffBranch.getName() : "Không xác định";
-        request.setAttribute("staffBranchName", staffBranchName);
+        if (branchId <= 0) { response.sendError(HttpServletResponse.SC_FORBIDDEN, "Staff chưa được gán chi nhánh."); return; }
+        model.Branch branch = new dao.BranchDAO().getBranchById(branchId);
+        request.setAttribute("staffBranchName", branch == null ? "Không xác định" : branch.getName());
+
         String action = request.getParameter("action");
-
-        // API CHECK PAYMENT STATUS: Truy vấn trạng thái đơn hàng (PENDING / CONFIRMED) phục vụ AJAX polling
-        if ("checkPaymentStatus".equalsIgnoreCase(action)) {
-            response.setContentType("application/json;charset=UTF-8");
-            try {
-                int bookingId = Integer.parseInt(request.getParameter("bookingId"));
-                String status = bookingService.getBookingStatus(bookingId);
-                response.getWriter().write("{\"status\":\"" + status + "\"}");
-            } catch (Exception e) {
-                response.getWriter().write("{\"status\":\"ERROR\",\"message\":\"" + e.getMessage() + "\"}");
-            }
-            return;
-        }
-
-        // API CANCEL BOOKING: Hủy đơn hàng và giải phóng ghế khi khách hàng không thanh toán nữa
+        if ("checkPaymentStatus".equalsIgnoreCase(action)) { writeStatus(response, bookingService.getCounterBookingStatus(staffId, parseId(request.getParameter("bookingId")))); return; }
         if ("cancelBooking".equalsIgnoreCase(action)) {
-            response.setContentType("application/json;charset=UTF-8");
-            try {
-                int bookingId = Integer.parseInt(request.getParameter("bookingId"));
-                boolean success = bookingService.cancelBooking(bookingId);
-                response.getWriter().write("{\"success\":" + success + "}");
-            } catch (Exception e) {
-                response.getWriter().write("{\"success\":false,\"message\":\"" + e.getMessage() + "\"}");
-            }
-            return;
+            if (!"POST".equalsIgnoreCase(request.getMethod())) { response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED); return; }
+            writeJson(response, "{\"success\":" + bookingService.cancelPendingCounterBooking(staffId, parseId(request.getParameter("bookingId"))) + "}"); return;
         }
-
-        // CHỨC NĂNG BỔ TRỢ: Xác thực mã giảm giá qua AJAX ở quầy POS
-        if ("checkVoucher".equalsIgnoreCase(action)) {
-            response.setContentType("application/json;charset=UTF-8");
-            try {
-                String code = request.getParameter("code");
-                double subtotal = Double.parseDouble(request.getParameter("total"));
-                
-                List<model.DiscountCode> list = discountService.getAllDiscountCodes();
-                model.DiscountCode voucher = null;
-                for (model.DiscountCode dc : list) {
-                    if (dc.getCode().equalsIgnoreCase(code)) {
-                        voucher = dc;
-                        break;
-                    }
-                }
-                
-                if (voucher == null) {
-                    response.getWriter().write("{\"success\":false,\"message\":\"Mã giảm giá không tồn tại!\"}");
-                    return;
-                }
-                
-                if (!"ACTIVE".equalsIgnoreCase(voucher.getStatus())) {
-                    response.getWriter().write("{\"success\":false,\"message\":\"Mã giảm giá đã tạm dừng hoặc hết hiệu lực!\"}");
-                    return;
-                }
-                
-                java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
-                if (now.before(voucher.getStartDate())) {
-                    response.getWriter().write("{\"success\":false,\"message\":\"Chương trình khuyến mãi chưa bắt đầu!\"}");
-                    return;
-                }
-                if (now.after(voucher.getEndDate())) {
-                    response.getWriter().write("{\"success\":false,\"message\":\"Mã giảm giá đã hết hạn sử dụng!\"}");
-                    return;
-                }
-                
-                if (voucher.getUsedCount() >= voucher.getMaxUses()) {
-                    response.getWriter().write("{\"success\":false,\"message\":\"Mã giảm giá đã hết lượt sử dụng!\"}");
-                    return;
-                }
-                
-                if (subtotal < voucher.getMinOrderValue()) {
-                    java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0");
-                    response.getWriter().write("{\"success\":false,\"message\":\"Chưa đạt giá trị đơn hàng tối thiểu (" + df.format(voucher.getMinOrderValue()) + "đ)!\"}");
-                    return;
-                }
-                
-                double discountAmount = 0;
-                if ("PERCENT".equalsIgnoreCase(voucher.getDiscountType())) {
-                    discountAmount = subtotal * (voucher.getDiscountValue() / 100.0);
-                    if (voucher.getMaxDiscountAmount() != null && discountAmount > voucher.getMaxDiscountAmount()) {
-                        discountAmount = voucher.getMaxDiscountAmount();
-                    }
-                } else {
-                    discountAmount = voucher.getDiscountValue();
-                }
-                
-                if (discountAmount > subtotal) {
-                    discountAmount = subtotal;
-                }
-                
-                response.getWriter().write("{\"success\":true,\"discountAmount\":" + discountAmount + "}");
-            } catch (Exception e) {
-                response.getWriter().write("{\"success\":false,\"message\":\"Lỗi hệ thống: " + e.getMessage() + "\"}");
-            }
-            return;
-        }
-
-        // CHỨC NĂNG 1: Tạo hóa đơn thanh toán trực tiếp tại quầy
-        if ("book".equalsIgnoreCase(action)) {
-            try {
-                int showtimeId = Integer.parseInt(request.getParameter("showtimeId"));
-                Showtime st = showtimeService.getShowtimeById(showtimeId);
-                if (!"ADMIN".equalsIgnoreCase(role)) {
-                    if (st == null || st.getBranchId() != branchId) {
-                        request.getSession().setAttribute("msgError", "Lỗi phân quyền: Không được phép đặt vé cho suất chiếu ở chi nhánh khác!");
-                        response.sendRedirect("CounterBooking");
-                        return;
-                    }
-                }
-                
-                String seatsParam = request.getParameter("selectedSeats");
-                
-                if (seatsParam == null || seatsParam.trim().isEmpty()) {
-                    request.getSession().setAttribute("msgError", "Vui lòng chọn ít nhất một ghế!");
-                    response.sendRedirect("CounterBooking?showtimeId=" + showtimeId);
-                    return;
-                }
-
-                // Chuyển mã ID ghế thành danh sách số nguyên
-                String[] seatArr = seatsParam.split(",");
-                List<Integer> seatIds = new ArrayList<>();
-                List<Double> seatPrices = new ArrayList<>();
-                double seatsTotal = 0;
-                for (String seatIdStr : seatArr) {
-                    int seatId = Integer.parseInt(seatIdStr.trim());
-                    seatIds.add(seatId);
-                    
-                    // Tìm loại ghế của seatId này để lấy giá tương ứng
-                    String seatType = "STANDARD";
-                    // Tìm trong danh sách toàn bộ ghế của rạp để kiểm tra loại ghế
-                    List<Seat> allSeats = seatService.getSeatsByHall(st.getHallId());
-                    for (Seat s : allSeats) {
-                        if (s.getId() == seatId) {
-                            seatType = s.getSeatType();
-                            break;
-                        }
-                    }
-                    
-                    double price = showtimeService.getSeatPrice(showtimeId, seatType, st.getBasePrice());
-                    seatPrices.add(price);
-                    seatsTotal += price;
-                }
-
-                // Xử lý giảm giá
-                double discountAmount = 0;
-                String discountReason = request.getParameter("discountReason");
-                if (discountReason == null || discountReason.trim().isEmpty()) {
-                    discountReason = "Chiết khấu trực tiếp tại quầy";
-                }
-                String discountStr = request.getParameter("discountAmount");
-                if (discountStr != null && !discountStr.trim().isEmpty()) {
-                    discountAmount = Double.parseDouble(discountStr.trim());
-                }
-
-                double finalPrice = seatsTotal - discountAmount;
-                if (finalPrice < 0) finalPrice = 0;
-
-                String paymentMethod = request.getParameter("paymentMethod"); // CASH hoặc BANKING
-                if (paymentMethod == null) paymentMethod = "CASH";
-
-                // Đặt vé tại quầy có thể gắn với tài khoản khách hoặc tài khoản mặc định
-                int customerUserId = 10;
-
-                int bookingId = bookingService.createWalkinBooking(customerUserId, showtimeId, seatIds, seatPrices, 
-                                                                 finalPrice, paymentMethod, discountAmount, 
-                                                                 discountReason, staffId);
-
-                if (bookingId != -1) {
-                    // Nếu sử dụng mã giảm giá, tự động tăng số lần sử dụng của mã
-                    if (discountReason != null && discountReason.startsWith("Mã giảm giá: ")) {
-                        String vCode = discountReason.substring(13).trim();
-                        discountService.incrementUsedCount(vCode);
-                    }
-                    // Thành công: Chuyển hướng về trang POS kèm tham số thành công
-                    response.sendRedirect("CounterBooking?showtimeId=" + showtimeId + "&bookingSuccessId=" + bookingId);
-                    return;
-                } else {
-                    request.getSession().setAttribute("msgError", "Đặt vé thất bại! Ghế có thể đã có người khác nhanh tay chọn trước.");
-                    response.sendRedirect("CounterBooking?showtimeId=" + showtimeId);
-                    return;
-                }
-
-            } catch (Exception e) {
-                request.getSession().setAttribute("msgError", "Lỗi dữ liệu: " + e.getMessage());
-                response.sendRedirect("CounterBooking");
-                return;
-            }
-        }
-
-        // CHỨC NĂNG 2: Mở màn hình hóa đơn in vé
-        if ("printTicket".equalsIgnoreCase(action)) {
-            try {
-                int bookingId = Integer.parseInt(request.getParameter("bookingId"));
-                model.Booking booking = bookingService.getBookingById(bookingId);
-                
-                if (booking != null) {
-                    Showtime st = showtimeService.getShowtimeById(booking.getShowtimeId());
-                    if (!"ADMIN".equalsIgnoreCase(role)) {
-                        if (st == null || st.getBranchId() != branchId) {
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Lỗi phân quyền: Không được phép in vé của chi nhánh khác!");
-                            return;
-                        }
-                    }
-                    request.setAttribute("booking", booking);
-                    request.setAttribute("showtime", st);
-                    
-                    // Lấy danh sách tên ghế đã đặt
-                    List<Seat> allSeats = seatService.getSeatsByHall(st.getHallId());
-                    List<Integer> bookedIds = bookingService.getBookedSeatIds(st.getId()); // or get booking seat details
-                    
-                    // Query chính xác các ghế của booking này thông qua TicketService
-                    String seatCodes = ticketService.getSeatCodesByBookingId(bookingId);
-                    
-                    request.setAttribute("seatCodes", seatCodes);
-                    request.getRequestDispatcher("ticketPrint.jsp").forward(request, response);
-                    return;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if ("checkVoucher".equalsIgnoreCase(action)) { quoteVoucher(request, response, staffId); return; }
+        if ("changeSeats".equalsIgnoreCase(action)) {
+            session.setAttribute("msgError", "Đổi ghế tại quầy đang tạm khóa để bảo vệ giá vé và trạng thái ghế.");
             response.sendRedirect("CounterBooking");
             return;
         }
+        if ("book".equalsIgnoreCase(action)) {
+            if (!"POST".equalsIgnoreCase(request.getMethod())) { response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED); return; }
+            createBooking(request, response, staffId); return;
+        }
+        if ("printTicket".equalsIgnoreCase(action)) { printTicket(request, response, staffId); return; }
 
-        // CHỨC NĂNG 3: Đổi ghế cho hóa đơn (Chỉ khi chưa thanh toán / PENDING)
-        if ("changeSeats".equalsIgnoreCase(action)) {
-            try {
-                int bookingId = Integer.parseInt(request.getParameter("bookingId"));
-                String oldSeatsStr = request.getParameter("oldSeats");
-                String newSeatsStr = request.getParameter("newSeats");
-                int showtimeId = Integer.parseInt(request.getParameter("showtimeId"));
+        renderCounter(request, response, branchId);
+    }
 
-                Showtime st = showtimeService.getShowtimeById(showtimeId);
-                if (!"ADMIN".equalsIgnoreCase(role)) {
-                    if (st == null || st.getBranchId() != branchId) {
-                        request.getSession().setAttribute("msgError", "Lỗi phân quyền: Không được phép thao tác đổi ghế cho suất chiếu của chi nhánh khác!");
-                        response.sendRedirect("CounterBooking");
-                        return;
-                    }
-                }
-
-                String[] oldArr = oldSeatsStr.split(",");
-                String[] newArr = newSeatsStr.split(",");
-
-                List<Integer> oldSeatIds = new ArrayList<>();
-                List<Integer> newSeatIds = new ArrayList<>();
-                List<Double> newPrices = new ArrayList<>();
-                List<Seat> allSeats = seatService.getSeatsByHall(st.getHallId());
-
-                for (String s : oldArr) oldSeatIds.add(Integer.parseInt(s.trim()));
-                for (String s : newArr) {
-                    int nId = Integer.parseInt(s.trim());
-                    newSeatIds.add(nId);
-                    
-                    // Resolve price
-                    String seatType = "STANDARD";
-                    for (Seat seat : allSeats) {
-                        if (seat.getId() == nId) {
-                            seatType = seat.getSeatType();
-                            break;
-                        }
-                    }
-                    newPrices.add(showtimeService.getSeatPrice(showtimeId, seatType, st.getBasePrice()));
-                }
-
-                boolean success = bookingService.changeBookingSeats(bookingId, oldSeatIds, newSeatIds, newPrices);
-                if (success) {
-                    request.getSession().setAttribute("msgSuccess", "Thay đổi vị trí ghế thành công!");
-                } else {
-                    request.getSession().setAttribute("msgError", "Thay đổi vị trí ghế thất bại. Ghế mới có thể đã bị khóa!");
-                }
-                response.sendRedirect("CounterBooking?showtimeId=" + showtimeId);
-                return;
-            } catch (Exception e) {
-                request.getSession().setAttribute("msgError", "Lỗi xử lý đổi ghế: " + e.getMessage());
-                response.sendRedirect("CounterBooking");
+    private void quoteVoucher(HttpServletRequest request, HttpServletResponse response, int staffId) throws IOException {
+        try {
+            CounterBookingQuote quote = bookingService.quoteCounterBooking(staffId,
+                    parseId(request.getParameter("showtimeId")), parseSeatIds(request.getParameter("selectedSeats")),
+                    request.getParameter("code"));
+            if (!quote.isValid()) {
+                CounterBookingQuote baseQuote = bookingService.quoteCounterBooking(staffId,
+                        parseId(request.getParameter("showtimeId")), parseSeatIds(request.getParameter("selectedSeats")), null);
+                writeJson(response, "{\"success\":false,\"message\":\"" + json(quote.getMessage())
+                        + "\",\"subtotal\":" + baseQuote.getSubtotal() + ",\"discountAmount\":0,\"total\":" + baseQuote.getTotal() + "}");
                 return;
             }
+            writeJson(response, "{\"success\":true,\"subtotal\":" + quote.getSubtotal()
+                    + ",\"discountAmount\":" + quote.getDiscountAmount() + ",\"total\":" + quote.getTotal() + "}");
+        } catch (Exception e) {
+            writeJson(response, "{\"success\":false,\"message\":\"Dữ liệu không hợp lệ.\"}");
         }
+    }
 
-        // ĐỌC LUỒNG GET CHÍNH: Tìm kiếm suất chiếu & hiển thị sơ đồ ghế
-        List<Showtime> showtimeList = showtimeService.getActiveShowtimesByBranch(branchId);
-        request.setAttribute("showtimeList", showtimeList);
-
-        // Fetch seat types to render dynamic styling on staff/counter booking map
-        dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
-        List<model.SeatType> allSeatTypes = seatTypeDAO.findAll();
-        request.setAttribute("allSeatTypes", allSeatTypes);
-
-        String showtimeIdStr = request.getParameter("showtimeId");
-        if (showtimeIdStr != null) {
-            try {
-                int showtimeId = Integer.parseInt(showtimeIdStr);
-                Showtime selectedShowtime = showtimeService.getShowtimeById(showtimeId);
-                
-                if (selectedShowtime != null) {
-                    // Lấy sơ đồ phòng chiếu
-                    List<Seat> seatList = seatService.getSeatsByHall(selectedShowtime.getHallId());
-                    // Lấy danh sách ID ghế đã bị đặt/khóa
-                    List<Integer> bookedSeatIds = bookingService.getBookedSeatIds(showtimeId);
-
-                    int maxSeatNumber = 8; // Default minimum columns
-                    for (Seat s : seatList) {
-                        if (s.getSeatNumber() > maxSeatNumber) {
-                            maxSeatNumber = s.getSeatNumber();
-                        }
-                    }
-
-                    request.setAttribute("selectedShowtime", selectedShowtime);
-                    request.setAttribute("seatList", seatList);
-                    request.setAttribute("bookedSeatIds", bookedSeatIds);
-                    request.setAttribute("showtimeService", showtimeService);
-                    request.setAttribute("maxSeatNumber", maxSeatNumber);
-
-                    // Optimize N+1 queries by calculating seat prices in memory
-                    java.util.Map<String, Double> seatPricesMap = new java.util.HashMap<>();
-                    for (model.SeatType stype : allSeatTypes) {
-                        double multiplier = stype.getDefaultPrice();
-                        double price = selectedShowtime.getBasePrice() * (multiplier > 0 ? multiplier : 1.0);
-                        seatPricesMap.put(stype.getCode(), price);
-                    }
-                    request.setAttribute("seatPricesMap", seatPricesMap);
-                }
-            } catch (NumberFormatException e) {
-                // Ignore
-            }
+    private void createBooking(HttpServletRequest request, HttpServletResponse response, int staffId) throws IOException {
+        int showtimeId = parseId(request.getParameter("showtimeId"));
+        try {
+            int bookingId = bookingService.createCounterBooking(staffId, showtimeId,
+                    parseSeatIds(request.getParameter("selectedSeats")), request.getParameter("discountCode"),
+                    request.getParameter("paymentMethod"));
+            if (bookingId <= 0) throw new IllegalArgumentException("Không thể tạo vé; ghế hoặc mã giảm giá vừa thay đổi.");
+            response.sendRedirect("CounterBooking?showtimeId=" + showtimeId + "&bookingSuccessId=" + bookingId);
+        } catch (IllegalArgumentException e) {
+            request.getSession().setAttribute("msgError", e.getMessage());
+            response.sendRedirect("CounterBooking" + (showtimeId > 0 ? "?showtimeId=" + showtimeId : ""));
         }
+    }
 
-        String bookingSuccessId = request.getParameter("bookingSuccessId");
-        if (bookingSuccessId != null) {
-            request.setAttribute("bookingSuccessId", bookingSuccessId);
-            try {
-                int bId = Integer.parseInt(bookingSuccessId);
-                model.Booking booking = bookingService.getBookingById(bId);
-                if (booking != null) {
-                    request.setAttribute("successBooking", booking);
-                }
-            } catch (Exception e) {
-                // Ignore
-            }
+    private void printTicket(HttpServletRequest request, HttpServletResponse response, int staffId) throws ServletException, IOException {
+        int bookingId = parseId(request.getParameter("bookingId"));
+        if (bookingService.getCounterBookingStatus(staffId, bookingId) == null) { response.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
+        model.Booking booking = bookingService.getBookingById(bookingId);
+        if (booking == null) { response.sendRedirect("CounterBooking"); return; }
+        request.setAttribute("booking", booking);
+        request.setAttribute("showtime", showtimeService.getShowtimeById(booking.getShowtimeId()));
+        request.setAttribute("seatCodes", ticketService.getSeatCodesByBookingId(bookingId));
+        request.getRequestDispatcher("ticketPrint.jsp").forward(request, response);
+    }
+
+    private void renderCounter(HttpServletRequest request, HttpServletResponse response, int branchId) throws ServletException, IOException {
+        request.setAttribute("showtimeList", showtimeService.getActiveShowtimesByBranch(branchId));
+        List<model.SeatType> types = seatService.getAllSeatTypes();
+        request.setAttribute("allSeatTypes", types);
+        int showtimeId = parseId(request.getParameter("showtimeId"));
+        Showtime selected = showtimeId <= 0 ? null : showtimeService.getShowtimeById(showtimeId);
+        if (selected != null && selected.getBranchId() == branchId) {
+            List<Seat> seats = seatService.getSeatsByHall(selected.getHallId());
+            int max = 8;
+            java.util.Map<String, Double> prices = new java.util.HashMap<>();
+            for (model.SeatType type : types) prices.put(type.getCode(), selected.getBasePrice() * type.getDefaultPrice());
+            for (Seat seat : seats) if (seat.getSeatNumber() > max) max = seat.getSeatNumber();
+            request.setAttribute("selectedShowtime", selected);
+            request.setAttribute("seatList", seats);
+            request.setAttribute("bookedSeatIds", bookingService.getBookedSeatIds(showtimeId));
+            request.setAttribute("maxSeatNumber", max);
+            request.setAttribute("seatPricesMap", prices);
         }
-
+        int successId = parseId(request.getParameter("bookingSuccessId"));
+        if (successId > 0 && bookingService.getCounterBookingStatus(((User) request.getSession(false).getAttribute("user")).getId(), successId) != null) {
+            request.setAttribute("bookingSuccessId", successId);
+            request.setAttribute("successBooking", bookingService.getBookingById(successId));
+        }
         request.getRequestDispatcher("counterBooking.jsp").forward(request, response);
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    private List<Integer> parseSeatIds(String value) {
+        List<Integer> result = new ArrayList<>();
+        if (value == null || value.trim().isEmpty()) return result;
+        for (String item : value.split(",")) { int id = parseId(item); if (id <= 0) throw new IllegalArgumentException("Ghế không hợp lệ."); result.add(id); }
+        return result;
     }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
+    private int parseId(String value) { try { return Integer.parseInt(value == null ? "" : value.trim()); } catch (Exception e) { return -1; } }
+    private void writeStatus(HttpServletResponse response, String status) throws IOException { writeJson(response, status == null ? "{\"status\":\"NOT_FOUND\"}" : "{\"status\":\"" + json(status) + "\"}"); }
+    private void writeJson(HttpServletResponse response, String body) throws IOException { response.setContentType("application/json;charset=UTF-8"); response.getWriter().write(body); }
+    private String json(String value) { return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\""); }
 }

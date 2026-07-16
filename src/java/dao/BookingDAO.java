@@ -12,11 +12,12 @@ import model.Booking;
 import util.DBContext;
 
 public class BookingDAO {
+    private static final String WALKIN_CUSTOMER_EMAIL = "walkin@rapviet.local";
 
     // 1. WRITE: Tạo hóa đơn bán vé tại quầy (WALK-IN TRANSACTION)
-    public int createWalkinBooking(int userId, int showtimeId, List<Integer> seatIds, List<Double> seatPrices,
+    public int createWalkinBooking(int showtimeId, List<Integer> seatIds, List<Double> seatPrices,
                                    double totalPrice, String paymentMethod, double discountAmount, 
-                                   String discountReason, int staffId) {
+                                   String discountReason, String voucherCode, int staffId) {
         
         String insertBookingSql = "INSERT INTO dbo.BOOKINGS (user_id, showtime_id, source, status, total_price, qr_code, booked_at, last_update) "
                                 + "VALUES (?, ?, 'WALKIN', ?, ?, NULL, GETDATE(), GETDATE())";
@@ -31,11 +32,30 @@ public class BookingDAO {
         
         String insertDiscountSql = "INSERT INTO dbo.COUNTER_DISCOUNTS (booking_id, applied_by, reason, amount, applied_at) "
                                  + "VALUES (?, ?, ?, ?, GETDATE())";
+        String consumeVoucherSql = "UPDATE dbo.DISCOUNT_CODES SET used_count = used_count + 1, last_update = GETDATE() "
+                + "WHERE code = ? AND status = 'ACTIVE' AND start_date <= GETDATE() AND end_date >= GETDATE() "
+                + "AND used_count < max_uses";
 
         Connection conn = null;
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
+
+            int walkinCustomerId = getOrCreateWalkinCustomer(conn);
+            if (walkinCustomerId <= 0) {
+                conn.rollback();
+                return -1;
+            }
+
+            if (voucherCode != null && !voucherCode.trim().isEmpty() && discountAmount > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(consumeVoucherSql)) {
+                    ps.setString(1, voucherCode.trim().toUpperCase());
+                    if (ps.executeUpdate() != 1) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
+            }
 
             // Kiểm tra trùng lặp ghế trước khi chèn để ngăn double booking tuyệt đối
             StringBuilder checkSeatSql = new StringBuilder("SELECT COUNT(*) FROM dbo.BOOKING_SEATS bs ")
@@ -66,7 +86,7 @@ public class BookingDAO {
             int bookingId = -1;
             // A. Chèn đơn đặt vé
             try (PreparedStatement ps = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setInt(1, userId);
+                ps.setInt(1, walkinCustomerId);
                 ps.setInt(2, showtimeId);
                 String bStatus = "BANKING".equalsIgnoreCase(paymentMethod) ? "PENDING" : "CONFIRMED";
                 ps.setString(3, bStatus);
@@ -165,6 +185,37 @@ public class BookingDAO {
                 } catch (Exception closeEx) {
                     closeEx.printStackTrace();
                 }
+            }
+        }
+        return -1;
+    }
+
+    /** Counter sales must not be assigned to a staff account or a real customer. */
+    private int getOrCreateWalkinCustomer(Connection conn) throws java.sql.SQLException {
+        String findSql = "SELECT id FROM dbo.[USER] WHERE email = ?";
+        try (PreparedStatement ps = conn.prepareStatement(findSql)) {
+            ps.setString(1, WALKIN_CUSTOMER_EMAIL);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+
+        String insertSql = "INSERT INTO dbo.[USER] (full_name, email, password_hash, google_id, phone, role, active, email_verified, created_at, last_update) "
+                + "VALUES (?, ?, ?, ?, ?, 'CUSTOMER', 0, 1, GETDATE(), GETDATE())";
+        try (PreparedStatement ps = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setNString(1, "Khách vãng lai");
+            ps.setString(2, WALKIN_CUSTOMER_EMAIL);
+            ps.setString(3, "SYSTEM_WALKIN_ACCOUNT_DISABLED");
+            ps.setString(4, "system_walkin_customer");
+            ps.setString(5, "");
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) return keys.getInt(1);
+            }
+        } catch (java.sql.SQLIntegrityConstraintViolationException duplicate) {
+            try (PreparedStatement ps = conn.prepareStatement(findSql)) {
+                ps.setString(1, WALKIN_CUSTOMER_EMAIL);
+                try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : -1; }
             }
         }
         return -1;
@@ -403,6 +454,46 @@ public class BookingDAO {
         return false;
     }
 
+    public String getBookingStatusInBranch(int bookingId, int branchId) {
+        String sql = "SELECT b.status FROM dbo.BOOKINGS b "
+                + "JOIN dbo.SHOWTIMES s ON s.id = b.showtime_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "WHERE b.id = ? AND h.branch_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.setInt(2, branchId);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getString(1) : null; }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
+    }
+
+    public boolean cancelPendingBookingInBranch(int bookingId, int branchId) {
+        String bookingSql = "UPDATE b SET status = 'CANCELLED', last_update = GETDATE() "
+                + "FROM dbo.BOOKINGS b JOIN dbo.SHOWTIMES s ON s.id = b.showtime_id "
+                + "JOIN dbo.HALLS h ON h.id = s.hall_id "
+                + "WHERE b.id = ? AND h.branch_id = ? AND b.status = 'PENDING'";
+        String paymentSql = "UPDATE dbo.PAYMENTS SET status = 'FAILED', last_update = GETDATE() "
+                + "WHERE booking_id = ? AND status = 'PENDING'";
+        Connection conn = null;
+        try {
+            conn = new DBContext().getConnection();
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(bookingSql)) {
+                ps.setInt(1, bookingId); ps.setInt(2, branchId);
+                if (ps.executeUpdate() != 1) { conn.rollback(); return false; }
+            }
+            try (PreparedStatement ps = conn.prepareStatement(paymentSql)) { ps.setInt(1, bookingId); ps.executeUpdate(); }
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            if (conn != null) try { conn.rollback(); } catch (Exception ignored) { }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) try { conn.close(); } catch (Exception ignored) { }
+        }
+        return false;
+    }
+
     public int createPendingBooking(int userId, int showtimeId, List<Integer> seatIds,
                                     List<Double> seatPrices, double totalPrice,
                                     String voucherCode, double voucherDiscount) {
@@ -412,7 +503,8 @@ public class BookingDAO {
         }
 
         String checkShowtimeSql = "SELECT COUNT(*) FROM dbo.SHOWTIMES "
-                + "WHERE id = ? AND status IN ('SCHEDULED','ON_SALE') AND start_time > GETDATE()";
+                + "WHERE id = ? AND status IN ('SCHEDULED','ON_SALE') "
+                + "AND DATEADD(MINUTE, 30, start_time) > GETDATE()";
 
         String seatPlaceholders = placeholders(seatIds.size());
 

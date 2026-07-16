@@ -44,22 +44,7 @@ public class TicketService {
         }
         String cleanIdStr = bookingIdStr.trim();
         
-        // 1. Kiểm tra nếu là URL chứa tham số bookingId= (hỗ trợ in ấn/link trực tiếp)
-        if (cleanIdStr.contains("bookingId=")) {
-            int index = cleanIdStr.indexOf("bookingId=");
-            String idPart = cleanIdStr.substring(index + 10);
-            int ampersandIndex = idPart.indexOf("&");
-            if (ampersandIndex != -1) {
-                idPart = idPart.substring(0, ampersandIndex);
-            }
-            try {
-                return Integer.parseInt(idPart.trim());
-            } catch (NumberFormatException e) {
-                // Tiếp tục xử lý
-            }
-        }
-        
-        // 2. Kiểm tra định dạng tiền tố của chuỗi nhập vào
+        // Only signed ticket tokens are accepted; a URL/id alone must never check a ticket in.
         String upper = cleanIdStr.toUpperCase();
         int resolvedId = -1;
         String expectedDbQrCode = null;
@@ -120,9 +105,8 @@ public class TicketService {
  *
  * Flow chính:
  *   1. PaymentController gọi generateTicket(bookingId, customerEmail, ctx)
- *   2. Gọi QRCodeService.generateQRBase64("RAPVIET-BOOKING-" + bookingId) tối đa 3 lần
- *   3a. Thành công → lưu ticket trực tiếp vào BOOKINGS.qr_code → trigger email
- *   3b. Tất cả thất bại → lưu null và xử lý thủ công sau
+ *   2. Tạo ảnh QR từ token đã lưu ở BOOKINGS.qr_code
+ *   3. Gửi ảnh QR qua email; token trong database không bị thay đổi
  *
  * @author LONG
  */
@@ -150,13 +134,10 @@ public class TicketService {
      * @return ticket vừa tạo
      */
     public Ticket generateTicket(int bookingId, String customerEmail, ServletContext ctx) {
-        // Kiểm tra xem booking này đã có ticket chưa (tránh tạo trùng)
         Ticket existing = ticketDAO.findByBookingId(bookingId);
-        if (existing != null && existing.getQrCodeBase64() != null) {
-            return existing;
-        }
-
-        String qrContent = "RAPVIET-BOOKING-" + bookingId;
+        if (existing == null) return null;
+        String qrContent = existing.getQrCode();
+        if (qrContent == null || qrContent.isBlank()) qrContent = "RV-ONLINE-" + bookingId;
         String qrBase64   = null;
         boolean qrSuccess = false;
 
@@ -174,17 +155,6 @@ public class TicketService {
             }
         }
 
-        // ── Lưu vào DB ────────────────────────────────────────
-        boolean saved = ticketDAO.updateBookingQR(bookingId, qrBase64);
-        if (!saved) {
-            System.getLogger(TicketService.class.getName()).log(
-                    System.Logger.Level.ERROR,
-                    "Không thể lưu ticket cho booking " + bookingId);
-            if (!qrSuccess) {
-                ticketDAO.updateQrCode(bookingId, null);
-            }
-        }
-
         // ── Gửi email thông báo (nếu QR thành công) ──────────
         if (qrSuccess && ctx != null) {
             try {
@@ -196,7 +166,9 @@ public class TicketService {
             }
         }
 
-        return ticketDAO.findByBookingId(bookingId);
+        existing.setQrCode(qrContent);
+        existing.setQrCodeBase64(qrBase64);
+        return existing;
     }
 
     /**
@@ -228,7 +200,9 @@ public class TicketService {
      * Lấy danh sách tất cả ticket (trang admin).
      */
     public List<Ticket> getAllTickets() {
-        return ticketDAO.findAll();
+        List<Ticket> tickets = ticketDAO.findAll();
+        for (Ticket ticket : tickets) hydrateQrImage(ticket);
+        return tickets;
     }
 
     /**
@@ -241,6 +215,7 @@ public class TicketService {
 
         long total = ticketDAO.countTickets(keyword, statusFilter);
         List<Ticket> items = ticketDAO.findPaged(keyword, statusFilter, offset, safeSize);
+        for (Ticket ticket : items) hydrateQrImage(ticket);
 
         return new PageResult<>(items, total, safePage, safeSize);
     }
@@ -249,14 +224,18 @@ public class TicketService {
      * Lấy chi tiết ticket theo id (bookingId).
      */
     public Ticket getTicketById(int id) {
-        return ticketDAO.findById(id);
+        Ticket ticket = ticketDAO.findById(id);
+        hydrateQrImage(ticket);
+        return ticket;
     }
 
     /**
      * Lấy ticket theo booking id.
      */
     public Ticket getTicketByBookingId(int bookingId) {
-        return ticketDAO.findByBookingId(bookingId);
+        Ticket ticket = ticketDAO.findByBookingId(bookingId);
+        hydrateQrImage(ticket);
+        return ticket;
     }
 
     /**
@@ -272,11 +251,13 @@ public class TicketService {
      * Retry sinh QR cho ticket PENDING_MANUAL.
      */
     public boolean retryQrGeneration(int bookingId) {
-        String qrContent = "RAPVIET-BOOKING-" + bookingId;
+        Ticket ticket = ticketDAO.findByBookingId(bookingId);
+        if (ticket == null || ticket.getQrCode() == null || ticket.getQrCode().isBlank()) return false;
+        String qrContent = ticket.getQrCode();
         for (int attempt = 1; attempt <= MAX_QR_RETRIES; attempt++) {
             try {
-                String qrBase64 = qrCodeService.generateQRBase64(qrContent);
-                return ticketDAO.updateQrCode(bookingId, qrBase64);
+                qrCodeService.generateQRBase64(qrContent);
+                return true;
             } catch (Exception e) {
                 System.getLogger(TicketService.class.getName()).log(
                         System.Logger.Level.WARNING,
@@ -293,5 +274,15 @@ public class TicketService {
             notifService = new NotificationService();
         }
         return notifService;
+    }
+
+    private void hydrateQrImage(Ticket ticket) {
+        if (ticket == null || ticket.getQrCode() == null || ticket.getQrCode().isBlank()) return;
+        try {
+            ticket.setQrCodeBase64(qrCodeService.generateQRBase64(ticket.getQrCode()));
+        } catch (Exception e) {
+            System.getLogger(TicketService.class.getName()).log(System.Logger.Level.WARNING,
+                    "Không thể tạo ảnh QR cho booking " + ticket.getBookingId(), e);
+        }
     }
 }
