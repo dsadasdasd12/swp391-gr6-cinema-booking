@@ -643,39 +643,91 @@ public class MovieService {
     public List<String> validateMovie(Movie m, List<Integer> categoryIds,
                                      List<Integer> languageIds, boolean requirePoster) {
         List<String> errors = new ArrayList<>();
-        if (m.getTitle() == null || m.getTitle().isBlank()) {
+        if (m.getTitle() == null || m.getTitle().trim().isBlank()) {
             errors.add("Tiêu đề phim không được để trống.");
-        } else if (m.getTitle().length() > 255) {
-            errors.add("Tiêu đề phim tối đa 255 ký tự.");
+        } else {
+            String normalizedTitle = m.getTitle().trim().replaceAll("\\s+", " ");
+            m.setTitle(normalizedTitle);
+            if (m.getTitle().length() > 255) {
+                errors.add("Tiêu đề phim tối đa 255 ký tự.");
+            } else if (movieDAO.isTitleExists(m.getTitle(), m.getId())) {
+                errors.add("Tiêu đề phim đã tồn tại trong hệ thống.");
+            }
         }
+
         if (m.getDescription() == null || m.getDescription().isBlank()) {
             errors.add("Mô tả phim không được để trống.");
         } else if (m.getDescription().length() > 2000) {
             errors.add("Mô tả phim tối đa 2000 ký tự.");
         }
-        if (m.getDurationMin() <= 0) {
-            errors.add("Thời lượng phải lớn hơn 0 phút.");
-        } else if (m.getDurationMin() > 999) {
-            errors.add("Thời lượng tối đa 999 phút.");
+
+        boolean hasShowtimes = false;
+        if (m.getId() > 0) {
+            hasShowtimes = movieDAO.hasActiveShowtimes(m.getId());
         }
+
+        if (m.getStatus() == null || m.getStatus().isBlank()) {
+            errors.add("Trạng thái phát hành không được để trống.");
+        } else if (!List.of("COMING_SOON", "NOW_SHOWING", "ENDED").contains(m.getStatus())) {
+            errors.add("Trạng thái phát hành không hợp lệ.");
+        } else if ("ENDED".equals(m.getStatus()) && hasShowtimes) {
+            errors.add("Không thể chuyển sang Đã kết thúc vì phim đang có suất chiếu hoạt động.");
+        }
+
+        if (m.getDurationMin() < 30 || m.getDurationMin() > 300) {
+            errors.add("Thời lượng phim phải từ 30 đến 300 phút.");
+        } else if (hasShowtimes) {
+            Movie oldM = movieDAO.findById(m.getId());
+            if (oldM != null && oldM.getDurationMin() != m.getDurationMin()) {
+                errors.add("Không thể thay đổi thời lượng vì phim đang có suất chiếu hoạt động.");
+            }
+        }
+
         if (m.getReleaseDate() == null) {
             errors.add("Vui lòng chọn ngày khởi chiếu.");
+        } else if (hasShowtimes) {
+            LocalDate earliest = movieDAO.getEarliestShowtimeDate(m.getId());
+            if (earliest != null && m.getReleaseDate().isAfter(earliest)) {
+                errors.add("Không thể dời ngày khởi chiếu muộn hơn " + earliest + " vì đã có suất chiếu.");
+            }
         }
-        if (m.getEndDate() == null) {
-            errors.add("Vui lòng chọn ngày kết thúc chiếu.");
-        }
-        if (m.getReleaseDate() != null
-                && m.getEndDate() != null
-                && m.getEndDate().isBefore(m.getReleaseDate())) {
 
-            errors.add("Ngày kết thúc chiếu không được trước ngày khởi chiếu.");
+        if (m.getReleaseDate() != null && m.getEndDate() != null) {
+            if (m.getEndDate().isBefore(m.getReleaseDate())) {
+                errors.add("Ngày kết thúc chiếu không được trước ngày khởi chiếu.");
+            }
+            // Logic chuẩn: Phim MỚI thêm (id = 0) thì Ngày kết thúc không được nằm trong quá khứ
+            if (m.getId() <= 0 && m.getEndDate().isBefore(java.time.LocalDate.now())) {
+                errors.add("Phim mới không thể có ngày kết thúc chiếu nằm trong quá khứ.");
+            }
         }
+
         if (categoryIds == null || categoryIds.isEmpty()) {
             errors.add("Vui lòng chọn ít nhất một thể loại.");
+        } else {
+            List<Integer> uniqueCatIds = categoryIds.stream().distinct().toList();
+            List<Integer> activeCats = categoryDAO.findAllActive().stream().map(Category::getId).toList();
+            if (!activeCats.containsAll(uniqueCatIds)) {
+                errors.add("Một hoặc nhiều thể loại không tồn tại hoặc không hợp lệ.");
+            } else {
+                categoryIds.clear();
+                categoryIds.addAll(uniqueCatIds);
+            }
         }
+
         if (languageIds == null || languageIds.isEmpty()) {
             errors.add("Vui lòng chọn ngôn ngữ chính.");
+        } else {
+            List<Integer> uniqueLangIds = languageIds.stream().distinct().toList();
+            List<Integer> activeLangs = languageDAO.findAllActive().stream().map(Language::getId).toList();
+            if (!activeLangs.containsAll(uniqueLangIds)) {
+                errors.add("Ngôn ngữ không tồn tại hoặc không hợp lệ.");
+            } else {
+                languageIds.clear();
+                languageIds.addAll(uniqueLangIds);
+            }
         }
+
         if (requirePoster && (m.getPosterUrl() == null || m.getPosterUrl().isBlank())) {
             errors.add("Vui lòng tải lên poster phim.");
         }
@@ -687,7 +739,6 @@ public class MovieService {
      * @return id mới, hoặc -1 nếu validate thất bại hoặc lỗi DB
      */
     public int addMovie(Movie m, List<Integer> catIds, List<Integer> langIds) {
-        m.setStatus(resolveStatusByDate(m.getReleaseDate(), m.getEndDate()));
         return movieDAO.insert(m, catIds, langIds);
     }
 
@@ -703,7 +754,6 @@ public class MovieService {
                                   boolean requirePoster) {
         List<String> errors = validateMovie(m, catIds, langIds, requirePoster);
         if (!errors.isEmpty()) return errors;
-        m.setStatus(resolveStatusByDate(m.getReleaseDate(), m.getEndDate()));
         boolean ok = movieDAO.update(m, catIds, langIds);
         if (!ok) errors.add("Cập nhật thất bại, vui lòng thử lại.");
         return errors;
@@ -740,12 +790,13 @@ public class MovieService {
     public String changeStatus(int id, String newStatus) {
         List<String> validStatuses = List.of("COMING_SOON", "NOW_SHOWING", "ENDED");
         if (!validStatuses.contains(newStatus)) return "Trạng thái không hợp lệ.";
-        String warning = null;
+        
         if ("ENDED".equals(newStatus) && movieDAO.hasActiveShowtimes(id)) {
-            warning = "Cảnh báo: phim có suất chiếu đang hoạt động. Trạng thái đã được cập nhật.";
+            return "Không thể chuyển sang Đã kết thúc: phim đang có suất chiếu hoạt động. Vui lòng hủy các suất chiếu trước.";
         }
+        
         movieDAO.updateStatus(id, newStatus);
-        return warning;
+        return null;
     }
 
     /** Cập nhật chỉ đường dẫn poster (gọi sau upload). */

@@ -159,6 +159,7 @@
 
 /* Status */
 .rv-badge--active      { background: var(--badge-active-bg);      color: var(--badge-active-text); }
+.rv-badge--success     { background: var(--badge-success-bg);     color: var(--badge-success-text); }
 .rv-badge--inactive    { background: var(--badge-inactive-bg);    color: var(--badge-inactive-text); }
 .rv-badge--blocked     { background: var(--badge-blocked-bg);     color: var(--badge-blocked-text); }
 .rv-badge--pending     { background: var(--badge-pending-bg);     color: var(--badge-pending-text); }
@@ -344,7 +345,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--n-800);
-  color: #fff;
+  color: var(--n-50);
   font-size: var(--text-xs);
   font-weight: 500;
   padding: 4px 8px;

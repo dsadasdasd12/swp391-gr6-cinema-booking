@@ -108,6 +108,8 @@
   /* ── Badge Colors ── */
   --badge-active-bg:        rgba(229, 9, 20, .18);
   --badge-active-text:      #FF6B6B;
+  --badge-success-bg:       rgba(16, 185, 129, 0.16);
+  --badge-success-text:     #34D399;
   --badge-inactive-bg:      rgba(255,255,255,.08);
   --badge-inactive-text:    #B8BCC4;
   --badge-blocked-bg:       rgba(255, 77, 77, .16);

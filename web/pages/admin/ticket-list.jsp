@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Danh sách E-Ticket (ticket-list.jsp)
     Servlet: TicketController ?action=list
     (Long — )
@@ -136,7 +136,7 @@
                                 <td>
                                     <c:choose>
                                         <c:when test="${t.ticketStatus == 'ISSUED'}">
-                                            <span class="rv-badge rv-badge--active">Đã phát hành</span>
+                                            <span class="rv-badge rv-badge--success">Đã phát hành</span>
                                         </c:when>
                                         <c:when test="${t.ticketStatus == 'USED'}">
                                             <span class="rv-badge rv-badge--ended">Đã sử dụng</span>
