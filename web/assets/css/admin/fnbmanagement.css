@@ -1,0 +1,451 @@
+/* =========================================
+   Admin F&B Management
+========================================= */
+
+.fnb-admin-page {
+    padding: 30px 34px;
+    min-height: calc(100vh - 70px);
+    background: #0b0d10;
+}
+
+.fnb-page-header {
+    margin-bottom: 24px;
+}
+
+.fnb-page-header h1 {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 32px;
+}
+
+.fnb-page-header p {
+    margin: 0;
+    color: #969ba5;
+}
+
+/* SECTION */
+
+.fnb-section {
+    margin-bottom: 28px;
+    padding: 22px;
+    background: #111318;
+    border: 1px solid #262a33;
+    border-radius: 18px;
+}
+
+.fnb-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.fnb-section-header h2 {
+    margin: 0 0 5px;
+    color: #ffffff;
+    font-size: 21px;
+}
+
+.fnb-section-header p {
+    margin: 0;
+    color: #8f949e;
+    font-size: 13px;
+}
+
+/* CATEGORY */
+
+.fnb-category-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.fnb-category-card {
+    min-height: 150px;
+    padding: 18px;
+    border: 1px solid #2a2e37;
+    border-radius: 15px;
+    background: #171a20;
+    color: #ffffff;
+    text-decoration: none;
+    transition: .18s ease;
+}
+
+.fnb-category-card:hover {
+    transform: translateY(-3px);
+    border-color: #e50914;
+}
+
+.fnb-category-card.active {
+    border-color: #e50914;
+    background: rgba(229, 9, 20, .09);
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .12);
+}
+
+.fnb-category-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    background: rgba(229, 9, 20, .12);
+    color: #ff4c55;
+    font-size: 18px;
+}
+
+.fnb-category-card h3 {
+    margin: 0 0 7px;
+    font-size: 16px;
+}
+
+.fnb-category-card p {
+    height: 36px;
+    overflow: hidden;
+    margin: 0 0 12px;
+    color: #9196a0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.fnb-category-count {
+    color: #ff5a63;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* PRODUCT GRID - EXACTLY FIVE PER ROW */
+
+.fnb-product-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.fnb-product-card {
+    min-width: 0;
+    overflow: hidden;
+    background: #171a20;
+    border: 1px solid #292d36;
+    border-radius: 16px;
+    transition: .18s ease;
+}
+
+.fnb-product-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(229, 9, 20, .8);
+}
+
+.fnb-product-image {
+    aspect-ratio: 1 / 1;
+    background: #0d0f13;
+    overflow: hidden;
+}
+
+.fnb-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fnb-product-body {
+    padding: 16px;
+}
+
+.fnb-product-type {
+    display: inline-flex;
+    margin-bottom: 9px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(229, 9, 20, .12);
+    color: #ff676f;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.fnb-product-body h3 {
+    min-height: 40px;
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.fnb-product-description {
+    height: 38px;
+    overflow: hidden;
+    margin: 0 0 13px;
+    color: #8f949e;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.fnb-product-price {
+    margin-bottom: 15px;
+    color: #ff3e49;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+/* SWITCH */
+
+.fnb-sale-form {
+    margin: 0;
+}
+
+.fnb-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #c7cbd2;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.fnb-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #3a3f49;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.fnb-switch.enabled {
+    background: #e50914;
+}
+
+.fnb-switch-circle {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    transition: .2s ease;
+}
+
+.fnb-switch.enabled .fnb-switch-circle {
+    transform: translateX(20px);
+}
+
+/* ALERT */
+
+.fnb-alert {
+    margin-bottom: 20px;
+    padding: 13px 16px;
+    border-radius: 11px;
+    font-size: 14px;
+}
+
+.fnb-alert-success {
+    color: #67dc9c;
+    border: 1px solid rgba(34, 197, 94, .3);
+    background: rgba(34, 197, 94, .1);
+}
+
+.fnb-alert-error {
+    color: #ff747b;
+    border: 1px solid rgba(229, 9, 20, .32);
+    background: rgba(229, 9, 20, .1);
+}
+
+.fnb-empty {
+    padding: 50px 20px;
+    text-align: center;
+    color: #9297a0;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1350px) {
+    .fnb-category-grid,
+    .fnb-product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1100px) {
+    .fnb-category-grid,
+    .fnb-product-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 780px) {
+    .fnb-admin-page {
+        padding: 20px;
+    }
+
+    .fnb-category-grid,
+    .fnb-product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .fnb-category-grid,
+    .fnb-product-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fnb-primary-button,
+.fnb-secondary-button,
+.fnb-card-button {
+    border: 0;
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.fnb-primary-button {
+    background: #e50914;
+    color: #ffffff;
+}
+
+.fnb-primary-button:hover {
+    background: #ff2530;
+}
+
+.fnb-secondary-button {
+    background: #292d36;
+    color: #ffffff;
+}
+
+.fnb-card-button {
+    padding: 7px 10px;
+    background: #292d36;
+    color: #ffffff;
+    font-size: 12px;
+}
+
+.fnb-card-button.danger {
+    background: #7f1d1d;
+}
+
+.fnb-card-button.success {
+    background: #166534;
+}
+
+.fnb-category-actions,
+.fnb-product-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.fnb-category-actions form,
+.fnb-product-actions form {
+    margin: 0;
+}
+
+.fnb-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .78);
+    z-index: 99999;
+}
+
+.fnb-modal-overlay.show {
+    display: flex;
+}
+
+.fnb-modal {
+    width: 560px;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 26px;
+    border: 1px solid #303541;
+    border-radius: 18px;
+    background: #15181e;
+}
+
+.fnb-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+.fnb-modal-header h2 {
+    margin: 0;
+    color: #ffffff;
+}
+
+.fnb-modal-header button {
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.fnb-form-group {
+    margin-bottom: 16px;
+}
+
+.fnb-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #d1d5db;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.fnb-form-group input,
+.fnb-form-group select,
+.fnb-form-group textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #303541;
+    border-radius: 10px;
+    background: #0e1014;
+    color: #ffffff;
+    outline: none;
+    font-family: inherit;
+}
+
+.fnb-form-group input:focus,
+.fnb-form-group select:focus,
+.fnb-form-group textarea:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .14);
+}
+
+.fnb-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.fnb-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #d1d5db;
+    font-size: 14px;
+}
+
+.fnb-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #292d36;
+}

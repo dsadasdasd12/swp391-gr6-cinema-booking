@@ -22,6 +22,7 @@
 <c:set var="sessionUser" value="${not empty sessionScope.user ? sessionScope.user : sessionScope.adminUser}" />
 <c:set var="isAdminRole"    value="${sessionUser.role == 'ADMIN'}" />
 <c:set var="isManagerRole"  value="${sessionUser.role == 'MANAGER'}" />
+<c:set var="isFnb"          value="${uri.contains('/admin/fnb-dashboard')}" />
 
 <aside class="rv-sidebar">
     <!-- 🏠 Dashboard -->
@@ -50,7 +51,7 @@
             </c:if>
             <c:if test="${isAdminRole}">
                 <a href="${ctx}/admin/genres" class="rv-nav__sub-item ${isGenre ? 'active' : ''}">
-                     Thể loại
+                    Thể loại
                 </a>
                 <a href="${ctx}/admin/languages" class="rv-nav__sub-item ${isLanguage ? 'active' : ''}">
                     Ngôn ngữ
@@ -135,6 +136,14 @@
         </div>
     </c:if>
 
+
+    <div class="rv-nav__group">
+        <a href="${ctx}/admin/fnb-dashboard"
+           class="rv-nav__item ${isFnb ? 'active' : ''}">
+            <i class="bi bi-cup-straw"></i>
+            Quản lý F&amp;B
+        </a>
+    </div>
     <c:if test="${isAdminRole}">
         <div class="rv-nav__group">
             <a href="${ctx}/DiscountManager" class="rv-nav__item ${uri.contains('/DiscountManager') ? 'active' : ''}">
@@ -190,7 +199,7 @@
     <!-- ── ACCOUNTS & SECURITY ── -->
     <div class="rv-nav__label">Tài khoản &amp; Bảo mật</div>
 
-   <div class="rv-nav__group ${isAccount ? 'open' : ''}">
+    <div class="rv-nav__group ${isAccount ? 'open' : ''}">
         <div class="rv-nav__item ${isAccount ? 'active' : ''}">
             <i class="bi bi-people-fill"></i>
             Quản trị tài khoản
