@@ -81,7 +81,6 @@ public class AuthenticationFilter implements Filter {
                 role = user.getRole();
             }
         }
-
         // Block direct JSP access for admin pages
         if (uri.startsWith(ctx + "/pages/admin/")) {
             if (!"ADMIN".equals(role)) {

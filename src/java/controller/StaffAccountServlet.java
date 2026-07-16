@@ -149,6 +149,7 @@ public class StaffAccountServlet extends HttpServlet {
 
     private List<RoleMock> getMockRoles() {
         List<RoleMock> list = new ArrayList<>();
+        list.add(new RoleMock(1, "ADMIN"));
         list.add(new RoleMock(2, "QUẢN LÝ CHI NHÁNH"));
         list.add(new RoleMock(3, "NHÂN VIÊN RẠP"));
         return list;

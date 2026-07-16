@@ -134,7 +134,7 @@
                                         <td>
                                             <c:choose>
                                                 <c:when test="${b.status == 'CHECKED_IN'}">
-                                                    <span class="rv-badge rv-badge--success">Đã check-in</span>
+                                                    <span class="rv-badge rv-badge--active">Đã check-in</span>
                                                 </c:when>
                                                 <c:when test="${b.status == 'CONFIRMED'}">
                                                     <span class="rv-badge rv-badge--manager">Đã xác nhận</span>

@@ -552,14 +552,6 @@ public class ShowtimeService {
         return showtimeDAO.findBookableByBranchMovieAndDate(branchId, movieId, date);
     }
 
-    /** Returns bookable showtimes from Monday through Sunday of the requested week. */
-    public List<Showtime> getBookableShowtimesForWeek(int branchId, int movieId, LocalDate weekStart) {
-        if (branchId <= 0 || movieId <= 0 || weekStart == null) {
-            return Collections.emptyList();
-        }
-        return showtimeDAO.findBookableByBranchMovieAndWeek(branchId, movieId, weekStart);
-    }
-
     public double getSeatPrice(int showtimeId, String seatType, double basePrice) {
         return showtimeDAO.getSeatPrice(showtimeId, seatType, basePrice);
     }

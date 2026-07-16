@@ -6,8 +6,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="ctx"    value="${pageContext.request.contextPath}" />
-<c:set var="forwardUri" value="${requestScope['javax.servlet.forward.request_uri']}" />
-<c:set var="uri"    value="${not empty forwardUri ? forwardUri : pageContext.request.requestURI}" />
+<c:set var="uri"    value="${pageContext.request.requestURI}" />
 
 <%-- Helper checks for active menus --%>
 <c:set var="isMovie"        value="${uri.contains('/admin/moviesmanagement') || uri.contains('/moviesmanagement')}" />
@@ -33,8 +32,8 @@
     </div>
 
     <!-- 🎬 Movie Management (Admin / Manager / Staff view only) -->
-    <div class="rv-nav__group ${isMovie || isGenre || isLanguage ? 'open' : ''}">
-        <div class="rv-nav__item ${isMovie || isGenre || isLanguage ? 'active' : ''}">
+    <div class="rv-nav__group ${isMovie ? 'open' : ''}">
+        <div class="rv-nav__item ${isMovie ? 'active' : ''}">
             <i class="bi bi-film"></i>
             Quản lý phim
             <i class="bi bi-chevron-right rv-nav__arrow"></i>
@@ -48,6 +47,8 @@
                     Thêm phim mới
                 </a>
             </c:if>
+        </div>
+                <div class="rv-nav__sub">
             <c:if test="${isAdminRole}">
                 <a href="${ctx}/admin/genres" class="rv-nav__sub-item ${isGenre ? 'active' : ''}">
                      Thể loại
@@ -68,7 +69,12 @@
             </a>
         </div>
 
-
+        <div class="rv-nav__group">
+            <a href="${ctx}/admin/settings#panel-cinema" class="rv-nav__item ${uri.contains('/admin/settings') ? 'active' : ''}">
+                <i class="bi bi-building-fill"></i>
+                Quản lý Chuỗi rạp
+            </a>
+        </div>
 
         <div class="rv-nav__group">
             <a href="${ctx}/admin/branches" class="rv-nav__item ${uri.contains('/admin/branches') ? 'active' : ''}">

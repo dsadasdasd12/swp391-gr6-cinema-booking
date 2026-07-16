@@ -119,7 +119,6 @@
 /* Date input */
 .rv-input[type="date"] {
   cursor: pointer;
-  color-scheme: light;
 }
 .rv-input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;

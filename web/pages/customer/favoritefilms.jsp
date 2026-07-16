@@ -55,9 +55,9 @@
 
                                     <div class="favorite-poster">
                                         <c:choose>
-                                            <c:when test="${not empty movie.posterUrl}">
-                                                <img src="${movie.posterUrl}"
-                                                     class="img-fluid rounded-start w-100 h-100 object-fit-cover" alt="Poster ${movie.title}">
+                                            <c:when test="${not empty movie.posterWebPath}">
+                                                <img src="${ctx}/${movie.posterWebPath}"
+                                                     alt="${movie.title}">
                                             </c:when>
                                             <c:otherwise>
                                                 🎬

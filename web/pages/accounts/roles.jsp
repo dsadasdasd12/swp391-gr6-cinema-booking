@@ -157,12 +157,12 @@
                         <thead>
                             <tr>
                                 <th>Chức năng hệ thống (Module)</th>
-                                <th>Xem (View)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(1, this.checked)" style="cursor: pointer;"></c:if></th>
-                                <th>Thêm mới (Create)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(2, this.checked)" style="cursor: pointer;"></c:if></th>
-                                <th>Sửa (Edit)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(3, this.checked)" style="cursor: pointer;"></c:if></th>
-                                <th>Xóa (Delete)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(4, this.checked)" style="cursor: pointer;"></c:if></th>
-                                <th>Xuất file (Export)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(5, this.checked)" style="cursor: pointer;"></c:if></th>
-                                <th>Tất cả (Manage)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(6, this.checked)" style="cursor: pointer;"></c:if></th>
+                                <th>Xem (View)<br><input type="checkbox" onclick="checkAllColumn(1, this.checked)" style="cursor: pointer;"></th>
+                                <th>Thêm mới (Create)<br><input type="checkbox" onclick="checkAllColumn(2, this.checked)" style="cursor: pointer;"></th>
+                                <th>Sửa (Edit)<br><input type="checkbox" onclick="checkAllColumn(3, this.checked)" style="cursor: pointer;"></th>
+                                <th>Xóa (Delete)<br><input type="checkbox" onclick="checkAllColumn(4, this.checked)" style="cursor: pointer;"></th>
+                                <th>Xuất file (Export)<br><input type="checkbox" onclick="checkAllColumn(5, this.checked)" style="cursor: pointer;"></th>
+                                <th>Tất cả (Manage)<br><input type="checkbox" onclick="checkAllColumn(6, this.checked)" style="cursor: pointer;"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -178,69 +178,27 @@
                                     
                                     <!-- View Checkbox -->
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${selectedRole.id <= 4}">
-                                                <c:if test="${perms.view}"><i class="bi bi-check-square-fill" style="color: var(--success); font-size: 1.2rem;"></i></c:if>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <input type="checkbox" name="permissions" value="${mKey}:view" class="col-1-chk" ${perms.view ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                            </c:otherwise>
-                                        </c:choose>
+                                        <input type="checkbox" name="permissions" value="${mKey}:view" class="col-1-chk" ${perms.view ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
                                     </td>
                                     <!-- Create Checkbox -->
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${selectedRole.id <= 4}">
-                                                <c:if test="${perms.create}"><i class="bi bi-check-square-fill" style="color: var(--success); font-size: 1.2rem;"></i></c:if>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <input type="checkbox" name="permissions" value="${mKey}:create" class="col-2-chk" ${perms.create ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                            </c:otherwise>
-                                        </c:choose>
+                                        <input type="checkbox" name="permissions" value="${mKey}:create" class="col-2-chk" ${perms.create ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
                                     </td>
                                     <!-- Edit Checkbox -->
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${selectedRole.id <= 4}">
-                                                <c:if test="${perms.edit}"><i class="bi bi-check-square-fill" style="color: var(--success); font-size: 1.2rem;"></i></c:if>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <input type="checkbox" name="permissions" value="${mKey}:edit" class="col-3-chk" ${perms.edit ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                            </c:otherwise>
-                                        </c:choose>
+                                        <input type="checkbox" name="permissions" value="${mKey}:edit" class="col-3-chk" ${perms.edit ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
                                     </td>
                                     <!-- Delete Checkbox -->
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${selectedRole.id <= 4}">
-                                                <c:if test="${perms.delete}"><i class="bi bi-check-square-fill" style="color: var(--success); font-size: 1.2rem;"></i></c:if>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <input type="checkbox" name="permissions" value="${mKey}:delete" class="col-4-chk" ${perms.delete ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                            </c:otherwise>
-                                        </c:choose>
+                                        <input type="checkbox" name="permissions" value="${mKey}:delete" class="col-4-chk" ${perms.delete ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
                                     </td>
                                     <!-- Export Checkbox -->
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${selectedRole.id <= 4}">
-                                                <c:if test="${perms.export}"><i class="bi bi-check-square-fill" style="color: var(--success); font-size: 1.2rem;"></i></c:if>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <input type="checkbox" name="permissions" value="${mKey}:export" class="col-5-chk" ${perms.export ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                            </c:otherwise>
-                                        </c:choose>
+                                        <input type="checkbox" name="permissions" value="${mKey}:export" class="col-5-chk" ${perms.export ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
                                     </td>
                                     <!-- Manage Checkbox -->
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${selectedRole.id <= 4}">
-                                                <c:if test="${perms.manage}"><i class="bi bi-check-square-fill" style="color: var(--success); font-size: 1.2rem;"></i></c:if>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <input type="checkbox" name="permissions" value="${mKey}:manage" class="col-6-chk" ${perms.manage ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
-                                            </c:otherwise>
-                                        </c:choose>
+                                        <input type="checkbox" name="permissions" value="${mKey}:manage" class="col-6-chk" ${perms.manage ? 'checked' : ''} style="transform: scale(1.1); cursor: pointer;">
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -250,7 +208,6 @@
             </div>
 
             <!-- Matrix Footer Save Bar -->
-            <c:if test="${selectedRole.id > 4}">
             <div style="background: var(--n-50); border-top: 1px solid var(--border); padding: var(--s-4) var(--s-6); display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 var(--r-lg) var(--r-lg);">
                 <div style="font-size: 12px; color: var(--n-500); display: flex; align-items: center; gap: 6px;">
                     <i class="bi bi-info-circle-fill" style="color: var(--primary);"></i>
@@ -263,7 +220,6 @@
                     </button>
                 </div>
             </div>
-            </c:if>
         </form>
     </div>
 

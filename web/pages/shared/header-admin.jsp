@@ -117,7 +117,9 @@
                         <c:out value="${not empty topUser ? topUser.email : 'admin@rapviet.vn'}" />
                     </div>
                 </div>
-
+                <a href="${ctx}/admin/profile" class="rv-topbar__dropdown-item">
+                    <i class="bi bi-person-fill"></i>Thông tin cá nhân
+                </a>
                 <a href="${ctx}/admin/settings" class="rv-topbar__dropdown-item">
                     <i class="bi bi-gear-fill"></i>Cài đặt hệ thống
                 </a>

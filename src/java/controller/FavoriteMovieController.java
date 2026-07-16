@@ -74,6 +74,9 @@ public class FavoriteMovieController extends HttpServlet {
 
     List<Movie> favoriteMovies = favoriteMovieDAO.findByUserId(user.getId());
 
+    System.out.println("User ID = " + user.getId());
+    System.out.println("Favorite movies = " + favoriteMovies.size());
+
     request.setAttribute("favoriteMovies", favoriteMovies);
 
     request.getRequestDispatcher("/pages/customer/favoritefilms.jsp")
