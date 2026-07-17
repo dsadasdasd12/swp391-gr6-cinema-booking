@@ -117,13 +117,39 @@ public class StaffAccountServlet extends HttpServlet {
                 return;
             }
 
+            if (bId <= 0) {
+                req.getSession().setAttribute(
+                        "flashError",
+                        "Vui lòng chọn chi nhánh hợp lệ."
+                );
+                resp.sendRedirect(req.getContextPath() + "/admin/accounts/staff");
+                return;
+            }
+
             String defaultHash = PasswordUtil.hashPassword("123");
             int newId = userDAO.insertStaff(u, defaultHash, bId);
+
             if (newId > 0) {
-                notifService.sendSystemAccountCreated(email != null ? email.trim().toLowerCase() : "", mapRoleIdToName(rId), fullName);
-                req.getSession().setAttribute("flashSuccess", "Thêm mới tài khoản nhân viên thành công!");
+                notifService.sendSystemAccountCreated(
+                        email != null ? email.trim().toLowerCase() : "",
+                        mapRoleIdToName(rId),
+                        fullName
+                );
+                req.getSession().setAttribute(
+                        "flashSuccess",
+                        "Thêm mới tài khoản nhân viên thành công!"
+                );
+            } else if (newId == -2) {
+                req.getSession().setAttribute(
+                        "flashError",
+                        "Chi nhánh này đã có Quản lý chi nhánh. "
+                        + "Mỗi chi nhánh chỉ được có một Manager."
+                );
             } else {
-                req.getSession().setAttribute("flashError", "Email đã tồn tại hoặc dữ liệu không hợp lệ.");
+                req.getSession().setAttribute(
+                        "flashError",
+                        "Email đã tồn tại hoặc dữ liệu không hợp lệ."
+                );
             }
 
         } else if ("update".equalsIgnoreCase(action)) {
@@ -138,11 +164,40 @@ public class StaffAccountServlet extends HttpServlet {
                 return;
             }
 
-            boolean updated = userDAO.updateStaffInfo(userId, fullName, mapRoleIdToName(rId), "", bId, status);
+            if (bId <= 0) {
+                req.getSession().setAttribute(
+                        "flashError",
+                        "Vui lòng chọn chi nhánh hợp lệ."
+                );
+                resp.sendRedirect(req.getContextPath() + "/admin/accounts/staff");
+                return;
+            }
+
+            boolean updated = userDAO.updateStaffInfo(
+                    userId,
+                    fullName,
+                    mapRoleIdToName(rId),
+                    "",
+                    bId,
+                    status
+            );
+
             if (updated) {
-                req.getSession().setAttribute("flashSuccess", "Cập nhật thông tin nhân viên thành công!");
+                req.getSession().setAttribute(
+                        "flashSuccess",
+                        "Cập nhật thông tin nhân viên thành công!"
+                );
+            } else if (rId == 2 && userDAO.hasBranchManager(bId, userId)) {
+                req.getSession().setAttribute(
+                        "flashError",
+                        "Chi nhánh này đã có Quản lý chi nhánh. "
+                        + "Mỗi chi nhánh chỉ được có một Manager."
+                );
             } else {
-                req.getSession().setAttribute("flashError", "Cập nhật thông tin thất bại.");
+                req.getSession().setAttribute(
+                        "flashError",
+                        "Cập nhật thông tin thất bại."
+                );
             }
 
         } else if ("reset-password".equalsIgnoreCase(action)) {

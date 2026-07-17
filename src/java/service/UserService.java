@@ -102,4 +102,15 @@ public class UserService {
     public int getBranchIdOfStaff(int userId) {
         return userDAO.getBranchIdOfStaff(userId);
     }
+    
+    public String getTopTicketBuyerName() {
+
+    String userName = userDAO.getTopTicketBuyerName();
+
+    if (userName == null || userName.trim().isEmpty()) {
+        return null;
+    }
+
+    return userName.trim();
+}
 }

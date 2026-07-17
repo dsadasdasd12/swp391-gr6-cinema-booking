@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +49,7 @@ public class AdminUserDAO {
         return null;
     }
 
-    public List<ManagedUser> findCustomersPaged(String keyword, String status, int offset, int limit) {
+    public List<ManagedUser> findCustomersPaged(String keyword, String status, LocalDate createdDate, int offset, int limit) {
         List<ManagedUser> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT id, full_name, email, phone, role, active, email_verified, created_at "
@@ -70,6 +72,13 @@ public class AdminUserDAO {
             } else if ("PENDING".equalsIgnoreCase(status)) {
                 sql.append("AND active = 1 AND email_verified = 0 ");
             }
+        }
+        if (createdDate != null) {
+            // Half-open interval includes every time in the selected day and remains index-friendly.
+            sql.append("AND created_at >= ? AND created_at < DATEADD(DAY, 1, ?) ");
+            Date selectedDate = Date.valueOf(createdDate);
+            params.add(selectedDate);
+            params.add(selectedDate);
         }
         sql.append("ORDER BY created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add(offset);
@@ -94,7 +103,7 @@ public class AdminUserDAO {
         return list;
     }
 
-    public int countCustomers(String keyword, String status) {
+    public int countCustomers(String keyword, String status, LocalDate createdDate) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM dbo.[USER] WHERE role = 'CUSTOMER' "
         );
@@ -114,6 +123,12 @@ public class AdminUserDAO {
             } else if ("PENDING".equalsIgnoreCase(status)) {
                 sql.append("AND active = 1 AND email_verified = 0 ");
             }
+        }
+        if (createdDate != null) {
+            sql.append("AND created_at >= ? AND created_at < DATEADD(DAY, 1, ?) ");
+            Date selectedDate = Date.valueOf(createdDate);
+            params.add(selectedDate);
+            params.add(selectedDate);
         }
         Connection conn = DBContext.getInstance().getConnection();
         if (conn == null) {
@@ -221,101 +236,323 @@ public class AdminUserDAO {
         }
         return 0;
     }
+    /**
+     * Kiểm tra chi nhánh đã có MANAGER khác hay chưa.
+     */
     public boolean hasBranchManager(int branchId, int excludeUserId) {
-        String sql = "SELECT COUNT(*) FROM dbo.[USER] u "
-                   + "JOIN dbo.STAFF_BRANCH sb ON u.id = sb.user_id "
-                   + "WHERE sb.branch_id = ? AND u.role = 'MANAGER' AND u.id != ?";
-        Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return false;
+        if (branchId <= 0) {
+            return false;
+        }
+
+        try (Connection conn = DBContext.getInstance().getConnection()) {
+            return hasBranchManager(conn, branchId, excludeUserId, false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
+    /**
+     * Khi lock=true, UPDLOCK + HOLDLOCK giúp chặn hai request đồng thời
+     * cùng thêm MANAGER vào một chi nhánh.
+     */
+    private boolean hasBranchManager(
+            Connection conn,
+            int branchId,
+            int excludeUserId,
+            boolean lock
+    ) throws SQLException {
+
+        String lockHint = lock ? " WITH (UPDLOCK, HOLDLOCK) " : " ";
+
+        String sql = "SELECT COUNT(*) "
+                + "FROM dbo.STAFF_BRANCH sb" + lockHint
+                + "JOIN dbo.[USER] u ON u.id = sb.user_id "
+                + "WHERE sb.branch_id = ? "
+                + "AND u.role = 'MANAGER' "
+                + "AND u.id <> ?";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, branchId);
             ps.setInt(2, excludeUserId);
+
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                return rs.next() && rs.getInt(1) > 0;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return false;
     }
 
+    /**
+     * Tạo tài khoản và phân công chi nhánh trong cùng transaction.
+     *
+     * Return:
+     *  > 0: user id mới
+     *   -2: chi nhánh đã có MANAGER
+     *    0: lỗi dữ liệu/SQL
+     */
     public int insertStaff(User u, String passwordHash, int branchId) {
-        String sql = "INSERT INTO dbo.[USER] (full_name, email, password_hash, phone, role, google_id, active, email_verified, created_at, last_update) "
+        String insertUserSql
+                = "INSERT INTO dbo.[USER] "
+                + "(full_name, email, password_hash, phone, role, google_id, "
+                + "active, email_verified, created_at, last_update) "
                 + "VALUES (?, ?, ?, ?, ?, ?, 1, 1, GETDATE(), GETDATE())";
-        Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) {
-            return 0;
-        }
-        try (PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setNString(1, u.getFullName());
-            ps.setString(2, u.getEmail() != null ? u.getEmail().trim().toLowerCase() : null);
-            ps.setString(3, passwordHash);
-            ps.setString(4, u.getPhone() != null ? u.getPhone() : "");
-            ps.setString(5, u.getRole());
-            ps.setString(6, u.getGoogleId());
-            if (ps.executeUpdate() > 0) {
+
+        String insertBranchSql
+                = "INSERT INTO dbo.STAFF_BRANCH "
+                + "(user_id, branch_id, position, assigned_at) "
+                + "VALUES (?, ?, ?, GETDATE())";
+
+        Connection conn = null;
+
+        try {
+            conn = DBContext.getInstance().getConnection();
+
+            if (conn == null) {
+                return 0;
+            }
+
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+
+            String role = u.getRole() == null
+                    ? "STAFF"
+                    : u.getRole().trim().toUpperCase();
+
+            if ("MANAGER".equals(role)
+                    && hasBranchManager(conn, branchId, 0, true)) {
+                conn.rollback();
+                return -2;
+            }
+
+            int userId;
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    insertUserSql,
+                    PreparedStatement.RETURN_GENERATED_KEYS
+            )) {
+                ps.setNString(1, u.getFullName());
+                ps.setString(2, u.getEmail() == null
+                        ? null
+                        : u.getEmail().trim().toLowerCase());
+                ps.setString(3, passwordHash);
+                ps.setString(4, u.getPhone() == null ? "" : u.getPhone());
+                ps.setString(5, role);
+                ps.setString(6, u.getGoogleId());
+
+                if (ps.executeUpdate() != 1) {
+                    conn.rollback();
+                    return 0;
+                }
+
                 try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        int userId = rs.getInt(1);
-                        if (branchId > 0) {
-                            setStaffBranch(userId, branchId);
-                        }
-                        return userId;
+                    if (!rs.next()) {
+                        conn.rollback();
+                        return 0;
+                    }
+
+                    userId = rs.getInt(1);
+                }
+            }
+
+            if (branchId > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(insertBranchSql)) {
+                    ps.setInt(1, userId);
+                    ps.setInt(2, branchId);
+                    ps.setString(3, "MANAGER".equals(role)
+                            ? "MANAGER"
+                            : "STAFF");
+
+                    if (ps.executeUpdate() != 1) {
+                        conn.rollback();
+                        return 0;
                     }
                 }
             }
+
+            conn.commit();
+            return userId;
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-        return 0;
-    }
 
-    public boolean updateStaffInfo(int userId, String fullName, String role, String phone, int branchId, String status) {
-        boolean active = !"BLOCKED".equalsIgnoreCase(status);
-        String sql = "UPDATE dbo.[USER] SET full_name=?, role=?, phone=?, active=?, last_update=GETDATE() WHERE id=?";
-        Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) {
-            return false;
-        }
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setNString(1, fullName);
-            ps.setString(2, role);
-            ps.setString(3, phone != null ? phone : "");
-            ps.setBoolean(4, active);
-            ps.setInt(5, userId);
-            if (ps.executeUpdate() > 0) {
-                if (branchId > 0) {
-                    setStaffBranch(userId, branchId);
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
                 }
-                return true;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+            return 0;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
         }
-        return false;
     }
 
+    /**
+     * Cập nhật role và chi nhánh trong cùng transaction.
+     * DAO kiểm tra lại manager để không thể bỏ qua validation ở Controller.
+     */
+    public boolean updateStaffInfo(
+            int userId,
+            String fullName,
+            String role,
+            String phone,
+            int branchId,
+            String status
+    ) {
+        boolean active = !"BLOCKED".equalsIgnoreCase(status);
+
+        String updateUserSql
+                = "UPDATE dbo.[USER] "
+                + "SET full_name = ?, role = ?, phone = ?, active = ?, "
+                + "last_update = GETDATE() "
+                + "WHERE id = ?";
+
+        String deleteBranchSql
+                = "DELETE FROM dbo.STAFF_BRANCH WHERE user_id = ?";
+
+        String insertBranchSql
+                = "INSERT INTO dbo.STAFF_BRANCH "
+                + "(user_id, branch_id, position, assigned_at) "
+                + "VALUES (?, ?, ?, GETDATE())";
+
+        Connection conn = null;
+
+        try {
+            conn = DBContext.getInstance().getConnection();
+
+            if (conn == null) {
+                return false;
+            }
+
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+
+            String normalizedRole = role == null
+                    ? "STAFF"
+                    : role.trim().toUpperCase();
+
+            if ("MANAGER".equals(normalizedRole)
+                    && hasBranchManager(conn, branchId, userId, true)) {
+                conn.rollback();
+                return false;
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(updateUserSql)) {
+                ps.setNString(1, fullName);
+                ps.setString(2, normalizedRole);
+                ps.setString(3, phone == null ? "" : phone);
+                ps.setBoolean(4, active);
+                ps.setInt(5, userId);
+
+                if (ps.executeUpdate() != 1) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(deleteBranchSql)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+
+            if (branchId > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(insertBranchSql)) {
+                    ps.setInt(1, userId);
+                    ps.setInt(2, branchId);
+                    ps.setString(3, "MANAGER".equals(normalizedRole)
+                            ? "MANAGER"
+                            : "STAFF");
+
+                    if (ps.executeUpdate() != 1) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
+        }
+    }
+
+    /**
+     * Giữ method cũ cho các nơi khác đang gọi.
+     * Khi không biết role, mặc định position STAFF.
+     */
     public void setStaffBranch(int userId, int branchId) {
         String deleteSql = "DELETE FROM dbo.STAFF_BRANCH WHERE user_id = ?";
-        String insertSql = "INSERT INTO dbo.STAFF_BRANCH (user_id, branch_id, position, assigned_at) VALUES (?, ?, 'STAFF', GETDATE())";
-        Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) {
-            return;
-        }
-        try (PreparedStatement psDel = conn.prepareStatement(deleteSql)) {
-            psDel.setInt(1, userId);
-            psDel.executeUpdate();
+        String insertSql
+                = "INSERT INTO dbo.STAFF_BRANCH "
+                + "(user_id, branch_id, position, assigned_at) "
+                + "VALUES (?, ?, 'STAFF', GETDATE())";
+
+        Connection conn = null;
+
+        try {
+            conn = DBContext.getInstance().getConnection();
+
+            if (conn == null) {
+                return;
+            }
+
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+
             if (branchId > 0) {
-                try (PreparedStatement psIns = conn.prepareStatement(insertSql)) {
-                    psIns.setInt(1, userId);
-                    psIns.setInt(2, branchId);
-                    psIns.executeUpdate();
+                try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+                    ps.setInt(1, userId);
+                    ps.setInt(2, branchId);
+                    ps.executeUpdate();
                 }
             }
+
+            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
         }
     }
 

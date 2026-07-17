@@ -433,4 +433,44 @@ public class UserDAO {
         // Không mặc định sang chi nhánh 1: caller phải chặn tài khoản chưa được gán.
         return 0;
     }
+    
+    public String getTopTicketBuyerName() {
+
+    String sql = """
+        SELECT TOP 1 u.full_name
+        FROM dbo.[USER] u
+        INNER JOIN dbo.BOOKINGS b
+            ON b.user_id = u.id
+        INNER JOIN dbo.BOOKING_SEATS bs
+            ON bs.booking_id = b.id
+        WHERE u.role = 'CUSTOMER'
+          AND b.status IN (
+              'CONFIRMED',
+              'CHECKED_IN',
+              'USED',
+              'COMPLETED'
+          )
+        GROUP BY u.id, u.full_name
+        ORDER BY COUNT(bs.seat_id) DESC, u.id ASC
+    """;
+
+    Connection conn = DBContext.getInstance().getConnection();
+
+    if (conn == null) {
+        return null;
+    }
+
+    try (
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()
+    ) {
+        if (rs.next()) {
+            return rs.getNString("full_name");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return null;
+}
 }

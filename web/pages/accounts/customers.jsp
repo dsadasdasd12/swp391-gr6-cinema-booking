@@ -46,6 +46,35 @@
             </select>
         </div>
 
+        <!-- Filter accounts created on exactly one selected date -->
+        <div class="rv-toolbar__filter">
+            <input type="date" name="createdDate" value="<c:out value='${selectedCreatedDate}'/>"
+                   title="Lọc theo ngày tạo tài khoản" aria-label="Ngày tạo tài khoản">
+        </div>
+        <span class="rv-badge rv-badge--success"
+              style="
+              height: 38px;
+              display: inline-flex;
+              align-items: center;
+              padding: 0 12px;
+              white-space: nowrap;
+              ">
+
+            Người mua nhiều vé nhất:&nbsp;
+
+            <strong>
+                <c:choose>
+                    <c:when test="${not empty topBuyerName}">
+                        <c:out value="${topBuyerName}"/>
+                    </c:when>
+
+                    <c:otherwise>
+                        Hiện chưa có người nào
+                    </c:otherwise>
+                </c:choose>
+            </strong>
+        </span>
+
         <!-- Action buttons -->
         <div class="d-flex align-items-center gap-2 ms-auto">
             <button type="submit" class="rv-btn rv-btn--secondary rv-btn--sm">
@@ -60,6 +89,10 @@
         </div>
     </form>
 </div>
+
+<c:if test="${not empty filterError}">
+    <div class="alert alert-danger mt-3" role="alert"><c:out value="${filterError}"/></div>
+</c:if>
 
 <!-- ── CUSTOMERS TABLE ── -->
 <div class="rv-card">
@@ -120,6 +153,7 @@
                                         </c:when>
                                         <c:otherwise>—</c:otherwise>
                                     </c:choose>
+
                                 </td>
 
                                 <!-- Status Badge -->
@@ -191,7 +225,7 @@
                 <jsp:param name="totalPages" value="${not empty totalPages ? totalPages : 1}" />
                 <jsp:param name="totalItems" value="${not empty totalItems ? totalItems : fn:length(customers)}" />
                 <jsp:param name="pageSize" value="${not empty pageSize ? pageSize : 10}" />
-                <jsp:param name="baseUrl" value="${ctx}/admin/accounts/customers?keyword=${param.keyword}&status=${param.status}" />
+                <jsp:param name="baseUrl" value="${ctx}/admin/accounts/customers?keyword=${param.keyword}&status=${param.status}&createdDate=${selectedCreatedDate}" />
             </jsp:include>
         </c:otherwise>
     </c:choose>

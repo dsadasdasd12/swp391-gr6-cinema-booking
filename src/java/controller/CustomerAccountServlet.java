@@ -1,5 +1,6 @@
 package controller;
 
+import service.UserService;
 import dao.AdminUserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,12 +11,15 @@ import model.ManagedUser;
 import model.User;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @WebServlet("/admin/accounts/customers")
 public class CustomerAccountServlet extends HttpServlet {
 
     private final AdminUserDAO userDAO = new AdminUserDAO();
+    private final UserService userService = new UserService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -28,6 +32,15 @@ public class CustomerAccountServlet extends HttpServlet {
 
         String keyword = req.getParameter("keyword");
         String status = req.getParameter("status");
+        String createdDateParam = req.getParameter("createdDate");
+        LocalDate createdDate = null;
+        if (createdDateParam != null && !createdDateParam.isBlank()) {
+            try {
+                createdDate = LocalDate.parse(createdDateParam);
+            } catch (DateTimeParseException e) {
+                req.setAttribute("filterError", "Ngày tạo tài khoản không hợp lệ.");
+            }
+        }
 
         int currentPage = 1;
         String pageStr = req.getParameter("page");
@@ -42,8 +55,8 @@ public class CustomerAccountServlet extends HttpServlet {
         int pageSize = 10;
         int offset = (currentPage - 1) * pageSize;
 
-        List<ManagedUser> customers = userDAO.findCustomersPaged(keyword, status, offset, pageSize);
-        int totalItems = userDAO.countCustomers(keyword, status);
+        List<ManagedUser> customers = userDAO.findCustomersPaged(keyword, status, createdDate, offset, pageSize);
+        int totalItems = userDAO.countCustomers(keyword, status, createdDate);
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
         if (totalPages == 0) {
             totalPages = 1;
@@ -54,7 +67,10 @@ public class CustomerAccountServlet extends HttpServlet {
         req.setAttribute("totalPages", totalPages);
         req.setAttribute("totalItems", totalItems);
         req.setAttribute("pageSize", pageSize);
+        req.setAttribute("selectedCreatedDate", createdDateParam == null ? "" : createdDateParam);
+        String topBuyerName = userService.getTopTicketBuyerName();
 
+        req.setAttribute("topBuyerName", topBuyerName);
         req.getRequestDispatcher("/pages/accounts/customers.jsp").forward(req, resp);
     }
 
