@@ -429,6 +429,7 @@ public class UserDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 1; // Mặc định trả về chi nhánh 1 nếu chưa phân công
+        // Không mặc định sang chi nhánh 1: caller phải chặn tài khoản chưa được gán.
+        return 0;
     }
 }

@@ -215,6 +215,7 @@
             </c:if>
             <a href="CounterBooking">Quầy Bán Vé (POS)</a>
             <a href="TicketValidation" class="active">Soát Vé Cổng</a>
+            <a href="TicketValidation?action=history">Lịch sử soát vé</a>
 
             <a href="logout" style="margin-left: 20px; color: #ff3366; font-weight: bold;">Đăng Xuất</a>
         </nav>

@@ -3,9 +3,80 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import dto.AttendanceHistoryView;
 import util.DBContext;
 
 public class AttendanceDAO {
+
+    /** Lịch sử chỉ lấy lượt do chính staff thực hiện. */
+    public List<AttendanceHistoryView> getHistoryByStaff(int staffId, LocalDate checkedDate,
+            int offset, int pageSize) {
+        List<AttendanceHistoryView> history = new ArrayList<>();
+        String sql = "SELECT a.booking_id, b.qr_code, m.title AS movie_title, "
+                + "h.name AS hall_name, st.start_time, a.checked_at "
+                + "FROM dbo.ATTENDANCE a "
+                + "JOIN dbo.BOOKINGS b ON b.id = a.booking_id "
+                + "JOIN dbo.SHOWTIMES st ON st.id = b.showtime_id "
+                + "JOIN dbo.HALLS h ON h.id = st.hall_id "
+                + "JOIN dbo.MOVIES m ON m.id = st.movie_id "
+                + "WHERE a.checked_by = ? "
+                + "AND (? IS NULL OR CAST(a.checked_at AS DATE) = ?) "
+                + "ORDER BY a.checked_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, staffId);
+            if (checkedDate == null) {
+                ps.setNull(2, java.sql.Types.DATE);
+                ps.setNull(3, java.sql.Types.DATE);
+            } else {
+                Date sqlDate = Date.valueOf(checkedDate);
+                ps.setDate(2, sqlDate);
+                ps.setDate(3, sqlDate);
+            }
+            ps.setInt(4, Math.max(0, offset));
+            ps.setInt(5, Math.max(1, pageSize));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    history.add(new AttendanceHistoryView(rs.getInt("booking_id"),
+                            rs.getString("qr_code"), rs.getString("movie_title"),
+                            rs.getString("hall_name"), rs.getTimestamp("start_time"),
+                            rs.getTimestamp("checked_at")));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return history;
+    }
+
+    /** Đếm để tạo phân trang, áp dụng đúng cùng bộ lọc lịch sử. */
+    public int countHistoryByStaff(int staffId, LocalDate checkedDate) {
+        String sql = "SELECT COUNT(*) FROM dbo.ATTENDANCE a WHERE a.checked_by = ? "
+                + "AND (? IS NULL OR CAST(a.checked_at AS DATE) = ?)";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, staffId);
+            if (checkedDate == null) {
+                ps.setNull(2, java.sql.Types.DATE);
+                ps.setNull(3, java.sql.Types.DATE);
+            } else {
+                Date sqlDate = Date.valueOf(checkedDate);
+                ps.setDate(2, sqlDate);
+                ps.setDate(3, sqlDate);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
 
     // 1. READ: Kiểm tra xem vé này đã được check-in vào rạp chưa
     public boolean isAlreadyCheckedIn(int bookingId) {

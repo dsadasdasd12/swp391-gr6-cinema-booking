@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="topUser" value="${sessionScope.user}" />
@@ -127,10 +128,27 @@
             font-size: var(--text-base);
         }
 
+        .manager-performance { margin-top: var(--s-6); scroll-margin-top: var(--s-6); }
+        .manager-performance__header { display:flex; justify-content:space-between; align-items:center; gap:var(--s-4); background:#121a28; }
+        .manager-performance__branch { color:#a8bad4; font-size:14px; font-weight:700; }
+        .manager-performance__filters { display:flex; align-items:end; flex-wrap:wrap; gap:var(--s-3); padding:18px 20px; border-bottom:1px solid #2d3a51; background:#0f1623; }
+        .manager-performance__filters .rv-form-group { margin:0; min-width:160px; }.manager-performance__filters .rv-label { color:#a8bad4; font-size:12px; }.manager-performance__filters .rv-input { min-height:40px; color:#f7f9fd; background:#151f2f; border-color:#34445e; font-size:14px; }
+        .manager-performance__kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:20px; background:#101722; }
+        .manager-performance__kpi { min-height:112px; border:1px solid #2d3a51; border-radius:10px; padding:18px; background:#172132; }
+        .manager-performance__kpi small { display:block; color:#9fafc5; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+        .manager-performance__kpi strong { display:block; margin-top:12px; font-size:30px; color:#f7f9fd; }
+        .manager-performance__kpi--success strong { color:var(--success); }.manager-performance__kpi--primary strong { color:var(--primary); }
+        .manager-performance__table-wrap { overflow-x:auto; background:#121a28; }.manager-performance__table { width:100%; border-collapse:collapse; }
+        .manager-performance__table th,.manager-performance__table td { padding:15px 20px; border-top:1px solid #2d3a51; text-align:left; font-size:14px; color:#eef3fb; }
+        .manager-performance__table th { color:#9fafc5; background:#101722; font-size:12px; text-transform:uppercase; }.manager-performance__table .right { text-align:right; }.manager-performance__rate { color:#22d38a !important; font-weight:800; }
+        .manager-performance__pagination { display:flex; align-items:center; justify-content:flex-end; gap:var(--s-2); padding:16px 20px; border-top:1px solid #2d3a51; background:#121a28; }.manager-performance__pagination a { text-decoration:none; color:#ff6c73; font-weight:800; padding:8px 12px; border:1px solid #3b4b65; border-radius:var(--r-sm); }.manager-performance__pagination span { color:#a8bad4; font-size:14px; padding:0 var(--s-2); }
+
         @media (max-width: 680px) {
             .manager-dashboard-link {
                 min-height: 164px;
             }
+            .manager-performance__kpis { grid-template-columns:repeat(2,1fr); }
+            .manager-performance__header { align-items:flex-start; flex-direction:column; }
         }
     </style>
 
@@ -352,6 +370,14 @@
             </a>
         </div>
 
+        <div class="rv-nav__group">
+            <a href="${ctx}/manager/dashboard#performance"
+               class="rv-nav__item">
+                <i class="bi bi-bar-chart-line-fill"></i>
+                Theo dõi lấp đầy &amp; bán vé
+            </a>
+        </div>
+
 
         <div class="rv-nav__group">
             <a href="${ctx}/logout"
@@ -513,7 +539,60 @@
                     Tạo, chỉnh sửa, hủy suất chiếu và tự động kiểm tra trùng lịch.
                 </p>
             </a>
+
+            <%-- BRANCH PERFORMANCE REPORT --%>
+            <a class="rv-kpi manager-dashboard-link"
+               href="${ctx}/manager/dashboard#performance"
+               style="border-left: 4px solid var(--info);">
+
+                <div class="manager-dashboard-link__top">
+                    <div class="manager-dashboard-link__icon">
+                        <i class="bi bi-bar-chart-line-fill"></i>
+                    </div>
+
+                    <i class="bi bi-arrow-right manager-dashboard-link__arrow"></i>
+                </div>
+
+                <span class="rv-kpi__label">
+                    Hiệu suất chi nhánh
+                </span>
+
+                <p class="manager-dashboard-link__description">
+                    Theo dõi tỷ lệ lấp đầy từng phòng, tiến độ bán vé và doanh thu của chi nhánh bạn quản lý.
+                </p>
+            </a>
         </div>
+
+        <c:if test="${not empty performanceReport}">
+            <section id="performance" class="rv-card manager-performance">
+                <div class="rv-card__header manager-performance__header">
+                    <span class="rv-card__title"><i class="bi bi-bar-chart-line-fill" style="margin-right:8px;color:var(--primary-light);"></i>Theo dõi vận hành chi nhánh</span>
+                    <span class="manager-performance__branch"><i class="bi bi-geo-alt-fill"></i> <c:out value="${performanceBranchName}"/></span>
+                </div>
+
+                <form class="manager-performance__filters" method="get" action="${ctx}/manager/dashboard#performance">
+                    <div class="rv-form-group"><label class="rv-label" for="performanceFrom">Từ ngày</label><input class="rv-input" id="performanceFrom" type="date" name="fromDate" value="${performanceFromDate}"></div>
+                    <div class="rv-form-group"><label class="rv-label" for="performanceTo">Đến ngày</label><input class="rv-input" id="performanceTo" type="date" name="toDate" value="${performanceToDate}"></div>
+                    <div class="rv-form-group" style="min-width:220px;"><label class="rv-label" for="performanceMovie">Phim</label><select class="rv-input" id="performanceMovie" name="movie"><option value="" ${empty performanceSelectedMovie ? 'selected' : ''}>Tất cả phim</option><c:forEach var="movie" items="${performanceMovies}"><option value="${movie}" ${movie == performanceSelectedMovie ? 'selected' : ''}><c:out value="${movie}"/></option></c:forEach></select></div>
+                    <button class="rv-btn rv-btn--primary" type="submit"><i class="bi bi-funnel-fill"></i> Lọc</button>
+                </form>
+
+                <div class="manager-performance__kpis">
+                    <div class="manager-performance__kpi"><small>Suất chiếu</small><strong>${performanceReport.totalShowtimes}</strong></div>
+                    <div class="manager-performance__kpi manager-performance__kpi--success"><small>Ghế đã bán</small><strong>${performanceReport.soldSeats}</strong></div>
+                    <div class="manager-performance__kpi"><small>Ghế còn trống</small><strong>${performanceReport.remainingSeats}</strong></div>
+                    <div class="manager-performance__kpi manager-performance__kpi--primary"><small>Tỷ lệ lấp đầy</small><strong>${performanceReport.occupancyRate}%</strong></div>
+                </div>
+
+                <div class="manager-performance__table-wrap"><table class="manager-performance__table"><thead><tr><th>Thời gian</th><th>Phim</th><th>Phòng</th><th class="right">Đã bán / Sức chứa</th><th class="right">Lấp đầy</th></tr></thead><tbody><c:choose><c:when test="${empty performanceRows}"><tr><td colspan="5" style="text-align:center;color:var(--n-500);padding:28px;">Không có suất chiếu phù hợp.</td></tr></c:when><c:otherwise><c:forEach var="item" items="${performanceRows}"><tr><td><fmt:formatDate value="${item.startTime}" pattern="dd/MM/yyyy HH:mm"/></td><td><c:out value="${item.movieTitle}"/></td><td><c:out value="${item.hallName}"/></td><td class="right">${item.soldSeats} / ${item.capacity}</td><td class="right manager-performance__rate">${item.occupancyRate}%</td></tr></c:forEach></c:otherwise></c:choose></tbody></table></div>
+
+                <div class="manager-performance__pagination">
+                    <c:if test="${performancePage > 1}"><c:url var="performancePrevUrl" value="/manager/dashboard"><c:param name="fromDate" value="${performanceFromDate}"/><c:param name="toDate" value="${performanceToDate}"/><c:param name="movie" value="${performanceSelectedMovie}"/><c:param name="page" value="${performancePage - 1}"/></c:url><a href="${performancePrevUrl}#performance">← Trước</a></c:if>
+                    <span>Trang ${performancePage} / ${performanceTotalPages} · ${performanceTotal} suất</span>
+                    <c:if test="${performancePage < performanceTotalPages}"><c:url var="performanceNextUrl" value="/manager/dashboard"><c:param name="fromDate" value="${performanceFromDate}"/><c:param name="toDate" value="${performanceToDate}"/><c:param name="movie" value="${performanceSelectedMovie}"/><c:param name="page" value="${performancePage + 1}"/></c:url><a href="${performanceNextUrl}#performance">Sau →</a></c:if>
+                </div>
+            </section>
+        </c:if>
 
         <div class="rv-card">
 
