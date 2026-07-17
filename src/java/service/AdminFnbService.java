@@ -3,15 +3,20 @@ package service;
 import dao.FnbAdminDAO;
 import dto.FnbCategoryDTO;
 import dto.FnbCategoryFormDTO;
+import dto.FnbComboDTO;
+import dto.FnbComboFormDTO;
+import dto.FnbComboItemDTO;
 import dto.FnbProductDTO;
 import dto.FnbProductFormDTO;
+import java.math.BigDecimal;
 import model.FnbCategory;
 import model.FnbProduct;
 import util.DBContext;
-
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AdminFnbService {
 
@@ -30,37 +35,37 @@ public class AdminFnbService {
     }
 
     public boolean changeAllowedToSell(
-        int productId,
-        boolean allowed) {
+            int productId,
+            boolean allowed) {
 
-    if (productId <= 0) {
-        throw new IllegalArgumentException(
-                "Sản phẩm không hợp lệ."
+        if (productId <= 0) {
+            throw new IllegalArgumentException(
+                    "Sản phẩm không hợp lệ."
+            );
+        }
+
+        FnbProduct product
+                = fnbAdminDAO.findProductById(productId);
+
+        if (product == null) {
+            throw new IllegalArgumentException(
+                    "Không tìm thấy sản phẩm."
+            );
+        }
+
+        if (allowed
+                && !"ACTIVE".equalsIgnoreCase(product.getStatus())) {
+
+            throw new IllegalArgumentException(
+                    "Không thể cho phép bán sản phẩm đang ngừng hoạt động."
+            );
+        }
+
+        return fnbAdminDAO.updateAllowedToSell(
+                productId,
+                allowed
         );
     }
-
-    FnbProduct product =
-            fnbAdminDAO.findProductById(productId);
-
-    if (product == null) {
-        throw new IllegalArgumentException(
-                "Không tìm thấy sản phẩm."
-        );
-    }
-
-    if (allowed
-            && !"ACTIVE".equalsIgnoreCase(product.getStatus())) {
-
-        throw new IllegalArgumentException(
-                "Không thể cho phép bán sản phẩm đang ngừng hoạt động."
-        );
-    }
-
-    return fnbAdminDAO.updateAllowedToSell(
-            productId,
-            allowed
-    );
-}
 
     public boolean saveCategory(FnbCategoryFormDTO dto) {
         if (dto == null) {
@@ -120,12 +125,12 @@ public class AdminFnbService {
         }
 
         String name = normalize(dto.getName());
-        String description =
-                normalizeNullable(dto.getDescription());
-        String imageUrl =
-                normalizeNullable(dto.getImageUrl());
-        String productType =
-                normalizeProductType(dto.getProductType());
+        String description
+                = normalizeNullable(dto.getDescription());
+        String imageUrl
+                = normalizeNullable(dto.getImageUrl());
+        String productType
+                = normalizeProductType(dto.getProductType());
 
         if (name == null) {
             throw new IllegalArgumentException(
@@ -170,17 +175,17 @@ public class AdminFnbService {
             );
         }
 
-        String normalizedStatus =
-                normalizeStatus(status);
+        String normalizedStatus
+                = normalizeStatus(status);
 
-        try (Connection conn =
-                     DBContext.getInstance().getConnection()) {
+        try (Connection conn
+                = DBContext.getInstance().getConnection()) {
 
             conn.setAutoCommit(false);
 
             try {
-                boolean updated =
-                        fnbAdminDAO.updateProductStatus(
+                boolean updated
+                        = fnbAdminDAO.updateProductStatus(
                                 conn,
                                 productId,
                                 normalizedStatus
@@ -192,8 +197,8 @@ public class AdminFnbService {
                 }
 
                 if ("INACTIVE".equals(normalizedStatus)) {
-                    List<Integer> comboIds =
-                            fnbAdminDAO
+                    List<Integer> comboIds
+                            = fnbAdminDAO
                                     .findComboIdsContainingProduct(
                                             conn,
                                             productId
@@ -237,17 +242,17 @@ public class AdminFnbService {
             );
         }
 
-        String normalizedStatus =
-                normalizeStatus(status);
+        String normalizedStatus
+                = normalizeStatus(status);
 
-        try (Connection conn =
-                     DBContext.getInstance().getConnection()) {
+        try (Connection conn
+                = DBContext.getInstance().getConnection()) {
 
             conn.setAutoCommit(false);
 
             try {
-                boolean updated =
-                        fnbAdminDAO.updateCategoryStatus(
+                boolean updated
+                        = fnbAdminDAO.updateCategoryStatus(
                                 conn,
                                 categoryId,
                                 normalizedStatus
@@ -259,8 +264,8 @@ public class AdminFnbService {
                 }
 
                 if ("INACTIVE".equals(normalizedStatus)) {
-                    List<Integer> productIds =
-                            fnbAdminDAO.findProductIdsByCategory(
+                    List<Integer> productIds
+                            = fnbAdminDAO.findProductIdsByCategory(
                                     conn,
                                     categoryId
                             );
@@ -272,8 +277,8 @@ public class AdminFnbService {
                                 "INACTIVE"
                         );
 
-                        List<Integer> comboIds =
-                                fnbAdminDAO
+                        List<Integer> comboIds
+                                = fnbAdminDAO
                                         .findComboIdsContainingProduct(
                                                 conn,
                                                 productId
@@ -329,8 +334,8 @@ public class AdminFnbService {
             );
         }
 
-        String normalized =
-                value.trim().toUpperCase();
+        String normalized
+                = value.trim().toUpperCase();
 
         if (!"ACTIVE".equals(normalized)
                 && !"INACTIVE".equals(normalized)) {
@@ -350,8 +355,8 @@ public class AdminFnbService {
             );
         }
 
-        String normalized =
-                value.trim().toUpperCase();
+        String normalized
+                = value.trim().toUpperCase();
 
         if (!"ITEM".equals(normalized)
                 && !"COMBO".equals(normalized)) {
@@ -363,4 +368,289 @@ public class AdminFnbService {
 
         return normalized;
     }
+
+    public List<FnbComboDTO> getAllCombos() {
+        return fnbAdminDAO.findAllCombos();
+    }
+
+    public List<FnbProductDTO> getActiveItemsForCombo() {
+        return fnbAdminDAO.findActiveItemsForCombo();
+    }
+
+    public boolean saveCombo(FnbComboFormDTO dto) {
+
+        validateCombo(dto);
+
+        try (Connection conn
+                = DBContext.getInstance().getConnection()) {
+
+            conn.setAutoCommit(false);
+
+            try {
+                if (fnbAdminDAO.existsComboNameExceptId(
+                        conn,
+                        dto.getName(),
+                        dto.getId()
+                )) {
+                    throw new IllegalArgumentException(
+                            "Tên combo đã tồn tại."
+                    );
+                }
+
+                BigDecimal originalPrice
+                        = BigDecimal.ZERO;
+
+                Set<Integer> productIds
+                        = new HashSet<>();
+
+                for (FnbComboItemDTO item : dto.getItems()) {
+
+                    if (!productIds.add(
+                            item.getProductId()
+                    )) {
+                        throw new IllegalArgumentException(
+                                "Sản phẩm bị lặp trong combo."
+                        );
+                    }
+
+                    FnbProduct product
+                            = fnbAdminDAO.findProductById(
+                                    conn,
+                                    item.getProductId()
+                            );
+
+                    if (product == null) {
+                        throw new IllegalArgumentException(
+                                "Không tìm thấy sản phẩm."
+                        );
+                    }
+
+                    if (!"ITEM".equalsIgnoreCase(
+                            product.getProductType()
+                    )) {
+                        throw new IllegalArgumentException(
+                                "Combo chỉ được chứa sản phẩm ITEM."
+                        );
+                    }
+
+                    if (!"ACTIVE".equalsIgnoreCase(
+                            product.getStatus()
+                    )) {
+                        throw new IllegalArgumentException(
+                                product.getName()
+                                + " đang ngừng hoạt động."
+                        );
+                    }
+
+                    originalPrice = originalPrice.add(
+                            product.getSellingPrice().multiply(
+                                    BigDecimal.valueOf(
+                                            item.getQuantity()
+                                    )
+                            )
+                    );
+                }
+
+                if (dto.getSellingPrice()
+                        .compareTo(originalPrice) > 0) {
+
+                    throw new IllegalArgumentException(
+                            "Giá combo không được lớn hơn "
+                            + "tổng giá sản phẩm."
+                    );
+                }
+
+                int comboId;
+
+                if (dto.getId() == null
+                        || dto.getId() <= 0) {
+
+                    comboId
+                            = fnbAdminDAO.insertCombo(
+                                    conn,
+                                    dto
+                            );
+
+                    if (comboId <= 0) {
+                        throw new SQLException(
+                                "Không thể tạo combo."
+                        );
+                    }
+
+                } else {
+
+                    comboId = dto.getId();
+
+                    boolean updated
+                            = fnbAdminDAO.updateCombo(
+                                    conn,
+                                    dto
+                            );
+
+                    if (!updated) {
+                        throw new SQLException(
+                                "Không tìm thấy combo."
+                        );
+                    }
+
+                    fnbAdminDAO.deleteComboItems(
+                            conn,
+                            comboId
+                    );
+                }
+
+                fnbAdminDAO.insertComboItems(
+                        conn,
+                        comboId,
+                        dto.getItems()
+                );
+
+                conn.commit();
+                return true;
+
+            } catch (Exception e) {
+
+                conn.rollback();
+
+                if (e instanceof IllegalArgumentException) {
+                    throw (IllegalArgumentException) e;
+                }
+
+                throw new RuntimeException(
+                        "Không thể lưu combo.",
+                        e
+                );
+
+            } finally {
+                conn.setAutoCommit(true);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi kết nối cơ sở dữ liệu.",
+                    e
+            );
+        }
+    }
+
+    public boolean changeComboStatus(
+            int comboId,
+            String status) {
+
+        if (comboId <= 0) {
+            throw new IllegalArgumentException(
+                    "Combo không hợp lệ."
+            );
+        }
+
+        String normalizedStatus
+                = normalizeStatus(status);
+
+        return fnbAdminDAO.updateComboStatus(
+                comboId,
+                normalizedStatus
+        );
+    }
+
+    public boolean changeComboAllowedToSell(
+            int comboId,
+            boolean allowed) {
+
+        if (comboId <= 0) {
+            throw new IllegalArgumentException(
+                    "Combo không hợp lệ."
+            );
+        }
+
+        FnbComboDTO combo
+                = fnbAdminDAO.findComboById(comboId);
+
+        if (combo == null) {
+            throw new IllegalArgumentException(
+                    "Không tìm thấy combo."
+            );
+        }
+
+        if (allowed
+                && !"ACTIVE".equalsIgnoreCase(
+                        combo.getStatus()
+                )) {
+
+            throw new IllegalArgumentException(
+                    "Không thể cho phép bán combo "
+                    + "đang ngừng hoạt động."
+            );
+        }
+
+        return fnbAdminDAO.updateComboAllowedToSell(
+                comboId,
+                allowed
+        );
+    }
+
+    private void validateCombo(
+            FnbComboFormDTO dto) {
+
+        if (dto == null) {
+            throw new IllegalArgumentException(
+                    "Dữ liệu combo không hợp lệ."
+            );
+        }
+
+        String name = normalize(dto.getName());
+
+        if (name == null) {
+            throw new IllegalArgumentException(
+                    "Tên combo không được để trống."
+            );
+        }
+
+        if (name.length() > 150) {
+            throw new IllegalArgumentException(
+                    "Tên combo không được vượt quá 150 ký tự."
+            );
+        }
+
+        if (dto.getSellingPrice() == null
+                || dto.getSellingPrice().signum() < 0) {
+
+            throw new IllegalArgumentException(
+                    "Giá combo không hợp lệ."
+            );
+        }
+
+        if (dto.getItems() == null
+                || dto.getItems().isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "Combo phải có ít nhất một sản phẩm."
+            );
+        }
+
+        for (FnbComboItemDTO item : dto.getItems()) {
+
+            if (item.getProductId() <= 0) {
+                throw new IllegalArgumentException(
+                        "Sản phẩm trong combo không hợp lệ."
+                );
+            }
+
+            if (item.getQuantity() <= 0
+                    || item.getQuantity() > 99) {
+
+                throw new IllegalArgumentException(
+                        "Số lượng sản phẩm phải từ 1 đến 99."
+                );
+            }
+        }
+
+        dto.setName(name);
+        dto.setDescription(
+                normalizeNullable(dto.getDescription())
+        );
+        dto.setImageUrl(
+                normalizeNullable(dto.getImageUrl())
+        );
+    }
+
 }

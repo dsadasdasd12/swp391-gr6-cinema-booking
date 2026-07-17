@@ -20,6 +20,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import model.User;
 import service.AdminFnbService;
+import dto.FnbComboFormDTO;
+import dto.FnbComboItemDTO;
 
 /**
  *
@@ -31,7 +33,12 @@ import service.AdminFnbService;
     "/admin/fnb-dashboard/category/save",
     "/admin/fnb-dashboard/category/status",
     "/admin/fnb-dashboard/product/save",
-    "/admin/fnb-dashboard/product/status",})
+    "/admin/fnb-dashboard/product/status",
+    "/admin/fnb-dashboard/combo/save",
+    "/admin/fnb-dashboard/combo/status",
+    "/admin/fnb-dashboard/combo/toggle-sale"
+
+})
 public class AdminFnbController extends HttpServlet {
 
     private final AdminFnbService adminFnbService
@@ -152,6 +159,17 @@ public class AdminFnbController extends HttpServlet {
                 toggleProductSale(request, response);
                 break;
 
+            case "/admin/fnb-dashboard/combo/save":
+                saveCombo(request, response);
+                break;
+
+            case "/admin/fnb-dashboard/combo/status":
+                changeComboStatus(request, response);
+                break;
+
+            case "/admin/fnb-dashboard/combo/toggle-sale":
+                toggleComboSale(request, response);
+                break;
             default:
                 response.sendRedirect(
                         request.getContextPath() + "/admin/fnb-dashboard"
@@ -185,7 +203,15 @@ public class AdminFnbController extends HttpServlet {
                 selectedCategoryId
         );
         request.setAttribute("products", products);
+        request.setAttribute(
+                "combos",
+                adminFnbService.getAllCombos()
+        );
 
+        request.setAttribute(
+                "comboProducts",
+                adminFnbService.getActiveItemsForCombo()
+        );
         request.getRequestDispatcher(
                 "/pages/admin/fnb-dashboard.jsp"
         ).forward(request, response);
@@ -396,6 +422,251 @@ public class AdminFnbController extends HttpServlet {
                 request.getContextPath()
                 + "/admin/fnb-dashboard?categoryId="
                 + categoryId
+        );
+    }
+
+    private void saveCombo(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        String categoryIdRaw
+                = request.getParameter("categoryId");
+
+        try {
+            FnbComboFormDTO dto
+                    = new FnbComboFormDTO();
+
+            String idRaw
+                    = request.getParameter("id");
+
+            if (idRaw != null
+                    && !idRaw.isBlank()) {
+
+                dto.setId(
+                        Integer.parseInt(idRaw)
+                );
+            }
+
+            dto.setName(
+                    request.getParameter("name")
+            );
+
+            dto.setDescription(
+                    request.getParameter("description")
+            );
+
+            dto.setImageUrl(
+                    request.getParameter("imageUrl")
+            );
+
+            dto.setSellingPrice(
+                    new BigDecimal(
+                            request.getParameter(
+                                    "sellingPrice"
+                            )
+                    )
+            );
+
+            dto.setAllowedToSell(
+                    "true".equalsIgnoreCase(
+                            request.getParameter(
+                                    "allowedToSell"
+                            )
+                    )
+            );
+
+            String[] productIds
+                    = request.getParameterValues(
+                            "itemProductId"
+                    );
+
+            String[] quantities
+                    = request.getParameterValues(
+                            "itemQuantity"
+                    );
+
+            if (productIds != null
+                    && quantities != null) {
+
+                int size = Math.min(
+                        productIds.length,
+                        quantities.length
+                );
+
+                for (int i = 0; i < size; i++) {
+
+                    FnbComboItemDTO item
+                            = new FnbComboItemDTO();
+
+                    item.setProductId(
+                            Integer.parseInt(
+                                    productIds[i]
+                            )
+                    );
+
+                    item.setQuantity(
+                            Integer.parseInt(
+                                    quantities[i]
+                            )
+                    );
+
+                    dto.getItems().add(item);
+                }
+            }
+
+            adminFnbService.saveCombo(dto);
+
+            setFlash(
+                    request,
+                    dto.getId() == null
+                    ? "Tạo combo thành công."
+                    : "Cập nhật combo thành công.",
+                    "success"
+            );
+
+        } catch (Exception e) {
+
+            setFlash(
+                    request,
+                    e.getMessage(),
+                    "error"
+            );
+        }
+
+        redirectToDashboard(
+                request,
+                response,
+                categoryIdRaw
+        );
+    }
+
+    private void changeComboStatus(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        String categoryIdRaw
+                = request.getParameter("categoryId");
+
+        try {
+            int comboId
+                    = Integer.parseInt(
+                            request.getParameter("id")
+                    );
+
+            String status
+                    = request.getParameter("status");
+
+            adminFnbService.changeComboStatus(
+                    comboId,
+                    status
+            );
+
+            setFlash(
+                    request,
+                    "Cập nhật trạng thái combo thành công.",
+                    "success"
+            );
+
+        } catch (Exception e) {
+
+            setFlash(
+                    request,
+                    e.getMessage(),
+                    "error"
+            );
+        }
+
+        redirectToDashboard(
+                request,
+                response,
+                categoryIdRaw
+        );
+    }
+
+    private void redirectToDashboard(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String categoryIdRaw)
+            throws IOException {
+
+        String redirectUrl
+                = request.getContextPath()
+                + "/admin/fnb-dashboard";
+
+        if (categoryIdRaw != null
+                && !categoryIdRaw.isBlank()) {
+
+            try {
+                int categoryId
+                        = Integer.parseInt(categoryIdRaw);
+
+                if (categoryId > 0) {
+                    redirectUrl
+                            += "?categoryId="
+                            + categoryId;
+                }
+
+            } catch (NumberFormatException ignored) {
+                // Nếu categoryId không hợp lệ,
+                // quay về dashboard mặc định.
+            }
+        }
+
+        response.sendRedirect(redirectUrl);
+    }
+
+    private void toggleComboSale(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws IOException {
+
+        String categoryIdRaw
+                = request.getParameter("categoryId");
+
+        try {
+            int comboId
+                    = Integer.parseInt(
+                            request.getParameter(
+                                    "comboId"
+                            )
+                    );
+
+            boolean allowed
+                    = "true".equalsIgnoreCase(
+                            request.getParameter(
+                                    "allowed"
+                            )
+                    );
+
+            adminFnbService
+                    .changeComboAllowedToSell(
+                            comboId,
+                            allowed
+                    );
+
+            setFlash(
+                    request,
+                    allowed
+                            ? "Đã cho phép bán combo."
+                            : "Đã ngừng cho phép bán combo.",
+                    "success"
+            );
+
+        } catch (Exception e) {
+
+            setFlash(
+                    request,
+                    e.getMessage(),
+                    "error"
+            );
+        }
+
+        redirectToDashboard(
+                request,
+                response,
+                categoryIdRaw
         );
     }
 
