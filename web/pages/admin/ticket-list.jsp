@@ -109,30 +109,46 @@
                                 <td class="text-center">
                                     <c:choose>
                                         <c:when test="${not empty t.qrCodeBase64}">
-                                            <img src="data:image/png;base64,${t.qrCodeBase64}"
-                                                 alt="QR vé"
-                                                 class="rounded border shadow-sm"
-                                                 style="width:52px;height:52px;object-fit:contain;background:#fff;">
+                                            <c:set var="qrSrc" value="${t.qrCodeBase64}"/>
+                                            <c:if test="${not fn:startsWith(qrSrc, 'data:image')}">
+                                                <c:set var="qrSrc" value="data:image/png;base64,${qrSrc}"/>
+                                            </c:if>
+                                            <div class="d-inline-flex align-items-center justify-content-center p-1 bg-white rounded shadow-sm border border-secondary border-opacity-10" style="width: 60px; height: 60px;">
+                                                <img src="${qrSrc}"
+                                                     alt="QR vé"
+                                                     class="img-fluid"
+                                                     style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                                     onerror="this.onerror=null; this.outerHTML='<div class=\'d-inline-flex align-items-center justify-content-center rounded border border-danger border-opacity-25 bg-danger bg-opacity-10\' style=\'width:52px;height:52px;\'><i class=\'bi bi-qr-code text-danger fs-5\'></i></div>'">
+                                            </div>
                                         </c:when>
                                         <c:otherwise>
-                                            <div class="d-inline-flex align-items-center justify-content-center rounded border border-danger border-opacity-25 bg-danger bg-opacity-10"
-                                                 style="width:52px;height:52px;">
-                                                <i class="bi bi-exclamation-triangle text-danger"></i>
+                                            <div class="d-inline-flex align-items-center justify-content-center rounded border border-danger border-opacity-25 bg-danger bg-opacity-10 shadow-sm"
+                                                 style="width:60px;height:60px;">
+                                                <i class="bi bi-qr-code text-danger fs-5"></i>
                                             </div>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td>
-                                    <code class="small text-muted user-select-all">
-                                        <c:out value="${fn:substring(t.ticketUuid, 0, 8)}"/>…
-                                    </code>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <code class="px-2 py-1 bg-dark bg-opacity-10 text-dark rounded-2 small fw-semibold user-select-all" title="${t.ticketUuid}">
+                                            <c:out value="${fn:substring(t.ticketUuid, 0, 8)}"/>...
+                                        </code>
+                                    </div>
                                 </td>
                                 <td>
-                                    <div class="fw-semibold"><c:out value="${t.customerName}"/></div>
-                                    <div class="small text-muted"><c:out value="${t.customerEmail}"/></div>
+                                    <div class="fw-bold text-dark"><c:out value="${t.customerName}"/></div>
+                                    <div class="small text-muted d-flex align-items-center gap-1">
+                                        <i class="bi bi-envelope"></i>
+                                        <c:out value="${t.customerEmail}"/>
+                                    </div>
                                 </td>
-                                <td><c:out value="${t.movieTitle}"/></td>
-                                <td class="text-muted small"><c:out value="${t.showtimeStart}"/></td>
+                                <td>
+                                    <div class="fw-semibold text-dark"><c:out value="${t.movieTitle}"/></div>
+                                </td>
+                                <td>
+                                    <div class="small fw-medium text-secondary"><c:out value="${t.showtimeStart}"/></div>
+                                </td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${t.ticketStatus == 'ISSUED'}">
@@ -149,7 +165,7 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td class="text-muted small"><c:out value="${t.createdAtLabel}"/></td>
+                                <td class="text-secondary small fw-medium"><c:out value="${t.createdAtLabel}"/></td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
                                         <a href="${ctx}/admin/tickets?action=detail&amp;id=${t.bookingId > 0 ? t.bookingId : t.id}"

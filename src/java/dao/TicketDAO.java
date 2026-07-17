@@ -57,6 +57,52 @@ public class TicketDAO {
         return false;
     }
 
+    public boolean deleteTicket(int bookingId) {
+        Connection conn = DBContext.getInstance().getConnection();
+        boolean success = false;
+        try {
+            conn.setAutoCommit(false);
+            
+            String[] sqls = {
+                "DELETE FROM dbo.ATTENDANCE WHERE booking_id = ?",
+                "DELETE FROM dbo.REVIEWS WHERE booking_id = ?",
+                "DELETE FROM dbo.BOOKING_FNB WHERE booking_id = ?",
+                "DELETE FROM dbo.COUNTER_DISCOUNTS WHERE booking_id = ?",
+                "DELETE FROM dbo.PAYMENTS WHERE booking_id = ?",
+                "DELETE FROM dbo.BOOKING_SEATS WHERE booking_id = ?",
+                "DELETE FROM dbo.BOOKINGS WHERE id = ?"
+            };
+            
+            for (int i = 0; i < sqls.length; i++) {
+                String sql = sqls[i];
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, bookingId);
+                    ps.executeUpdate();
+                } catch (Exception e) {
+                    System.getLogger(TicketDAO.class.getName())
+                        .log(System.Logger.Level.ERROR, "Error executing: " + sql, e);
+                    if (i == sqls.length - 1) { // If deleting BOOKINGS fails, throw it to rollback!
+                        throw e;
+                    }
+                }
+            }
+            
+            conn.commit();
+            success = true;
+        } catch (SQLException e) {
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException ex) { }
+            System.getLogger(TicketDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "deleteTicket error", e);
+        } finally {
+            try {
+                if (conn != null) conn.setAutoCommit(true);
+            } catch (SQLException ex) { }
+        }
+        return success;
+    }
+
     // ── 5b. SELECT BY BOOKING ID ───────────────────────────────
 
     public double getBookingTotalPrice(int bookingId) {

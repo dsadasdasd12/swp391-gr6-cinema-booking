@@ -621,7 +621,7 @@ public class MovieService {
             MovieDTO dto = new MovieDTO(
                     m.getId(), m.getTitle(), m.getStatus(), m.getStatusLabel(),
                     m.getCategoryNames(), m.getDurationLabel(), m.getPosterUrl(),
-                    m.getDirector(), active);
+                    m.getDirector(), m.getActor(), active);
             dtos.add(dto);
         }
         return dtos;

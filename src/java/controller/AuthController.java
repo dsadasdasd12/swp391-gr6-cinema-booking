@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.User;
 import service.AuthService;
+import service.NotificationService;
 import util.PasswordUtil;
 
 @WebServlet(name = "AuthController", urlPatterns = {
@@ -26,6 +27,7 @@ public class AuthController extends HttpServlet {
     private static final int LOGIN_SESSION_TIMEOUT_SECONDS = 60 * 60;
 
     private final AuthService authService = new AuthService();
+    private final NotificationService notifService = new NotificationService();
 
     @Override
     protected void doGet(HttpServletRequest request,
@@ -210,6 +212,10 @@ public class AuthController extends HttpServlet {
                 dto.getEmail(),
                 dto.getPassword()
         );
+        
+        if (createdUser != null) {
+            notifService.sendSystemWelcome(createdUser);
+        }
 
         HttpSession session = request.getSession();
 

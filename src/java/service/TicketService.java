@@ -16,6 +16,11 @@ import java.util.List;
 public class TicketService {
     private final AttendanceDAO attendanceDAO = new AttendanceDAO();
 
+
+    public boolean deleteTicket(int bookingId) {
+        return ticketDAO.deleteTicket(bookingId);
+    }
+
     public String checkInTicket(int bookingId, int staffId) {
         return attendanceDAO.checkInTicket(bookingId, staffId);
     }

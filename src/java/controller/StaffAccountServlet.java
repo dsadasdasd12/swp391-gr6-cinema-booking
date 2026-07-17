@@ -13,6 +13,7 @@ import model.User;
 
 import java.io.IOException;
 import util.PasswordUtil;
+import service.NotificationService;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class StaffAccountServlet extends HttpServlet {
 
     private final AdminUserDAO userDAO = new AdminUserDAO();
     private final BranchDAO branchDAO = new BranchDAO();
+    private final NotificationService notifService = new NotificationService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -94,9 +96,16 @@ public class StaffAccountServlet extends HttpServlet {
             u.setRole(mapRoleIdToName(rId));
             u.setPhone("");
 
+            if (rId == 2 && userDAO.hasBranchManager(bId, 0)) {
+                req.getSession().setAttribute("flashError", "Lỗi: Chi nhánh này đã có Quản lý chi nhánh!");
+                resp.sendRedirect(req.getContextPath() + "/admin/accounts/staff");
+                return;
+            }
+
             String defaultHash = PasswordUtil.hashPassword("123");
             int newId = userDAO.insertStaff(u, defaultHash, bId);
             if (newId > 0) {
+                notifService.sendSystemAccountCreated(email != null ? email.trim().toLowerCase() : "", mapRoleIdToName(rId), fullName);
                 req.getSession().setAttribute("flashSuccess", "Thêm mới tài khoản nhân viên thành công!");
             } else {
                 req.getSession().setAttribute("flashError", "Email đã tồn tại hoặc dữ liệu không hợp lệ.");
@@ -107,6 +116,12 @@ public class StaffAccountServlet extends HttpServlet {
             int rId = Integer.parseInt(req.getParameter("roleId"));
             int bId = Integer.parseInt(req.getParameter("branchId"));
             String status = req.getParameter("status");
+
+            if (rId == 2 && userDAO.hasBranchManager(bId, userId)) {
+                req.getSession().setAttribute("flashError", "Lỗi: Chi nhánh này đã có Quản lý chi nhánh!");
+                resp.sendRedirect(req.getContextPath() + "/admin/accounts/staff");
+                return;
+            }
 
             boolean updated = userDAO.updateStaffInfo(userId, fullName, mapRoleIdToName(rId), "", bId, status);
             if (updated) {
@@ -125,8 +140,12 @@ public class StaffAccountServlet extends HttpServlet {
             }
 
         } else if ("delete".equalsIgnoreCase(action)) {
+            ManagedUser target = userDAO.findById(userId);
             boolean deleted = userDAO.deleteUser(userId);
             if (deleted) {
+                if (target != null) {
+                    notifService.sendSystemAccountDeleted(target.getEmail(), target.getRole());
+                }
                 req.getSession().setAttribute("flashSuccess", "Xóa tài khoản nhân viên thành công!");
             } else {
                 req.getSession().setAttribute("flashError", "Xóa tài khoản thất bại.");

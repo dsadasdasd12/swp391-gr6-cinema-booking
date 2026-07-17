@@ -50,6 +50,7 @@ public class TicketController extends HttpServlet {
             case "use"   -> handleUse  (req, resp);
             case "retry" -> handleRetry(req, resp);
             case "issue" -> handleIssue(req, resp);
+            case "delete"-> handleDelete(req, resp);
             default      -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
@@ -200,5 +201,22 @@ public class TicketController extends HttpServlet {
 
     private static String trim(String s) {
         return s != null ? s.trim() : null;
+    }
+
+    private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        try {
+            int bookingId = Integer.parseInt(req.getParameter("bookingId"));
+            boolean success = ticketService.deleteTicket(bookingId);
+            if (success) {
+                resp.getWriter().write("{\"success\":true,\"message\":\"Đã xóa vé và dữ liệu liên quan thành công.\"}");
+            } else {
+                resp.getWriter().write("{\"success\":false,\"message\":\"Xóa vé thất bại.\"}");
+            }
+        } catch (Exception e) {
+            resp.getWriter().write("{\"success\":false,\"message\":\"Lỗi dữ liệu đầu vào.\"}");
+        }
     }
 }

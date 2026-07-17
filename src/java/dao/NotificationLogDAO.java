@@ -321,4 +321,18 @@ public class NotificationLogDAO {
             return 0;
         }
     }
+
+    public boolean delete(int id) {
+        String sql = "DELETE FROM dbo.NOTIFICATIONS WHERE id = ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        if (conn == null) return false;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.getLogger(NotificationLogDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "delete notification thất bại", e);
+        }
+        return false;
+    }
 }
