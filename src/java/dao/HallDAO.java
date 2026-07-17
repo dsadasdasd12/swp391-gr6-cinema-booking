@@ -24,7 +24,7 @@ public class HallDAO {
                 + "FROM dbo.HALLS h "
                 + "JOIN dbo.BRANCHES b ON h.branch_id = b.id "
                 + "WHERE h.branch_id = ? "
-                + "ORDER BY h.last_update DESC, h.id DESC";
+                + "ORDER BY h.total_seats DESC, h.id DESC";
 
         List<Hall> halls = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
@@ -340,6 +340,7 @@ public class HallDAO {
 
     @FunctionalInterface
     private interface SqlWork {
+
         boolean execute(Connection conn) throws SQLException;
     }
 

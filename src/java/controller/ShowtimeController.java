@@ -25,18 +25,26 @@ import service.ShowtimeService;
 /**
  * Controller cho luồng Manager quản lý suất chiếu tại chi nhánh được phân công.
  *
- * <p>Luồng UI:</p>
+ * <p>
+ * Luồng UI:</p>
  * <ul>
- *   <li>GET {@code /manager/showtimesmanagement}: liệt kê suất chiếu của branch Manager.</li>
- *   <li>GET {@code /manager/showtimesmanagement/create}: mở form tạo suất chiếu.</li>
- *   <li>GET {@code /manager/showtimesmanagement/edit?id=...}: mở form sửa suất chiếu.</li>
- *   <li>POST {@code /manager/showtimesmanagement/create}: validate và tạo suất chiếu mới.</li>
- *   <li>POST {@code /manager/showtimesmanagement/edit}: validate và cập nhật suất chiếu.</li>
- *   <li>POST {@code /manager/showtimesmanagement/cancel}: hủy suất chiếu nếu thuộc branch Manager.</li>
+ * <li>GET {@code /manager/showtimesmanagement}: liệt kê suất chiếu của branch
+ * Manager.</li>
+ * <li>GET {@code /manager/showtimesmanagement/create}: mở form tạo suất
+ * chiếu.</li>
+ * <li>GET {@code /manager/showtimesmanagement/edit?id=...}: mở form sửa suất
+ * chiếu.</li>
+ * <li>POST {@code /manager/showtimesmanagement/create}: validate và tạo suất
+ * chiếu mới.</li>
+ * <li>POST {@code /manager/showtimesmanagement/edit}: validate và cập nhật suất
+ * chiếu.</li>
+ * <li>POST {@code /manager/showtimesmanagement/cancel}: hủy suất chiếu nếu
+ * thuộc branch Manager.</li>
  * </ul>
  *
- * <p>Controller luôn lấy branch từ Manager đang đăng nhập và chỉ cho thao tác trên hall/movie
- * thuộc branch đó.</p>
+ * <p>
+ * Controller luôn lấy branch từ Manager đang đăng nhập và chỉ cho thao tác trên
+ * hall/movie thuộc branch đó.</p>
  *
  * @author HuyPD
  */
@@ -144,6 +152,7 @@ public class ShowtimeController extends HttpServlet {
 
         request.setAttribute("branch", branch);
         request.setAttribute("showtimes", showtimes);
+        request.setAttribute("totalShowtimes", showtimes.size());
 
         request.getRequestDispatcher(SHOWTIME_LIST_PAGE)
                 .forward(request, response);
@@ -214,7 +223,7 @@ public class ShowtimeController extends HttpServlet {
         int showtimeId = parseInt(
                 request.getParameter("id")
         );
-        
+
         /*check showtime thuoc branch*/
         Showtime showtime = showtimeService.getShowtimeByIdAndManagerId(
                 showtimeId,
@@ -235,7 +244,7 @@ public class ShowtimeController extends HttpServlet {
             return;
         }
 
-            /* lay hall hien tai cua showtime */
+        /* lay hall hien tai cua showtime */
         Hall hall = hallDAO.findByIdAndBranchId(
                 showtime.getHallId(),
                 branch.getId()
@@ -515,7 +524,7 @@ public class ShowtimeController extends HttpServlet {
 
         return showtime;
     }
-    
+
     /*form create*/
     private int prepareFormData(
             HttpServletRequest request,
@@ -534,14 +543,14 @@ public class ShowtimeController extends HttpServlet {
             List<Hall> branchHalls = hallDAO.findByBranchId(
                     branch.getId()
             );
-            
+
             /*hall active*/
             for (Hall hall : branchHalls) {
                 if (isHallActive(hall)) {
                     halls.add(hall);
                 }
             }
-            
+
             /*hall mac dinh*/
             if (containsHall(halls, requestedHallId)) {
                 selectedHallId = requestedHallId;
@@ -549,7 +558,7 @@ public class ShowtimeController extends HttpServlet {
             } else if (!halls.isEmpty()) {
                 selectedHallId = halls.get(0).getId();
             }
-            
+
             /*lay danh sach phim*/
             for (Hall hall : halls) {
                 List<Movie> assignedMovies
@@ -581,7 +590,7 @@ public class ShowtimeController extends HttpServlet {
         return selectedHallId;
     }
 
-        /*form edit*/
+    /*form edit*/
     private void prepareEditFormData(
             HttpServletRequest request,
             Branch branch,
