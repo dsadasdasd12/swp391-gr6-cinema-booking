@@ -36,7 +36,6 @@
                         <h1 class="page-title">
                             Chọn phim tại
                             <c:out value="${branch.name}"/>
-                            · Mã rạp: #<c:out value="${branch.id}"/>
                         </h1>
                         <!--                    <h1 class="page-title">Chọn phim tại <c:out value="${branch.name}"/></h1>-->
                     </div>
