@@ -16,7 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Tải poster phim từ internet và lưu vào thư mục web/assets/uploads/movies/{id}/.
+ * Tải poster phim từ internet và lưu vào thư mục
+ * web/assets/uploads/movies/{id}/.
  */
 public final class MoviePosterService {
 
@@ -25,7 +26,9 @@ public final class MoviePosterService {
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
-    /** Poster TMDB / CDN công khai theo id phim mẫu */
+    /**
+     * Poster TMDB / CDN công khai theo id phim mẫu
+     */
     private static final Map<Integer, String> POSTER_SOURCES = new LinkedHashMap<>();
 
     static {
@@ -35,7 +38,8 @@ public final class MoviePosterService {
         POSTER_SOURCES.put(4, "https://image.tmdb.org/t/p/w500/xvqDOS8FFetD5lSsV9cYQ955i6.jpg"); // Inside Out 2
     }
 
-    private MoviePosterService() {}
+    private MoviePosterService() {
+    }
 
     public static void ensurePosters(Connection conn, String webRootPath) {
         if (conn == null || webRootPath == null) {

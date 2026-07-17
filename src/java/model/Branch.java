@@ -23,8 +23,8 @@ public class Branch {
     }
 
     public Branch(int id, int cinemaId, String name, String address, String phone,
-                  LocalTime openTime, LocalTime closeTime, String status,
-                  LocalDateTime lastUpdate) {
+            LocalTime openTime, LocalTime closeTime, String status,
+            LocalDateTime lastUpdate) {
         this.id = id;
         this.cinemaId = cinemaId;
         this.name = name;
@@ -49,7 +49,7 @@ public class Branch {
 
     public void setId(int id) {
         this.id = id;
-    }   
+    }
 
     public int getCinemaId() {
         return cinemaId;
@@ -65,7 +65,7 @@ public class Branch {
 
     public void setName(String name) {
         this.name = name;
-    }   
+    }
 
     public String getAddress() {
         return address;
@@ -73,7 +73,7 @@ public class Branch {
 
     public void setAddress(String address) {
         this.address = address;
-    }   
+    }
 
     public String getPhone() {
         return phone;
@@ -81,7 +81,7 @@ public class Branch {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }   
+    }
 
     public LocalTime getOpenTime() {
         return openTime;
@@ -89,7 +89,7 @@ public class Branch {
 
     public void setOpenTime(LocalTime openTime) {
         this.openTime = openTime;
-    }   
+    }
 
     public LocalTime getCloseTime() {
         return closeTime;
@@ -97,7 +97,7 @@ public class Branch {
 
     public void setCloseTime(LocalTime closeTime) {
         this.closeTime = closeTime;
-    }   
+    }
 
     public String getStatus() {
         return status;
@@ -105,7 +105,7 @@ public class Branch {
 
     public void setStatus(String status) {
         this.status = status;
-    }   
+    }
 
     public LocalDateTime getLastUpdate() {
         return lastUpdate;

@@ -20,11 +20,10 @@ import util.DBContext;
 public class MovieManagementDAO {
 
     /**
-     * Lấy toàn bộ phim để hiển thị trên màn hình
-     * phân bổ phim cho một chi nhánh.
-     * Toàn bộ phim trong bảng MOVIES
-     * Đánh dấu phim nào đã nằm trong BRANCH_MOVIES của Branch hiện tại.
-     * assigned = true nếu phim đã được gán cho chi nhánh. ( LEFT JOIN )
+     * Lấy toàn bộ phim để hiển thị trên màn hình phân bổ phim cho một chi
+     * nhánh. Toàn bộ phim trong bảng MOVIES Đánh dấu phim nào đã nằm trong
+     * BRANCH_MOVIES của Branch hiện tại. assigned = true nếu phim đã được gán
+     * cho chi nhánh. ( LEFT JOIN )
      */
     public List<MovieAssignmentItem> findItemsForBranch(int branchId) {
         String sql = "SELECT m.id, m.title, m.duration_min, m.status, "
@@ -57,8 +56,8 @@ public class MovieManagementDAO {
     /**
      * Lấy danh sách phim để phân bổ cho phòng chiếu.
      *
-     * Chỉ hiển thị những phim đã được phân bổ cho chi nhánh
-     * chứa phòng chiếu đó.
+     * Chỉ hiển thị những phim đã được phân bổ cho chi nhánh chứa phòng chiếu
+     * đó.
      */
     public List<MovieAssignmentItem> findItemsForHall(int hallId) {
         String sql = "SELECT m.id, m.title, m.duration_min, m.status, "
@@ -99,7 +98,7 @@ public class MovieManagementDAO {
  * Chỉ lấy Movie:
     - Đã được phân bổ vào HALL_MOVIES.
     - Có trạng thái NOW_SHOWING hoặc COMING_SOON.
-    */
+     */
     public List<Movie> findMoviesAssignedToHall(int hallId) {
         String sql = "SELECT m.id, m.title, m.duration_min, m.status "
                 + "FROM dbo.HALL_MOVIES hm "
@@ -213,8 +212,8 @@ public class MovieManagementDAO {
     }
 
     /**
-     * Tìm phim bị bỏ khỏi chi nhánh nhưng vẫn còn suất chiếu
-     * chưa kết thúc tại chi nhánh đó.
+     * Tìm phim bị bỏ khỏi chi nhánh nhưng vẫn còn suất chiếu chưa kết thúc tại
+     * chi nhánh đó.
      */
     public String findBranchRemovalConflict(
             int branchId,
@@ -240,8 +239,8 @@ public class MovieManagementDAO {
     }
 
     /**
-     * Tìm phim bị bỏ khỏi phòng nhưng vẫn còn suất chiếu
-     * chưa kết thúc tại chính phòng đó.
+     * Tìm phim bị bỏ khỏi phòng nhưng vẫn còn suất chiếu chưa kết thúc tại
+     * chính phòng đó.
      */
     public String findHallRemovalConflict(
             int hallId,
@@ -303,8 +302,8 @@ public class MovieManagementDAO {
     /**
      * Lưu toàn bộ danh sách phim được chọn cho chi nhánh.
      *
-     * Phim bị bỏ chọn sẽ bị xóa khỏi BRANCH_MOVIES.
-     * Đồng thời phim đó cũng bị xóa khỏi các phòng thuộc chi nhánh.
+     * Phim bị bỏ chọn sẽ bị xóa khỏi BRANCH_MOVIES. Đồng thời phim đó cũng bị
+     * xóa khỏi các phòng thuộc chi nhánh.
      */
     public boolean saveBranchAssignments(
             int branchId,
@@ -351,10 +350,8 @@ public class MovieManagementDAO {
                     + "VALUES (?, ?)";
 
             try (PreparedStatement deleteHallPs
-                    = conn.prepareStatement(deleteHallSql);
-                    PreparedStatement deleteBranchPs
-                    = conn.prepareStatement(deleteBranchSql);
-                    PreparedStatement insertBranchPs
+                    = conn.prepareStatement(deleteHallSql); PreparedStatement deleteBranchPs
+                    = conn.prepareStatement(deleteBranchSql); PreparedStatement insertBranchPs
                     = conn.prepareStatement(insertBranchSql)) {
 
                 /*
@@ -613,6 +610,7 @@ public class MovieManagementDAO {
                 rs.getBoolean("assigned")
         );
     }
+
     /**
      * Lấy toàn bộ phim để hiển thị trên màn hình quản lý thời lượng.
      */
@@ -629,8 +627,7 @@ public class MovieManagementDAO {
             return movies;
         }
 
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 movies.add(mapMovieForDurationManagement(rs));
@@ -685,9 +682,9 @@ public class MovieManagementDAO {
     /**
      * Kiểm tra phim còn suất chiếu chưa kết thúc hay không.
      *
-     * Suất đã hủy không ảnh hưởng đến việc sửa thời lượng. Chỉ cần một
-     * suất chiếu còn đang diễn ra hoặc nằm trong tương lai thì không nên
-     * đổi MOVIES.duration_min, vì SHOWTIMES.end_time đã được lưu cố định.
+     * Suất đã hủy không ảnh hưởng đến việc sửa thời lượng. Chỉ cần một suất
+     * chiếu còn đang diễn ra hoặc nằm trong tương lai thì không nên đổi
+     * MOVIES.duration_min, vì SHOWTIMES.end_time đã được lưu cố định.
      */
     public boolean hasUnfinishedShowtimes(int movieId) {
         String sql = "SELECT TOP 1 1 "

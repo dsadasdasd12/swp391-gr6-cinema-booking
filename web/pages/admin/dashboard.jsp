@@ -91,7 +91,7 @@
 
 <!-- ── MAIN DASHBOARD ARCHITECTURE ── -->
 <div class="d-flex flex-wrap gap-4" style="margin-top: var(--s-5);">
-    
+
     <!-- LEFT PANEL: Recent Bookings (Flex-1) -->
     <div class="rv-card" style="flex: 2; min-width: 500px;">
         <div class="rv-card__header">

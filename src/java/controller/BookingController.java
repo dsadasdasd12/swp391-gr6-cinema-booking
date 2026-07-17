@@ -1,9 +1,8 @@
 package controller;
 
-
-
 import dto.BookingDraft;
 import dto.BookingDraftView;
+import dto.BookingFnbLine;
 import dto.SeatMap;
 import dto.VoucherQuote;
 import java.io.IOException;
@@ -26,6 +25,7 @@ import model.Movie;
 import model.Showtime;
 import model.User;
 import service.BookingService;
+import dao.BookingFnbDAO;
 import service.BranchService;
 import service.CinemaService;
 import service.MovieService;
@@ -34,18 +34,27 @@ import service.ShowtimeService;
 /**
  * Controller điều phối toàn bộ luồng đặt vé online của khách hàng.
  *
- * <p>Luồng đặt vé chính:</p>
+ * <p>
+ * Luồng đặt vé chính:</p>
  * <ul>
- *   <li>GET {@code /booking/start}: hiển thị danh sách chi nhánh active để user chọn branch.</li>
- *   <li>GET {@code /booking/movies?branchId=...}: hiển thị phim có thể đặt tại chi nhánh.</li>
- *   <li>GET {@code /booking/showtimes?branchId=...&movieId=...&date=...}: hiển thị suất chiếu.</li>
- *   <li>GET {@code /booking/seats?showtimeId=...}: hiển thị sơ đồ ghế và trạng thái ghế.</li>
- *   <li>POST {@code /booking/seats}: validate ghế, tạo {@link BookingDraft} trong session.</li>
- *   <li>GET {@code /booking/confirm}: dựng {@link BookingDraftView} để user kiểm tra booking.</li>
- *   <li>POST {@code /booking/confirm}: tạo booking pending, xóa draft, chuyển sang chi tiết booking.</li>
+ * <li>GET {@code /booking/start}: hiển thị danh sách chi nhánh active để user
+ * chọn branch.</li>
+ * <li>GET {@code /booking/movies?branchId=...}: hiển thị phim có thể đặt tại
+ * chi nhánh.</li>
+ * <li>GET {@code /booking/showtimes?branchId=...&movieId=...&date=...}: hiển
+ * thị suất chiếu.</li>
+ * <li>GET {@code /booking/seats?showtimeId=...}: hiển thị sơ đồ ghế và trạng
+ * thái ghế.</li>
+ * <li>POST {@code /booking/seats}: validate ghế, tạo {@link BookingDraft} trong
+ * session.</li>
+ * <li>GET {@code /booking/confirm}: dựng {@link BookingDraftView} để user kiểm
+ * tra booking.</li>
+ * <li>POST {@code /booking/confirm}: tạo booking pending, xóa draft, chuyển
+ * sang chi tiết booking.</li>
  * </ul>
  *
- * <p>Ghi chú: mọi route booking đều yêu cầu user đã đăng nhập. Nếu chưa đăng nhập,
+ * <p>
+ * Ghi chú: mọi route booking đều yêu cầu user đã đăng nhập. Nếu chưa đăng nhập,
  * controller redirect về {@code /login}.</p>
  *
  * @author HuyPD
@@ -56,6 +65,7 @@ import service.ShowtimeService;
     "/booking/movies",
     "/booking/showtimes",
     "/booking/seats",
+    "/booking/fnb",
     "/booking/confirm"
 })
 public class BookingController extends HttpServlet {
@@ -80,6 +90,7 @@ public class BookingController extends HttpServlet {
     private final MovieService movieService = new MovieService();
     private final ShowtimeService showtimeService = new ShowtimeService();
     private final BookingService bookingService = new BookingService();
+    private final BookingFnbDAO bookingFnbDAO = new BookingFnbDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -116,6 +127,9 @@ public class BookingController extends HttpServlet {
                 // Buoc xac nhan thong tin booking truoc khi tao booking that trong DB.
                 showConfirm(request, response, null);
                 break;
+            case "/booking/fnb":
+                showFnb(request, response, null);
+                break;
             case "/booking/start":
             default:
                 // Buoc dau tien: chon chi nhanh.
@@ -149,6 +163,9 @@ public class BookingController extends HttpServlet {
                 // User bam xac nhan tao booking.
                 submitConfirm(user, request, response);
                 break;
+            case "/booking/fnb":
+                submitFnb(request, response);
+                break;
             default:
                 // POST sai route thi dua ve dau luong booking.
                 response.sendRedirect(request.getContextPath() + "/booking/start");
@@ -172,7 +189,8 @@ public class BookingController extends HttpServlet {
     }
 
     /**
-     * Bước 1 của booking: hiển thị danh sách chi nhánh active để user chọn nơi xem phim.
+     * Bước 1 của booking: hiển thị danh sách chi nhánh active để user chọn nơi
+     * xem phim.
      */
     private void showStart(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -183,8 +201,8 @@ public class BookingController extends HttpServlet {
     }
 
     /**
-     * Bước 2 của booking: sau khi chọn branch, hiển thị các phim có suất chiếu/được phân bổ
-     * tại branch đó.
+     * Bước 2 của booking: sau khi chọn branch, hiển thị các phim có suất
+     * chiếu/được phân bổ tại branch đó.
      */
     private void showMovies(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -206,7 +224,8 @@ public class BookingController extends HttpServlet {
     }
 
     /**
-     * Bước 3 của booking: sau khi chọn phim, hiển thị các suất chiếu bookable theo ngày.
+     * Bước 3 của booking: sau khi chọn phim, hiển thị các suất chiếu bookable
+     * theo ngày.
      */
     private void showShowtimes(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -251,7 +270,8 @@ public class BookingController extends HttpServlet {
     }
 
     /**
-     * Bước 4 của booking: hiển thị sơ đồ ghế của suất chiếu và trạng thái từng ghế.
+     * Bước 4 của booking: hiển thị sơ đồ ghế của suất chiếu và trạng thái từng
+     * ghế.
      */
     private void showSeats(HttpServletRequest request, HttpServletResponse response, String error)
             throws ServletException, IOException {
@@ -275,15 +295,16 @@ public class BookingController extends HttpServlet {
 
         // error co the null; neu co thi JSP hien loi validate ghe.
         request.setAttribute("error", error);
-        
+
         dao.SeatTypeDAO seatTypeDAO = new dao.SeatTypeDAO();
         request.setAttribute("allSeatTypes", seatTypeDAO.findAll());
-        
+
         request.getRequestDispatcher("/pages/booking/seats.jsp").forward(request, response);
     }
 
     /**
-     * Xử lý bước chọn ghế: validate showtime/seat, sau đó lưu BookingDraft vào session.
+     * Xử lý bước chọn ghế: validate showtime/seat, sau đó lưu BookingDraft vào
+     * session.
      */
     private void submitSeats(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -307,16 +328,63 @@ public class BookingController extends HttpServlet {
             request.getSession().setAttribute(DRAFT_SESSION_KEY, draft);
 
             // Chuyen sang buoc xac nhan thong tin booking.
-            response.sendRedirect(request.getContextPath() + "/booking/confirm");
+            response.sendRedirect(request.getContextPath() + "/booking/fnb");
         } catch (IllegalArgumentException e) {
             // Neu validate loi, quay lai man ghe va hien message loi.
             showSeats(request, response, e.getMessage());
         }
     }
 
+    private void showFnb(HttpServletRequest request, HttpServletResponse response, String error)
+            throws ServletException, IOException {
+        BookingDraft draft = currentDraft(request);
+        if (draft == null) {
+            response.sendRedirect(request.getContextPath() + "/booking/start");
+            return;
+        }
+        try {
+            BookingDraftView view = bookingService.buildDraftView(draft.getShowtimeId(), draft.getSeatIds());
+            request.setAttribute("draftView", view);
+            request.setAttribute("fnbOptions", bookingFnbDAO.findSellableByBranch(view.getShowtime().getBranchId()));
+            request.setAttribute("selectedFnb", draft.getFnbQuantities());
+            request.setAttribute("error", error);
+            request.getRequestDispatcher("/pages/booking/fnb.jsp").forward(request, response);
+        } catch (IllegalArgumentException e) {
+            showSeats(request, response, e.getMessage());
+        }
+    }
+
+    private void submitFnb(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        BookingDraft draft = currentDraft(request);
+        if (draft == null) {
+            response.sendRedirect(request.getContextPath() + "/booking/start");
+            return;
+        }
+        Map<String, Integer> quantities = new LinkedHashMap<>();
+        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+            if (!entry.getKey().startsWith("qty_")) {
+                continue;
+            }
+            String key = entry.getKey().substring(4).replaceFirst("_", ":");
+            int qty = parseNonNegativeInt(entry.getValue().length == 0 ? null : entry.getValue()[0]);
+            if (qty > 0) {
+                quantities.put(key, qty);
+            }
+        }
+        try {
+            BookingDraftView view = bookingService.buildDraftView(draft.getShowtimeId(), draft.getSeatIds());
+            bookingFnbDAO.resolveSelection(view.getShowtime().getBranchId(), quantities);
+            draft.setFnbQuantities(quantities);
+            response.sendRedirect(request.getContextPath() + "/booking/confirm");
+        } catch (IllegalArgumentException e) {
+            showFnb(request, response, e.getMessage());
+        }
+    }
+
     /**
-     * Bước xác nhận: dựng BookingDraftView từ draft trong session để user kiểm tra lại
-     * phim, suất chiếu, ghế và tổng tiền trước khi tạo booking.
+     * Bước xác nhận: dựng BookingDraftView từ draft trong session để user kiểm
+     * tra lại phim, suất chiếu, ghế và tổng tiền trước khi tạo booking.
      */
     private void showConfirm(HttpServletRequest request, HttpServletResponse response, String error)
             throws ServletException, IOException {
@@ -339,6 +407,8 @@ public class BookingController extends HttpServlet {
                     draft.getShowtimeId(),
                     draft.getSeatIds()
             );
+            draftView.setFnbLines(bookingFnbDAO.resolveSelection(
+                    draftView.getShowtime().getBranchId(), draft.getFnbQuantities()));
             // Dua draftView sang JSP confirm de user kiem tra lai truoc khi dat.
             request.setAttribute("draftView", draftView);
             String voucherCode = currentVoucherCode(request);
@@ -361,14 +431,15 @@ public class BookingController extends HttpServlet {
             request.setAttribute("draftInvalid", Boolean.TRUE);
             request.setAttribute("error", e.getMessage());
         }
-        
+
         // forward vi can giu draftView/error trong request.
         request.getRequestDispatcher("/pages/booking/confirm.jsp").forward(request, response);
     }
 
     /**
-     * Xử lý xác nhận booking: tạo booking pending trong DB, xóa draft khỏi session và
-     * chuyển user sang trang chi tiết booking để theo dõi/thanh toán.
+     * Xử lý xác nhận booking: tạo booking pending trong DB, xóa draft khỏi
+     * session và chuyển user sang trang chi tiết booking để theo dõi/thanh
+     * toán.
      */
     private void submitConfirm(User user, HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -386,6 +457,8 @@ public class BookingController extends HttpServlet {
                     draft.getShowtimeId(),
                     draft.getSeatIds()
             );
+            draftView.setFnbLines(bookingFnbDAO.resolveSelection(
+                    draftView.getShowtime().getBranchId(), draft.getFnbQuantities()));
             String requestedAction = request.getParameter("action");
             String submittedVoucher = request.getParameter("voucherCode");
             if ("applyVoucher".equals(requestedAction)) {
@@ -462,7 +535,9 @@ public class BookingController extends HttpServlet {
 
     private String currentVoucherCode(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session == null) return null;
+        if (session == null) {
+            return null;
+        }
         Object value = session.getAttribute(VOUCHER_SESSION_KEY);
         return value instanceof String && !((String) value).trim().isEmpty()
                 ? ((String) value).trim() : null;
@@ -491,6 +566,17 @@ public class BookingController extends HttpServlet {
             return parsed > 0 ? parsed : 0;
         } catch (NumberFormatException e) {
             // Chuoi khong phai so thi khong nem loi 500, tra 0 de controller xu ly.
+            return 0;
+        }
+    }
+
+    private int parseNonNegativeInt(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return 0;
+        }
+        try {
+            return Math.max(0, Integer.parseInt(value.trim()));
+        } catch (NumberFormatException e) {
             return 0;
         }
     }

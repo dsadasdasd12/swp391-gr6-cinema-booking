@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.User;
 import service.AuthService;
+import service.NotificationService;
 import util.PasswordUtil;
 
 @WebServlet(name = "AuthController", urlPatterns = {
@@ -26,6 +27,7 @@ public class AuthController extends HttpServlet {
     private static final int LOGIN_SESSION_TIMEOUT_SECONDS = 60 * 60;
 
     private final AuthService authService = new AuthService();
+    private final NotificationService notifService = new NotificationService();
 
     @Override
     protected void doGet(HttpServletRequest request,
@@ -124,9 +126,8 @@ public class AuthController extends HttpServlet {
         String password = request.getParameter("password");
 
         email = email == null ? "" : email.trim();
-        
-        System.out.println(password);
-        
+
+        // Kiểm tra dữ liệu đầu vào trước khi gọi service xác thực.
         if (email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập email và mật khẩu");
             request.setAttribute("email", email);
@@ -145,6 +146,7 @@ public class AuthController extends HttpServlet {
 
         if (!user.isEmailVerified()) {
 
+            // Tài khoản chưa xác thực email không được tạo session đăng nhập hoàn chỉnh.
             HttpSession session = request.getSession();
 
             authService.sendVerifyOtp(getServletContext(), session, user);
@@ -153,6 +155,7 @@ public class AuthController extends HttpServlet {
             return;
         }
 
+        // Chỉ tạo session sau khi xác thực mật khẩu và trạng thái email đều hợp lệ.
         HttpSession session = request.getSession();
         session.setMaxInactiveInterval(LOGIN_SESSION_TIMEOUT_SECONDS);
         session.setAttribute("user", user);
@@ -210,6 +213,10 @@ public class AuthController extends HttpServlet {
                 dto.getEmail(),
                 dto.getPassword()
         );
+        
+        if (createdUser != null) {
+            notifService.sendSystemWelcome(createdUser);
+        }
 
         HttpSession session = request.getSession();
 

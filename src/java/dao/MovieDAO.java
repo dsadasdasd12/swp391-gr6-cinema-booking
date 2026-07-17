@@ -26,8 +26,8 @@ import util.EncodingUtil;
  * <p>
  * Hỗ trợ các thao tác duyệt phim của module này:
  * <ul>
- *   <li>duyệt / tìm kiếm / lọc kèm phân trang ({@link #search})</li>
- *   <li>xem chi tiết một phim ({@link #findById})</li>
+ * <li>duyệt / tìm kiếm / lọc kèm phân trang ({@link #search})</li>
+ * <li>xem chi tiết một phim ({@link #findById})</li>
  * </ul>
  * Mọi giá trị do người dùng nhập đều được truyền qua tham số của
  * {@link PreparedStatement}; chuỗi duy nhất được ghép thẳng vào SQL là mệnh đề
@@ -41,9 +41,11 @@ public class MovieDAO {
     private final LanguageDAO languageDAO = new LanguageDAO();
     private Boolean hasEndDateColumn;
 
-    /** Các truy vấn con tính điểm/đếm đánh giá cho từng phim. */
-    private static final String RATING_SUBQUERY =
-            "(SELECT AVG(CAST(r.rating AS FLOAT)) FROM dbo.REVIEWS r "
+    /**
+     * Các truy vấn con tính điểm/đếm đánh giá cho từng phim.
+     */
+    private static final String RATING_SUBQUERY
+            = "(SELECT AVG(CAST(r.rating AS FLOAT)) FROM dbo.REVIEWS r "
             + " WHERE r.movie_id = m.id AND r.status = 'ACTIVE') AS avg_rating, "
             + "(SELECT COUNT(*) FROM dbo.REVIEWS r "
             + " WHERE r.movie_id = m.id AND r.status = 'ACTIVE') AS review_count ";
@@ -92,7 +94,9 @@ public class MovieDAO {
         return new PageResult<>(movies, total, f.getPage(), f.getPageSize());
     }
 
-    /** Tổng số phim khớp với bộ lọc (bỏ qua phân trang). */
+    /**
+     * Tổng số phim khớp với bộ lọc (bỏ qua phân trang).
+     */
     public long count(MovieFilter f) {
         List<Object> params = new ArrayList<>();
         String where = buildWhere(f, params);
@@ -139,19 +143,19 @@ public class MovieDAO {
         } catch (SQLException e) {
             System.err.println(
                     "[MovieDAO.findById] Lỗi truy vấn phim ID "
-                            + id
-                            + ": "
-                            + e.getMessage()
+                    + id
+                    + ": "
+                    + e.getMessage()
             );
-            
+
             e.printStackTrace();
-            
+
             throw new RuntimeException(
                     "Không thể truy vấn dữ liệu phim ID " + id,
                     e
             );
         }
-        
+
         return null;
     }
 
@@ -166,7 +170,7 @@ public class MovieDAO {
                 + "JOIN dbo.HALLS h ON h.id = s.hall_id "
                 + "WHERE h.branch_id = ? "
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
-                + "AND s.start_time > GETDATE() "
+                + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE() "
                 + "ORDER BY m.title";
 
         Connection conn = DBContext.getInstance().getConnection();
@@ -187,8 +191,9 @@ public class MovieDAO {
     }
 
     // ── Các hàm hỗ trợ ──────────────────────────────────────
-
-    /** Dựng mệnh đề WHERE và thêm các giá trị tương ứng vào {@code params}. */
+    /**
+     * Dựng mệnh đề WHERE và thêm các giá trị tương ứng vào {@code params}.
+     */
     private String buildWhere(MovieFilter f, List<Object> params) {
         StringBuilder w = new StringBuilder(" WHERE 1 = 1 ");
 
@@ -223,7 +228,9 @@ public class MovieDAO {
         return w.toString();
     }
 
-    /** Mệnh đề ORDER BY theo danh sách trắng — không bao giờ ghép từ input thô. */
+    /**
+     * Mệnh đề ORDER BY theo danh sách trắng — không bao giờ ghép từ input thô.
+     */
     private String orderBy(String sortBy) {
         if (sortBy == null) {
             sortBy = "";
@@ -241,7 +248,9 @@ public class MovieDAO {
         }
     }
 
-    /** Ánh xạ một dòng ResultSet sang đối tượng Movie. */
+    /**
+     * Ánh xạ một dòng ResultSet sang đối tượng Movie.
+     */
     private String endDateSelect() {
         return hasEndDateColumn()
                 ? "m.end_date"
@@ -255,8 +264,7 @@ public class MovieDAO {
 
         String sql = "SELECT CASE WHEN COL_LENGTH('dbo.MOVIES', 'end_date') IS NULL THEN 0 ELSE 1 END";
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             hasEndDateColumn = rs.next() && rs.getInt(1) == 1;
         } catch (SQLException e) {
             hasEndDateColumn = false;
@@ -285,7 +293,9 @@ public class MovieDAO {
         return m;
     }
 
-    /** Nạp thể loại cho cả trang phim trong một truy vấn (tránh lỗi N+1). */
+    /**
+     * Nạp thể loại cho cả trang phim trong một truy vấn (tránh lỗi N+1).
+     */
     private void attachCategories(List<Movie> movies) {
         if (movies.isEmpty()) {
             return;
@@ -295,9 +305,9 @@ public class MovieDAO {
             in.append(k == 0 ? "?" : ",?");
         }
         String sql = "SELECT mc.movie_id, c.id, c.name AS name, c.status "
-        + "FROM dbo.MOVIES_CATEGORY mc "
-        + "JOIN dbo.CATEGORY c ON c.id = mc.category_id "
-        + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name";
+                + "FROM dbo.MOVIES_CATEGORY mc "
+                + "JOIN dbo.CATEGORY c ON c.id = mc.category_id "
+                + "WHERE mc.movie_id IN (" + in + ") ORDER BY c.name";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (int k = 0; k < movies.size(); k++) {
@@ -323,23 +333,24 @@ public class MovieDAO {
                     .log(System.Logger.Level.ERROR, "attachCategories thất bại", e);
         }
     }
-    
-     // ════════════════════════════════════════════════════════
+
+    // ════════════════════════════════════════════════════════
     // ADMIN CRUD — Long
     // ════════════════════════════════════════════════════════
-
     /**
-     * Trả về toàn bộ phim (không phân trang) cho trang quản lý admin.
-     * Sắp theo ngày cập nhật mới nhất trước.
+     * Trả về toàn bộ phim (không phân trang) cho trang quản lý admin. Sắp theo
+     * ngày cập nhật mới nhất trước.
      */
     public List<Movie> findAll() {
         return findAll(null, null);
     }
 
     /**
-     * Trả về danh sách phim cho admin, có hỗ trợ lọc theo từ khóa và trạng thái.
-     * @param keyword  tìm trong title, director, actor (null = không lọc)
-     * @param status   COMING_SOON / NOW_SHOWING / ENDED (null = không lọc)
+     * Trả về danh sách phim cho admin, có hỗ trợ lọc theo từ khóa và trạng
+     * thái.
+     *
+     * @param keyword tìm trong title, director, actor (null = không lọc)
+     * @param status COMING_SOON / NOW_SHOWING / ENDED (null = không lọc)
      */
     public List<Movie> findAll(String keyword, String status) {
         List<Object> params = new ArrayList<>();
@@ -353,7 +364,8 @@ public class MovieDAO {
         if (keyword != null && !keyword.isBlank()) {
             String kw = "%" + keyword.trim() + "%";
             sql.append("AND (m.title LIKE ? OR m.director LIKE ?) ");
-            params.add(kw); params.add(kw);
+            params.add(kw);
+            params.add(kw);
         }
         if (status != null && !status.isBlank()) {
             sql.append("AND m.status = ? ");
@@ -381,9 +393,8 @@ public class MovieDAO {
     }
 
     /**
-     * Kiểm tra xem phim có suất chiếu đang hoạt động không
-     * (status = SCHEDULED hoặc ON_SALE, thời gian trong tương lai).
-     * Dùng để chặn xóa phim.
+     * Kiểm tra xem phim có suất chiếu đang hoạt động không (status = SCHEDULED
+     * hoặc ON_SALE, thời gian trong tương lai). Dùng để chặn xóa phim.
      */
     public boolean hasActiveShowtimes(int movieId) {
         String sql = "SELECT TOP 1 1 FROM dbo.SHOWTIMES "
@@ -404,7 +415,8 @@ public class MovieDAO {
     }
 
     /**
-     * Kiểm tra tiêu đề phim đã tồn tại chưa (case insensitive, skip excludeMovieId).
+     * Kiểm tra tiêu đề phim đã tồn tại chưa (case insensitive, skip
+     * excludeMovieId).
      */
     public boolean isTitleExists(String title, int excludeMovieId) {
         String sql = "SELECT TOP 1 1 FROM dbo.MOVIES WHERE LOWER(title) = LOWER(?) AND id != ?";
@@ -445,6 +457,7 @@ public class MovieDAO {
 
     /**
      * Thêm mới một phim + ghi vào bảng MOVIES_CATEGORY và MOVIE_LANGUAGES.
+     *
      * @return id tự sinh của bản ghi mới, hoặc -1 nếu thất bại
      */
     public int insert(Movie m, List<Integer> categoryIds, List<Integer> languageIds) {
@@ -454,7 +467,7 @@ public class MovieDAO {
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, m.getTitle());
-            ps.setInt   (2, m.getDurationMin());
+            ps.setInt(2, m.getDurationMin());
             ps.setString(3, m.getDescription());
             ps.setObject(4, m.getReleaseDate());          // LocalDate
             ps.setObject(5, m.getEndDate());              // LocalDate
@@ -469,7 +482,7 @@ public class MovieDAO {
                 if (keys.next()) {
                     int newId = keys.getInt(1);
                     syncCategories(conn, newId, categoryIds);
-                    syncLanguages (conn, newId, languageIds);
+                    syncLanguages(conn, newId, languageIds);
                     return newId;
                 }
             }
@@ -481,7 +494,9 @@ public class MovieDAO {
     }
 
     /**
-     * Cập nhật thông tin phim. Xóa và ghi lại bảng junction cho thể loại / ngôn ngữ.
+     * Cập nhật thông tin phim. Xóa và ghi lại bảng junction cho thể loại / ngôn
+     * ngữ.
+     *
      * @return true nếu thành công
      */
     public boolean update(Movie m, List<Integer> categoryIds, List<Integer> languageIds) {
@@ -492,7 +507,7 @@ public class MovieDAO {
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, m.getTitle());
-            ps.setInt   (2, m.getDurationMin());
+            ps.setInt(2, m.getDurationMin());
             ps.setString(3, m.getDescription());
             ps.setObject(4, m.getReleaseDate());
             ps.setObject(5, m.getEndDate());
@@ -501,11 +516,11 @@ public class MovieDAO {
             ps.setString(8, m.getTrailerUrl());
             ps.setString(9, m.getActor());
             ps.setString(10, m.getDirector());
-            ps.setInt   (11, m.getId());
+            ps.setInt(11, m.getId());
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 syncCategories(conn, m.getId(), categoryIds);
-                syncLanguages (conn, m.getId(), languageIds);
+                syncLanguages(conn, m.getId(), languageIds);
                 return true;
             }
         } catch (SQLException e) {
@@ -516,9 +531,9 @@ public class MovieDAO {
     }
 
     /**
-     * Xóa phim. Caller phải đã gọi hasActiveShowtimes trước.
-     * Bảng junction xóa cascade qua FK — đảm bảo DB đã có ON DELETE CASCADE
-     * hoặc xóa thủ công trước (đã làm bên dưới để an toàn).
+     * Xóa phim. Caller phải đã gọi hasActiveShowtimes trước. Bảng junction xóa
+     * cascade qua FK — đảm bảo DB đã có ON DELETE CASCADE hoặc xóa thủ công
+     * trước (đã làm bên dưới để an toàn).
      */
     public boolean delete(int id) {
         Connection conn = DBContext.getInstance().getConnection();
@@ -526,11 +541,13 @@ public class MovieDAO {
             // Xóa bảng junction trước để tránh vi phạm FK
             try (PreparedStatement ps = conn.prepareStatement(
                     "DELETE FROM dbo.MOVIES_CATEGORY WHERE movie_id=?")) {
-                ps.setInt(1, id); ps.executeUpdate();
+                ps.setInt(1, id);
+                ps.executeUpdate();
             }
             try (PreparedStatement ps = conn.prepareStatement(
                     "DELETE FROM dbo.MOVIE_LANGUAGES WHERE movie_id=?")) {
-                ps.setInt(1, id); ps.executeUpdate();
+                ps.setInt(1, id);
+                ps.executeUpdate();
             }
             // Xóa phim chính
             try (PreparedStatement ps = conn.prepareStatement(
@@ -553,7 +570,7 @@ public class MovieDAO {
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
-            ps.setInt   (2, id);
+            ps.setInt(2, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.getLogger(MovieDAO.class.getName())
@@ -563,9 +580,9 @@ public class MovieDAO {
     }
 
     /**
-     * Đồng bộ trạng thái phim theo ngày hiện tại.
-     * Rule: chưa tới release_date => COMING_SOON; quá end_date => ENDED;
-     * còn lại => NOW_SHOWING. end_date NULL nghĩa là chưa đặt ngày kết thúc.
+     * Đồng bộ trạng thái phim theo ngày hiện tại. Rule: chưa tới release_date
+     * => COMING_SOON; quá end_date => ENDED; còn lại => NOW_SHOWING. end_date
+     * NULL nghĩa là chưa đặt ngày kết thúc.
      */
     public int refreshStatusesByDate(LocalDate today) {
         if (today == null) {
@@ -605,13 +622,15 @@ public class MovieDAO {
         return 0;
     }
 
-    /** Cập nhật đường dẫn poster sau khi upload. */
+    /**
+     * Cập nhật đường dẫn poster sau khi upload.
+     */
     public boolean updatePoster(int id, String posterUrl) {
         String sql = "UPDATE dbo.MOVIES SET poster_url=?, last_update=GETDATE() WHERE id=?";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, posterUrl);
-            ps.setInt   (2, id);
+            ps.setInt(2, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.getLogger(MovieDAO.class.getName())
@@ -620,13 +639,15 @@ public class MovieDAO {
         return false;
     }
 
-    /** Cập nhật đường dẫn trailer sau khi upload. */
+    /**
+     * Cập nhật đường dẫn trailer sau khi upload.
+     */
     public boolean updateTrailer(int id, String trailerUrl) {
         String sql = "UPDATE dbo.MOVIES SET trailer_url=?, last_update=GETDATE() WHERE id=?";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, trailerUrl);
-            ps.setInt   (2, id);
+            ps.setInt(2, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.getLogger(MovieDAO.class.getName())
@@ -636,10 +657,9 @@ public class MovieDAO {
     }
 
     // ── Junction-table helpers ───────────────────────────────
-
     /**
-     * Xóa sạch và ghi lại liên kết thể loại cho một phim.
-     * Gọi trong cùng Connection để đồng nhất transaction ngầm.
+     * Xóa sạch và ghi lại liên kết thể loại cho một phim. Gọi trong cùng
+     * Connection để đồng nhất transaction ngầm.
      */
     private void syncCategories(Connection conn, int movieId, List<Integer> categoryIds)
             throws SQLException {
@@ -648,7 +668,9 @@ public class MovieDAO {
             del.setInt(1, movieId);
             del.executeUpdate();
         }
-        if (categoryIds == null || categoryIds.isEmpty()) return;
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return;
+        }
         try (PreparedStatement ins = conn.prepareStatement(
                 "INSERT INTO dbo.MOVIES_CATEGORY (movie_id, category_id) VALUES (?, ?)")) {
             for (int catId : categoryIds) {
@@ -670,7 +692,9 @@ public class MovieDAO {
             del.setInt(1, movieId);
             del.executeUpdate();
         }
-        if (languageIds == null || languageIds.isEmpty()) return;
+        if (languageIds == null || languageIds.isEmpty()) {
+            return;
+        }
         try (PreparedStatement ins = conn.prepareStatement(
                 "INSERT INTO dbo.MOVIE_LANGUAGES (movie_id, language_id) VALUES (?, ?)")) {
             for (int langId : languageIds) {

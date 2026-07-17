@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lớp nghiệp vụ quản lý báo cáo thống kê cho admin.
- * Xử lý khoảng thời gian mặc định (30 ngày gần nhất) và tổng hợp dữ liệu KPI / Chart.js.
+ * Lớp nghiệp vụ quản lý báo cáo thống kê cho admin. Xử lý khoảng thời gian mặc
+ * định (30 ngày gần nhất) và tổng hợp dữ liệu KPI / Chart.js.
  *
  * @author LONG
  */
@@ -24,7 +24,6 @@ public class ReportService {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     // ── 1. BÁO CÁO DOANH THU ──────────────────────────────────
-
     public ReportDTO buildRevenueReport(String fromStr, String toStr) {
         String[] dates = resolveDateRange(fromStr, toStr);
         String from = dates[0];
@@ -44,9 +43,15 @@ public class ReportService {
             Number tkt = (Number) row.get("ticket_count");
             Number bkg = (Number) row.get("booking_count");
 
-            if (rev != null) totalRevenue += rev.doubleValue();
-            if (tkt != null) totalTickets += tkt.intValue();
-            if (bkg != null) totalBookings += bkg.intValue();
+            if (rev != null) {
+                totalRevenue += rev.doubleValue();
+            }
+            if (tkt != null) {
+                totalTickets += tkt.intValue();
+            }
+            if (bkg != null) {
+                totalBookings += bkg.intValue();
+            }
 
             // Đưa dữ liệu vào Chart.js
             Object dateObj = row.get("report_date");
@@ -63,7 +68,6 @@ public class ReportService {
     }
 
     // ── 2. BÁO CÁO DOANH SỐ CHI NHÁNH ──────────────────────────
-
     public ReportDTO buildSalesReport(String fromStr, String toStr) {
         String[] dates = resolveDateRange(fromStr, toStr);
         String from = dates[0];
@@ -82,9 +86,15 @@ public class ReportService {
             Number tkt = (Number) row.get("ticket_count");
             Number bkg = (Number) row.get("booking_count");
 
-            if (rev != null) totalRevenue += rev.doubleValue();
-            if (tkt != null) totalTickets += tkt.intValue();
-            if (bkg != null) totalBookings += bkg.intValue();
+            if (rev != null) {
+                totalRevenue += rev.doubleValue();
+            }
+            if (tkt != null) {
+                totalTickets += tkt.intValue();
+            }
+            if (bkg != null) {
+                totalBookings += bkg.intValue();
+            }
 
             String branchLabel = (String) row.get("branch_name");
             report.getLabels().add(branchLabel != null ? branchLabel : "Không tên");
@@ -99,7 +109,6 @@ public class ReportService {
     }
 
     // ── 3. BÁO CÁO TỈ LỆ LẤP ĐẦY ───────────────────────────────
-
     public ReportDTO buildOccupancyReport() {
         ReportDTO report = new ReportDTO("OCCUPANCY", "Báo cáo tỉ lệ lấp đầy phòng chiếu", null, null);
         List<Map<String, Object>> rows = reportDAO.getOccupancyRate();
@@ -127,7 +136,6 @@ public class ReportService {
     }
 
     // ── 4. BÁO CÁO PHIM ĂN KHÁCH ───────────────────────────────
-
     public ReportDTO buildPopularMoviesReport(String fromStr, String toStr) {
         String[] dates = resolveDateRange(fromStr, toStr);
         String from = dates[0];
@@ -140,16 +148,24 @@ public class ReportService {
         double totalRevenue = 0;
         int totalTickets = 0;
 
+        int count = 0;
         for (Map<String, Object> row : rows) {
             Number rev = (Number) row.get("revenue");
             Number tkt = (Number) row.get("ticket_count");
 
-            if (rev != null) totalRevenue += rev.doubleValue();
-            if (tkt != null) totalTickets += tkt.intValue();
+            if (rev != null) {
+                totalRevenue += rev.doubleValue();
+            }
+            if (tkt != null) {
+                totalTickets += tkt.intValue();
+            }
 
-            String title = (String) row.get("movie_title");
-            report.getLabels().add(title != null ? title : "Không tên");
-            report.getData().add(tkt != null ? tkt.intValue() : 0);
+            if (count < 5) {
+                String title = (String) row.get("movie_title");
+                report.getLabels().add(title != null ? title : "Không tên");
+                report.getData().add(tkt != null ? tkt.intValue() : 0);
+                count++;
+            }
         }
 
         report.setTotalRevenue(totalRevenue);
@@ -159,7 +175,6 @@ public class ReportService {
     }
 
     // ── 5. BÁO CÁO HOẠT ĐỘNG KHÁCH HÀNG ───────────────────────
-
     public ReportDTO buildCustomerActivityReport(String fromStr, String toStr) {
         String[] dates = resolveDateRange(fromStr, toStr);
         String from = dates[0];
@@ -178,9 +193,15 @@ public class ReportService {
             Number tkt = (Number) row.get("ticket_count");
             Number bkg = (Number) row.get("booking_count");
 
-            if (rev != null) totalRevenue += rev.doubleValue();
-            if (tkt != null) totalTickets += tkt.intValue();
-            if (bkg != null) totalBookings += bkg.intValue();
+            if (rev != null) {
+                totalRevenue += rev.doubleValue();
+            }
+            if (tkt != null) {
+                totalTickets += tkt.intValue();
+            }
+            if (bkg != null) {
+                totalBookings += bkg.intValue();
+            }
 
             String name = (String) row.get("customer_name");
             report.getLabels().add(name != null ? name : "Khách");
@@ -194,7 +215,6 @@ public class ReportService {
     }
 
     // ── 6. BÁO CÁO GIỜ CAO ĐIỂM (PEAK HOURS) ───────────────────
-
     public ReportDTO buildPeakHoursReport(String fromStr, String toStr) {
         String[] dates = resolveDateRange(fromStr, toStr);
         String from = dates[0];
@@ -214,7 +234,7 @@ public class ReportService {
         int[] hourTickets = new int[24];
 
         for (Map<String, Object> row : rows) {
-            Number hr  = (Number) row.get("booking_hour");
+            Number hr = (Number) row.get("booking_hour");
             Number rev = (Number) row.get("revenue");
             Number tkt = (Number) row.get("ticket_count");
             Number bkg = (Number) row.get("booking_count");
@@ -222,15 +242,21 @@ public class ReportService {
             if (hr != null) {
                 int h = hr.intValue();
                 if (h >= 0 && h < 24) {
-                    hourRevenue[h]  = rev != null ? rev.doubleValue() : 0.0;
-                    hourTickets[h]  = tkt != null ? tkt.intValue() : 0;
+                    hourRevenue[h] = rev != null ? rev.doubleValue() : 0.0;
+                    hourTickets[h] = tkt != null ? tkt.intValue() : 0;
                     hourBookings[h] = bkg != null ? bkg.intValue() : 0;
                 }
             }
 
-            if (rev != null) totalRevenue += rev.doubleValue();
-            if (tkt != null) totalTickets += tkt.intValue();
-            if (bkg != null) totalBookings += bkg.intValue();
+            if (rev != null) {
+                totalRevenue += rev.doubleValue();
+            }
+            if (tkt != null) {
+                totalTickets += tkt.intValue();
+            }
+            if (bkg != null) {
+                totalBookings += bkg.intValue();
+            }
         }
 
         for (int h = 0; h < 24; h++) {
@@ -246,10 +272,9 @@ public class ReportService {
     }
 
     // ── Helpers ───────────────────────────────────────────────
-
     /**
-     * Tự động giải quyết khoảng thời gian.
-     * Mặc định: 30 ngày qua (từ 30 ngày trước đến ngày hôm nay).
+     * Tự động giải quyết khoảng thời gian. Mặc định: 30 ngày qua (từ 30 ngày
+     * trước đến ngày hôm nay).
      */
     private String[] resolveDateRange(String fromStr, String toStr) {
         String from = fromStr;
@@ -262,6 +287,6 @@ public class ReportService {
         if (from == null || from.isBlank()) {
             from = today.minusDays(30).format(DATE_FORMAT);
         }
-        return new String[] { from, to };
+        return new String[]{from, to};
     }
 }

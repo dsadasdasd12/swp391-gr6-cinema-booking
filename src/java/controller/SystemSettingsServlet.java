@@ -23,7 +23,9 @@ public class SystemSettingsServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!ensureAdmin(req, resp)) return;
+        if (!ensureAdmin(req, resp)) {
+            return;
+        }
         loadViewData(req);
         req.getRequestDispatcher("/pages/admin/settings.jsp").forward(req, resp);
     }
@@ -31,11 +33,15 @@ public class SystemSettingsServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!ensureAdmin(req, resp)) return;
+        if (!ensureAdmin(req, resp)) {
+            return;
+        }
 
         req.setCharacterEncoding("UTF-8");
         String section = req.getParameter("section");
-        if (section == null) section = "";
+        if (section == null) {
+            section = "";
+        }
 
         HttpSession session = req.getSession();
         String ctx = req.getContextPath();
@@ -75,7 +81,8 @@ public class SystemSettingsServlet extends HttpServlet {
                         on ? "Đã bật chế độ bảo trì." : "Đã tắt chế độ bảo trì.");
                 resp.sendRedirect(ctx + "/admin/settings#panel-maint");
             }
-            default -> resp.sendRedirect(ctx + "/admin/settings");
+            default ->
+                resp.sendRedirect(ctx + "/admin/settings");
         }
     }
 
@@ -98,9 +105,10 @@ public class SystemSettingsServlet extends HttpServlet {
     private CinemaDTO loadCinema() {
         String sql = "SELECT TOP 1 id, name, phone, address, status FROM dbo.CINEMA ORDER BY id";
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return null;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        if (conn == null) {
+            return null;
+        }
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 CinemaDTO c = new CinemaDTO();
                 c.setId(rs.getInt("id"));
@@ -119,7 +127,9 @@ public class SystemSettingsServlet extends HttpServlet {
     private boolean updateCinema(int id, String name, String phone, String address, String status) {
         String sql = "UPDATE dbo.CINEMA SET name=?, phone=?, address=?, status=?, last_update=GETDATE WHERE id=?";
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return false;
+        if (conn == null) {
+            return false;
+        }
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, name);
             ps.setString(2, phone);
@@ -135,7 +145,9 @@ public class SystemSettingsServlet extends HttpServlet {
 
     private static String initOrAttr(jakarta.servlet.ServletContext ctx, String key) {
         Object attr = ctx.getAttribute(key);
-        if (attr instanceof String s && !s.isBlank()) return s.trim();
+        if (attr instanceof String s && !s.isBlank()) {
+            return s.trim();
+        }
         String init = ctx.getInitParameter(key);
         return init != null ? init.trim() : "";
     }
@@ -144,14 +156,19 @@ public class SystemSettingsServlet extends HttpServlet {
             throws IOException {
         HttpSession session = req.getSession(false);
         User user = session != null ? (User) session.getAttribute("user") : null;
-        if (user != null && "ADMIN".equals(user.getRole())) return true;
+        if (user != null && "ADMIN".equals(user.getRole())) {
+            return true;
+        }
         resp.sendRedirect(req.getContextPath() + "/login");
         return false;
     }
 
     private static int parseInt(String s, int def) {
-        try { return s != null ? Integer.parseInt(s.trim()) : def; }
-        catch (NumberFormatException e) { return def; }
+        try {
+            return s != null ? Integer.parseInt(s.trim()) : def;
+        } catch (NumberFormatException e) {
+            return def;
+        }
     }
 
     private static String trim(String s) {
@@ -159,21 +176,51 @@ public class SystemSettingsServlet extends HttpServlet {
     }
 
     public static class CinemaDTO {
+
         private int id;
         private String name;
         private String phone;
         private String address;
         private String status;
 
-        public int getId() { return id; }
-        public void setId(int id) { this.id = id; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getPhone() { return phone; }
-        public void setPhone(String phone) { this.phone = phone; }
-        public String getAddress() { return address; }
-        public void setAddress(String address) { this.address = address; }
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
     }
 }

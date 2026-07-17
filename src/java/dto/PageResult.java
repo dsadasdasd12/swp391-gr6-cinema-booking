@@ -15,7 +15,9 @@ import java.util.List;
  */
 public class PageResult<T> {
 
-    /** Số nút trang hiển thị về mỗi phía của trang hiện tại. */
+    /**
+     * Số nút trang hiển thị về mỗi phía của trang hiện tại.
+     */
     private static final int WINDOW = 2;
 
     private List<T> items;
@@ -65,7 +67,9 @@ public class PageResult<T> {
         this.pageSize = pageSize;
     }
 
-    /** Tổng số trang. */
+    /**
+     * Tổng số trang.
+     */
     public int getTotalPages() {
         if (pageSize <= 0) {
             return 0;
@@ -85,22 +89,30 @@ public class PageResult<T> {
         return page < getTotalPages();
     }
 
-    /** Số thứ tự (bắt đầu từ 1) của phần tử đầu trang — cho dòng "X–Y / Z". */
+    /**
+     * Số thứ tự (bắt đầu từ 1) của phần tử đầu trang — cho dòng "X–Y / Z".
+     */
     public long getFromIndex() {
         return totalItems == 0 ? 0 : (long) (page - 1) * pageSize + 1;
     }
 
-    /** Số thứ tự của phần tử cuối trang. */
+    /**
+     * Số thứ tự của phần tử cuối trang.
+     */
     public long getToIndex() {
         return Math.min((long) page * pageSize, totalItems);
     }
 
-    /** Trang đầu của cửa sổ phân trang quanh trang hiện tại. */
+    /**
+     * Trang đầu của cửa sổ phân trang quanh trang hiện tại.
+     */
     public int getStartPage() {
         return Math.max(1, page - WINDOW);
     }
 
-    /** Trang cuối của cửa sổ phân trang quanh trang hiện tại. */
+    /**
+     * Trang cuối của cửa sổ phân trang quanh trang hiện tại.
+     */
     public int getEndPage() {
         return Math.min(getTotalPages(), page + WINDOW);
     }

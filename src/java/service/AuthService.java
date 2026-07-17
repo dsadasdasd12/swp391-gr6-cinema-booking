@@ -1,4 +1,5 @@
 package service;
+
 import dto.RegisterDTO;
 import dao.UserDAO;
 import jakarta.servlet.ServletContext;
@@ -113,73 +114,73 @@ public class AuthService {
 
         return userDAO.updatePassword(user.getId(), hashedNewPassword);
     }
-    
+
     public String validateRegister(RegisterDTO dto) {
 
-    if (dto.getFullName() == null
-            || dto.getFullName().trim().isEmpty()) {
-        return "Họ tên không được để trống";
+        if (dto.getFullName() == null
+                || dto.getFullName().trim().isEmpty()) {
+            return "Họ tên không được để trống";
+        }
+
+        if (dto.getFullName().length() < 2
+                || dto.getFullName().length() > 50) {
+            return "Họ tên phải từ 2 đến 50 ký tự";
+        }
+
+        if (!dto.getFullName()
+                .matches("^[\\p{L} ]+$")) {
+            return "Họ tên chỉ được chứa chữ cái";
+        }
+
+        if (dto.getEmail() == null
+                || dto.getEmail().trim().isEmpty()) {
+            return "Email không được để trống";
+        }
+
+        if (emailExists(dto.getEmail())) {
+            return "Email đã tồn tại";
+        }
+
+        if (dto.getPhone() != null
+                && !dto.getPhone().isBlank()
+                && !dto.getPhone().matches("0\\d{9,10}")) {
+
+            return "Số điện thoại không hợp lệ";
+        }
+
+        if (dto.getPassword() == null
+                || dto.getPassword().length() < 8) {
+
+            return "Mật khẩu phải có ít nhất 8 ký tự";
+        }
+
+        if (!dto.getPassword()
+                .equals(dto.getConfirmPassword())) {
+
+            return "Mật khẩu xác nhận không khớp";
+        }
+
+        return null;
     }
 
-    if (dto.getFullName().length() < 2
-            || dto.getFullName().length() > 50) {
-        return "Họ tên phải từ 2 đến 50 ký tự";
-    }
-
-    if (!dto.getFullName()
-            .matches("^[\\p{L} ]+$")) {
-        return "Họ tên chỉ được chứa chữ cái";
-    }
-
-    if (dto.getEmail() == null
-            || dto.getEmail().trim().isEmpty()) {
-        return "Email không được để trống";
-    }
-
-    if (emailExists(dto.getEmail())) {
-        return "Email đã tồn tại";
-    }
-
-    if (dto.getPhone() != null
-            && !dto.getPhone().isBlank()
-            && !dto.getPhone().matches("0\\d{9,10}")) {
-
-        return "Số điện thoại không hợp lệ";
-    }
-
-    if (dto.getPassword() == null
-            || dto.getPassword().length() < 8) {
-
-        return "Mật khẩu phải có ít nhất 8 ký tự";
-    }
-
-    if (!dto.getPassword()
-            .equals(dto.getConfirmPassword())) {
-
-        return "Mật khẩu xác nhận không khớp";
-    }
-
-    return null;
-}
-    
     public User buildUser(RegisterDTO dto) {
 
-    User user = new User();
+        User user = new User();
 
-    user.setFullName(dto.getFullName().trim());
-    user.setEmail(dto.getEmail().trim());
-    user.setPhone(dto.getPhone());
-    
-    user.setGoogleId("local_"+dto.getEmail().trim());
-    
-    user.setPasswordHash(
-            PasswordUtil.hashPassword(dto.getPassword())
-    );
+        user.setFullName(dto.getFullName().trim());
+        user.setEmail(dto.getEmail().trim());
+        user.setPhone(dto.getPhone());
 
-    user.setRole("CUSTOMER");
-    user.setActive(true);
-    user.setEmailVerified(false);
+        user.setGoogleId("local_" + dto.getEmail().trim());
 
-    return user;
-}
+        user.setPasswordHash(
+                PasswordUtil.hashPassword(dto.getPassword())
+        );
+
+        user.setRole("CUSTOMER");
+        user.setActive(true);
+        user.setEmailVerified(false);
+
+        return user;
+    }
 }

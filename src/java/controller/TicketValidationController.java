@@ -12,6 +12,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
 import model.Showtime;
+import dto.AttendanceHistoryView;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 
 @WebServlet(name = "TicketValidationController", urlPatterns = {"/TicketValidation"})
 public class TicketValidationController extends HttpServlet {
@@ -31,10 +35,9 @@ public class TicketValidationController extends HttpServlet {
             return;
         }
 
+        // Quét/check-in vé tại cổng chỉ dành cho STAFF, không cho manager/admin/customer dùng thay.
         String role = currentUser.getRole();
-        if (!"STAFF".equalsIgnoreCase(role)
-                && !"MANAGER".equalsIgnoreCase(role)
-                && !"ADMIN".equalsIgnoreCase(role)) {
+        if (!"STAFF".equalsIgnoreCase(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -42,15 +45,28 @@ public class TicketValidationController extends HttpServlet {
         int staffId = currentUser.getId();
         service.UserService userService = new service.UserService();
         int branchId = userService.getBranchIdOfStaff(staffId);
+        if (branchId <= 0) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Staff chưa được gán chi nhánh.");
+            return;
+        }
         dao.BranchDAO branchDAO = new dao.BranchDAO();
         model.Branch staffBranch = branchDAO.getBranchById(branchId);
         String staffBranchName = (staffBranch != null) ? staffBranch.getName() : "Không xác định";
         request.setAttribute("staffBranchName", staffBranchName);
 
+        // Check-in làm thay đổi trạng thái booking nên bắt buộc gửi bằng POST.
         String action = request.getParameter("action");
+        if ("history".equalsIgnoreCase(action)) {
+            showHistory(request, response, staffId);
+            return;
+        }
+        if ("validate".equalsIgnoreCase(action) && !"POST".equalsIgnoreCase(request.getMethod())) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
         if ("validate".equalsIgnoreCase(action)) {
             String bookingIdStr = request.getParameter("bookingId");
-            
+
             if (bookingIdStr == null || bookingIdStr.trim().isEmpty()) {
                 request.setAttribute("validationError", "MÃ VÉ KHÔNG HỢP LỆ: Vui lòng nhập mã vé hợp lệ!");
                 request.getRequestDispatcher("ticketValidation.jsp").forward(request, response);
@@ -59,22 +75,25 @@ public class TicketValidationController extends HttpServlet {
 
             try {
                 // Hỗ trợ trích xuất và chuẩn hóa bookingId thông qua TicketService
+                // TicketService xác minh mã quét với cột BOOKINGS.qr_code trong database.
                 int bookingId = ticketService.parseBookingId(bookingIdStr);
-                
+
+                // AttendanceDAO kiểm tra thêm branch, thời gian xem và trạng thái để cập nhật check-in an toàn.
                 String result = ticketService.checkInTicket(bookingId, staffId);
-                
+
                 if ("SUCCESS".equalsIgnoreCase(result)) {
                     model.Booking booking = bookingService.getBookingById(bookingId);
                     Showtime st = showtimeService.getShowtimeById(booking.getShowtimeId());
-                    
+
                     request.setAttribute("validationSuccess", true);
                     request.setAttribute("booking", booking);
                     request.setAttribute("showtime", st);
-                    
+
                     // Lấy mã ghế thông qua TicketService
+                    // Chỉ hiển thị thông tin ghế sau khi check-in thành công.
                     String seatCodes = ticketService.getSeatCodesByBookingId(bookingId);
                     request.setAttribute("seatCodes", seatCodes);
-                    
+
                 } else {
                     request.setAttribute("validationError", result);
                 }
@@ -86,6 +105,40 @@ public class TicketValidationController extends HttpServlet {
         }
 
         request.getRequestDispatcher("ticketValidation.jsp").forward(request, response);
+    }
+
+    private void showHistory(HttpServletRequest request, HttpServletResponse response, int staffId)
+            throws ServletException, IOException {
+        // Mặc định xem toàn bộ lịch sử; chỉ giới hạn ngày khi staff chủ động chọn lọc.
+        LocalDate checkedDate = null;
+        String dateParam = request.getParameter("date");
+        if (dateParam != null && !dateParam.isBlank()) {
+            try {
+                checkedDate = LocalDate.parse(dateParam);
+            } catch (DateTimeParseException ignored) {
+                request.setAttribute("historyError", "Ngày lọc không hợp lệ.");
+            }
+        }
+        int pageSize = 20;
+        int totalRecords = ticketService.countCheckInHistory(staffId, checkedDate);
+        int totalPages = Math.max(1, (int) Math.ceil(totalRecords / (double) pageSize));
+        int currentPage = parsePage(request.getParameter("page"), totalPages);
+        List<AttendanceHistoryView> history = ticketService.getCheckInHistory(
+                staffId, checkedDate, (currentPage - 1) * pageSize, pageSize);
+        request.setAttribute("checkedDate", checkedDate == null ? "" : checkedDate.toString());
+        request.setAttribute("attendanceHistory", history);
+        request.setAttribute("historyTotal", totalRecords);
+        request.setAttribute("historyPage", currentPage);
+        request.setAttribute("historyTotalPages", totalPages);
+        request.getRequestDispatcher("ticketValidationHistory.jsp").forward(request, response);
+    }
+
+    private int parsePage(String value, int totalPages) {
+        try {
+            return Math.max(1, Math.min(Integer.parseInt(value), totalPages));
+        } catch (Exception ignored) {
+            return 1;
+        }
     }
 
     @Override

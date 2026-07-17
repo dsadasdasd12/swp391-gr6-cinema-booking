@@ -16,8 +16,7 @@ public class LanguageDAO {
         String sql = "SELECT id, name, code, status FROM dbo.LANGUAGES ORDER BY name";
         List<Language> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -47,8 +46,7 @@ public class LanguageDAO {
         String sql = "SELECT id, name, code, status FROM dbo.LANGUAGES WHERE status = 'ACTIVE' ORDER BY name";
         List<Language> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }

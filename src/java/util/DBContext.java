@@ -13,20 +13,20 @@ import java.sql.DriverManager;
  */
 public class DBContext {
 
-        // Thông tin kết nối: đọc từ biến môi trường nếu có, ngược lại dùng giá trị mặc định.
-        private static final String URL;
-        private static final String USER;
-        private static final String PASSWORD;
+    // Thông tin kết nối: đọc từ biến môi trường nếu có, ngược lại dùng giá trị mặc định.
+    private static final String URL;
+    private static final String USER;
+    private static final String PASSWORD;
 
-        static {
+    static {
         String envUrl = System.getenv("DB_URL");
         URL = (envUrl != null && !envUrl.isBlank()) ? envUrl
-            : "jdbc:sqlserver://localhost:1433;databaseName=RapVietDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true";
+                : "jdbc:sqlserver://localhost:1433;databaseName=RapVietDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true";
         String envUser = System.getenv("DB_USER");
         USER = (envUser != null) ? envUser : "sa";
         String envPass = System.getenv("DB_PASSWORD");
         PASSWORD = (envPass != null) ? envPass : "123"; // default to 123 for local environment
-        }
+    }
 
     private static DBContext instance = new DBContext();
     Connection connection;

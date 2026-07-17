@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DTO chứa kết quả báo cáo và thống kê dùng cho hiển thị bảng biểu và vẽ biểu đồ (Chart.js).
- * 
+ * DTO chứa kết quả báo cáo và thống kê dùng cho hiển thị bảng biểu và vẽ biểu
+ * đồ (Chart.js).
+ *
  * @author LONG
  */
 public class ReportDTO {
@@ -36,7 +37,8 @@ public class ReportDTO {
     private double averageOccupancy; // Dành riêng cho báo cáo tỉ lệ lấp đầy
 
     // ── Constructors ─────────────────────────────────────────
-    public ReportDTO() {}
+    public ReportDTO() {
+    }
 
     public ReportDTO(String reportType, String title, String fromDate, String toDate) {
         this.reportType = reportType;
@@ -46,7 +48,6 @@ public class ReportDTO {
     }
 
     // ── Getters & Setters ────────────────────────────────────
-
     public String getReportType() {
         return reportType;
     }
@@ -140,7 +141,9 @@ public class ReportDTO {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < labels.size(); i++) {
             sb.append("\"").append(labels.get(i).replace("\"", "\\\"")).append("\"");
-            if (i < labels.size() - 1) sb.append(",");
+            if (i < labels.size() - 1) {
+                sb.append(",");
+            }
         }
         sb.append("]");
         return sb.toString();
@@ -150,7 +153,9 @@ public class ReportDTO {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < data.size(); i++) {
             sb.append(data.get(i));
-            if (i < data.size() - 1) sb.append(",");
+            if (i < data.size() - 1) {
+                sb.append(",");
+            }
         }
         sb.append("]");
         return sb.toString();

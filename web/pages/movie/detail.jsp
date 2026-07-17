@@ -190,7 +190,22 @@
                                         <div class="review-item">
                                             <div class="review-head">
                                                 <span class="review-author"><c:out value="${rv.userFullName}"/></span>
-                                                <span class="review-stars">${rv.stars}</span>
+                                                <%--
+                                                    rv là ReviewView. Không dùng rv.stars/ký tự ◐ vì Unicode nửa sao
+                                                    hiển thị khác nhau theo font. Ba getter bên DTO truyền số sao đầy,
+                                                    có/không nửa sao và số sao rỗng để JSP render 5 ký tự ★ ổn định.
+                                                --%>
+                                                <span class="review-stars" aria-label="${rv.review.rating} trên 5 sao">
+                                                    <c:forEach begin="1" end="${rv.fullStarCount}">
+                                                        <span class="review-star review-star--full">★</span>
+                                                    </c:forEach>
+                                                    <c:if test="${rv.halfStar}">
+                                                        <span class="review-star review-star--half">★</span>
+                                                    </c:if>
+                                                    <c:forEach begin="1" end="${rv.emptyStarCount}">
+                                                        <span class="review-star review-star--empty">★</span>
+                                                    </c:forEach>
+                                                </span>
                                                 <span class="review-date">${rv.createdAtLabel}</span>
                                             </div>
                                             <c:if test="${not empty rv.review.comment}">

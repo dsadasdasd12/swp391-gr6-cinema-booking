@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Báo cáo phim ăn khách nhất (report-popular.jsp)
     Servlet: ReportController ?type=popular
     (Long — )
@@ -49,7 +49,7 @@
 <div class="rv-toolbar mb-4">
     <form method="get" action="${ctx}/admin/reports" class="d-flex align-items-end flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
         <input type="hidden" name="type" value="popular">
-        
+
         <div class="rv-form-group" style="margin: 0;">
             <label class="rv-label" for="fromDate" style="font-size: 11px; margin-bottom: 4px;">Từ ngày</label>
             <input type="date" id="fromDate" name="fromDate" class="rv-input" style="height: 38px;" required value="${report.fromDate}">
@@ -84,7 +84,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Số vé bán -->
     <div class="col-md-6">
         <div class="admin-card d-flex align-items-center gap-3"
@@ -103,20 +103,24 @@
 </div>
 
 <!-- Đồ thị trực quan (Chart.js) -->
-<div class="admin-card mb-4">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-pie-chart" style="color:var(--clr-primary);margin-right:.4rem;"></i> Tỷ lệ phân bố vé bán ra theo Phim (Top Phim)
-    </h2>
-    <div class="chart-box" style="height:320px;">
+<div class="rv-card mb-4">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-pie-chart" style="color:var(--clr-primary);margin-right:.4rem;"></i> Tỷ lệ phân bố vé bán ra theo Phim (Top Phim)
+        </span>
+    </div>
+    <div class="chart-box" style="height:320px; padding: 1rem;">
         <canvas id="popularChart"></canvas>
     </div>
 </div>
 
 <!-- Chi tiết xếp hạng -->
-<div class="admin-card">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-trophy" style="color:var(--clr-primary);margin-right:.4rem;"></i> Xếp hạng phim ăn khách nhất
-    </h2>
+<div class="rv-card">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-trophy" style="color:var(--clr-primary);margin-right:.4rem;"></i> Xếp hạng phim ăn khách nhất
+        </span>
+    </div>
     <c:choose>
         <c:when test="${empty report.rows}">
             <div class="text-center py-5" style="color:var(--n-500);">
@@ -125,8 +129,8 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div style="overflow-x:auto;">
-                <table class="admin-table">
+            <div class="rv-table-responsive">
+                <table class="rv-table">
                     <thead>
                         <tr>
                             <th>Hạng</th>
@@ -138,14 +142,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach var="row" items="${report.rows}" varStatus="status">
+                        <c:forEach var="row" items="${report.rows}" varStatus="status" end="4">
                             <tr>
                                 <td>
                                     <span style="display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;
-                                        ${status.index == 0 ? 'background:#ffd700;color:#000;' : ''}
-                                        ${status.index == 1 ? 'background:#c0c0c0;color:#000;' : ''}
-                                        ${status.index == 2 ? 'background:#cd7f32;color:#000;' : ''}
-                                        ${status.index > 2 ? 'background:rgba(0,0,0,.08);color:var(--n-500);' : ''}">
+                                          ${status.index == 0 ? 'background:#ffd700;color:#000;' : ''}
+                                          ${status.index == 1 ? 'background:#c0c0c0;color:#000;' : ''}
+                                          ${status.index == 2 ? 'background:#cd7f32;color:#000;' : ''}
+                                          ${status.index > 2 ? 'background:rgba(0,0,0,.08);color:var(--n-500);' : ''}">
                                         ${status.index + 1}
                                     </span>
                                 </td>
@@ -188,18 +192,19 @@
 <!-- Chart.js & Script -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    var ctx = document.getElementById('popularChart').getContext('2d');
-    var chartLabels = ${report.labelsJson};
-    var chartData   = ${report.dataJson};
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById('popularChart').getContext('2d');
+        var chartLabels = ${report.labelsJson};
+        var chartData = ${report.dataJson};
 
-    if (!chartLabels || chartLabels.length === 0) {
-        chartLabels = ["Chưa có dữ liệu"];
-        chartData = [0];
-    }
+        if (!chartLabels || chartLabels.length === 0) {
+            chartLabels = ["Chưa có dữ liệu"];
+            chartData = [0];
+        }
+
 
     new Chart(ctx, {
         type: 'doughnut',
@@ -212,7 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     '#ffd700', '#c0c0c0', '#cd7f32', '#9c27b0', '#e91e63'
                 ],
                 borderWidth: 2,
-                borderColor: '#ffffff'
+                borderColor: '#1e1e2d'
             }]
         },
         options: {
@@ -222,8 +227,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 legend: {
                     position: 'right',
                     labels: {
-                        color: '#64748B',
-                        font: { size: 11 },
+                        color: '#94a3b8',
+                        font: { size: 12, family: "'Inter', sans-serif" },
                         padding: 15
                     }
                 },
@@ -240,9 +245,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }
             }
-        }
+        });
     });
-});
 </script>
 </body>
 </html>

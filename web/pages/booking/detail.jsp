@@ -1,4 +1,11 @@
 <%--
+    CODE FLOW (Booking details / cancel / status timeline)
+    GET /my-booking?id=N -> controller.BookingDetailController -> service.BookingService
+    -> dao.BookingDAO and BOOKING_STATUS_HISTORY query -> booking detail + timeline -> JSP.
+    POST cancel returns to the same controller; BookingService checks owner, current status,
+    and cancellation policy before updating BOOKINGS. The status-history trigger/audit records
+    the transition. Do not replace this with a direct JSP/SQL update.
+
     RapViet Cinema - Chi tiết đơn đặt vé + Hủy đơn (Booking details / Cancel) - KHÁCH
     Module: Đặt vé   (Group6 - Huy)
     Được phục vụ bởi controller.BookingDetailController  ->  URL /my-booking?id=N
@@ -17,19 +24,76 @@
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
         <link rel="stylesheet" href="${ctx}/assets/css/movie.css">
         <style>
-            .booking-tracker { margin-top:24px; padding:22px 26px; border:1px solid #2c3038; border-radius:14px; background:#16181d; }
-            .booking-tracker h2 { margin:0 0 6px; font-size:20px; }
-            .booking-tracker__hint { margin:0 0 20px; color:#9aa0aa; font-size:14px; }
-            .status-timeline { list-style:none; margin:0; padding:0; }
-            .status-timeline__item { position:relative; display:grid; grid-template-columns:18px 1fr auto; gap:12px; padding:0 0 20px; }
-            .status-timeline__item:last-child { padding-bottom:0; }
-            .status-timeline__item:not(:last-child)::before { content:""; position:absolute; left:8px; top:18px; bottom:0; width:2px; background:#343944; }
-            .status-timeline__dot { width:18px; height:18px; border-radius:50%; margin-top:2px; background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.12); }
-            .status-timeline__item.pending .status-timeline__dot { background:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,.12); }
-            .status-timeline__item.cancelled .status-timeline__dot { background:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.12); }
-            .status-timeline__title { font-weight:700; color:#f8fafc; }
-            .status-timeline__note { margin-top:3px; color:#aeb6c5; font-size:14px; }
-            .status-timeline__time { color:#9aa0aa; font-size:13px; white-space:nowrap; }
+            .booking-tracker {
+                margin-top:24px;
+                padding:22px 26px;
+                border:1px solid #2c3038;
+                border-radius:14px;
+                background:#16181d;
+            }
+            .booking-tracker h2 {
+                margin:0 0 6px;
+                font-size:20px;
+            }
+            .booking-tracker__hint {
+                margin:0 0 20px;
+                color:#9aa0aa;
+                font-size:14px;
+            }
+            .status-timeline {
+                list-style:none;
+                margin:0;
+                padding:0;
+            }
+            .status-timeline__item {
+                position:relative;
+                display:grid;
+                grid-template-columns:18px 1fr auto;
+                gap:12px;
+                padding:0 0 20px;
+            }
+            .status-timeline__item:last-child {
+                padding-bottom:0;
+            }
+            .status-timeline__item:not(:last-child)::before {
+                content:"";
+                position:absolute;
+                left:8px;
+                top:18px;
+                bottom:0;
+                width:2px;
+                background:#343944;
+            }
+            .status-timeline__dot {
+                width:18px;
+                height:18px;
+                border-radius:50%;
+                margin-top:2px;
+                background:#22c55e;
+                box-shadow:0 0 0 4px rgba(34,197,94,.12);
+            }
+            .status-timeline__item.pending .status-timeline__dot {
+                background:#f59e0b;
+                box-shadow:0 0 0 4px rgba(245,158,11,.12);
+            }
+            .status-timeline__item.cancelled .status-timeline__dot {
+                background:#ef4444;
+                box-shadow:0 0 0 4px rgba(239,68,68,.12);
+            }
+            .status-timeline__title {
+                font-weight:700;
+                color:#f8fafc;
+            }
+            .status-timeline__note {
+                margin-top:3px;
+                color:#aeb6c5;
+                font-size:14px;
+            }
+            .status-timeline__time {
+                color:#9aa0aa;
+                font-size:13px;
+                white-space:nowrap;
+            }
         </style>
     </head>
     <body>
@@ -101,10 +165,72 @@
 
                                     </div>
 
-                                    <div class="booking-summary-item">
-                                        <div class="booking-summary-label"><b>Tổng tiền:</b> <span class="booking-summary-value">${bk.totalPriceLabel}</span></div>
+                                    <!--                                    <div class="booking-summary-item">
+                                                                            <div class="booking-summary-label"><b>Tổng tiền:</b> <span class="booking-summary-value">${bk.totalPriceLabel}</span></div>
 
+                                                                        </div>-->
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label">
+                                            <b>Tổng tiền ghế:</b>
+                                            <span class="booking-summary-value">
+                                                ${bk.seatSubtotalLabel}
+                                            </span>
+                                        </div>
                                     </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label">
+                                            <b>Ưu đãi mua 5 tặng 1:</b>
+                                            <span class="booking-summary-value">
+                                                <c:choose>
+                                                    <c:when test="${bk.buyFiveDiscount > 0}">
+                                                        -${bk.buyFiveDiscountLabel}
+                                                        (${bk.freeTicketCount} vé miễn phí)
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        0 đ
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label">
+                                            <b>Voucher:</b>
+                                            <span class="booking-summary-value">
+                                                <c:choose>
+                                                    <c:when test="${bk.voucherDiscount > 0}">
+                                                        -${bk.voucherDiscountLabel}
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        0 đ
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="booking-summary-item">
+                                        <div class="booking-summary-label">
+                                            <b>Tổng cần thanh toán:</b>
+                                            <span class="booking-summary-value">
+                                                ${bk.totalPriceLabel}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <c:if test="${not empty fnbLines}">
+                                        <div class="booking-summary-item" style="display:block">
+                                            <div class="booking-summary-label"><b>F&amp;B:</b></div>
+                                            <c:forEach var="item" items="${fnbLines}">
+                                                <div style="display:flex;justify-content:space-between;gap:16px;margin-top:8px">
+                                                    <span><c:out value="${item.name}"/> × ${item.quantity}</span>
+                                                    <strong>${item.lineTotalLabel}</strong>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </c:if>
 
                                 </div>
                                 <div class="booking-payment">
@@ -120,7 +246,7 @@
 
                                             <p>
                                                 <b>Nội dung CK:</b> <code>${transferContent}</code><br>
-                                                
+
                                             </p>
                                         </div>
                                     </c:if>
@@ -131,6 +257,7 @@
                             <section class="booking-tracker" aria-label="Theo dõi trạng thái đơn vé">
                                 <h2>Theo dõi trạng thái đơn vé</h2>
                                 <p class="booking-tracker__hint">Các mốc được lưu tự động khi trạng thái đơn vé thay đổi.</p>
+                                <%-- statusHistory is the audit timeline, separate from the current BOOKINGS.status badge. --%>
                                 <c:choose>
                                     <c:when test="${empty statusHistory}">
                                         <p class="booking-tracker__hint">Chưa có lịch sử trạng thái cho đơn vé này.</p>
@@ -156,6 +283,7 @@
 
                             <div class="bd-actions">
                                 <%-- Hủy đơn: chỉ hiện khi còn cho phép hủy --%>
+                                <%-- Never make this condition the only cancel protection; BookingService checks it again on POST. --%>
                                 <c:if test="${bk.cancellable}">
                                     <form method="post" action="${ctx}/my-booking"
                                           onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn này?');">
@@ -164,6 +292,7 @@
                                     </form>
                                 </c:if>
                                 <%-- Đánh giá phim: chỉ khi đã xem (sẽ nối module Đánh giá) --%>
+                                <%-- A review link is shown only after attendance; ReviewController/ReviewDAO are the final gate. --%>
                                 <c:if test="${bk.reviewable}">
                                     <a class="btn btn-primary"
                                        href="${ctx}/review?bookingId=${bk.booking.id}&movieId=${bk.movieId}">Đánh giá phim</a>

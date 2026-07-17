@@ -5,11 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 /**
- * Ghi đè dữ liệu tiếng Việt chuẩn Unicode (NVARCHAR) — sửa lỗi font do seed SQL / encoding cũ.
+ * Ghi đè dữ liệu tiếng Việt chuẩn Unicode (NVARCHAR) — sửa lỗi font do seed SQL
+ * / encoding cũ.
  */
 public final class VietnameseDataRepair {
 
-    private VietnameseDataRepair() {}
+    private VietnameseDataRepair() {
+    }
 
     public static void repairAll(Connection conn) {
         if (conn == null) {
@@ -47,11 +49,11 @@ public final class VietnameseDataRepair {
 
     private static void repairCategories(Connection conn) throws SQLException {
         String[][] rows = {
-                {"1", "Hành Động", "Phim hành động, võ thuật kịch tính"},
-                {"2", "Hài Hước", "Phim hài, dí dỏm, vui nhộn"},
-                {"3", "Tình Cảm", "Phim tâm lý, tình cảm lãng mạn"},
-                {"4", "Kinh Dị", "Phim kinh dị, giật gân rùng rợn"},
-                {"5", "Hoạt Hình", "Phim hoạt hình 3D, phiêu lưu gia đình"}
+            {"1", "Hành Động", "Phim hành động, võ thuật kịch tính"},
+            {"2", "Hài Hước", "Phim hài, dí dỏm, vui nhộn"},
+            {"3", "Tình Cảm", "Phim tâm lý, tình cảm lãng mạn"},
+            {"4", "Kinh Dị", "Phim kinh dị, giật gân rùng rợn"},
+            {"5", "Hoạt Hình", "Phim hoạt hình 3D, phiêu lưu gia đình"}
         };
         for (String[] r : rows) {
             update(conn, "UPDATE dbo.CATEGORY SET name = ?, description = ? WHERE id = ?",

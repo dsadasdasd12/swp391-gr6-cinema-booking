@@ -12,7 +12,8 @@ public final class EncodingUtil {
 
     private static final Charset WINDOWS_1252 = Charset.forName("Windows-1252");
 
-    private EncodingUtil() {}
+    private EncodingUtil() {
+    }
 
     public static String fix(String value) {
         if (value == null || value.isEmpty()) {

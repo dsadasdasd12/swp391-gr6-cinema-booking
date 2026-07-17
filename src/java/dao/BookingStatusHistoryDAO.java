@@ -10,7 +10,9 @@ import java.util.List;
 import model.BookingStatusHistory;
 import util.DBContext;
 
-/** Read-only access for the booking-status audit timeline. */
+/**
+ * Read-only access for the booking-status audit timeline.
+ */
 public class BookingStatusHistoryDAO {
 
     public List<BookingStatusHistory> findByBookingId(int bookingId) {

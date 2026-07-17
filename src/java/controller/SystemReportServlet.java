@@ -47,7 +47,10 @@ public class SystemReportServlet extends HttpServlet {
 
         Integer branchId = null;
         if (branchIdStr != null && !branchIdStr.isBlank()) {
-            try { branchId = Integer.parseInt(branchIdStr); } catch (NumberFormatException ignored) {}
+            try {
+                branchId = Integer.parseInt(branchIdStr);
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         // Fetch reporting data
@@ -78,16 +81,16 @@ public class SystemReportServlet extends HttpServlet {
 
         // ── Query 1: KPIs ──
         StringBuilder kpiSql = new StringBuilder(
-            "SELECT ISNULL(SUM(b.total_price), 0) AS total_revenue, " +
-            "       ISNULL(SUM(bs_count.cnt), 0) AS total_tickets " +
-            "FROM dbo.BOOKINGS b " +
-            "OUTER APPLY ( " +
-            "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id " +
-            ") bs_count " +
-            "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id " +
-            "JOIN dbo.HALLS h ON s.hall_id = h.id " +
-            "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-            "  AND b.booked_at >= ? AND b.booked_at <= ? "
+                "SELECT ISNULL(SUM(b.total_price), 0) AS total_revenue, "
+                + "       ISNULL(SUM(bs_count.cnt), 0) AS total_tickets "
+                + "FROM dbo.BOOKINGS b "
+                + "OUTER APPLY ( "
+                + "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id "
+                + ") bs_count "
+                + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? "
         );
 
         if (branchId != null && branchId > 0) {
@@ -114,17 +117,17 @@ public class SystemReportServlet extends HttpServlet {
 
         // ── Query 2: Daily Revenue and Ticket Data for Charts ──
         StringBuilder chartSql = new StringBuilder(
-            "SELECT CAST(b.booked_at AS DATE) AS r_date, " +
-            "       SUM(b.total_price) AS revenue, " +
-            "       SUM(bs_count.cnt) AS tickets " +
-            "FROM dbo.BOOKINGS b " +
-            "OUTER APPLY ( " +
-            "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id " +
-            ") bs_count " +
-            "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id " +
-            "JOIN dbo.HALLS h ON s.hall_id = h.id " +
-            "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-            "  AND b.booked_at >= ? AND b.booked_at <= ? "
+                "SELECT CAST(b.booked_at AS DATE) AS r_date, "
+                + "       SUM(b.total_price) AS revenue, "
+                + "       SUM(bs_count.cnt) AS tickets "
+                + "FROM dbo.BOOKINGS b "
+                + "OUTER APPLY ( "
+                + "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id "
+                + ") bs_count "
+                + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? "
         );
         if (branchId != null && branchId > 0) {
             chartSql.append("AND h.branch_id = ? ");
@@ -159,14 +162,14 @@ public class SystemReportServlet extends HttpServlet {
 
         // ── Query 3: Hall Occupancy for Horizontal Bar Chart ──
         StringBuilder occSql = new StringBuilder(
-            "SELECT h.name() AS hall_name, br.name() AS branch_name, " +
-            "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((COUNT(bs.id) * 100.0) / (COUNT(DISTINCT s.id) * h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate " +
-            "FROM dbo.HALLS h " +
-            "JOIN dbo.BRANCHES br ON h.branch_id = br.id " +
-            "LEFT JOIN dbo.SHOWTIMES s ON h.id = s.hall_id AND s.status != 'CANCELLED' " +
-            "LEFT JOIN dbo.BOOKINGS b ON s.id = b.showtime_id AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-            "LEFT JOIN dbo.BOOKING_SEATS bs ON b.id = bs.booking_id " +
-            "WHERE 1=1 "
+                "SELECT h.name() AS hall_name, br.name() AS branch_name, "
+                + "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((COUNT(bs.id) * 100.0) / (COUNT(DISTINCT s.id) * h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate "
+                + "FROM dbo.HALLS h "
+                + "JOIN dbo.BRANCHES br ON h.branch_id = br.id "
+                + "LEFT JOIN dbo.SHOWTIMES s ON h.id = s.hall_id AND s.status != 'CANCELLED' "
+                + "LEFT JOIN dbo.BOOKINGS b ON s.id = b.showtime_id AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "LEFT JOIN dbo.BOOKING_SEATS bs ON b.id = bs.booking_id "
+                + "WHERE 1=1 "
         );
         if (branchId != null && branchId > 0) {
             occSql.append("AND br.id = ? ");
@@ -200,21 +203,21 @@ public class SystemReportServlet extends HttpServlet {
 
         // ── Query 5: Table Rows ──
         StringBuilder tableSql = new StringBuilder(
-            "SELECT CAST(b.booked_at AS DATE) AS report_date, " +
-            "       br.name() AS branch_name, " +
-            "       COUNT(DISTINCT s.id) AS showtime_count, " +
-            "       SUM(bs_count.cnt) AS ticket_count, " +
-            "       SUM(b.total_price) AS revenue, " +
-            "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((SUM(bs_count.cnt) * 100.0) / SUM(h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate " +
-            "FROM dbo.BOOKINGS b " +
-            "OUTER APPLY ( " +
-            "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id " +
-            ") bs_count " +
-            "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id " +
-            "JOIN dbo.HALLS h ON s.hall_id = h.id " +
-            "JOIN dbo.BRANCHES br ON h.branch_id = br.id " +
-            "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-            "  AND b.booked_at >= ? AND b.booked_at <= ? "
+                "SELECT CAST(b.booked_at AS DATE) AS report_date, "
+                + "       br.name() AS branch_name, "
+                + "       COUNT(DISTINCT s.id) AS showtime_count, "
+                + "       SUM(bs_count.cnt) AS ticket_count, "
+                + "       SUM(b.total_price) AS revenue, "
+                + "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((SUM(bs_count.cnt) * 100.0) / SUM(h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate "
+                + "FROM dbo.BOOKINGS b "
+                + "OUTER APPLY ( "
+                + "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id "
+                + ") bs_count "
+                + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "JOIN dbo.BRANCHES br ON h.branch_id = br.id "
+                + "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? "
         );
         if (branchId != null && branchId > 0) {
             tableSql.append("AND br.id = ? ");
@@ -285,7 +288,9 @@ public class SystemReportServlet extends HttpServlet {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < list.size(); i++) {
             sb.append("\"").append(list.get(i).replace("\"", "\\\"")).append("\"");
-            if (i < list.size() - 1) sb.append(",");
+            if (i < list.size() - 1) {
+                sb.append(",");
+            }
         }
         sb.append("]");
         return sb.toString();
@@ -295,7 +300,9 @@ public class SystemReportServlet extends HttpServlet {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < list.size(); i++) {
             sb.append(list.get(i));
-            if (i < list.size() - 1) sb.append(",");
+            if (i < list.size() - 1) {
+                sb.append(",");
+            }
         }
         sb.append("]");
         return sb.toString();
@@ -307,10 +314,14 @@ public class SystemReportServlet extends HttpServlet {
             sb.append("[");
             for (int h = 0; h < 9; h++) {
                 sb.append(matrix[d][h]);
-                if (h < 8) sb.append(",");
+                if (h < 8) {
+                    sb.append(",");
+                }
             }
             sb.append("]");
-            if (d < 6) sb.append(",");
+            if (d < 6) {
+                sb.append(",");
+            }
         }
         sb.append("]");
         return sb.toString();
@@ -320,16 +331,16 @@ public class SystemReportServlet extends HttpServlet {
 
     private double computeAverageOccupancy(Connection conn, String fromTs, String toTs, Integer branchId) {
         StringBuilder sql = new StringBuilder(
-            "SELECT AVG(CAST(occ AS FLOAT)) AS avg_occ FROM ( "
-            + "  SELECT CASE WHEN h.total_seats > 0 AND COUNT(DISTINCT s.id) > 0 "
-            + "    THEN (COUNT(bs.id) * 100.0) / (COUNT(DISTINCT s.id) * h.total_seats) ELSE 0 END AS occ "
-            + "  FROM dbo.HALLS h "
-            + "  JOIN dbo.SHOWTIMES s ON h.id = s.hall_id AND s.status != 'CANCELLED' "
-            + "  LEFT JOIN dbo.BOOKINGS b ON s.id = b.showtime_id "
-            + "    AND b.status IN ('CONFIRMED','CHECKED_IN','USED','COMPLETED') "
-            + "    AND b.booked_at >= ? AND b.booked_at <= ? "
-            + "  LEFT JOIN dbo.BOOKING_SEATS bs ON b.id = bs.booking_id "
-            + "  WHERE 1=1 ");
+                "SELECT AVG(CAST(occ AS FLOAT)) AS avg_occ FROM ( "
+                + "  SELECT CASE WHEN h.total_seats > 0 AND COUNT(DISTINCT s.id) > 0 "
+                + "    THEN (COUNT(bs.id) * 100.0) / (COUNT(DISTINCT s.id) * h.total_seats) ELSE 0 END AS occ "
+                + "  FROM dbo.HALLS h "
+                + "  JOIN dbo.SHOWTIMES s ON h.id = s.hall_id AND s.status != 'CANCELLED' "
+                + "  LEFT JOIN dbo.BOOKINGS b ON s.id = b.showtime_id "
+                + "    AND b.status IN ('CONFIRMED','CHECKED_IN','USED','COMPLETED') "
+                + "    AND b.booked_at >= ? AND b.booked_at <= ? "
+                + "  LEFT JOIN dbo.BOOKING_SEATS bs ON b.id = bs.booking_id "
+                + "  WHERE 1=1 ");
         if (branchId != null && branchId > 0) {
             sql.append("AND h.branch_id = ? ");
         }
@@ -355,14 +366,14 @@ public class SystemReportServlet extends HttpServlet {
     private int[][] buildHeatmapMatrix(Connection conn, String fromTs, String toTs, Integer branchId) {
         int[][] counts = new int[7][9];
         StringBuilder sql = new StringBuilder(
-            "SELECT ((DATEPART(WEEKDAY, b.booked_at) + 5) % 7) AS dow, "
-            + "       DATEPART(HOUR, b.booked_at) AS hr, "
-            + "       COUNT(*) AS cnt "
-            + "FROM dbo.BOOKINGS b "
-            + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
-            + "JOIN dbo.HALLS h ON s.hall_id = h.id "
-            + "WHERE b.status IN ('CONFIRMED','CHECKED_IN','USED','COMPLETED') "
-            + "  AND b.booked_at >= ? AND b.booked_at <= ? ");
+                "SELECT ((DATEPART(WEEKDAY, b.booked_at) + 5) % 7) AS dow, "
+                + "       DATEPART(HOUR, b.booked_at) AS hr, "
+                + "       COUNT(*) AS cnt "
+                + "FROM dbo.BOOKINGS b "
+                + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "WHERE b.status IN ('CONFIRMED','CHECKED_IN','USED','COMPLETED') "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? ");
         if (branchId != null && branchId > 0) {
             sql.append("AND h.branch_id = ? ");
         }
@@ -379,7 +390,9 @@ public class SystemReportServlet extends HttpServlet {
                     int dow = rs.getInt("dow");
                     int hour = rs.getInt("hr");
                     int cnt = rs.getInt("cnt");
-                    if (dow < 0 || dow > 6) continue;
+                    if (dow < 0 || dow > 6) {
+                        continue;
+                    }
                     int slot = hourSlotIndex(hour);
                     if (slot >= 0) {
                         counts[dow][slot] += cnt;
@@ -393,7 +406,9 @@ public class SystemReportServlet extends HttpServlet {
         int max = 1;
         for (int d = 0; d < 7; d++) {
             for (int h = 0; h < 9; h++) {
-                if (counts[d][h] > max) max = counts[d][h];
+                if (counts[d][h] > max) {
+                    max = counts[d][h];
+                }
             }
         }
 
@@ -408,12 +423,15 @@ public class SystemReportServlet extends HttpServlet {
 
     private static int hourSlotIndex(int hour) {
         for (int i = 0; i < HEATMAP_HOURS.length; i++) {
-            if (HEATMAP_HOURS[i] == hour) return i;
+            if (HEATMAP_HOURS[i] == hour) {
+                return i;
+            }
         }
         return -1;
     }
 
     public static class SystemReportData {
+
         private String fromDate;
         private String toDate;
         private double totalRevenue;
@@ -429,31 +447,108 @@ public class SystemReportServlet extends HttpServlet {
         private List<Map<String, Object>> rows;
 
         // Getters and Setters
-        public String getFromDate() { return fromDate; }
-        public void setFromDate(String fromDate) { this.fromDate = fromDate; }
-        public String getToDate() { return toDate; }
-        public void setToDate(String toDate) { this.toDate = toDate; }
-        public double getTotalRevenue() { return totalRevenue; }
-        public void setTotalRevenue(double totalRevenue) { this.totalRevenue = totalRevenue; }
-        public int getTotalTickets() { return totalTickets; }
-        public void setTotalTickets(int totalTickets) { this.totalTickets = totalTickets; }
-        public double getAverageOccupancy() { return averageOccupancy; }
-        public void setAverageOccupancy(double averageOccupancy) { this.averageOccupancy = averageOccupancy; }
-        public String getRevenueLabelsJson() { return revenueLabelsJson; }
-        public void setRevenueLabelsJson(String revenueLabelsJson) { this.revenueLabelsJson = revenueLabelsJson; }
-        public String getRevenueDataJson() { return revenueDataJson; }
-        public void setRevenueDataJson(String revenueDataJson) { this.revenueDataJson = revenueDataJson; }
-        public String getTicketLabelsJson() { return ticketLabelsJson; }
-        public void setTicketLabelsJson(String ticketLabelsJson) { this.ticketLabelsJson = ticketLabelsJson; }
-        public String getTicketDataJson() { return ticketDataJson; }
-        public void setTicketDataJson(String ticketDataJson) { this.ticketDataJson = ticketDataJson; }
-        public String getOccupancyLabelsJson() { return occupancyLabelsJson; }
-        public void setOccupancyLabelsJson(String occupancyLabelsJson) { this.occupancyLabelsJson = occupancyLabelsJson; }
-        public String getOccupancyDataJson() { return occupancyDataJson; }
-        public void setOccupancyDataJson(String occupancyDataJson) { this.occupancyDataJson = occupancyDataJson; }
-        public String getHeatmapMatrixJson() { return heatmapMatrixJson; }
-        public void setHeatmapMatrixJson(String heatmapMatrixJson) { this.heatmapMatrixJson = heatmapMatrixJson; }
-        public List<Map<String, Object>> getRows() { return rows; }
-        public void setRows(List<Map<String, Object>> rows) { this.rows = rows; }
+        public String getFromDate() {
+            return fromDate;
+        }
+
+        public void setFromDate(String fromDate) {
+            this.fromDate = fromDate;
+        }
+
+        public String getToDate() {
+            return toDate;
+        }
+
+        public void setToDate(String toDate) {
+            this.toDate = toDate;
+        }
+
+        public double getTotalRevenue() {
+            return totalRevenue;
+        }
+
+        public void setTotalRevenue(double totalRevenue) {
+            this.totalRevenue = totalRevenue;
+        }
+
+        public int getTotalTickets() {
+            return totalTickets;
+        }
+
+        public void setTotalTickets(int totalTickets) {
+            this.totalTickets = totalTickets;
+        }
+
+        public double getAverageOccupancy() {
+            return averageOccupancy;
+        }
+
+        public void setAverageOccupancy(double averageOccupancy) {
+            this.averageOccupancy = averageOccupancy;
+        }
+
+        public String getRevenueLabelsJson() {
+            return revenueLabelsJson;
+        }
+
+        public void setRevenueLabelsJson(String revenueLabelsJson) {
+            this.revenueLabelsJson = revenueLabelsJson;
+        }
+
+        public String getRevenueDataJson() {
+            return revenueDataJson;
+        }
+
+        public void setRevenueDataJson(String revenueDataJson) {
+            this.revenueDataJson = revenueDataJson;
+        }
+
+        public String getTicketLabelsJson() {
+            return ticketLabelsJson;
+        }
+
+        public void setTicketLabelsJson(String ticketLabelsJson) {
+            this.ticketLabelsJson = ticketLabelsJson;
+        }
+
+        public String getTicketDataJson() {
+            return ticketDataJson;
+        }
+
+        public void setTicketDataJson(String ticketDataJson) {
+            this.ticketDataJson = ticketDataJson;
+        }
+
+        public String getOccupancyLabelsJson() {
+            return occupancyLabelsJson;
+        }
+
+        public void setOccupancyLabelsJson(String occupancyLabelsJson) {
+            this.occupancyLabelsJson = occupancyLabelsJson;
+        }
+
+        public String getOccupancyDataJson() {
+            return occupancyDataJson;
+        }
+
+        public void setOccupancyDataJson(String occupancyDataJson) {
+            this.occupancyDataJson = occupancyDataJson;
+        }
+
+        public String getHeatmapMatrixJson() {
+            return heatmapMatrixJson;
+        }
+
+        public void setHeatmapMatrixJson(String heatmapMatrixJson) {
+            this.heatmapMatrixJson = heatmapMatrixJson;
+        }
+
+        public List<Map<String, Object>> getRows() {
+            return rows;
+        }
+
+        public void setRows(List<Map<String, Object>> rows) {
+            this.rows = rows;
+        }
     }
 }

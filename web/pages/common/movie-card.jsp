@@ -25,7 +25,7 @@
         <div class="movie-meta">
             ${m.durationLabel}
             <c:if test="${m.releaseYear > 0}"> &middot; ${m.releaseYear}</c:if>
-        </div>
-        <div class="movie-genres"><c:out value="${m.categoryNames}"/></div>
+            </div>
+            <div class="movie-genres"><c:out value="${m.categoryNames}"/></div>
     </div>
 </a>

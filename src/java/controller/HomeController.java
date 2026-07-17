@@ -14,8 +14,8 @@ import dto.MovieFilter;
 import service.MovieService;
 
 /**
- * Trang chủ của website: lấy danh sách phim "Đang chiếu" và "Sắp chiếu" để
- * hiển thị trên landing page.
+ * Trang chủ của website: lấy danh sách phim "Đang chiếu" và "Sắp chiếu" để hiển
+ * thị trên landing page.
  * <p>
  * URL: {@code /home} (GET).
  *
@@ -24,7 +24,9 @@ import service.MovieService;
 @WebServlet(name = "HomeController", urlPatterns = {"/home"})
 public class HomeController extends HttpServlet {
 
-    /** Số phim tối đa hiển thị trên mỗi dải (rail) ở trang chủ. */
+    /**
+     * Số phim tối đa hiển thị trên mỗi dải (rail) ở trang chủ.
+     */
     private static final int RAIL_SIZE = 10;
 
     private final MovieService movieService = new MovieService();
@@ -39,7 +41,9 @@ public class HomeController extends HttpServlet {
         request.getRequestDispatcher("/pages/home.jsp").forward(request, response);
     }
 
-    /** Lấy tối đa RAIL_SIZE phim mới nhất theo trạng thái cho trang chủ. */
+    /**
+     * Lấy tối đa RAIL_SIZE phim mới nhất theo trạng thái cho trang chủ.
+     */
     private java.util.List<model.Movie> topMovies(String status) {
         MovieFilter f = new MovieFilter();
         f.setStatus(status);

@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
 public class DiscountCode implements Serializable {
+
     private int id;
     private String code;
     private String discountType;
@@ -17,11 +18,12 @@ public class DiscountCode implements Serializable {
     private Timestamp endDate;
     private String status;
 
-    public DiscountCode() {}
+    public DiscountCode() {
+    }
 
-    public DiscountCode(int id, String code, String discountType, double discountValue, 
-                        Double maxDiscountAmount, double minOrderValue, int maxUses, 
-                        int usedCount, Timestamp startDate, Timestamp endDate, String status) {
+    public DiscountCode(int id, String code, String discountType, double discountValue,
+            Double maxDiscountAmount, double minOrderValue, int maxUses,
+            int usedCount, Timestamp startDate, Timestamp endDate, String status) {
         this.id = id;
         this.code = code;
         this.discountType = discountType;
@@ -35,47 +37,106 @@ public class DiscountCode implements Serializable {
         this.status = status;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getDiscountType() { return discountType; }
-    public void setDiscountType(String discountType) { this.discountType = discountType; }
+    public String getCode() {
+        return code;
+    }
 
-    public double getDiscountValue() { return discountValue; }
-    public void setDiscountValue(double discountValue) { this.discountValue = discountValue; }
+    public void setCode(String code) {
+        this.code = code;
+    }
 
-    public Double getMaxDiscountAmount() { return maxDiscountAmount; }
-    public void setMaxDiscountAmount(Double maxDiscountAmount) { this.maxDiscountAmount = maxDiscountAmount; }
+    public String getDiscountType() {
+        return discountType;
+    }
 
-    public double getMinOrderValue() { return minOrderValue; }
-    public void setMinOrderValue(double minOrderValue) { this.minOrderValue = minOrderValue; }
+    public void setDiscountType(String discountType) {
+        this.discountType = discountType;
+    }
 
-    public int getMaxUses() { return maxUses; }
-    public void setMaxUses(int maxUses) { this.maxUses = maxUses; }
+    public double getDiscountValue() {
+        return discountValue;
+    }
 
-    public int getUsedCount() { return usedCount; }
-    public void setUsedCount(int usedCount) { this.usedCount = usedCount; }
+    public void setDiscountValue(double discountValue) {
+        this.discountValue = discountValue;
+    }
 
-    public Timestamp getStartDate() { return startDate; }
-    public void setStartDate(Timestamp startDate) { this.startDate = startDate; }
+    public Double getMaxDiscountAmount() {
+        return maxDiscountAmount;
+    }
 
-    public Timestamp getEndDate() { return endDate; }
-    public void setEndDate(Timestamp endDate) { this.endDate = endDate; }
+    public void setMaxDiscountAmount(Double maxDiscountAmount) {
+        this.maxDiscountAmount = maxDiscountAmount;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public double getMinOrderValue() {
+        return minOrderValue;
+    }
+
+    public void setMinOrderValue(double minOrderValue) {
+        this.minOrderValue = minOrderValue;
+    }
+
+    public int getMaxUses() {
+        return maxUses;
+    }
+
+    public void setMaxUses(int maxUses) {
+        this.maxUses = maxUses;
+    }
+
+    public int getUsedCount() {
+        return usedCount;
+    }
+
+    public void setUsedCount(int usedCount) {
+        this.usedCount = usedCount;
+    }
+
+    public Timestamp getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Timestamp startDate) {
+        this.startDate = startDate;
+    }
+
+    public Timestamp getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Timestamp endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     // Helper formatting methods
     public String getFormattedStartDate() {
-        if (this.startDate == null) return "";
+        if (this.startDate == null) {
+            return "";
+        }
         return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(this.startDate);
     }
 
     public String getFormattedEndDate() {
-        if (this.endDate == null) return "";
+        if (this.endDate == null) {
+            return "";
+        }
         return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(this.endDate);
     }
 }

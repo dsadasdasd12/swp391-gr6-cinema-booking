@@ -13,6 +13,7 @@ import model.User;
 
 import java.io.IOException;
 import util.PasswordUtil;
+import service.NotificationService;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,28 +22,39 @@ public class StaffAccountServlet extends HttpServlet {
 
     private final AdminUserDAO userDAO = new AdminUserDAO();
     private final BranchDAO branchDAO = new BranchDAO();
+    private final NotificationService notifService = new NotificationService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String keyword = req.getParameter("keyword");
-        
+
         Integer roleId = null;
         String rStr = req.getParameter("roleId");
         if (rStr != null && !rStr.trim().isEmpty()) {
-            try { roleId = Integer.parseInt(rStr); } catch (NumberFormatException ignored) {}
+            try {
+                roleId = Integer.parseInt(rStr);
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         Integer branchId = null;
         String bStr = req.getParameter("branchId");
         if (bStr != null && !bStr.trim().isEmpty()) {
-            try { branchId = Integer.parseInt(bStr); } catch (NumberFormatException ignored) {}
+            try {
+                branchId = Integer.parseInt(bStr);
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         int currentPage = 1;
         String pageStr = req.getParameter("page");
         if (pageStr != null && !pageStr.trim().isEmpty()) {
-            try { currentPage = Integer.parseInt(pageStr); } catch (NumberFormatException e) { currentPage = 1; }
+            try {
+                currentPage = Integer.parseInt(pageStr);
+            } catch (NumberFormatException e) {
+                currentPage = 1;
+            }
         }
 
         int pageSize = 10;
@@ -51,7 +63,9 @@ public class StaffAccountServlet extends HttpServlet {
         List<ManagedUser> staffList = userDAO.findStaffPaged(keyword, roleId, branchId, offset, pageSize);
         int totalItems = userDAO.countStaff(keyword, roleId, branchId);
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
-        if (totalPages == 0) totalPages = 1;
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
 
         List<Branch> branches = branchDAO.findAllActive();
         List<RoleMock> roles = getMockRoles();
@@ -73,10 +87,13 @@ public class StaffAccountServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
         String idStr = req.getParameter("id");
-        
+
         int userId = 0;
         if (idStr != null && !idStr.trim().isEmpty()) {
-            try { userId = Integer.parseInt(idStr); } catch (NumberFormatException ignored) {}
+            try {
+                userId = Integer.parseInt(idStr);
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         if ("add".equalsIgnoreCase(action)) {
@@ -84,19 +101,26 @@ public class StaffAccountServlet extends HttpServlet {
             String email = req.getParameter("email");
             int rId = Integer.parseInt(req.getParameter("roleId"));
             int bId = Integer.parseInt(req.getParameter("branchId"));
-            
-            String google= "local_" + email;
+
+            String google = "local_" + email;
 
             User u = new User();
             u.setFullName(fullName);
-            u.setEmail(email != null ? email.trim().toLowerCase() : null);    
+            u.setEmail(email != null ? email.trim().toLowerCase() : null);
             u.setGoogleId(email);
             u.setRole(mapRoleIdToName(rId));
             u.setPhone("");
 
+            if (rId == 2 && userDAO.hasBranchManager(bId, 0)) {
+                req.getSession().setAttribute("flashError", "Lỗi: Chi nhánh này đã có Quản lý chi nhánh!");
+                resp.sendRedirect(req.getContextPath() + "/admin/accounts/staff");
+                return;
+            }
+
             String defaultHash = PasswordUtil.hashPassword("123");
             int newId = userDAO.insertStaff(u, defaultHash, bId);
             if (newId > 0) {
+                notifService.sendSystemAccountCreated(email != null ? email.trim().toLowerCase() : "", mapRoleIdToName(rId), fullName);
                 req.getSession().setAttribute("flashSuccess", "Thêm mới tài khoản nhân viên thành công!");
             } else {
                 req.getSession().setAttribute("flashError", "Email đã tồn tại hoặc dữ liệu không hợp lệ.");
@@ -107,6 +131,12 @@ public class StaffAccountServlet extends HttpServlet {
             int rId = Integer.parseInt(req.getParameter("roleId"));
             int bId = Integer.parseInt(req.getParameter("branchId"));
             String status = req.getParameter("status");
+
+            if (rId == 2 && userDAO.hasBranchManager(bId, userId)) {
+                req.getSession().setAttribute("flashError", "Lỗi: Chi nhánh này đã có Quản lý chi nhánh!");
+                resp.sendRedirect(req.getContextPath() + "/admin/accounts/staff");
+                return;
+            }
 
             boolean updated = userDAO.updateStaffInfo(userId, fullName, mapRoleIdToName(rId), "", bId, status);
             if (updated) {
@@ -125,8 +155,12 @@ public class StaffAccountServlet extends HttpServlet {
             }
 
         } else if ("delete".equalsIgnoreCase(action)) {
+            ManagedUser target = userDAO.findById(userId);
             boolean deleted = userDAO.deleteUser(userId);
             if (deleted) {
+                if (target != null) {
+                    notifService.sendSystemAccountDeleted(target.getEmail(), target.getRole());
+                }
                 req.getSession().setAttribute("flashSuccess", "Xóa tài khoản nhân viên thành công!");
             } else {
                 req.getSession().setAttribute("flashError", "Xóa tài khoản thất bại.");
@@ -137,12 +171,15 @@ public class StaffAccountServlet extends HttpServlet {
     }
 
     private String mapRoleIdToName(int roleId) {
-        if (roleId == 1) return "ADMIN";
-        if (roleId == 2) return "MANAGER";
+        if (roleId == 1) {
+            return "ADMIN";
+        }
+        if (roleId == 2) {
+            return "MANAGER";
+        }
         return "STAFF";
     }
 
-    
     public static String hashPassword(String password) {
         return PasswordUtil.hashPassword(password);
     }
@@ -155,6 +192,7 @@ public class StaffAccountServlet extends HttpServlet {
     }
 
     public static class RoleMock {
+
         private int id;
         private String name;
 
@@ -163,7 +201,12 @@ public class StaffAccountServlet extends HttpServlet {
             this.name = name;
         }
 
-        public int getId() { return id; }
-        public String getName() { return name; }
+        public int getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 }

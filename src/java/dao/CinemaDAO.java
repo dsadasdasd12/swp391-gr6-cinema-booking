@@ -14,24 +14,29 @@ public class CinemaDAO {
     public Cinema findPrimary() {
         String sql = "SELECT TOP 1 id, name, address, phone, logo_url, status FROM dbo.CINEMA ORDER BY id";
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return null;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        if (conn == null) {
+            return null;
+        }
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 return mapRow(rs);
             }
         } catch (SQLException e) {
             System.getLogger(CinemaDAO.class.getName())
-                  .log(System.Logger.Level.ERROR, "findPrimary cinema thất bại", e);
+                    .log(System.Logger.Level.ERROR, "findPrimary cinema thất bại", e);
         }
         return null;
     }
 
     public boolean update(Cinema cinema) {
-        if (cinema == null || cinema.getId() <= 0) return false;
+        if (cinema == null || cinema.getId() <= 0) {
+            return false;
+        }
         String sql = "UPDATE dbo.CINEMA SET name = ?, address = ?, phone = ?, status = ?, last_update = GETDATE() WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return false;
+        if (conn == null) {
+            return false;
+        }
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, cinema.getName());
             ps.setNString(2, cinema.getAddress());
@@ -41,7 +46,7 @@ public class CinemaDAO {
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.getLogger(CinemaDAO.class.getName())
-                  .log(System.Logger.Level.ERROR, "update cinema thất bại", e);
+                    .log(System.Logger.Level.ERROR, "update cinema thất bại", e);
             return false;
         }
     }

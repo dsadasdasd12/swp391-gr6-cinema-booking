@@ -23,7 +23,9 @@ import model.User;
 @WebServlet({
     "/favorite-movie"})
 public class FavoriteMovieController extends HttpServlet {
+
     private final FavoriteMovieDAO favoriteMovieDAO = new FavoriteMovieDAO();
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -59,7 +61,6 @@ public class FavoriteMovieController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-
     @Override
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response)
@@ -67,20 +68,17 @@ public class FavoriteMovieController extends HttpServlet {
 
         User user = (User) request.getSession().getAttribute("user");
 
-    if (user == null) {
-        response.sendRedirect(request.getContextPath() + "/login");
-        return;
-    }
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
-    List<Movie> favoriteMovies = favoriteMovieDAO.findByUserId(user.getId());
+        List<Movie> favoriteMovies = favoriteMovieDAO.findByUserId(user.getId());
 
-    System.out.println("User ID = " + user.getId());
-    System.out.println("Favorite movies = " + favoriteMovies.size());
+        request.setAttribute("favoriteMovies", favoriteMovies);
 
-    request.setAttribute("favoriteMovies", favoriteMovies);
-
-    request.getRequestDispatcher("/pages/customer/favoritefilms.jsp")
-           .forward(request, response);
+        request.getRequestDispatcher("/pages/customer/favoritefilms.jsp")
+                .forward(request, response);
     }
 
     @Override

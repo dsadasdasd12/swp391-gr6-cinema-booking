@@ -161,13 +161,13 @@
                                         <!-- Edit trigger -->
                                         <button type="button" class="rv-btn rv-btn--ghost rv-btn--icon" data-tooltip="Chỉnh sửa tài khoản" style="border: none;"
                                                 onclick="openStaffModal({
-                                                    id: '${s.id}',
-                                                    fullName: '${fn:escapeXml(s.fullName)}',
-                                                    email: '${s.email}',
-                                                    roleId: '${s.roleId}',
-                                                    branchId: '${s.branchId}',
-                                                    status: '${s.status}'
-                                                })">
+                                                            id: '${s.id}',
+                                                            fullName: '${fn:escapeXml(s.fullName)}',
+                                                            email: '${s.email}',
+                                                            roleId: '${s.roleId}',
+                                                            branchId: '${s.branchId}',
+                                                            status: '${s.status}'
+                                                        })">
                                             <i class="bi bi-pencil-square" style="color: var(--primary-light);"></i>
                                         </button>
 
@@ -243,7 +243,7 @@
                 </div>
                 <h3 class="rv-modal__title" id="modal-title">Thêm tài khoản nhân viên</h3>
             </div>
-            
+
             <div class="rv-modal__body" style="display: flex; flex-direction: column; gap: var(--s-4);">
                 <!-- Full name -->
                 <div class="rv-form-group">

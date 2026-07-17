@@ -14,6 +14,7 @@ import util.PasswordUtil;
  * @author Admin
  */
 public class UserService {
+
     private final UserDAO userDAO = new UserDAO();
 
     public List<User> getAllUsersExceptAdmin() {
@@ -23,7 +24,7 @@ public class UserService {
     public User getUserById(int id) {
         return userDAO.getUserById(id);
     }
-    
+
     public boolean createUserByAdmin(User user) {
 
         if (user == null) {
@@ -89,14 +90,14 @@ public class UserService {
 
         return userDAO.toggleActive(id);
     }
-    
+
     public boolean updateProfile(User user) {
-    return userDAO.updateCustomerProfile(
-            user.getId(),
-            user.getFullName(),
-            user.getPhone()
-    );
-}
+        return userDAO.updateCustomerProfile(
+                user.getId(),
+                user.getFullName(),
+                user.getPhone()
+        );
+    }
 
     public int getBranchIdOfStaff(int userId) {
         return userDAO.getBranchIdOfStaff(userId);

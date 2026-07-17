@@ -1,20 +1,20 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- Create Voucher Popup Modal Dialog -->
+<!-- Admin voucher creation modal -->
 <div id="addDiscountModal" class="custom-discount-modal">
     <div class="custom-discount-modal-content">
         <h3 class="custom-discount-modal-title">Tạo Mã Giảm Giá Mới</h3>
-        
+
         <form action="DiscountManager" method="POST" onsubmit="return validateForm()">
             <input type="hidden" name="action" value="create">
-            
+
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label for="code">Tên Mã Giảm Giá</label>
                     <input type="text" id="code" name="code" placeholder="Ví dụ: DONGGIA70K, CHAOSONG20" required autocomplete="off">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="discountType">Loại giảm</label>
                     <select id="discountType" name="discountType" onchange="toggleMaxDiscountField(this.value)">
@@ -22,7 +22,7 @@
                         <option value="PERCENT">Phần trăm (%)</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="discountValue" id="valueLabel">Mức Giảm (đ)</label>
                     <input type="number" id="discountValue" name="discountValue" min="1" max="10000000" placeholder="Ví dụ: 20000" required>
@@ -32,7 +32,7 @@
                     <label for="maxDiscountAmount">Mức Giảm Tối Đa (đ)</label>
                     <input type="number" id="maxDiscountAmount" name="maxDiscountAmount" max="10000000" placeholder="Bỏ trống nếu không hạn chế">
                 </div>
-                
+
                 <div class="form-group" id="minOrderGroup">
                     <label for="minOrderValue">Đơn Tối Thiểu (đ)</label>
                     <input type="number" id="minOrderValue" name="minOrderValue" min="0" max="10000000" value="0" required>
@@ -84,13 +84,13 @@
         if (startInput && endInput) {
             const now = new Date();
             const pad = (num) => String(num).padStart(2, '0');
-            
+
             const formatDateTimeLocal = (d) => {
                 return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
             };
-            
+
             startInput.value = formatDateTimeLocal(now);
-            
+
             const nextMonth = new Date();
             nextMonth.setDate(now.getDate() + 30);
             endInput.value = formatDateTimeLocal(nextMonth);
@@ -107,7 +107,7 @@
     }
 
     // Đóng modal khi bấm ra ngoài vùng nội dung
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const modal = document.getElementById('addDiscountModal');
         if (event.target === modal) {
             closeModal();
@@ -119,7 +119,7 @@
         const maxGroup = document.getElementById('maxDiscountGroup');
         const valueLabel = document.getElementById('valueLabel');
         const discountValue = document.getElementById('discountValue');
-        
+
         if (type === 'PERCENT') {
             maxGroup.style.display = 'flex';
             valueLabel.innerText = "Mức Giảm (%)";
@@ -138,15 +138,15 @@
     function validateForm() {
         const start = new Date(document.getElementById('startDate').value);
         const end = new Date(document.getElementById('endDate').value);
-        
+
         if (end <= start) {
             alert("Ngày hết hạn phải xảy ra sau ngày hiệu lực!");
             return false;
         }
-        
+
         const type = document.getElementById('discountType').value;
         const value = parseFloat(document.getElementById('discountValue').value);
-        
+
         if (type === 'FLAT' && value > 10000000) {
             alert("Mức giảm giá tối đa là 10.000.000đ!");
             return false;
@@ -155,13 +155,13 @@
             alert("Mức phần trăm giảm giá tối đa là 100%!");
             return false;
         }
-        
+
         const minOrder = parseFloat(document.getElementById('minOrderValue').value);
         if (minOrder > 10000000) {
             alert("Giá trị đơn tối thiểu tối đa là 10.000.000đ!");
             return false;
         }
-        
+
         const maxDiscountInput = document.getElementById('maxDiscountAmount');
         if (maxDiscountInput && maxDiscountInput.value) {
             const maxDiscount = parseFloat(maxDiscountInput.value);
@@ -170,7 +170,7 @@
                 return false;
             }
         }
-        
+
         return true;
     }
 </script>

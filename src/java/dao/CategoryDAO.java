@@ -29,8 +29,7 @@ public class CategoryDAO {
         String sql = "SELECT id, name, description, status FROM dbo.CATEGORY ORDER BY name";
         List<Category> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -56,14 +55,15 @@ public class CategoryDAO {
         return null;
     }
 
-    /** Tất cả thể loại đang hoạt động, sắp theo tên — cho ô lọc. */
+    /**
+     * Tất cả thể loại đang hoạt động, sắp theo tên — cho ô lọc.
+     */
     public List<Category> findAllActive() {
         String sql = "SELECT id, name, description, status "
                 + "FROM dbo.CATEGORY WHERE status = 'ACTIVE' ORDER BY name";
         List<Category> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -74,7 +74,9 @@ public class CategoryDAO {
         return list;
     }
 
-    /** Các thể loại gắn với một phim (qua bảng dbo.MOVIES_CATEGORY). */
+    /**
+     * Các thể loại gắn với một phim (qua bảng dbo.MOVIES_CATEGORY).
+     */
     public List<Category> findByMovieId(int movieId) {
         String sql = "SELECT c.id, c.name, c.description, c.status "
                 + "FROM dbo.CATEGORY c "
@@ -137,7 +139,9 @@ public class CategoryDAO {
         return false;
     }
 
-    /** Ánh xạ một dòng ResultSet sang đối tượng Category. */
+    /**
+     * Ánh xạ một dòng ResultSet sang đối tượng Category.
+     */
     private Category map(ResultSet rs) throws SQLException {
         Category c = new Category();
         c.setId(rs.getInt("id"));

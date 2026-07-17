@@ -14,21 +14,26 @@ import service.BranchService;
 /**
  * Controller cho luồng Admin xem và quản lý chi nhánh rạp.
  *
- * <p>Luồng UI:</p>
+ * <p>
+ * Luồng UI:</p>
  * <ul>
- *   <li>GET {@code /admin/branches}: lấy danh sách chi nhánh và forward sang {@code branch-list.jsp}.</li>
- *   <li>GET {@code /admin/branches/create}: mở form tạo chi nhánh.</li>
- *   <li>GET {@code /admin/branches/edit?id=...}: mở form sửa chi nhánh.</li>
- *   <li>POST {@code /admin/branches/create}: đọc dữ liệu form, validate ở service và tạo branch.</li>
- *   <li>POST {@code /admin/branches/edit}: cập nhật thông tin branch.</li>
- *   <li>POST {@code /admin/branches/status}: đổi trạng thái ACTIVE/INACTIVE.</li>
- *   <li>POST {@code /admin/branches/delete}: xóa branch nếu không bị ràng buộc dữ liệu.</li>
+ * <li>GET {@code /admin/branches}: lấy danh sách chi nhánh và forward sang
+ * {@code branch-list.jsp}.</li>
+ * <li>GET {@code /admin/branches/create}: mở form tạo chi nhánh.</li>
+ * <li>GET {@code /admin/branches/edit?id=...}: mở form sửa chi nhánh.</li>
+ * <li>POST {@code /admin/branches/create}: đọc dữ liệu form, validate ở service
+ * và tạo branch.</li>
+ * <li>POST {@code /admin/branches/edit}: cập nhật thông tin branch.</li>
+ * <li>POST {@code /admin/branches/status}: đổi trạng thái ACTIVE/INACTIVE.</li>
+ * <li>POST {@code /admin/branches/delete}: xóa branch nếu không bị ràng buộc dữ
+ * liệu.</li>
  * </ul>
  *
- * <p>Ghi chú: route public {@code /branches} đang được JSP nhắc tới nhưng chưa có controller
- * tương ứng trong source hiện tại.</p>
+ * <p>
+ * Ghi chú: route public {@code /branches} đang được JSP nhắc tới nhưng chưa có
+ * controller tương ứng trong source hiện tại.</p>
  *
- * @author 
+ * @author
  */
 @WebServlet(name = "BranchController", urlPatterns = {
     "/admin/branches",

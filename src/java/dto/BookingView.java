@@ -26,12 +26,42 @@ public class BookingView {
     private LocalDateTime showStart; // SHOWTIMES.start_time
     private String seatLabels;       // ví dụ "A1, A2, B5"
     private int seatCount;
+    // sua theo y thay
+    private double seatSubtotal;
+    private double buyFiveDiscount;
+    private double voucherDiscount;
     private String customerName;
     private String customerEmail;
 
     public BookingView() {
     }
+//sua theo y thay
 
+    public double getSeatSubtotal() {
+        return seatSubtotal;
+    }
+
+    public void setSeatSubtotal(double seatSubtotal) {
+        this.seatSubtotal = Math.max(0, seatSubtotal);
+    }
+
+    public double getBuyFiveDiscount() {
+        return buyFiveDiscount;
+    }
+
+    public void setBuyFiveDiscount(double buyFiveDiscount) {
+        this.buyFiveDiscount = Math.max(0, buyFiveDiscount);
+    }
+
+    public double getVoucherDiscount() {
+        return voucherDiscount;
+    }
+
+    public void setVoucherDiscount(double voucherDiscount) {
+        this.voucherDiscount = Math.max(0, voucherDiscount);
+    }
+
+//end
     public Booking getBooking() {
         return booking;
     }
@@ -113,14 +143,17 @@ public class BookingView {
     }
 
     // ── Helper hiển thị ─────────────────────────────────────
-
-    /** Thời gian suất chiếu dạng "dd/MM/yyyy HH:mm". */
+    /**
+     * Thời gian suất chiếu dạng "dd/MM/yyyy HH:mm".
+     */
     public String getShowTimeLabel() {
         return showStart == null ? ""
                 : showStart.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 
-    /** Thời điểm đặt vé dạng "dd/MM/yyyy HH:mm". */
+    /**
+     * Thời điểm đặt vé dạng "dd/MM/yyyy HH:mm".
+     */
     public String getBookedAtLabel() {
         if (booking == null || booking.getBookedAt() == null) {
             return "";
@@ -129,30 +162,71 @@ public class BookingView {
                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 
-    /** Tổng tiền dạng "120.000 đ" (dấu chấm ngăn nghìn kiểu VN). */
+    /**
+     * Tổng tiền dạng "120.000 đ" (dấu chấm ngăn nghìn kiểu VN).
+     */
+//    public String getTotalPriceLabel() {
+//        if (booking == null) {
+//            return "";
+//        }
+//        return String.format("%,.0f", booking.getTotalPrice()).replace(',', '.') + " đ";
+//    }
     public String getTotalPriceLabel() {
         if (booking == null) {
             return "";
         }
-        return String.format("%,.0f", booking.getTotalPrice()).replace(',', '.') + " đ";
+
+        return formatMoney(booking.getTotalPrice());
     }
 
-    /** Nhãn trạng thái đơn tiếng Việt (theo dõi trạng thái đơn hàng). */
+// start
+    public String getSeatSubtotalLabel() {
+        return formatMoney(seatSubtotal);
+    }
+
+    public String getBuyFiveDiscountLabel() {
+        return formatMoney(buyFiveDiscount);
+    }
+
+    public String getVoucherDiscountLabel() {
+        return formatMoney(voucherDiscount);
+    }
+
+    public int getFreeTicketCount() {
+        return seatCount / 5;
+    }
+
+    private String formatMoney(double value) {
+        return String.format("%,.0f", value).replace(',', '.') + " đ";
+    }
+
+//end
+    /**
+     * Nhãn trạng thái đơn tiếng Việt (theo dõi trạng thái đơn hàng).
+     */
     public String getStatusLabel() {
         if (booking == null) {
             return "";
         }
         switch (booking.getStatus()) {
-            case "PENDING":    return "Chờ thanh toán";
-            case "CONFIRMED":  return "Đã xác nhận";
-            case "CHECKED_IN": return "Đã check-in";
-            case "USED":       return "Đã sử dụng";
-            case "CANCELLED":  return "Đã hủy";
-            default:           return booking.getStatus();
+            case "PENDING":
+                return "Chờ thanh toán";
+            case "CONFIRMED":
+                return "Đã xác nhận";
+            case "CHECKED_IN":
+                return "Đã check-in";
+            case "USED":
+                return "Đã sử dụng";
+            case "CANCELLED":
+                return "Đã hủy";
+            default:
+                return booking.getStatus();
         }
     }
 
-    /** Lớp CSS badge theo trạng thái (tái dùng .badge.now/.soon/.ended). */
+    /**
+     * Lớp CSS badge theo trạng thái (tái dùng .badge.now/.soon/.ended).
+     */
     public String getStatusBadgeClass() {
         if (booking == null) {
             return "ended";
@@ -160,19 +234,26 @@ public class BookingView {
         switch (booking.getStatus()) {
             case "CONFIRMED":
             case "CHECKED_IN":
-            case "USED":       return "now";
-            case "PENDING":    return "soon";
-            default:           return "ended";   // CANCELLED
+            case "USED":
+                return "now";
+            case "PENDING":
+                return "soon";
+            default:
+                return "ended";   // CANCELLED
         }
     }
 
-    /** Khách được hủy đơn khi đơn còn ở trạng thái chờ/đã xác nhận. */
+    /**
+     * Khách được hủy đơn khi đơn còn ở trạng thái chờ/đã xác nhận.
+     */
     public boolean isCancellable() {
         return booking != null
                 && ("PENDING".equals(booking.getStatus()) || "CONFIRMED".equals(booking.getStatus()));
     }
 
-    /** Khách được đánh giá phim khi đã thực sự xem (check-in / đã dùng vé). */
+    /**
+     * Khách được đánh giá phim khi đã thực sự xem (check-in / đã dùng vé).
+     */
     public boolean isReviewable() {
         return booking != null
                 && ("CHECKED_IN".equals(booking.getStatus()) || "USED".equals(booking.getStatus()));

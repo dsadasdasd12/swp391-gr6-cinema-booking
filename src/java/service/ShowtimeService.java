@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package service;
 
 import dao.HallDAO;
@@ -84,8 +83,8 @@ public class ShowtimeService {
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
-        showtime.getStartTime().toLocalDateTime(),
-        showtime.getEndTime().toLocalDateTime(),
+                showtime.getStartTime().toLocalDateTime(),
+                showtime.getEndTime().toLocalDateTime(),
                 0
         );
 
@@ -115,8 +114,8 @@ public class ShowtimeService {
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
-        showtime.getStartTime().toLocalDateTime(),
-        showtime.getEndTime().toLocalDateTime(),
+                showtime.getStartTime().toLocalDateTime(),
+                showtime.getEndTime().toLocalDateTime(),
                 0
         );
 
@@ -136,8 +135,8 @@ public class ShowtimeService {
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
-        showtime.getStartTime().toLocalDateTime(),
-        showtime.getEndTime().toLocalDateTime(),
+                showtime.getStartTime().toLocalDateTime(),
+                showtime.getEndTime().toLocalDateTime(),
                 showtime.getId()
         );
 
@@ -200,8 +199,8 @@ public class ShowtimeService {
 
         boolean conflict = showtimeDAO.hasScheduleConflict(
                 showtime.getHallId(),
-        showtime.getStartTime().toLocalDateTime(),
-        showtime.getEndTime().toLocalDateTime(),
+                showtime.getStartTime().toLocalDateTime(),
+                showtime.getEndTime().toLocalDateTime(),
                 showtime.getId()
         );
 
@@ -426,74 +425,74 @@ public class ShowtimeService {
     }
 
     private void validateWithinOperatingHours(
-        Branch branch,
-        Showtime showtime
-) {
-    LocalTime openTime = branch.getOpenTime();
-    LocalTime closeTime = branch.getCloseTime();
+            Branch branch,
+            Showtime showtime
+    ) {
+        LocalTime openTime = branch.getOpenTime();
+        LocalTime closeTime = branch.getCloseTime();
 
-    if (openTime == null || closeTime == null) {
-        return;
-    }
+        if (openTime == null || closeTime == null) {
+            return;
+        }
 
-    LocalDateTime startTime
-            = showtime.getStartTime().toLocalDateTime();
+        LocalDateTime startTime
+                = showtime.getStartTime().toLocalDateTime();
 
-    LocalDateTime endTime
-            = showtime.getEndTime().toLocalDateTime();
+        LocalDateTime endTime
+                = showtime.getEndTime().toLocalDateTime();
 
-    LocalDateTime openingDateTime;
-    LocalDateTime closingDateTime;
+        LocalDateTime openingDateTime;
+        LocalDateTime closingDateTime;
 
-    if (openTime.isBefore(closeTime)) {
-        // Ví dụ: 08:00–23:00, hoạt động trong cùng ngày
-        openingDateTime = LocalDateTime.of(
-                startTime.toLocalDate(),
-                openTime
-        );
-
-        closingDateTime = LocalDateTime.of(
-                startTime.toLocalDate(),
-                closeTime
-        );
-    } else {
-        // Ví dụ: 20:00–03:00, hoạt động xuyên đêm
-        if (!startTime.toLocalTime().isBefore(openTime)) {
-            // Suất bắt đầu từ 20:00 trở đi
+        if (openTime.isBefore(closeTime)) {
+            // Ví dụ: 08:00–23:00, hoạt động trong cùng ngày
             openingDateTime = LocalDateTime.of(
                     startTime.toLocalDate(),
                     openTime
             );
+
+            closingDateTime = LocalDateTime.of(
+                    startTime.toLocalDate(),
+                    closeTime
+            );
         } else {
-            // Suất bắt đầu sau 00:00, thuộc ca mở từ ngày hôm trước
-            openingDateTime = LocalDateTime.of(
-                    startTime.toLocalDate().minusDays(1),
-                    openTime
+            // Ví dụ: 20:00–03:00, hoạt động xuyên đêm
+            if (!startTime.toLocalTime().isBefore(openTime)) {
+                // Suất bắt đầu từ 20:00 trở đi
+                openingDateTime = LocalDateTime.of(
+                        startTime.toLocalDate(),
+                        openTime
+                );
+            } else {
+                // Suất bắt đầu sau 00:00, thuộc ca mở từ ngày hôm trước
+                openingDateTime = LocalDateTime.of(
+                        startTime.toLocalDate().minusDays(1),
+                        openTime
+                );
+            }
+
+            closingDateTime = LocalDateTime.of(
+                    openingDateTime.toLocalDate().plusDays(1),
+                    closeTime
             );
         }
 
-        closingDateTime = LocalDateTime.of(
-                openingDateTime.toLocalDate().plusDays(1),
-                closeTime
-        );
+        boolean invalidStart
+                = startTime.isBefore(openingDateTime)
+                || !startTime.isBefore(closingDateTime);
+
+        boolean invalidEnd
+                = endTime.isAfter(closingDateTime)
+                || !endTime.isAfter(startTime);
+
+        if (invalidStart || invalidEnd) {
+            throw new IllegalArgumentException(
+                    "Suất chiếu phải bắt đầu và kết thúc "
+                    + "trong giờ hoạt động của chi nhánh ("
+                    + openTime + " - " + closeTime + ")."
+            );
+        }
     }
-
-    boolean invalidStart
-            = startTime.isBefore(openingDateTime)
-            || !startTime.isBefore(closingDateTime);
-
-    boolean invalidEnd
-            = endTime.isAfter(closingDateTime)
-            || !endTime.isAfter(startTime);
-
-    if (invalidStart || invalidEnd) {
-        throw new IllegalArgumentException(
-                "Suất chiếu phải bắt đầu và kết thúc "
-                + "trong giờ hoạt động của chi nhánh ("
-                + openTime + " - " + closeTime + ")."
-        );
-    }
-}
 
     private boolean hasBookingSensitiveChanges(
             Showtime current,
@@ -528,7 +527,8 @@ public class ShowtimeService {
 
         return result;
     }
-     public List<Showtime> getActiveShowtimesByBranch(int branchId) {
+
+    public List<Showtime> getActiveShowtimesByBranch(int branchId) {
         return showtimeDAO.getActiveShowtimesByBranch(branchId);
     }
 
@@ -552,7 +552,10 @@ public class ShowtimeService {
         return showtimeDAO.findBookableByBranchMovieAndDate(branchId, movieId, date);
     }
 
-    /** Returns bookable showtimes from Monday through Sunday of the requested week. */
+    /**
+     * Returns bookable showtimes from Monday through Sunday of the requested
+     * week.
+     */
     public List<Showtime> getBookableShowtimesForWeek(int branchId, int movieId, LocalDate weekStart) {
         if (branchId <= 0 || movieId <= 0 || weekStart == null) {
             return Collections.emptyList();

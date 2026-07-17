@@ -14,16 +14,21 @@ import model.User;
 /**
  * Controller cho luồng Admin quản lý ngôn ngữ phim.
  *
- * <p>Luồng UI:</p>
+ * <p>
+ * Luồng UI:</p>
  * <ul>
- *   <li>GET {@code /admin/languages}: hiển thị danh sách language.</li>
- *   <li>GET {@code action=new}: mở form tạo language mới.</li>
- *   <li>GET {@code action=edit&id=...}: mở form sửa language hiện có.</li>
- *   <li>POST {@code action=add|update}: validate tên/mã ngôn ngữ rồi lưu vào DB.</li>
- *   <li>GET/POST {@code action=delete}: ẩn/xóa language rồi redirect về danh sách.</li>
+ * <li>GET {@code /admin/languages}: hiển thị danh sách language.</li>
+ * <li>GET {@code action=new}: mở form tạo language mới.</li>
+ * <li>GET {@code action=edit&id=...}: mở form sửa language hiện có.</li>
+ * <li>POST {@code action=add|update}: validate tên/mã ngôn ngữ rồi lưu vào
+ * DB.</li>
+ * <li>GET/POST {@code action=delete}: ẩn/xóa language rồi redirect về danh
+ * sách.</li>
  * </ul>
  *
- * <p>Controller yêu cầu user role {@code ADMIN}; user không hợp lệ sẽ bị redirect.</p>
+ * <p>
+ * Controller yêu cầu user role {@code ADMIN}; user không hợp lệ sẽ bị
+ * redirect.</p>
  *
  * @author HuyPD
  */
@@ -43,15 +48,21 @@ public class AdminLanguageController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Tat ca route admin language deu bat buoc role ADMIN.
-        if (!requireAdmin(request, response)) return;
+        if (!requireAdmin(request, response)) {
+            return;
+        }
 
         // Neu URL khong co action thi mac dinh la list.
         String action = valueOrDefault(request.getParameter("action"), "list");
         switch (action) {
-            case "new" -> showNew(request, response);
-            case "edit" -> showEdit(request, response);
-            case "delete" -> delete(request, response);
-            default -> list(request, response);
+            case "new" ->
+                showNew(request, response);
+            case "edit" ->
+                showEdit(request, response);
+            case "delete" ->
+                delete(request, response);
+            default ->
+                list(request, response);
         }
     }
 
@@ -62,15 +73,21 @@ public class AdminLanguageController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         // Kiem tra admin truoc khi cho ghi du lieu.
-        if (!requireAdmin(request, response)) return;
+        if (!requireAdmin(request, response)) {
+            return;
+        }
 
         // action quyet dinh form dang add, update hay delete.
         String action = valueOrDefault(request.getParameter("action"), "");
         switch (action) {
-            case "add" -> save(request, response, false);
-            case "update" -> save(request, response, true);
-            case "delete" -> delete(request, response);
-            default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            case "add" ->
+                save(request, response, false);
+            case "update" ->
+                save(request, response, true);
+            case "delete" ->
+                delete(request, response);
+            default ->
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
@@ -144,8 +161,12 @@ public class AdminLanguageController extends HttpServlet {
         if (session != null) {
             // Login thuong luu "user"; mot so trang admin cu co the luu "adminUser".
             Object current = session.getAttribute("user");
-            if (!(current instanceof User)) current = session.getAttribute("adminUser");
-            if (current instanceof User) user = (User) current;
+            if (!(current instanceof User)) {
+                current = session.getAttribute("adminUser");
+            }
+            if (current instanceof User) {
+                user = (User) current;
+            }
         }
         if (user == null) {
             // Chua dang nhap thi ve login.
@@ -162,13 +183,18 @@ public class AdminLanguageController extends HttpServlet {
 
     private int parseId(String value) {
         // Convert id tu String sang int; loi thi tra 0.
-        try { return value == null ? 0 : Integer.parseInt(value.trim()); }
-        catch (NumberFormatException e) { return 0; }
+        try {
+            return value == null ? 0 : Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private String trim(String value) {
         // Chuan hoa input: null/rong -> null, con lai bo khoang trang dau/cuoi.
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         String result = value.trim();
         return result.isEmpty() ? null : result;
     }

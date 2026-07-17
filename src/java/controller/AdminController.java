@@ -15,7 +15,6 @@ import service.BranchService;
 import service.UserService;
 
 @WebServlet({
-    
     "/admin/accounts",
     "/admin/user/save",
     "/admin/user/toggle-active"
@@ -48,7 +47,7 @@ public class AdminController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request,
-                         HttpServletResponse response)
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         if (!isAdmin(request)) {
@@ -88,7 +87,7 @@ public class AdminController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request,
-                          HttpServletResponse response)
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
@@ -129,7 +128,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void showAccountManagement(HttpServletRequest request,
-                                       HttpServletResponse response)
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         List<User> users = userService.getAllUsersExceptAdmin();
@@ -140,7 +139,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void saveUser(HttpServletRequest request,
-                          HttpServletResponse response)
+            HttpServletResponse response)
             throws IOException {
 
         String idRaw = request.getParameter("id");
@@ -162,7 +161,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void toggleActive(HttpServletRequest request,
-                              HttpServletResponse response)
+            HttpServletResponse response)
             throws IOException {
 
         String idRaw = request.getParameter("id");
@@ -176,7 +175,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void showBranchList(HttpServletRequest request,
-                                HttpServletResponse response)
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         List<Branch> branches = branchService.getAllBranches();
@@ -187,9 +186,9 @@ public class AdminController extends HttpServlet {
     }
 
     private void showBranchForm(HttpServletRequest request,
-                                HttpServletResponse response,
-                                Branch branch,
-                                boolean isEdit)
+            HttpServletResponse response,
+            Branch branch,
+            boolean isEdit)
             throws ServletException, IOException {
 
         request.setAttribute("branch", branch == null ? new Branch() : branch);
@@ -200,7 +199,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void showEditBranchForm(HttpServletRequest request,
-                                    HttpServletResponse response)
+            HttpServletResponse response)
             throws ServletException, IOException {
 
         String idRaw = request.getParameter("id");
@@ -224,7 +223,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void createBranch(HttpServletRequest request,
-                              HttpServletResponse response)
+            HttpServletResponse response)
             throws IOException, ServletException {
 
         try {
@@ -242,7 +241,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void updateBranch(HttpServletRequest request,
-                              HttpServletResponse response)
+            HttpServletResponse response)
             throws IOException, ServletException {
 
         try {
@@ -260,7 +259,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void deleteBranch(HttpServletRequest request,
-                              HttpServletResponse response)
+            HttpServletResponse response)
             throws IOException {
 
         int id = Integer.parseInt(request.getParameter("id"));
@@ -280,7 +279,7 @@ public class AdminController extends HttpServlet {
     }
 
     private void changeBranchStatus(HttpServletRequest request,
-                                    HttpServletResponse response)
+            HttpServletResponse response)
             throws IOException {
 
         int id = Integer.parseInt(request.getParameter("id"));
@@ -302,7 +301,7 @@ public class AdminController extends HttpServlet {
     }
 
     private Branch buildBranchFromRequest(HttpServletRequest request,
-                                          boolean requireId) {
+            boolean requireId) {
 
         Branch branch = new Branch();
 
@@ -338,7 +337,7 @@ public class AdminController extends HttpServlet {
     }
 
     private Branch buildBranchFromRequestSafe(HttpServletRequest request,
-                                              boolean requireId) {
+            boolean requireId) {
 
         try {
             return buildBranchFromRequest(request, requireId);

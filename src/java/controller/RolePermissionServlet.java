@@ -67,7 +67,8 @@ public class RolePermissionServlet extends HttpServlet {
         if (roleIdStr != null && !roleIdStr.trim().isEmpty()) {
             try {
                 selectedRoleId = Integer.parseInt(roleIdStr);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         // Find Selected Role
@@ -96,12 +97,18 @@ public class RolePermissionServlet extends HttpServlet {
         int pageSize = parsePageSize(req.getParameter("pageSize"));
         long totalItems = roles.size();
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
-        if (totalPages < 1) totalPages = 1;
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
 
         int start = (page - 1) * pageSize;
         int end = Math.min(start + pageSize, roles.size());
-        if (start < 0) start = 0;
-        if (end < start) end = start;
+        if (start < 0) {
+            start = 0;
+        }
+        if (end < start) {
+            end = start;
+        }
 
         List<RoleMock> rolesPage = roles.subList(start, end);
 
@@ -128,7 +135,8 @@ public class RolePermissionServlet extends HttpServlet {
         if (roleIdStr != null && !roleIdStr.trim().isEmpty()) {
             try {
                 roleId = Integer.parseInt(roleIdStr);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         if ("add-role".equalsIgnoreCase(action)) {
@@ -183,12 +191,12 @@ public class RolePermissionServlet extends HttpServlet {
             for (ModuleMock m : modules) {
                 String key = m.getKey();
                 PermissionSet ps = new PermissionSet(
-                    checkedPerms.contains(key + ":view"),
-                    checkedPerms.contains(key + ":create"),
-                    checkedPerms.contains(key + ":edit"),
-                    checkedPerms.contains(key + ":delete"),
-                    checkedPerms.contains(key + ":export"),
-                    checkedPerms.contains(key + ":manage")
+                        checkedPerms.contains(key + ":view"),
+                        checkedPerms.contains(key + ":create"),
+                        checkedPerms.contains(key + ":edit"),
+                        checkedPerms.contains(key + ":delete"),
+                        checkedPerms.contains(key + ":export"),
+                        checkedPerms.contains(key + ":manage")
                 );
                 rolePerms.put(key, ps);
             }
@@ -212,6 +220,7 @@ public class RolePermissionServlet extends HttpServlet {
     }
 
     public static class RoleMock {
+
         private int id;
         private String name;
         private String description;
@@ -224,17 +233,41 @@ public class RolePermissionServlet extends HttpServlet {
             this.scope = scope;
         }
 
-        public int getId() { return id; }
-        public void setId(int id) { this.id = id; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-        public String getScope() { return scope; }
-        public void setScope(String scope) { this.scope = scope; }
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getScope() {
+            return scope;
+        }
+
+        public void setScope(String scope) {
+            this.scope = scope;
+        }
     }
 
     public static class ModuleMock {
+
         private String key;
         private String name;
         private String description;
@@ -245,12 +278,21 @@ public class RolePermissionServlet extends HttpServlet {
             this.description = description;
         }
 
-        public String getKey() { return key; }
-        public String getName() { return name; }
-        public String getDescription() { return description; }
+        public String getKey() {
+            return key;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
     }
 
     public static class PermissionSet {
+
         private boolean view;
         private boolean create;
         private boolean edit;
@@ -267,12 +309,29 @@ public class RolePermissionServlet extends HttpServlet {
             this.manage = manage;
         }
 
-        public boolean isView() { return view; }
-        public boolean isCreate() { return create; }
-        public boolean isEdit() { return edit; }
-        public boolean isDelete() { return delete; }
-        public boolean isExport() { return export; }
-        public boolean isManage() { return manage; }
+        public boolean isView() {
+            return view;
+        }
+
+        public boolean isCreate() {
+            return create;
+        }
+
+        public boolean isEdit() {
+            return edit;
+        }
+
+        public boolean isDelete() {
+            return delete;
+        }
+
+        public boolean isExport() {
+            return export;
+        }
+
+        public boolean isManage() {
+            return manage;
+        }
     }
 
     private static int parsePage(String s) {

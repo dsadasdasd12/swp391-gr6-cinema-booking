@@ -106,84 +106,84 @@
         </div>
     </div>
 
-<!-- Modal Thêm -->
-<div class="modal fade" id="addLanguageModal" tabindex="-1">
-    <div class="modal-dialog">
-        <form action="${ctx}/admin/languages" method="post" class="modal-content" style="background: var(--surface-light); border: 1px solid var(--border-color);">
-            <input type="hidden" name="action" value="add">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
-                <h5 class="modal-title" style="color: #fff;">Thêm Ngôn Ngữ</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label rv-label">Tên ngôn ngữ</label>
-                    <input type="text" name="name" class="rv-input" required>
+    <!-- Modal Thêm -->
+    <div class="modal fade" id="addLanguageModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="${ctx}/admin/languages" method="post" class="modal-content" style="background: var(--surface-light); border: 1px solid var(--border-color);">
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" style="color: #fff;">Thêm Ngôn Ngữ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label rv-label">Mã Code (VD: en, vi)</label>
-                    <input type="text" name="code" class="rv-input" required>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label rv-label">Tên ngôn ngữ</label>
+                        <input type="text" name="name" class="rv-input" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label rv-label">Mã Code (VD: en, vi)</label>
+                        <input type="text" name="code" class="rv-input" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label rv-label">Trạng thái</label>
+                        <select name="status" class="rv-input">
+                            <option value="ACTIVE">Hoạt động</option>
+                            <option value="INACTIVE">Khóa</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label rv-label">Trạng thái</label>
-                    <select name="status" class="rv-input">
-                        <option value="ACTIVE">Hoạt động</option>
-                        <option value="INACTIVE">Khóa</option>
-                    </select>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="rv-btn rv-btn--secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="rv-btn rv-btn--primary">Thêm mới</button>
                 </div>
-            </div>
-            <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
-                <button type="button" class="rv-btn rv-btn--secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="submit" class="rv-btn rv-btn--primary">Thêm mới</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Modal Sửa -->
-<div class="modal fade" id="editLanguageModal" tabindex="-1">
-    <div class="modal-dialog">
-        <form action="${ctx}/admin/languages" method="post" class="modal-content" style="background: var(--surface-light); border: 1px solid var(--border-color);">
-            <input type="hidden" name="action" value="update">
-            <input type="hidden" name="id" id="editId">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
-                <h5 class="modal-title" style="color: #fff;">Sửa Ngôn Ngữ</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label rv-label">Tên ngôn ngữ</label>
-                    <input type="text" name="name" id="editName" class="rv-input" required>
+    <!-- Modal Sửa -->
+    <div class="modal fade" id="editLanguageModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="${ctx}/admin/languages" method="post" class="modal-content" style="background: var(--surface-light); border: 1px solid var(--border-color);">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="id" id="editId">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" style="color: #fff;">Sửa Ngôn Ngữ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label rv-label">Mã Code (VD: en, vi)</label>
-                    <input type="text" name="code" id="editCode" class="rv-input" required>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label rv-label">Tên ngôn ngữ</label>
+                        <input type="text" name="name" id="editName" class="rv-input" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label rv-label">Mã Code (VD: en, vi)</label>
+                        <input type="text" name="code" id="editCode" class="rv-input" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label rv-label">Trạng thái</label>
+                        <select name="status" id="editStatus" class="rv-input">
+                            <option value="ACTIVE">Hoạt động</option>
+                            <option value="INACTIVE">Khóa</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label rv-label">Trạng thái</label>
-                    <select name="status" id="editStatus" class="rv-input">
-                        <option value="ACTIVE">Hoạt động</option>
-                        <option value="INACTIVE">Khóa</option>
-                    </select>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="rv-btn rv-btn--secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="rv-btn rv-btn--primary">Lưu thay đổi</button>
                 </div>
-            </div>
-            <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
-                <button type="button" class="rv-btn rv-btn--secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="submit" class="rv-btn rv-btn--primary">Lưu thay đổi</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
-<script>
-    function openEditModal(id, name, code, status) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editName').value = name;
-        document.getElementById('editCode').value = code;
-        document.getElementById('editStatus').value = status;
-        new bootstrap.Modal(document.getElementById('editLanguageModal')).show();
-    }
-</script>
+    <script>
+        function openEditModal(id, name, code, status) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editCode').value = code;
+            document.getElementById('editStatus').value = status;
+            new bootstrap.Modal(document.getElementById('editLanguageModal')).show();
+        }
+    </script>
 
 </main>
 </div>

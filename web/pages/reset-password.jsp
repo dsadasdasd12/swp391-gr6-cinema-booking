@@ -6,22 +6,22 @@
 <html>
     <head>
         <title>Đặt lại mật khẩu</title>
-       <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-<link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
+        <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+        <link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
     </head>
     <script>
-function togglePassword(inputId, icon) {
-    const input = document.getElementById(inputId);
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
 
-    if (input.type === "password") {
-        input.type = "text";
-        icon.textContent = "🙈";
-    } else {
-        input.type = "password";
-        icon.textContent = "👁";
-    }
-}
-</script>
+            if (input.type === "password") {
+                input.type = "text";
+                icon.textContent = "🙈";
+            } else {
+                input.type = "password";
+                icon.textContent = "👁";
+            }
+        }
+    </script>
     <body>
 
         <jsp:include page="/pages/common/header.jsp">

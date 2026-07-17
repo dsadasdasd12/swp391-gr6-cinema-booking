@@ -221,6 +221,25 @@ public class AdminUserDAO {
         }
         return 0;
     }
+    public boolean hasBranchManager(int branchId, int excludeUserId) {
+        String sql = "SELECT COUNT(*) FROM dbo.[USER] u "
+                   + "JOIN dbo.STAFF_BRANCH sb ON u.id = sb.user_id "
+                   + "WHERE sb.branch_id = ? AND u.role = 'MANAGER' AND u.id != ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        if (conn == null) return false;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, branchId);
+            ps.setInt(2, excludeUserId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     public int insertStaff(User u, String passwordHash, int branchId) {
         String sql = "INSERT INTO dbo.[USER] (full_name, email, password_hash, phone, role, google_id, active, email_verified, created_at, last_update) "

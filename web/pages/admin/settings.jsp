@@ -25,28 +25,7 @@
     </div>
 </div>
 
-<ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="tab-cinema" data-bs-toggle="tab" data-bs-target="#panel-cinema"
-                type="button" role="tab">
-            <i class="bi bi-building me-1"></i> Thông tin rạp
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="tab-smtp" data-bs-toggle="tab" data-bs-target="#panel-smtp"
-                type="button" role="tab">
-            <i class="bi bi-envelope-at me-1"></i> SMTP / Email
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="tab-maint" data-bs-toggle="tab" data-bs-target="#panel-maint"
-                type="button" role="tab">
-            <i class="bi bi-tools me-1"></i> Bảo trì
-        </button>
-    </li>
-</ul>
-
-<div class="tab-content" id="settingsTabContent">
+<div class="d-flex flex-column gap-4" id="settingsTabContent">
 
     <c:if test="${not empty sessionScope.flashSuccess}">
         <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
@@ -64,7 +43,7 @@
     </c:if>
 
     <!-- ── Cinema ── -->
-    <div class="tab-pane fade show active" id="panel-cinema" role="tabpanel">
+    <div id="panel-cinema">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h2 class="h6 mb-0 fw-semibold"><i class="bi bi-building text-primary me-2"></i>Thông tin chuỗi rạp</h2>
@@ -83,30 +62,28 @@
                             <input type="hidden" name="cinemaId" value="${cinema.id}">
                             <div class="col-md-6">
                                 <label class="form-label fw-medium" for="cinemaName">Tên rạp / thương hiệu</label>
-                                <input type="text" class="form-control" id="cinemaName" name="name" required
+                                <input type="text" class="form-control" id="cinemaName" name="name" required readonly
                                        maxlength="150" value="<c:out value='${cinema.name}'/>">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-medium" for="cinemaPhone">Số điện thoại</label>
-                                <input type="text" class="form-control" id="cinemaPhone" name="phone"
+                                <input type="text" class="form-control" id="cinemaPhone" name="phone" readonly
                                        maxlength="20" value="<c:out value='${cinema.phone}'/>">
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-medium" for="cinemaAddress">Địa chỉ trụ sở</label>
-                                <textarea class="form-control" id="cinemaAddress" name="address" rows="2"
+                                <textarea class="form-control" id="cinemaAddress" name="address" rows="2" readonly
                                           maxlength="300"><c:out value="${cinema.address}"/></textarea>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-medium" for="cinemaStatus">Trạng thái</label>
-                                <select class="form-select" id="cinemaStatus" name="status">
+                                <select class="form-select" id="cinemaStatus" name="status" disabled>
                                     <option value="ACTIVE" ${cinema.status == 'ACTIVE' ? 'selected' : ''}>Hoạt động</option>
                                     <option value="INACTIVE" ${cinema.status == 'INACTIVE' ? 'selected' : ''}>Tạm ngưng</option>
                                 </select>
                             </div>
                             <div class="col-12 d-flex justify-content-end pt-2">
-                                <button type="submit" class="rv-btn rv-btn--primary">
-                                    <i class="bi bi-check-lg"></i> Lưu thông tin rạp
-                                </button>
+                                <!-- Nút lưu đã bị ẩn do yêu cầu chỉ view -->
                             </div>
                         </form>
                     </c:otherwise>
@@ -116,7 +93,7 @@
     </div>
 
     <!-- ── SMTP ── -->
-    <div class="tab-pane fade" id="panel-smtp" role="tabpanel">
+    <div id="panel-smtp">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h2 class="h6 mb-0 fw-semibold"><i class="bi bi-envelope-at text-primary me-2"></i>Cấu hình SMTP</h2>
@@ -163,7 +140,7 @@
     </div>
 
     <!-- ── Maintenance ── -->
-    <div class="tab-pane fade" id="panel-maint" role="tabpanel">
+    <div id="panel-maint">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h2 class="h6 mb-0 fw-semibold"><i class="bi bi-tools text-primary me-2"></i>Bảo trì hệ thống</h2>
@@ -201,17 +178,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 <script>
-(function () {
-    var hash = window.location.hash;
-    if (hash && hash.startsWith('#panel-')) {
-        var btn = document.querySelector('[data-bs-target="' + hash + '"]');
-        if (btn && typeof bootstrap !== 'undefined') {
-            bootstrap.Tab.getOrCreateInstance(btn).show();
+    (function () {
+        var hash = window.location.hash;
+        if (hash && hash.startsWith('#panel-')) {
+            var btn = document.querySelector('[data-bs-target="' + hash + '"]');
+            if (btn && typeof bootstrap !== 'undefined') {
+                bootstrap.Tab.getOrCreateInstance(btn).show();
+            }
         }
-    }
-})();
+    })();
 </script>
 </body>
 </html>

@@ -88,6 +88,64 @@
             gap: 18px;
         }
 
+        .fnb-summary {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 26px;
+        }
+
+        .fnb-summary h2 {
+            margin: 0 0 16px;
+        }
+
+        .fnb-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .fnb-table th,
+        .fnb-table td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #253041;
+            text-align: left;
+        }
+
+        .fnb-table th {
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .fnb-table td {
+            color: #fff;
+        }
+
+        .fnb-table th:nth-child(n+2),
+        .fnb-table td:nth-child(n+2) {
+            text-align: right;
+        }
+
+        .fnb-type-badge {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(239, 68, 68, 0.13);
+            color: #f87171;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .fnb-total-row td {
+            padding-top: 17px;
+            border-bottom: 0;
+            color: #22c55e;
+            font-size: 17px;
+            font-weight: 800;
+        }
+
         .ticket-card {
             display: grid;
             grid-template-columns: 160px 1fr 180px;
@@ -254,6 +312,44 @@
                     </div>
                 </div>
             </div>
+
+            <c:if test="${not empty fnbLines}">
+                <div class="fnb-summary">
+                    <h2>F&amp;B đã mua</h2>
+
+                    <c:set var="fnbTotal" value="0"/>
+                    <table class="fnb-table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="item" items="${fnbLines}">
+                                <c:set var="fnbTotal" value="${fnbTotal + item.lineTotal}"/>
+                                <tr>
+                                    <td>
+                                        <c:out value="${item.name}"/>
+                                        <span class="fnb-type-badge">
+                                            ${item.itemType == 'COMBO' ? 'COMBO' : 'MÓN LẺ'}
+                                        </span>
+                                    </td>
+                                    <td>${item.quantity}</td>
+                                    <td><fmt:formatNumber value="${item.unitPrice}" pattern="#,##0"/> đ</td>
+                                    <td><fmt:formatNumber value="${item.lineTotal}" pattern="#,##0"/> đ</td>
+                                </tr>
+                            </c:forEach>
+                            <tr class="fnb-total-row">
+                                <td colspan="3">Tổng F&amp;B</td>
+                                <td><fmt:formatNumber value="${fnbTotal}" pattern="#,##0"/> đ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </c:if>
 
             <div class="ticket-list">
 

@@ -1,7 +1,6 @@
 <%--
     RapViet Admin — Lịch sử thông báo (notification-list.jsp)
     Servlet: NotificationController ?action=list
-    Chỉ ghi nhận: xác nhận đặt vé, xác nhận thanh toán, hệ thống (không có email khuyến mãi / PROMOTION).
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -21,7 +20,6 @@
     <h1 style="font-size:1.5rem;font-weight:700;margin:0;">Lịch sử thông báo</h1>
     <p style="color:var(--clr-muted);font-size:.85rem;margin:.25rem 0 0;">
         Tổng: <strong style="color:var(--clr-text)">${totalItems}</strong> bản ghi
-        — xác nhận đặt vé, xác nhận thanh toán, hệ thống (không có khuyến mãi).
     </p>
 </div>
 
@@ -70,27 +68,29 @@
     </form>
 </div>
 
-<div class="admin-card">
+<div class="rv-card">
     <c:choose>
         <c:when test="${empty logs}">
-            <div class="text-center py-5" style="color:var(--clr-muted);">
-                <i class="bi bi-envelope" style="font-size:3rem;opacity:.3;"></i>
-                <p class="mt-3">Chưa có thông báo giao dịch nào được gửi.</p>
+            <div class="rv-empty">
+                <i class="bi bi-envelope rv-empty__icon"></i>
+                <div class="rv-empty__title">Không tìm thấy dữ liệu</div>
+                <div class="rv-empty__message">Chưa có thông báo giao dịch nào được gửi.</div>
             </div>
         </c:when>
         <c:otherwise>
-            <div style="overflow-x:auto;">
-                <table class="admin-table" id="logTable">
+            <div class="rv-table-responsive">
+                <table class="rv-table" id="logTable">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th style="width: 50px;">#</th>
                             <th>Loại</th>
                             <th>Người nhận</th>
                             <th>Tiêu đề</th>
                             <th>Trạng thái</th>
-                            <th>Thử lại</th>
+                            <th style="text-align:center;">Thử lại</th>
                             <th>Ngày gửi</th>
-                            <th>Lỗi</th>
+                            <th>Ghi chú</th>
+                            <th style="text-align:right;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="logTbody">
@@ -102,9 +102,9 @@
                                 <td style="color:var(--clr-muted);font-size:.8rem;">${l.id}</td>
                                 <td>
                                     <span style="font-size:.78rem;padding:.2rem .5rem;border-radius:6px;
-                                        ${l.notificationType == 'BOOKING_CONFIRM' ? 'background:rgba(25,195,125,.12);color:#19c37d;' : ''}
-                                        ${l.notificationType == 'PAYMENT_CONFIRM' ? 'background:rgba(59,130,246,.12);color:#3b82f6;' : ''}
-                                        ${l.notificationType == 'SYSTEM'          ? 'background:rgba(139,143,168,.12);color:#8b8fa8;' : ''}">
+                                          ${l.notificationType == 'BOOKING_CONFIRM' ? 'background:rgba(25,195,125,.12);color:#19c37d;' : ''}
+                                          ${l.notificationType == 'PAYMENT_CONFIRM' ? 'background:rgba(59,130,246,.12);color:#3b82f6;' : ''}
+                                          ${l.notificationType == 'SYSTEM'          ? 'background:rgba(139,143,168,.12);color:#8b8fa8;' : ''}">
                                         <c:out value="${l.typeLabel}"/>
                                     </span>
                                 </td>
@@ -118,12 +118,22 @@
                                     </span>
                                 </td>
                                 <td style="text-align:center;font-size:.85rem;">${l.retryCount}</td>
-                                <td style="font-size:.8rem;color:var(--clr-muted);">
+                                <td style="font-size:.8rem;color:var(--n-500);">
                                     <c:out value="${l.sentAtLabel}"/>
                                 </td>
-                                <td style="font-size:.78rem;color:#ff6b6b;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                <td style="font-size:.78rem;color:${l.status == 'FAILED' ? '#ff6b6b' : 'var(--n-400)'};max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
                                     title="${l.errorMessage}">
                                     <c:out value="${l.errorMessage}" default="—"/>
+                                </td>
+                                <td style="text-align:right;">
+                                    <form action="${ctx}/admin/notifications" method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo này?');">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="${l.id}">
+                                        <button type="submit" class="rv-btn rv-btn--icon" title="Xóa thông báo">
+                                            <i class="bi bi-trash" style="color: #ff6b6b;"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -151,7 +161,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 
 </body>
 </html>

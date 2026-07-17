@@ -13,7 +13,9 @@ package dto;
  */
 public class MovieFilter {
 
-    /** Số phim mặc định trên mỗi trang. */
+    /**
+     * Số phim mặc định trên mỗi trang.
+     */
     public static final int DEFAULT_PAGE_SIZE = 10;
 
     private String keyword;         // tìm theo tên phim / diễn viên / đạo diễn
@@ -92,7 +94,9 @@ public class MovieFilter {
         this.pageSize = pageSize;
     }
 
-    /** True khi có ít nhất một điều kiện tìm kiếm/lọc đang được dùng. */
+    /**
+     * True khi có ít nhất một điều kiện tìm kiếm/lọc đang được dùng.
+     */
     public boolean isActive() {
         return (keyword != null && !keyword.isBlank())
                 || categoryId != null

@@ -5,52 +5,52 @@
       class="change-password-form">
 
     <div class="form-group">
-    <label>Mật khẩu hiện tại</label>
+        <label>Mật khẩu hiện tại</label>
 
-    <div class="password-field">
-        <input type="password"
-               id="oldPassword"
-               name="oldPassword"
-               >
+        <div class="password-field">
+            <input type="password"
+                   id="oldPassword"
+                   name="oldPassword"
+                   >
 
-        <span class="toggle-password"
-              onclick="togglePassword('oldPassword', this)">
-            👁
-        </span>
+            <span class="toggle-password"
+                  onclick="togglePassword('oldPassword', this)">
+                👁
+            </span>
+        </div>
     </div>
-</div>
 
-<div class="form-group">
-    <label>Mật khẩu mới</label>
+    <div class="form-group">
+        <label>Mật khẩu mới</label>
 
-    <div class="password-field">
-        <input type="password"
-               id="newPassword"
-               name="newPassword"
-               >
+        <div class="password-field">
+            <input type="password"
+                   id="newPassword"
+                   name="newPassword"
+                   >
 
-        <span class="toggle-password"
-              onclick="togglePassword('newPassword', this)">
-            👁
-        </span>
+            <span class="toggle-password"
+                  onclick="togglePassword('newPassword', this)">
+                👁
+            </span>
+        </div>
     </div>
-</div>
 
-<div class="form-group">
-    <label>Xác nhận mật khẩu mới</label>
+    <div class="form-group">
+        <label>Xác nhận mật khẩu mới</label>
 
-    <div class="password-field">
-        <input type="password"
-               id="confirmPassword"
-               name="confirmPassword"
-               >
+        <div class="password-field">
+            <input type="password"
+                   id="confirmPassword"
+                   name="confirmPassword"
+                   >
 
-        <span class="toggle-password"
-              onclick="togglePassword('confirmPassword', this)">
-            👁
-        </span>
+            <span class="toggle-password"
+                  onclick="togglePassword('confirmPassword', this)">
+                👁
+            </span>
+        </div>
     </div>
-</div>
 
     <div class="profile-actions">
         <button type="button"
@@ -64,18 +64,18 @@
             Lưu mật khẩu
         </button>
     </div>
-<script>
-    function togglePassword(inputId, icon) {
+    <script>
+        function togglePassword(inputId, icon) {
 
-        const input = document.getElementById(inputId);
+            const input = document.getElementById(inputId);
 
-        if (input.type === "password") {
-            input.type = "text";
-            icon.textContent = "🙈";
-        } else {
-            input.type = "password";
-            icon.textContent = "👁";
+            if (input.type === "password") {
+                input.type = "text";
+                icon.textContent = "🙈";
+            } else {
+                input.type = "password";
+                icon.textContent = "👁";
+            }
         }
-    }
-</script>
+    </script>
 </form>

@@ -13,12 +13,17 @@ import model.Genre;
 /**
  * Controller cho luồng Admin quản lý genre/thể loại phim.
  *
- * <p>Luồng UI:</p>
+ * <p>
+ * Luồng UI:</p>
  * <ul>
- *   <li>GET {@code /admin/genres}: lấy toàn bộ genre và forward sang {@code genre-list.jsp}.</li>
- *   <li>POST {@code action=add}: đọc name/description/status từ form và thêm genre mới.</li>
- *   <li>POST {@code action=update}: đọc id và dữ liệu form để cập nhật genre.</li>
- *   <li>GET {@code action=delete}: xóa hoặc ẩn genre theo id, sau đó redirect về danh sách.</li>
+ * <li>GET {@code /admin/genres}: lấy toàn bộ genre và forward sang
+ * {@code genre-list.jsp}.</li>
+ * <li>POST {@code action=add}: đọc name/description/status từ form và thêm
+ * genre mới.</li>
+ * <li>POST {@code action=update}: đọc id và dữ liệu form để cập nhật
+ * genre.</li>
+ * <li>GET {@code action=delete}: xóa hoặc ẩn genre theo id, sau đó redirect về
+ * danh sách.</li>
  * </ul>
  *
  * @author HuyPD
@@ -55,7 +60,7 @@ public class GenreController extends HttpServlet {
             throws ServletException, IOException {
         // action cua form POST quyet dinh them moi hay cap nhat.
         String action = request.getParameter("action");
-        
+
         if ("add".equals(action)) {
             // Submit form them genre.
             addGenre(request, response);
@@ -127,7 +132,7 @@ public class GenreController extends HttpServlet {
     private void deleteGenre(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        
+
         // Cần bắt lỗi Reference Constraint nếu thể loại đã được gán cho phim
         if (genreDAO.delete(id)) {
             request.getSession().setAttribute("msgSuccess", "Xóa Genre thành công.");

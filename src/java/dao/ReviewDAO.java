@@ -27,7 +27,10 @@ import util.DBContext;
  */
 public class ReviewDAO {
 
-    /** Các đánh giá ACTIVE của một phim (kèm tên người đánh giá), mới nhất lên đầu. */
+    /**
+     * Các đánh giá ACTIVE của một phim (kèm tên người đánh giá), mới nhất lên
+     * đầu.
+     */
     public List<ReviewView> findActiveByMovieId(int movieId) {
         String sql = "SELECT r.id, r.user_id, r.movie_id, r.booking_id, r.rating, r.comment, "
                 + "r.status, r.created_at, r.last_update, u.full_name "
@@ -50,12 +53,17 @@ public class ReviewDAO {
         return list;
     }
 
-    /** Đánh giá gắn với một đơn đặt vé (hoặc null) — để biết khách đã đánh giá chưa. */
+    /**
+     * Đánh giá gắn với một đơn đặt vé (hoặc null) — để biết khách đã đánh giá
+     * chưa.
+     */
     public Review findByBookingId(int bookingId) {
         return findOne("SELECT * FROM dbo.REVIEWS WHERE booking_id = ?", bookingId);
     }
 
-    /** Đánh giá theo id nhưng phải là của chính khách (kiểm tra quyền sở hữu). */
+    /**
+     * Đánh giá theo id nhưng phải là của chính khách (kiểm tra quyền sở hữu).
+     */
     public Review findByIdAndUser(int reviewId, int userId) {
         String sql = "SELECT * FROM dbo.REVIEWS WHERE id = ? AND user_id = ?";
         Connection conn = DBContext.getInstance().getConnection();
@@ -101,12 +109,14 @@ public class ReviewDAO {
     }
 
     /**
-     * Tìm một vé của khách có thể dùng để mở luồng review tại trang chi tiết phim.
+     * Tìm một vé của khách có thể dùng để mở luồng review tại trang chi tiết
+     * phim.
      *
-     * <p>Chỉ nhận vé đã được staff check-in hoặc đã dùng xong. Nếu khách đã xem cùng
-     * một phim nhiều lần, ưu tiên vé chưa có review để nút "Đánh giá phim" tạo review
-     * mới; nếu tất cả đều đã review thì trả về review gần nhất để khách vẫn xem/sửa
-     * review của mình (nếu còn trong thời hạn 30 phút).</p>
+     * <p>
+     * Chỉ nhận vé đã được staff check-in hoặc đã dùng xong. Nếu khách đã xem
+     * cùng một phim nhiều lần, ưu tiên vé chưa có review để nút "Đánh giá phim"
+     * tạo review mới; nếu tất cả đều đã review thì trả về review gần nhất để
+     * khách vẫn xem/sửa review của mình (nếu còn trong thời hạn 30 phút).</p>
      */
     public int findReviewBookingIdForUserAndMovie(int userId, int movieId) {
         String sql = "SELECT TOP 1 bk.id FROM dbo.BOOKINGS bk "
@@ -129,7 +139,9 @@ public class ReviewDAO {
         return 0;
     }
 
-    /** Thêm một đánh giá mới (status mặc định ACTIVE theo DB). */
+    /**
+     * Thêm một đánh giá mới (status mặc định ACTIVE theo DB).
+     */
     public boolean insert(Review r) {
         String sql = "INSERT INTO dbo.REVIEWS (user_id, movie_id, booking_id, rating, comment) "
                 + "VALUES (?, ?, ?, ?, ?)";
@@ -148,7 +160,9 @@ public class ReviewDAO {
         return false;
     }
 
-    /** Sửa đánh giá của chính khách (chỉ điểm + nội dung). */
+    /**
+     * Sửa đánh giá của chính khách (chỉ điểm + nội dung).
+     */
     public boolean update(int reviewId, int userId, double rating, String comment) {
         String sql = "UPDATE dbo.REVIEWS SET rating = ?, comment = ?, last_update = GETDATE() "
                 + "WHERE id = ? AND user_id = ? "
@@ -167,7 +181,9 @@ public class ReviewDAO {
         return false;
     }
 
-    /** Chi co the sua trong 30 phut ke tu luc review duoc tao. */
+    /**
+     * Chi co the sua trong 30 phut ke tu luc review duoc tao.
+     */
     public boolean canEdit(int reviewId, int userId) {
         String sql = "SELECT COUNT(*) FROM dbo.REVIEWS WHERE id = ? AND user_id = ? "
                 + "AND created_at >= DATEADD(MINUTE, -30, GETDATE())";
@@ -185,7 +201,9 @@ public class ReviewDAO {
         return false;
     }
 
-    /** Xóa đánh giá của chính khách. */
+    /**
+     * Xóa đánh giá của chính khách.
+     */
     public boolean delete(int reviewId, int userId) {
         String sql = "DELETE FROM dbo.REVIEWS WHERE id = ? AND user_id = ?";
         Connection conn = DBContext.getInstance().getConnection();
@@ -200,7 +218,9 @@ public class ReviewDAO {
         return false;
     }
 
-    /** Truy vấn một Review theo 1 tham số int (dùng chung). */
+    /**
+     * Truy vấn một Review theo 1 tham số int (dùng chung).
+     */
     private Review findOne(String sql, int param) {
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -217,7 +237,9 @@ public class ReviewDAO {
         return null;
     }
 
-    /** Ánh xạ một dòng ResultSet sang đối tượng Review. */
+    /**
+     * Ánh xạ một dòng ResultSet sang đối tượng Review.
+     */
     private Review mapReview(ResultSet rs) throws SQLException {
         Review r = new Review();
         r.setId(rs.getInt("id"));

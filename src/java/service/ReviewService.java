@@ -13,7 +13,8 @@ import model.Review;
 /**
  * Tầng nghiệp vụ cho đánh giá phim. Áp các quy tắc: điểm trong khoảng 1..5;
  * khách chỉ đánh giá phim mình đã thực sự xem (qua đơn đặt vé hợp lệ); mỗi đơn
- * chỉ một đánh giá; chỉ sửa/xóa đánh giá của chính mình. Controller chỉ gọi lớp này.
+ * chỉ một đánh giá; chỉ sửa/xóa đánh giá của chính mình. Controller chỉ gọi lớp
+ * này.
  *
  * @author Group6 - Huy (Module Đánh giá)
  */
@@ -22,7 +23,9 @@ public class ReviewService {
     // Điểm chuyển từ package service sang package dao; ReviewDAO mới được phép chạy SQL REVIEWS.
     private final ReviewDAO reviewDAO = new ReviewDAO();
 
-    /** Danh sách đánh giá hiển thị ở trang chi tiết phim. */
+    /**
+     * Danh sách đánh giá hiển thị ở trang chi tiết phim.
+     */
     public List<ReviewView> getMovieReviews(int movieId) {
         if (movieId <= 0) {
             return new ArrayList<>();
@@ -30,7 +33,10 @@ public class ReviewService {
         return reviewDAO.findActiveByMovieId(movieId);
     }
 
-    /** Đánh giá hiện có gắn với một đơn (null nếu chưa đánh giá) — để chọn tạo mới hay sửa. */
+    /**
+     * Đánh giá hiện có gắn với một đơn (null nếu chưa đánh giá) — để chọn tạo
+     * mới hay sửa.
+     */
     public Review getReviewForBooking(int bookingId) {
         if (bookingId <= 0) {
             return null;
@@ -38,7 +44,9 @@ public class ReviewService {
         return reviewDAO.findByBookingId(bookingId);
     }
 
-    /** Lấy đánh giá của chính khách theo id (dùng cho form sửa). */
+    /**
+     * Lấy đánh giá của chính khách theo id (dùng cho form sửa).
+     */
     public Review getOwnReview(int reviewId, int userId) {
         if (reviewId <= 0 || userId <= 0) {
             return null;
@@ -46,13 +54,18 @@ public class ReviewService {
         return reviewDAO.findByIdAndUser(reviewId, userId);
     }
 
-    /** Khách có đủ điều kiện đánh giá phim qua đơn này không. */
+    /**
+     * Khách có đủ điều kiện đánh giá phim qua đơn này không.
+     */
     public boolean canReview(int userId, int movieId, int bookingId) {
         return userId > 0 && movieId > 0 && bookingId > 0
                 && reviewDAO.canReview(userId, movieId, bookingId);
     }
 
-    /** Trả về booking đã xem của user cho phim, hoặc 0 nếu user chưa đủ điều kiện review. */
+    /**
+     * Trả về booking đã xem của user cho phim, hoặc 0 nếu user chưa đủ điều
+     * kiện review.
+     */
     public int getReviewableBookingId(int userId, int movieId) {
         if (userId <= 0 || movieId <= 0) {
             return 0;
@@ -80,7 +93,9 @@ public class ReviewService {
         return reviewDAO.insert(r);
     }
 
-    /** Sửa đánh giá của chính khách (Edit). */
+    /**
+     * Sửa đánh giá của chính khách (Edit).
+     */
     public boolean updateReview(int reviewId, int userId, double rating, String comment) {
         if (reviewId <= 0 || userId <= 0 || !isValidRating(rating)) {
             return false;
@@ -88,12 +103,16 @@ public class ReviewService {
         return reviewDAO.update(reviewId, userId, rating, trimToNull(comment));
     }
 
-    /** Review cua khach chi duoc sua trong 30 phut sau khi tao. */
+    /**
+     * Review cua khach chi duoc sua trong 30 phut sau khi tao.
+     */
     public boolean canEditReview(int reviewId, int userId) {
         return reviewId > 0 && userId > 0 && reviewDAO.canEdit(reviewId, userId);
     }
 
-    /** Xóa đánh giá của chính khách (Delete). */
+    /**
+     * Xóa đánh giá của chính khách (Delete).
+     */
     public boolean deleteReview(int reviewId, int userId) {
         if (reviewId <= 0 || userId <= 0) {
             return false;

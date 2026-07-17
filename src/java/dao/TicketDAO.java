@@ -16,19 +16,21 @@ import util.DBContext;
 import util.EncodingUtil;
 
 /**
- * DAO cho Vé xem phim.
- * Toàn bộ dữ liệu vé được lưu và truy vấn từ bảng dbo.BOOKINGS thay cho bảng TICKETS không tồn tại.
+ * DAO cho Vé xem phim. Toàn bộ dữ liệu vé được lưu và truy vấn từ bảng
+ * dbo.BOOKINGS thay cho bảng TICKETS không tồn tại.
  *
  * @author LONG
  */
 public class TicketDAO {
 
     // ── 5a. UPDATE BOOKING QR ──────────────────────────────────
-
     /**
-     * Cập nhật chuỗi QR Base64 trực tiếp vào bảng BOOKINGS.
+     * Persists only the canonical scan token. QR images are generated at read
+     * time and must never overwrite BOOKINGS.qr_code.
      */
-    /** Xác nhận booking sau thanh toán (PENDING → CONFIRMED). */
+    /**
+     * Xác nhận booking sau thanh toán (PENDING → CONFIRMED).
+     */
     public boolean confirmBooking(int bookingId) {
         String sql = "UPDATE dbo.BOOKINGS SET status = 'CONFIRMED', last_update = GETDATE() "
                 + "WHERE id = ? AND status = 'PENDING'";
@@ -43,12 +45,15 @@ public class TicketDAO {
         return false;
     }
 
-    public boolean updateBookingQR(int bookingId, String qrCodeBase64) {
+    public boolean updateBookingQR(int bookingId, String qrCodeToken) {
+        if (qrCodeToken == null || !qrCodeToken.matches("RV-(ONLINE|WALK)-" + bookingId)) {
+            return false;
+        }
         String sql = "UPDATE dbo.BOOKINGS SET qr_code = ? WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, qrCodeBase64);
-            ps.setInt   (2, bookingId);
+            ps.setString(1, qrCodeToken);
+            ps.setInt(2, bookingId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.getLogger(TicketDAO.class.getName())
@@ -57,8 +62,53 @@ public class TicketDAO {
         return false;
     }
 
-    // ── 5b. SELECT BY BOOKING ID ───────────────────────────────
+    public boolean deleteTicket(int bookingId) {
+        Connection conn = DBContext.getInstance().getConnection();
+        boolean success = false;
+        try {
+            conn.setAutoCommit(false);
+            
+            String[] sqls = {
+                "DELETE FROM dbo.ATTENDANCE WHERE booking_id = ?",
+                "DELETE FROM dbo.REVIEWS WHERE booking_id = ?",
+                "DELETE FROM dbo.BOOKING_FNB WHERE booking_id = ?",
+                "DELETE FROM dbo.COUNTER_DISCOUNTS WHERE booking_id = ?",
+                "DELETE FROM dbo.PAYMENTS WHERE booking_id = ?",
+                "DELETE FROM dbo.BOOKING_SEATS WHERE booking_id = ?",
+                "DELETE FROM dbo.BOOKINGS WHERE id = ?"
+            };
+            
+            for (int i = 0; i < sqls.length; i++) {
+                String sql = sqls[i];
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, bookingId);
+                    ps.executeUpdate();
+                } catch (Exception e) {
+                    System.getLogger(TicketDAO.class.getName())
+                        .log(System.Logger.Level.ERROR, "Error executing: " + sql, e);
+                    if (i == sqls.length - 1) { // If deleting BOOKINGS fails, throw it to rollback!
+                        throw e;
+                    }
+                }
+            }
+            
+            conn.commit();
+            success = true;
+        } catch (SQLException e) {
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException ex) { }
+            System.getLogger(TicketDAO.class.getName())
+                    .log(System.Logger.Level.ERROR, "deleteTicket error", e);
+        } finally {
+            try {
+                if (conn != null) conn.setAutoCommit(true);
+            } catch (SQLException ex) { }
+        }
+        return success;
+    }
 
+    // ── 5b. SELECT BY BOOKING ID ───────────────────────────────
     public double getBookingTotalPrice(int bookingId) {
         String sql = "SELECT total_price FROM dbo.BOOKINGS WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
@@ -103,13 +153,11 @@ public class TicketDAO {
     }
 
     // ── 5c. SELECT BY ID (FOR COMPATIBILITY) ────────────────────
-
     public Ticket findById(int bookingId) {
         return findByBookingId(bookingId);
     }
 
     // ── 5d. SELECT ALL (WITH QR CODES) ─────────────────────────
-
     public List<Ticket> findAll() {
         String sql = "SELECT b.id AS booking_id, b.user_id, b.status AS booking_status, "
                 + "       b.qr_code, b.total_price, b.booked_at AS created_at, "
@@ -124,8 +172,7 @@ public class TicketDAO {
                 + "ORDER BY b.booked_at DESC";
         List<Ticket> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapRow(rs));
             }
@@ -137,8 +184,8 @@ public class TicketDAO {
     }
 
     /**
-     * Đếm tổng ticket theo keyword + status.
-     * statusFilter: "", "ISSUED", "USED", "PENDING_MANUAL"
+     * Đếm tổng ticket theo keyword + status. statusFilter: "", "ISSUED",
+     * "USED", "PENDING_MANUAL"
      */
     public long countTickets(String keyword, String statusFilter) {
         String kw = keyword == null ? "" : keyword.trim();
@@ -154,10 +201,14 @@ public class TicketDAO {
 
         if (statusFilter != null && !statusFilter.isBlank()) {
             switch (statusFilter) {
-                case "USED" -> sql.append(" AND b.status IN ('USED','COMPLETED')");
-                case "ISSUED" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL");
-                case "PENDING_MANUAL" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NULL");
-                default -> {}
+                case "USED" ->
+                    sql.append(" AND b.status IN ('USED','COMPLETED')");
+                case "ISSUED" ->
+                    sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL");
+                case "PENDING_MANUAL" ->
+                    sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NULL");
+                default -> {
+                }
             }
         }
 
@@ -211,10 +262,14 @@ public class TicketDAO {
 
         if (statusFilter != null && !statusFilter.isBlank()) {
             switch (statusFilter) {
-                case "USED" -> sql.append(" AND b.status IN ('USED','COMPLETED')");
-                case "ISSUED" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL");
-                case "PENDING_MANUAL" -> sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NULL");
-                default -> {}
+                case "USED" ->
+                    sql.append(" AND b.status IN ('USED','COMPLETED')");
+                case "ISSUED" ->
+                    sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NOT NULL");
+                case "PENDING_MANUAL" ->
+                    sql.append(" AND b.status IN ('CONFIRMED','CHECKED_IN') AND b.qr_code IS NULL");
+                default -> {
+                }
             }
         }
 
@@ -256,7 +311,6 @@ public class TicketDAO {
     }
 
     // ── 5e. MARK TICKET AS USED ────────────────────────────────
-
     /**
      * Chuyển trạng thái booking thành COMPLETED khi vé được quét.
      */
@@ -274,26 +328,24 @@ public class TicketDAO {
     }
 
     // ── 5f. UPDATE QR CODE ─────────────────────────────────────
-
-    public boolean updateQrCode(int bookingId, String qrBase64) {
-        return updateBookingQR(bookingId, qrBase64);
+    public boolean updateQrCode(int bookingId, String qrCodeToken) {
+        return updateBookingQR(bookingId, qrCodeToken);
     }
 
     // ── Helper Mapping ────────────────────────────────────────
-
     private Ticket mapRow(ResultSet rs) throws SQLException {
         Ticket t = new Ticket();
         int bookingId = rs.getInt("booking_id");
-        t.setBookingId       (bookingId);
-        t.setId              (bookingId);
-        
+        t.setBookingId(bookingId);
+        t.setId(bookingId);
+
         // Generate consistent deterministic UUID based on booking ID
         java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(String.valueOf(bookingId).getBytes());
-        t.setTicketUuid      (uuid.toString());
+        t.setTicketUuid(uuid.toString());
 
         String bStatus = rs.getString("booking_status");
-        t.setBookingStatus   (bStatus);
-        
+        t.setBookingStatus(bStatus);
+
         // Trạng thái vé map tương ứng
         if ("COMPLETED".equals(bStatus) || "USED".equals(bStatus)) {
             t.setUsed(true);
@@ -302,15 +354,15 @@ public class TicketDAO {
             t.setUsed(false);
             t.setTicketStatus(rs.getString("qr_code") == null ? "PENDING_MANUAL" : "ISSUED");
         }
-        
-        t.setQrCodeBase64    (rs.getString("qr_code"));
-        t.setQrCode          (rs.getString("qr_code"));
-        t.setCustomerName    (EncodingUtil.getString(rs, "customer_name"));
-        t.setCustomerEmail   (rs.getString("customer_email"));
-        t.setMovieTitle      (EncodingUtil.getString(rs, "movie_title"));
-        t.setShowtimeStart   (rs.getString("showtime_start"));
-        t.setCreatedAt       (rs.getObject("created_at", LocalDateTime.class));
-        t.setLastUpdate      (rs.getObject("created_at", LocalDateTime.class));
+
+        t.setQrCode(rs.getString("qr_code"));
+        t.setQrCodeBase64(null);
+        t.setCustomerName(EncodingUtil.getString(rs, "customer_name"));
+        t.setCustomerEmail(rs.getString("customer_email"));
+        t.setMovieTitle(EncodingUtil.getString(rs, "movie_title"));
+        t.setShowtimeStart(rs.getString("showtime_start"));
+        t.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+        t.setLastUpdate(rs.getObject("created_at", LocalDateTime.class));
         return t;
     }
 }

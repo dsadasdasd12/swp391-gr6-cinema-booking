@@ -13,12 +13,16 @@ import util.EncodingUtil;
 public class SeatTypeDAO {
 
     private String normalizeCode(String code) {
-        if (code == null) return "";
+        if (code == null) {
+            return "";
+        }
         return code.trim().toUpperCase();
     }
 
     private String normalizeStatus(String status) {
-        if (status == null) return "ACTIVE";
+        if (status == null) {
+            return "ACTIVE";
+        }
         return status.trim().toUpperCase();
     }
 
@@ -26,8 +30,7 @@ public class SeatTypeDAO {
         String sql = "SELECT id, code, name, default_price, color, status, last_update FROM dbo.SEAT_TYPES ORDER BY id";
         List<SeatType> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -41,8 +44,7 @@ public class SeatTypeDAO {
         String sql = "SELECT id, code, name, default_price, color, status, last_update FROM dbo.SEAT_TYPES WHERE status = 'ACTIVE' ORDER BY id";
         List<SeatType> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -64,6 +66,21 @@ public class SeatTypeDAO {
             }
         } catch (SQLException e) {
             System.getLogger(SeatTypeDAO.class.getName()).log(System.Logger.Level.ERROR, "findById failed", e);
+        }
+        return null;
+    }
+
+    public SeatType findByCode(String code) {
+        String sql = "SELECT id, code, name, default_price, color, status, last_update "
+                + "FROM dbo.SEAT_TYPES WHERE code = ?";
+        Connection conn = DBContext.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, normalizeCode(code));
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        } catch (SQLException e) {
+            System.getLogger(SeatTypeDAO.class.getName()).log(System.Logger.Level.ERROR, "findByCode failed", e);
         }
         return null;
     }
@@ -103,7 +120,7 @@ public class SeatTypeDAO {
 
     public boolean delete(int id) {
         // Thử hard-delete trước (xóa hoàn toàn khỏi database nếu chưa được sử dụng)
-        String sql = "DELETE FROM dbo.SEAT_TYPES WHERE id = ?";
+        String sql = "UPDATE dbo.SEAT_TYPES SET status = 'INACTIVE', last_update = GETDATE() WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -129,12 +146,12 @@ public class SeatTypeDAO {
         st.setDefaultPrice(rs.getDouble("default_price"));
         st.setColor(rs.getString("color"));
         st.setStatus(rs.getString("status"));
-        
+
         java.sql.Timestamp ts = rs.getTimestamp("last_update");
         if (ts != null) {
             st.setLastUpdate(ts.toLocalDateTime());
         }
-        
+
         return st;
     }
 }

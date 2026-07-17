@@ -37,7 +37,7 @@
 <div class="rv-toolbar">
     <form method="get" action="${ctx}/admin/moviesmanagement" class="d-flex align-items-center flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
         <input type="hidden" name="action" value="list">
-        
+
         <!-- Search Input -->
         <div class="rv-toolbar__search">
             <i class="bi bi-search"></i>
@@ -94,10 +94,11 @@
                             <th>Tên phim</th>
                             <th>Thể loại</th>
                             <th>Thời lượng</th>
+                            <th>Diễn viên</th>
                             <th>Trạng thái</th>
-                            <c:if test="${sessionScope.user.admin}">
+                                <c:if test="${sessionScope.user.admin}">
                                 <th style="width: 140px; text-align: center;">Thao tác</th>
-                            </c:if>
+                                </c:if>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,7 +108,7 @@
                                 <td style="text-align: center; font-weight: 600; color: var(--n-500);">
                                     ${status.index + 1}
                                 </td>
-                                
+
                                 <!-- Column: Poster Thumbnail -->
                                 <td style="text-align: center;">
                                     <div class="rv-table-poster">
@@ -145,6 +146,11 @@
                                         <i class="bi bi-clock-history" style="color: var(--n-400); margin-right: 4px;"></i>
                                         <c:out value="${m.durationLabel}"/>
                                     </div>
+                                </td>
+
+                                <!-- Column: Actor -->
+                                <td>
+                                    <c:out value="${not empty m.actor ? m.actor : '—'}"/>
                                 </td>
 
                                 <!-- Column: Status badge -->
@@ -199,7 +205,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <!-- Simple Pagination Integration -->
             <jsp:include page="/pages/shared/pagination.jsp">
                 <jsp:param name="currentPage" value="${not empty currentPage ? currentPage : 1}" />

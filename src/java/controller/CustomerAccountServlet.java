@@ -28,7 +28,7 @@ public class CustomerAccountServlet extends HttpServlet {
 
         String keyword = req.getParameter("keyword");
         String status = req.getParameter("status");
-        
+
         int currentPage = 1;
         String pageStr = req.getParameter("page");
         if (pageStr != null && !pageStr.trim().isEmpty()) {
@@ -38,14 +38,16 @@ public class CustomerAccountServlet extends HttpServlet {
                 currentPage = 1;
             }
         }
-        
+
         int pageSize = 10;
         int offset = (currentPage - 1) * pageSize;
 
         List<ManagedUser> customers = userDAO.findCustomersPaged(keyword, status, offset, pageSize);
         int totalItems = userDAO.countCustomers(keyword, status);
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
-        if (totalPages == 0) totalPages = 1;
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
 
         req.setAttribute("customers", customers);
         req.setAttribute("currentPage", currentPage);
@@ -65,7 +67,8 @@ public class CustomerAccountServlet extends HttpServlet {
         if (idStr != null && !idStr.trim().isEmpty()) {
             try {
                 userId = Integer.parseInt(idStr);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         if ("block".equalsIgnoreCase(action)) {
@@ -94,7 +97,8 @@ public class CustomerAccountServlet extends HttpServlet {
         if (idStr != null && !idStr.trim().isEmpty()) {
             try {
                 userId = Integer.parseInt(idStr);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
         User customer = userDAO.findById(userId);
         if (customer != null) {

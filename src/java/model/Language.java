@@ -5,8 +5,8 @@
 package model;
 
 /**
- * Ngôn ngữ phim được hỗ trợ. Khi nạp theo ngữ cảnh của một phim cụ thể
- * (qua bảng dbo.MOVIE_LANGUAGES) thì cờ {@code subtitle} cũng được gán.
+ * Ngôn ngữ phim được hỗ trợ. Khi nạp theo ngữ cảnh của một phim cụ thể (qua
+ * bảng dbo.MOVIE_LANGUAGES) thì cờ {@code subtitle} cũng được gán.
  *
  * @author LONG
  */
@@ -67,7 +67,9 @@ public class Language {
         this.subtitle = subtitle;
     }
 
-    /** "Tiếng Việt (Phụ đề)" / "Tiếng Anh (Lồng tiếng)" để hiển thị. */
+    /**
+     * "Tiếng Việt (Phụ đề)" / "Tiếng Anh (Lồng tiếng)" để hiển thị.
+     */
     public String getDisplayName() {
         return name + (subtitle ? " (Phụ đề)" : " (Lồng tiếng)");
     }

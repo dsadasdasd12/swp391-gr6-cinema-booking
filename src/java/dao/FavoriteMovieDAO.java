@@ -11,8 +11,7 @@ public class FavoriteMovieDAO {
     public boolean exists(int userId, int movieId) {
         String sql = "SELECT 1 FROM FAVORITE_MOVIES WHERE user_id = ? AND movie_id = ?";
 
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
             ps.setInt(2, movieId);
@@ -31,10 +30,9 @@ public class FavoriteMovieDAO {
     public boolean add(int userId, int movieId) {
         String sql = "INSERT INTO FAVORITE_MOVIES (user_id, movie_id, created_at) VALUES (?, ?, GETDATE())";
 
-        
         Connection conn = DBContext.getInstance().getConnection();
         try (
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
             ps.setInt(2, movieId);
@@ -51,8 +49,7 @@ public class FavoriteMovieDAO {
     public boolean remove(int userId, int movieId) {
         String sql = "DELETE FROM FAVORITE_MOVIES WHERE user_id = ? AND movie_id = ?";
 
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
             ps.setInt(2, movieId);
@@ -73,12 +70,12 @@ public class FavoriteMovieDAO {
         }
         return add(userId, movieId);
     }
-    
+
     public List<Movie> findByUserId(int userId) {
 
-    List<Movie> movies = new ArrayList<>();
+        List<Movie> movies = new ArrayList<>();
 
-    String sql = """
+        String sql = """
         SELECT
             m.id,
             m.title,
@@ -98,49 +95,46 @@ public class FavoriteMovieDAO {
         ORDER BY m.title
         """;
 
-    
-    Connection conn = DBContext.getInstance().getConnection();
-    try (
-            
-            PreparedStatement ps = conn.prepareStatement(sql)
-    ) {
+        Connection conn = DBContext.getInstance().getConnection();
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setInt(1, userId);
+            ps.setInt(1, userId);
 
-        ResultSet rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
+            while (rs.next()) {
 
-            Movie movie = new Movie();
+                Movie movie = new Movie();
 
-            movie.setId(rs.getInt("id"));
-            movie.setTitle(rs.getString("title"));
-            movie.setDurationMin(rs.getInt("duration_min"));
-            movie.setDescription(rs.getString("description"));
+                movie.setId(rs.getInt("id"));
+                movie.setTitle(rs.getString("title"));
+                movie.setDurationMin(rs.getInt("duration_min"));
+                movie.setDescription(rs.getString("description"));
 
-            Date release = rs.getDate("release_date");
-            if (release != null) {
-                movie.setReleaseDate(release.toLocalDate());
+                Date release = rs.getDate("release_date");
+                if (release != null) {
+                    movie.setReleaseDate(release.toLocalDate());
+                }
+
+                movie.setStatus(rs.getString("status"));
+                movie.setPosterUrl(rs.getString("poster_url"));
+                movie.setTrailerUrl(rs.getString("trailer_url"));
+                movie.setActor(rs.getString("actor"));
+                movie.setDirector(rs.getString("director"));
+
+                Timestamp update = rs.getTimestamp("last_update");
+                if (update != null) {
+                    movie.setLastUpdate(update.toLocalDateTime());
+                }
+
+                movies.add(movie);
             }
 
-            movie.setStatus(rs.getString("status"));
-            movie.setPosterUrl(rs.getString("poster_url"));
-            movie.setTrailerUrl(rs.getString("trailer_url"));
-            movie.setActor(rs.getString("actor"));
-            movie.setDirector(rs.getString("director"));
-
-            Timestamp update = rs.getTimestamp("last_update");
-            if (update != null) {
-                movie.setLastUpdate(update.toLocalDateTime());
-            }
-
-            movies.add(movie);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return movies;
     }
-
-    return movies;
-}
 }

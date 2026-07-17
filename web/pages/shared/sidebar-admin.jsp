@@ -23,6 +23,12 @@
 <c:set var="isAdminRole"    value="${sessionUser.role == 'ADMIN'}" />
 <c:set var="isManagerRole"  value="${sessionUser.role == 'MANAGER'}" />
 
+<c:set var="isAdminFnb"
+       value="${uri.contains('/admin/fnb-dashboard')}" />
+
+<c:set var="isManagerFnb"
+       value="${uri.contains('/manager/fnb')}" />
+
 <aside class="rv-sidebar">
     <!-- 🏠 Dashboard -->
     <div class="rv-nav__group">
@@ -50,7 +56,7 @@
             </c:if>
             <c:if test="${isAdminRole}">
                 <a href="${ctx}/admin/genres" class="rv-nav__sub-item ${isGenre ? 'active' : ''}">
-                     Thể loại
+                    Thể loại
                 </a>
                 <a href="${ctx}/admin/languages" class="rv-nav__sub-item ${isLanguage ? 'active' : ''}">
                     Ngôn ngữ
@@ -128,6 +134,14 @@
         </div>
 
         <div class="rv-nav__group">
+            <a href="${ctx}/manager/fnb"
+               class="rv-nav__item ${isManagerFnb ? 'active' : ''}">
+
+                <i class="bi bi-cup-straw"></i>
+                Quản lý kho F&amp;B
+            </a>
+        </div>
+        <div class="rv-nav__group">
             <a href="${ctx}/manager/showtimesmanagement" class="rv-nav__item ${uri.contains('/manager/showtimesmanagement') ? 'active' : ''}">
                 <i class="bi bi-calendar-week-fill"></i>
                 Quản lý lịch chiếu
@@ -135,7 +149,17 @@
         </div>
     </c:if>
 
+
+
     <c:if test="${isAdminRole}">
+        <div class="rv-nav__group">
+            <a href="${ctx}/admin/fnb-dashboard"
+               class="rv-nav__item ${isAdminFnb ? 'active' : ''}">
+
+                <i class="bi bi-cup-straw"></i>
+                Quản lý F&amp;B
+            </a>
+        </div>
         <div class="rv-nav__group">
             <a href="${ctx}/DiscountManager" class="rv-nav__item ${uri.contains('/DiscountManager') ? 'active' : ''}">
                 <i class="bi bi-tags-fill"></i>
@@ -145,6 +169,7 @@
     </c:if>
 
     <!-- ── REPORTING & ANALYTICS ── -->
+    <c:if test="${isAdminRole}">
     <div class="rv-nav__label">Báo cáo &amp; Phân tích</div>
 
     <div class="rv-nav__group ${isReport ? 'open' : ''}">
@@ -190,7 +215,7 @@
     <!-- ── ACCOUNTS & SECURITY ── -->
     <div class="rv-nav__label">Tài khoản &amp; Bảo mật</div>
 
-   <div class="rv-nav__group ${isAccount ? 'open' : ''}">
+    <div class="rv-nav__group ${isAccount ? 'open' : ''}">
         <div class="rv-nav__item ${isAccount ? 'active' : ''}">
             <i class="bi bi-people-fill"></i>
             Quản trị tài khoản
@@ -211,6 +236,7 @@
         </div>
     </div>
 
+    </c:if>
     <div class="rv-nav__spacer"></div>
     <div class="rv-nav__divider"></div>
 
