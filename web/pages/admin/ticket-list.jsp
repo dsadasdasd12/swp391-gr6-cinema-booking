@@ -202,45 +202,49 @@
 </div>
 
 <script>
-(function () {
-    var CTX = '${ctx}';
+    (function () {
+        var CTX = '${ctx}';
 
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-        new bootstrap.Tooltip(el);
-    });
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el);
+        });
 
-    document.querySelectorAll('.btn-retry-qr').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var bookingId = this.dataset.bookingId;
-            var self = this;
-            self.disabled = true;
-            self.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        document.querySelectorAll('.btn-retry-qr').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var bookingId = this.dataset.bookingId;
+                var self = this;
+                self.disabled = true;
+                self.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
-            fetch(CTX + '/admin/tickets', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'action=retry&bookingId=' + encodeURIComponent(bookingId)
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                var toast = document.getElementById('qrToast');
-                document.getElementById('qrToastMsg').textContent = data.message;
-                new bootstrap.Toast(toast, { delay: 4000 }).show();
-                if (data.success) {
-                    setTimeout(function () { location.reload(); }, 1500);
-                } else {
-                    self.disabled = false;
-                    self.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
-                }
-            })
-            .catch(function () {
-                self.disabled = false;
-                self.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
-                alert('Lỗi kết nối.');
+                fetch(CTX + '/admin/tickets', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'action=retry&bookingId=' + encodeURIComponent(bookingId)
+                })
+                        .then(function (r) {
+                            return r.json();
+                        })
+                        .then(function (data) {
+                            var toast = document.getElementById('qrToast');
+                            document.getElementById('qrToastMsg').textContent = data.message;
+                            new bootstrap.Toast(toast, {delay: 4000}).show();
+                            if (data.success) {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1500);
+                            } else {
+                                self.disabled = false;
+                                self.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
+                            }
+                        })
+                        .catch(function () {
+                            self.disabled = false;
+                            self.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
+                            alert('Lỗi kết nối.');
+                        });
             });
         });
-    });
-})();
+    })();
 </script>
 </body>
 </html>

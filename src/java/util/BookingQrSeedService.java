@@ -17,7 +17,8 @@ public final class BookingQrSeedService {
 
     private static final String PLACEHOLDER_PREFIX = "iVBORw0KGgoAAAANSUhEUgAAAIAAAACAAQMAAAD58NuI";
 
-    private BookingQrSeedService() {}
+    private BookingQrSeedService() {
+    }
 
     public static void generateMissingQrCodes(Connection conn) {
         if (conn == null) {

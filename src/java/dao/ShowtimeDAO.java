@@ -474,9 +474,8 @@ public class ShowtimeDAO {
     }
 
     /**
-     * Check trùng lịch trong cùng một Hall.
-     * Công thức mới mở rộng khoảng cần kiểm tra thêm 15 phút ở cả 2 đầu:
-     * oldStart < newEnd + 15 phút
+     * Check trùng lịch trong cùng một Hall. Công thức mới mở rộng khoảng cần
+     * kiểm tra thêm 15 phút ở cả 2 đầu: oldStart < newEnd + 15 phút
      * AND oldEnd > newStart - 15 phút
      *
      * exceptShowtimeId dùng cho update để loại trừ chính suất chiếu đang sửa.
@@ -593,8 +592,7 @@ public class ShowtimeDAO {
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
                 + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE()";
 
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
@@ -635,8 +633,7 @@ public class ShowtimeDAO {
                 + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE() "
                 + "ORDER BY s.start_time, h.name";
 
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, branchId);
             ps.setInt(2, movieId);
@@ -680,8 +677,7 @@ public class ShowtimeDAO {
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
                 + "AND s.start_time > GETDATE() "
                 + "ORDER BY s.start_time, h.name";
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, branchId);
             ps.setInt(2, movieId);
             ps.setTimestamp(3, Timestamp.valueOf(weekStart.atStartOfDay()));

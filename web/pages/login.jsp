@@ -7,21 +7,21 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Đăng nhập</title>
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-<link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
+        <link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
     </head>
     <script>
-    function togglePassword() {
+        function togglePassword() {
 
-        const password =
-                document.getElementById("password");
+            const password =
+                    document.getElementById("password");
 
-        if (password.type === "password") {
-            password.type = "text";
-        } else {
-            password.type = "password";
+            if (password.type === "password") {
+                password.type = "text";
+            } else {
+                password.type = "password";
+            }
         }
-    }
-</script>
+    </script>
     <body>
         <c:if test="${not empty sessionScope.successMessage}">
 

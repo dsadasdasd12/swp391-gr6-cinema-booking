@@ -23,11 +23,9 @@ import javax.imageio.ImageIO;
 /**
  * Dịch vụ sinh mã QR sử dụng thư viện ZXing 3.5.2.
  *
- * Đặc tả:
- *   - Định dạng: QR_CODE
- *   - Kích thước: 300 × 300 px
- *   - Error correction: M (phục hồi tối đa 15% dữ liệu bị hỏng)
- *   - Output: BufferedImage → PNG bytes → Base64 string
+ * Đặc tả: - Định dạng: QR_CODE - Kích thước: 300 × 300 px - Error correction: M
+ * (phục hồi tối đa 15% dữ liệu bị hỏng) - Output: BufferedImage → PNG bytes →
+ * Base64 string
  *
  * Cách dùng trong JSP:
  *   {@code <img src="data:image/png;base64,${ticket.qrCodeBase64}"> }
@@ -39,13 +37,13 @@ public class QRCodeService {
     private static final int QR_SIZE = 300;    // px
 
     /**
-     * Sinh mã QR từ chuỗi nội dung và trả về dạng Base64 PNG.
-     * Được gọi từ TicketService với retry wrapper (tối đa 3 lần).
+     * Sinh mã QR từ chuỗi nội dung và trả về dạng Base64 PNG. Được gọi từ
+     * TicketService với retry wrapper (tối đa 3 lần).
      *
      * @param content nội dung cần mã hóa (thường là ticketUuid)
      * @return chuỗi Base64 của ảnh PNG QR, hoặc null nếu thất bại
      * @throws WriterException nếu ZXing không thể mã hóa
-     * @throws IOException     nếu không thể ghi ảnh ra stream
+     * @throws IOException nếu không thể ghi ảnh ra stream
      */
     public String generateQRBase64(String content) throws WriterException, IOException {
         // ── Cài đặt hint cho QR encoder ──────────────────────
@@ -55,8 +53,8 @@ public class QRCodeService {
         hints.put(EncodeHintType.MARGIN, 2);    // quiet zone (modules), mặc định = 4
 
         // ── Sinh BitMatrix ────────────────────────────────────
-        QRCodeWriter writer    = new QRCodeWriter();
-        BitMatrix    bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE, hints);
+        QRCodeWriter writer = new QRCodeWriter();
+        BitMatrix bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE, hints);
 
         // ── Chuyển BitMatrix → BufferedImage ─────────────────
         BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix);

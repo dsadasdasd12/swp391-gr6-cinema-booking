@@ -89,28 +89,28 @@ public class HallController extends HttpServlet {
     }
 
     private void listHalls(HttpServletRequest request,
-        HttpServletResponse response)
-        throws ServletException, IOException {
+            HttpServletResponse response)
+            throws ServletException, IOException {
 
-    User user = getCurrentManager(request, response);
+        User user = getCurrentManager(request, response);
 
-    if (user == null) {
-        return;
+        if (user == null) {
+            return;
+        }
+
+        Branch branch = staffBranchDAO.findBranchByManagerId(user.getId());
+
+        List<Hall> halls = new ArrayList<>();
+
+        if (branch != null) {
+            halls = hallService.getHallsByBranchId(branch.getId());
+        }
+
+        request.setAttribute("branch", branch);
+        request.setAttribute("halls", halls);
+
+        request.getRequestDispatcher(HALL_LIST_PAGE).forward(request, response);
     }
-
-    Branch branch = staffBranchDAO.findBranchByManagerId(user.getId());
-
-    List<Hall> halls = new ArrayList<>();
-
-    if (branch != null) {
-        halls = hallService.getHallsByBranchId(branch.getId());
-    }
-
-    request.setAttribute("branch", branch);
-    request.setAttribute("halls", halls);
-
-    request.getRequestDispatcher(HALL_LIST_PAGE).forward(request, response);
-}
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

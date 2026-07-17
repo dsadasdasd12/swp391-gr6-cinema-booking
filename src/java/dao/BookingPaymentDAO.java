@@ -26,8 +26,7 @@ public class BookingPaymentDAO {
             (?, ?, 'ONLINE', 'PENDING', ?, ?, GETDATE(), GETDATE())
         """;
 
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setInt(1, userId);
             ps.setInt(2, showtimeId);
@@ -57,8 +56,7 @@ public class BookingPaymentDAO {
             (?, ?, ?)
         """;
 
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, bookingId);
             ps.setInt(2, seatId);
@@ -87,8 +85,7 @@ public class BookingPaymentDAO {
             (?, ?, ?, ?, 'PENDING', ?, GETDATE())
         """;
 
-        try (Connection conn = DBContext.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, bookingId);
             ps.setString(2, method);
@@ -104,9 +101,10 @@ public class BookingPaymentDAO {
 
         return false;
     }
+
     public TicketView getTicketViewByBookingId(int bookingId) throws SQLException {
 
-    String sql = """
+        String sql = """
         SELECT
             b.id AS booking_id,
             b.status AS booking_status,
@@ -140,50 +138,50 @@ public class BookingPaymentDAO {
         WHERE b.id = ?
         """;
 
-    try (Connection conn = DBContext.getInstance().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setInt(1, bookingId);
+            ps.setInt(1, bookingId);
 
-        try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = ps.executeQuery()) {
 
-            if (!rs.next()) {
-                return null;
+                if (!rs.next()) {
+                    return null;
+                }
+
+                TicketView ticket = new TicketView();
+
+                ticket.setBookingId(rs.getInt("booking_id"));
+                ticket.setBookingStatus(rs.getString("booking_status"));
+
+                ticket.setPaymentStatus(rs.getString("payment_status"));
+                ticket.setPaymentGateway(rs.getString("gateway"));
+                ticket.setPaymentMethod(rs.getString("method"));
+                ticket.setTransactionId(rs.getString("transaction_id"));
+
+                ticket.setFinalAmount(rs.getDouble("amount"));
+
+                ticket.setMovieTitle(rs.getString("title"));
+                ticket.setMoviePoster(rs.getString("poster_url"));
+
+                ticket.setBranchName(rs.getString("branch_name"));
+                ticket.setHallName(rs.getString("hall_name"));
+
+                ticket.setShowDate(rs.getString("show_date"));
+                ticket.setShowTime(rs.getString("show_time"));
+
+                ticket.setQrCode(rs.getString("qr_code"));
+
+                ticket.setSeats(getTicketSeats(conn, bookingId));
+
+                return ticket;
             }
-
-            TicketView ticket = new TicketView();
-
-            ticket.setBookingId(rs.getInt("booking_id"));
-            ticket.setBookingStatus(rs.getString("booking_status"));
-
-            ticket.setPaymentStatus(rs.getString("payment_status"));
-            ticket.setPaymentGateway(rs.getString("gateway"));
-            ticket.setPaymentMethod(rs.getString("method"));
-            ticket.setTransactionId(rs.getString("transaction_id"));
-
-            ticket.setFinalAmount(rs.getDouble("amount"));
-
-            ticket.setMovieTitle(rs.getString("title"));
-            ticket.setMoviePoster(rs.getString("poster_url"));
-
-            ticket.setBranchName(rs.getString("branch_name"));
-            ticket.setHallName(rs.getString("hall_name"));
-
-            ticket.setShowDate(rs.getString("show_date"));
-            ticket.setShowTime(rs.getString("show_time"));
-
-            ticket.setQrCode(rs.getString("qr_code"));
-
-            ticket.setSeats(getTicketSeats(conn, bookingId));
-
-            return ticket;
         }
     }
-}
-    private List<TicketSeatView> getTicketSeats(Connection conn, int bookingId)
-        throws SQLException {
 
-    String sql = """
+    private List<TicketSeatView> getTicketSeats(Connection conn, int bookingId)
+            throws SQLException {
+
+        String sql = """
         SELECT
             se.id AS seat_id,
             CONCAT(se.seat_row, se.seat_number) AS seat_name,
@@ -196,25 +194,25 @@ public class BookingPaymentDAO {
         ORDER BY se.seat_row, se.seat_number
         """;
 
-    List<TicketSeatView> seats = new ArrayList<>();
+        List<TicketSeatView> seats = new ArrayList<>();
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, bookingId);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
 
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                TicketSeatView seat = new TicketSeatView();
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    TicketSeatView seat = new TicketSeatView();
 
-                seat.setSeatId(rs.getInt("seat_id"));
-                seat.setSeatName(rs.getString("seat_name"));
-                seat.setSeatType(rs.getString("seat_type"));
-                seat.setPrice(rs.getDouble("price"));
+                    seat.setSeatId(rs.getInt("seat_id"));
+                    seat.setSeatName(rs.getString("seat_name"));
+                    seat.setSeatType(rs.getString("seat_type"));
+                    seat.setPrice(rs.getDouble("price"));
 
-                seats.add(seat);
+                    seats.add(seat);
+                }
             }
         }
-    }
 
-    return seats;
-}
+        return seats;
+    }
 }

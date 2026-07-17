@@ -20,7 +20,7 @@
         gap: var(--s-5);
         align-items: start;
     }
-    
+
     .rv-role-card {
         padding: var(--s-4);
         border: 1px solid var(--border);
@@ -102,7 +102,7 @@
 </div>
 
 <div class="rv-roles-container">
-    
+
     <!-- ── TRÁI: ROLES LIST (280px) ── -->
     <div>
         <div style="font-weight: 600; font-size: 14px; color: var(--n-600); margin-bottom: var(--s-3); text-transform: uppercase; letter-spacing: 0.05em;">Danh sách vai trò</div>
@@ -146,7 +146,7 @@
                 <button type="button" class="rv-btn rv-btn--ghost rv-btn--sm" onclick="clearMatrixFilter()">Xóa lọc</button>
             </div>
         </div>
-        
+
         <form method="post" action="${ctx}/admin/accounts/roles" id="matrix-form">
             <input type="hidden" name="action" value="update-permissions">
             <input type="hidden" name="roleId" value="${selectedRole.id}">
@@ -163,19 +163,19 @@
                                 <th>Xóa (Delete)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(4, this.checked)" style="cursor: pointer;"></c:if></th>
                                 <th>Xuất file (Export)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(5, this.checked)" style="cursor: pointer;"></c:if></th>
                                 <th>Tất cả (Manage)<c:if test="${selectedRole.id > 4}"><br><input type="checkbox" onclick="checkAllColumn(6, this.checked)" style="cursor: pointer;"></c:if></th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                                </tr>
+                            </thead>
+                            <tbody>
                             <c:forEach var="m" items="${modules}">
                                 <c:set var="mKey" value="${m.key}"/>
                                 <c:set var="perms" value="${selectedRolePermissions[mKey]}"/>
-                                
+
                                 <tr class="matrix-row">
                                     <td>
                                         <div style="font-weight: 600;"><c:out value="${m.name}"/></div>
                                         <div style="font-size: 11px; color: var(--n-400); font-weight: normal; margin-top: 2px;"><c:out value="${m.description}"/></div>
                                     </td>
-                                    
+
                                     <!-- View Checkbox -->
                                     <td>
                                         <c:choose>
@@ -251,18 +251,18 @@
 
             <!-- Matrix Footer Save Bar -->
             <c:if test="${selectedRole.id > 4}">
-            <div style="background: var(--n-50); border-top: 1px solid var(--border); padding: var(--s-4) var(--s-6); display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 var(--r-lg) var(--r-lg);">
-                <div style="font-size: 12px; color: var(--n-500); display: flex; align-items: center; gap: 6px;">
-                    <i class="bi bi-info-circle-fill" style="color: var(--primary);"></i>
-                    Thay đổi quyền sẽ áp dụng lập tức cho tất cả người dùng thuộc vai trò này.
+                <div style="background: var(--n-50); border-top: 1px solid var(--border); padding: var(--s-4) var(--s-6); display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 var(--r-lg) var(--r-lg);">
+                    <div style="font-size: 12px; color: var(--n-500); display: flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-info-circle-fill" style="color: var(--primary);"></i>
+                        Thay đổi quyền sẽ áp dụng lập tức cho tất cả người dùng thuộc vai trò này.
+                    </div>
+                    <div style="display: flex; gap: var(--s-3);">
+                        <a href="javascript:location.reload();" class="rv-btn rv-btn--ghost rv-btn--sm">Hủy bỏ</a>
+                        <button type="submit" class="rv-btn rv-btn--primary rv-btn--sm">
+                            <i class="bi bi-shield-check"></i>Lưu thay đổi ma trận
+                        </button>
+                    </div>
                 </div>
-                <div style="display: flex; gap: var(--s-3);">
-                    <a href="javascript:location.reload();" class="rv-btn rv-btn--ghost rv-btn--sm">Hủy bỏ</a>
-                    <button type="submit" class="rv-btn rv-btn--primary rv-btn--sm">
-                        <i class="bi bi-shield-check"></i>Lưu thay đổi ma trận
-                    </button>
-                </div>
-            </div>
             </c:if>
         </form>
     </div>
@@ -353,7 +353,7 @@
                 </div>
                 <h3 class="rv-modal__title">Tạo nhóm vai trò mới</h3>
             </div>
-            
+
             <div class="rv-modal__body" style="display: flex; flex-direction: column; gap: var(--s-3);">
                 <div class="rv-form-group">
                     <label class="rv-label" for="newRoleName">Tên nhóm quyền *</label>
@@ -395,7 +395,7 @@
     function filterMatrix() {
         const query = document.getElementById('matrixSearch').value.toLowerCase().trim();
         const rows = document.querySelectorAll('.matrix-row');
-        
+
         rows.forEach(row => {
             const title = row.querySelector('td:first-child').textContent.toLowerCase();
             if (!query || title.includes(query)) {
@@ -408,7 +408,9 @@
 
     function clearMatrixFilter() {
         document.getElementById('matrixSearch').value = '';
-        document.querySelectorAll('.matrix-row').forEach(row => { row.style.display = ''; });
+        document.querySelectorAll('.matrix-row').forEach(row => {
+            row.style.display = '';
+        });
     }
 
     document.getElementById('matrixSearch').addEventListener('keydown', (e) => {
@@ -420,11 +422,11 @@
 
     // Modal toggles
     const addRoleModal = document.getElementById('add-role-modal-overlay');
-    
+
     function openAddRoleModal() {
         addRoleModal.classList.add('show');
     }
-    
+
     function closeAddRoleModal() {
         addRoleModal.classList.remove('show');
     }

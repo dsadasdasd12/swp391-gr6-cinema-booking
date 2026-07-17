@@ -13,7 +13,7 @@
     <head>
         <title>Xác thực Email</title>
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-<link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
+        <link rel="stylesheet" href="${ctx}/assets/css/auth.css?v=10"> 
     </head>
     <body>
 

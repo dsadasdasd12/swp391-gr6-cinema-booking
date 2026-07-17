@@ -10,8 +10,7 @@ public class AttendanceDAO {
     // 1. READ: Kiểm tra xem vé này đã được check-in vào rạp chưa
     public boolean isAlreadyCheckedIn(int bookingId) {
         String sql = "SELECT id FROM dbo.ATTENDANCE WHERE booking_id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -27,11 +26,10 @@ public class AttendanceDAO {
     // 2. READ: Xem chi tiết check-in cũ (để báo lỗi cụ thể cho staff)
     public String getCheckInDetails(int bookingId) {
         String sql = "SELECT a.checked_at, u.full_name AS staff_name "
-                   + "FROM dbo.ATTENDANCE a "
-                   + "JOIN dbo.[USER] u ON a.checked_by = u.id "
-                   + "WHERE a.booking_id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                + "FROM dbo.ATTENDANCE a "
+                + "JOIN dbo.[USER] u ON a.checked_by = u.id "
+                + "WHERE a.booking_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -54,17 +52,17 @@ public class AttendanceDAO {
         String insertAttendanceSql = "INSERT INTO dbo.ATTENDANCE (booking_id, checked_by, checked_at) VALUES (?, ?, GETDATE())";
         String updateBookingStatusSql = "UPDATE dbo.BOOKINGS SET status = 'USED', last_update = GETDATE() "
                 + "WHERE id = ? AND status = 'CONFIRMED'";
-        
+
         Connection conn = null;
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
             // Bước A: Kiểm tra trạng thái đơn vé và chi nhánh của vé
-        String status = null;
-        int bookingBranchId = -1;
-        java.sql.Timestamp startTime = null;
-        java.sql.Timestamp endTime = null;
+            String status = null;
+            int bookingBranchId = -1;
+            java.sql.Timestamp startTime = null;
+            java.sql.Timestamp endTime = null;
             try (PreparedStatement ps = conn.prepareStatement(bookingCheckSql)) {
                 ps.setInt(1, bookingId);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -159,12 +157,20 @@ public class AttendanceDAO {
         } catch (Exception e) {
             e.printStackTrace();
             if (conn != null) {
-                try { conn.rollback(); } catch (Exception re) { re.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (Exception re) {
+                    re.printStackTrace();
+                }
             }
             return "LỖI HỆ THỐNG: Xảy ra lỗi trong quá trình ghi nhận check-in: " + e.getMessage();
         } finally {
             if (conn != null) {
-                try { conn.close(); } catch (Exception ce) { ce.printStackTrace(); }
+                try {
+                    conn.close();
+                } catch (Exception ce) {
+                    ce.printStackTrace();
+                }
             }
         }
     }

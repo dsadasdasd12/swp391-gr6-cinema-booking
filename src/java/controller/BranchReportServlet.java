@@ -122,18 +122,18 @@ public class BranchReportServlet extends HttpServlet {
         Connection conn = DBContext.getInstance().getConnection();
 
         // ── Query 1: KPI Statistics ──
-        String kpiSql = "SELECT ISNULL(SUM(b.total_price), 0) AS total_revenue, " +
-                        "       ISNULL(SUM(bs_count.cnt), 0) AS total_tickets, " +
-                        "       COUNT(DISTINCT s.id) AS total_showtimes " +
-                        "FROM dbo.BOOKINGS b " +
-                        "OUTER APPLY ( " +
-                        "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id " +
-                        ") bs_count " +
-                        "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id " +
-                        "JOIN dbo.HALLS h ON s.hall_id = h.id " +
-                        "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-                        "  AND h.branch_id = ? " +
-                        "  AND b.booked_at >= ? AND b.booked_at <= ? ";
+        String kpiSql = "SELECT ISNULL(SUM(b.total_price), 0) AS total_revenue, "
+                + "       ISNULL(SUM(bs_count.cnt), 0) AS total_tickets, "
+                + "       COUNT(DISTINCT s.id) AS total_showtimes "
+                + "FROM dbo.BOOKINGS b "
+                + "OUTER APPLY ( "
+                + "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id "
+                + ") bs_count "
+                + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "  AND h.branch_id = ? "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? ";
 
         try (PreparedStatement ps = conn.prepareStatement(kpiSql)) {
             ps.setInt(1, branchId);
@@ -153,20 +153,20 @@ public class BranchReportServlet extends HttpServlet {
         data.setAverageOccupancy(computeBranchAverageOccupancy(conn, branchId, fromTs, toTs));
 
         // ── Query 2: Daily Line Data ──
-        String dailySql = "SELECT CAST(b.booked_at AS DATE) AS r_date, " +
-                          "       SUM(b.total_price) AS daily_rev, " +
-                          "       COUNT(DISTINCT s.id) AS daily_shows, " +
-                          "       SUM(bs_count.cnt) AS daily_tickets " +
-                          "FROM dbo.BOOKINGS b " +
-                          "OUTER APPLY ( " +
-                          "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id " +
-                          ") bs_count " +
-                          "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id " +
-                          "JOIN dbo.HALLS h ON s.hall_id = h.id " +
-                          "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-                          "  AND h.branch_id = ? " +
-                          "  AND b.booked_at >= ? AND b.booked_at <= ? " +
-                          "GROUP BY CAST(b.booked_at AS DATE) ORDER BY r_date ASC";
+        String dailySql = "SELECT CAST(b.booked_at AS DATE) AS r_date, "
+                + "       SUM(b.total_price) AS daily_rev, "
+                + "       COUNT(DISTINCT s.id) AS daily_shows, "
+                + "       SUM(bs_count.cnt) AS daily_tickets "
+                + "FROM dbo.BOOKINGS b "
+                + "OUTER APPLY ( "
+                + "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id "
+                + ") bs_count "
+                + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "  AND h.branch_id = ? "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? "
+                + "GROUP BY CAST(b.booked_at AS DATE) ORDER BY r_date ASC";
 
         List<String> daysList = new ArrayList<>();
         List<Double> occOverTime = new ArrayList<>();
@@ -199,14 +199,14 @@ public class BranchReportServlet extends HttpServlet {
         data.setComboShowtimesJson(toJsonArrayNumber(showtimeDaily));
 
         // ── Query 3: Occupancy by Hall ──
-        String hallSql = "SELECT h.name() AS hall_name, " +
-                         "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((COUNT(bs.id) * 100.0) / (COUNT(DISTINCT s.id) * h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate " +
-                         "FROM dbo.HALLS h " +
-                         "LEFT JOIN dbo.SHOWTIMES s ON h.id = s.hall_id AND s.status != 'CANCELLED' " +
-                         "LEFT JOIN dbo.BOOKINGS b ON s.id = b.showtime_id AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-                         "LEFT JOIN dbo.BOOKING_SEATS bs ON b.id = bs.booking_id " +
-                         "WHERE h.branch_id = ? " +
-                         "GROUP BY h.id, h.name(), h.total_seats ORDER BY occupancy_rate DESC";
+        String hallSql = "SELECT h.name() AS hall_name, "
+                + "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((COUNT(bs.id) * 100.0) / (COUNT(DISTINCT s.id) * h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate "
+                + "FROM dbo.HALLS h "
+                + "LEFT JOIN dbo.SHOWTIMES s ON h.id = s.hall_id AND s.status != 'CANCELLED' "
+                + "LEFT JOIN dbo.BOOKINGS b ON s.id = b.showtime_id AND b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "LEFT JOIN dbo.BOOKING_SEATS bs ON b.id = bs.booking_id "
+                + "WHERE h.branch_id = ? "
+                + "GROUP BY h.id, h.name(), h.total_seats ORDER BY occupancy_rate DESC";
 
         List<String> hallLabels = new ArrayList<>();
         List<Double> hallData = new ArrayList<>();
@@ -227,19 +227,19 @@ public class BranchReportServlet extends HttpServlet {
         data.setHallDataJson(toJsonArrayNumber(hallData));
 
         // ── Query 4: Top 5 Popular Movies ──
-        String movieSql = "SELECT TOP 5 m.title, " +
-                          "       SUM(bs_count.cnt) AS ticket_count " +
-                          "FROM dbo.MOVIES m " +
-                          "JOIN dbo.SHOWTIMES s ON m.id = s.movie_id " +
-                          "JOIN dbo.HALLS h ON s.hall_id = h.id " +
-                          "JOIN dbo.BOOKINGS b ON s.id = b.showtime_id " +
-                          "OUTER APPLY ( " +
-                          "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id " +
-                          ") bs_count " +
-                          "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-                          "  AND h.branch_id = ? " +
-                          "  AND b.booked_at >= ? AND b.booked_at <= ? " +
-                          "GROUP BY m.id, m.title ORDER BY ticket_count DESC";
+        String movieSql = "SELECT TOP 5 m.title, "
+                + "       SUM(bs_count.cnt) AS ticket_count "
+                + "FROM dbo.MOVIES m "
+                + "JOIN dbo.SHOWTIMES s ON m.id = s.movie_id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "JOIN dbo.BOOKINGS b ON s.id = b.showtime_id "
+                + "OUTER APPLY ( "
+                + "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id "
+                + ") bs_count "
+                + "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "  AND h.branch_id = ? "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? "
+                + "GROUP BY m.id, m.title ORDER BY ticket_count DESC";
 
         List<PopularMovie> popMovies = new ArrayList<>();
         int maxTickets = 0;
@@ -269,22 +269,22 @@ public class BranchReportServlet extends HttpServlet {
         data.setPopularMovies(popMovies);
 
         // ── Query 5: Daily Details table ──
-        String tableSql = "SELECT CAST(b.booked_at AS DATE) AS report_date, " +
-                          "       COUNT(DISTINCT s.id) AS showtime_count, " +
-                          "       SUM(bs_count.cnt) AS ticket_count, " +
-                          "       SUM(b.total_price) AS revenue, " +
-                          "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((SUM(bs_count.cnt) * 100.0) / SUM(h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate, " +
-                          "       CASE WHEN SUM(bs_count.cnt) > 0 THEN SUM(b.total_price) / SUM(bs_count.cnt) ELSE 0.0 END AS avg_ticket_price " +
-                          "FROM dbo.BOOKINGS b " +
-                          "OUTER APPLY ( " +
-                          "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id " +
-                          ") bs_count " +
-                          "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id " +
-                          "JOIN dbo.HALLS h ON s.hall_id = h.id " +
-                          "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') " +
-                          "  AND h.branch_id = ? " +
-                          "  AND b.booked_at >= ? AND b.booked_at <= ? " +
-                          "GROUP BY CAST(b.booked_at AS DATE) ORDER BY report_date DESC";
+        String tableSql = "SELECT CAST(b.booked_at AS DATE) AS report_date, "
+                + "       COUNT(DISTINCT s.id) AS showtime_count, "
+                + "       SUM(bs_count.cnt) AS ticket_count, "
+                + "       SUM(b.total_price) AS revenue, "
+                + "       CASE WHEN SUM(h.total_seats) > 0 THEN CAST((SUM(bs_count.cnt) * 100.0) / SUM(h.total_seats) AS DECIMAL(5,2)) ELSE 0.0 END AS occupancy_rate, "
+                + "       CASE WHEN SUM(bs_count.cnt) > 0 THEN SUM(b.total_price) / SUM(bs_count.cnt) ELSE 0.0 END AS avg_ticket_price "
+                + "FROM dbo.BOOKINGS b "
+                + "OUTER APPLY ( "
+                + "    SELECT COUNT(*) AS cnt FROM dbo.BOOKING_SEATS bs WHERE bs.booking_id = b.id "
+                + ") bs_count "
+                + "JOIN dbo.SHOWTIMES s ON b.showtime_id = s.id "
+                + "JOIN dbo.HALLS h ON s.hall_id = h.id "
+                + "WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'USED', 'COMPLETED') "
+                + "  AND h.branch_id = ? "
+                + "  AND b.booked_at >= ? AND b.booked_at <= ? "
+                + "GROUP BY CAST(b.booked_at AS DATE) ORDER BY report_date DESC";
 
         List<Map<String, Object>> rows = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(tableSql)) {
@@ -394,7 +394,9 @@ public class BranchReportServlet extends HttpServlet {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < list.size(); i++) {
             sb.append("\"").append(list.get(i).replace("\"", "\\\"")).append("\"");
-            if (i < list.size() - 1) sb.append(",");
+            if (i < list.size() - 1) {
+                sb.append(",");
+            }
         }
         sb.append("]");
         return sb.toString();
@@ -404,26 +406,47 @@ public class BranchReportServlet extends HttpServlet {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < list.size(); i++) {
             sb.append(list.get(i));
-            if (i < list.size() - 1) sb.append(",");
+            if (i < list.size() - 1) {
+                sb.append(",");
+            }
         }
         sb.append("]");
         return sb.toString();
     }
 
     public static class PopularMovie {
+
         private String title;
         private int ticketCount;
         private double percentage;
 
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public int getTicketCount() { return ticketCount; }
-        public void setTicketCount(int ticketCount) { this.ticketCount = ticketCount; }
-        public double getPercentage() { return percentage; }
-        public void setPercentage(double percentage) { this.percentage = percentage; }
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public int getTicketCount() {
+            return ticketCount;
+        }
+
+        public void setTicketCount(int ticketCount) {
+            this.ticketCount = ticketCount;
+        }
+
+        public double getPercentage() {
+            return percentage;
+        }
+
+        public void setPercentage(double percentage) {
+            this.percentage = percentage;
+        }
     }
 
     public static class BranchReportData {
+
         private String fromDate;
         private String toDate;
         private double totalRevenue;
@@ -440,35 +463,124 @@ public class BranchReportServlet extends HttpServlet {
         private List<PopularMovie> popularMovies;
         private List<Map<String, Object>> rows;
 
-        public String getFromDate() { return fromDate; }
-        public void setFromDate(String fromDate) { this.fromDate = fromDate; }
-        public String getToDate() { return toDate; }
-        public void setToDate(String toDate) { this.toDate = toDate; }
-        public double getTotalRevenue() { return totalRevenue; }
-        public void setTotalRevenue(double totalRevenue) { this.totalRevenue = totalRevenue; }
-        public int getTotalTickets() { return totalTickets; }
-        public void setTotalTickets(int totalTickets) { this.totalTickets = totalTickets; }
-        public int getTotalShowtimes() { return totalShowtimes; }
-        public void setTotalShowtimes(int totalShowtimes) { this.totalShowtimes = totalShowtimes; }
-        public double getAverageOccupancy() { return averageOccupancy; }
-        public void setAverageOccupancy(double averageOccupancy) { this.averageOccupancy = averageOccupancy; }
-        public String getOccupancyLabelsJson() { return occupancyLabelsJson; }
-        public void setOccupancyLabelsJson(String occupancyLabelsJson) { this.occupancyLabelsJson = occupancyLabelsJson; }
-        public String getOccupancyDataJson() { return occupancyDataJson; }
-        public void setOccupancyDataJson(String occupancyDataJson) { this.occupancyDataJson = occupancyDataJson; }
-        public String getHallLabelsJson() { return hallLabelsJson; }
-        public void setHallLabelsJson(String hallLabelsJson) { this.hallLabelsJson = hallLabelsJson; }
-        public String getHallDataJson() { return hallDataJson; }
-        public void setHallDataJson(String hallDataJson) { this.hallDataJson = hallDataJson; }
-        public String getComboLabelsJson() { return comboLabelsJson; }
-        public void setComboLabelsJson(String comboLabelsJson) { this.comboLabelsJson = comboLabelsJson; }
-        public String getComboTicketsJson() { return comboTicketsJson; }
-        public void setComboTicketsJson(String comboTicketsJson) { this.comboTicketsJson = comboTicketsJson; }
-        public String getComboShowtimesJson() { return comboShowtimesJson; }
-        public void setComboShowtimesJson(String comboShowtimesJson) { this.comboShowtimesJson = comboShowtimesJson; }
-        public List<PopularMovie> getPopularMovies() { return popularMovies; }
-        public void setPopularMovies(List<PopularMovie> popularMovies) { this.popularMovies = popularMovies; }
-        public List<Map<String, Object>> getRows() { return rows; }
-        public void setRows(List<Map<String, Object>> rows) { this.rows = rows; }
+        public String getFromDate() {
+            return fromDate;
+        }
+
+        public void setFromDate(String fromDate) {
+            this.fromDate = fromDate;
+        }
+
+        public String getToDate() {
+            return toDate;
+        }
+
+        public void setToDate(String toDate) {
+            this.toDate = toDate;
+        }
+
+        public double getTotalRevenue() {
+            return totalRevenue;
+        }
+
+        public void setTotalRevenue(double totalRevenue) {
+            this.totalRevenue = totalRevenue;
+        }
+
+        public int getTotalTickets() {
+            return totalTickets;
+        }
+
+        public void setTotalTickets(int totalTickets) {
+            this.totalTickets = totalTickets;
+        }
+
+        public int getTotalShowtimes() {
+            return totalShowtimes;
+        }
+
+        public void setTotalShowtimes(int totalShowtimes) {
+            this.totalShowtimes = totalShowtimes;
+        }
+
+        public double getAverageOccupancy() {
+            return averageOccupancy;
+        }
+
+        public void setAverageOccupancy(double averageOccupancy) {
+            this.averageOccupancy = averageOccupancy;
+        }
+
+        public String getOccupancyLabelsJson() {
+            return occupancyLabelsJson;
+        }
+
+        public void setOccupancyLabelsJson(String occupancyLabelsJson) {
+            this.occupancyLabelsJson = occupancyLabelsJson;
+        }
+
+        public String getOccupancyDataJson() {
+            return occupancyDataJson;
+        }
+
+        public void setOccupancyDataJson(String occupancyDataJson) {
+            this.occupancyDataJson = occupancyDataJson;
+        }
+
+        public String getHallLabelsJson() {
+            return hallLabelsJson;
+        }
+
+        public void setHallLabelsJson(String hallLabelsJson) {
+            this.hallLabelsJson = hallLabelsJson;
+        }
+
+        public String getHallDataJson() {
+            return hallDataJson;
+        }
+
+        public void setHallDataJson(String hallDataJson) {
+            this.hallDataJson = hallDataJson;
+        }
+
+        public String getComboLabelsJson() {
+            return comboLabelsJson;
+        }
+
+        public void setComboLabelsJson(String comboLabelsJson) {
+            this.comboLabelsJson = comboLabelsJson;
+        }
+
+        public String getComboTicketsJson() {
+            return comboTicketsJson;
+        }
+
+        public void setComboTicketsJson(String comboTicketsJson) {
+            this.comboTicketsJson = comboTicketsJson;
+        }
+
+        public String getComboShowtimesJson() {
+            return comboShowtimesJson;
+        }
+
+        public void setComboShowtimesJson(String comboShowtimesJson) {
+            this.comboShowtimesJson = comboShowtimesJson;
+        }
+
+        public List<PopularMovie> getPopularMovies() {
+            return popularMovies;
+        }
+
+        public void setPopularMovies(List<PopularMovie> popularMovies) {
+            this.popularMovies = popularMovies;
+        }
+
+        public List<Map<String, Object>> getRows() {
+            return rows;
+        }
+
+        public void setRows(List<Map<String, Object>> rows) {
+            this.rows = rows;
+        }
     }
 }

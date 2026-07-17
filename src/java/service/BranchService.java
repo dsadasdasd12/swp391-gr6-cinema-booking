@@ -130,7 +130,7 @@ public class BranchService {
         if (branch.getAddress() == null) {
             throw new IllegalArgumentException("Địa chỉ chi nhánh không được để trống.");
         }
-        
+
         if (branch.getPhone() != null
                 && !branch.getPhone().matches("0\\d{9,10}")) {
             throw new IllegalArgumentException(

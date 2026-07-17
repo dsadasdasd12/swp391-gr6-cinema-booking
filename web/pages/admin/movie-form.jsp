@@ -49,7 +49,7 @@
             <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
                 <c:forEach var="err" items="${errors}">
                     <li><c:out value="${err}"/></li>
-                </c:forEach>
+                    </c:forEach>
             </ul>
         </div>
     </div>
@@ -70,7 +70,7 @@
                 <span class="rv-card__title">Thông tin phim chi tiết</span>
             </div>
             <div class="rv-card__body" style="display: flex; flex-direction: column; gap: var(--s-4);">
-                
+
                 <!-- Movie Title -->
                 <div class="rv-form-group">
                     <label class="rv-label" for="title">Tên phim *</label>
@@ -81,7 +81,7 @@
                 <!-- Genre Multi-select tag input -->
                 <div class="rv-form-group">
                     <label class="rv-label">Thể loại * <span style="font-weight: normal; font-size: 12px; color: var(--n-400);">(Chọn tối đa 5 thể loại)</span></label>
-                    
+
                     <div id="rv-genre-tags-container" class="rv-tag-container" style="display: flex; flex-wrap: wrap; gap: var(--s-2); padding: var(--s-2); border: 1px solid var(--border); border-radius: var(--r-md); min-height: 42px; align-items: center; background: var(--n-50);">
                         <!-- Select dropdown styled inside the tag container -->
                         <select id="rv-genre-select" style="border: none; background: transparent; outline: none; color: var(--n-600); font-family: inherit; font-size: var(--text-base); cursor: pointer; padding: 2px 4px; min-width: 140px;">
@@ -91,7 +91,7 @@
                             </c:forEach>
                         </select>
                     </div>
-                    
+
                     <!-- Hidden input to serialize categories -->
                     <input type="hidden" name="genres" id="rv-movie-genres-hidden" value="<c:out value='${movie.categoryNames}'/>">
                 </div>
@@ -156,7 +156,7 @@
                 <!-- Accordion / Fieldset: Additional Information -->
                 <div style="border-top: 1px solid var(--border); padding-top: var(--s-4); margin-top: var(--s-2);">
                     <div style="font-weight: 600; color: var(--n-700); margin-bottom: var(--s-3); font-size: 14px;">Thông tin bổ sung (Không bắt buộc)</div>
-                    
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);">
                         <!-- Director -->
                         <div class="rv-form-group">
@@ -198,26 +198,26 @@
             </div>
 
             <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const posterInput = document.getElementById('rv-poster-input');
-                const previewImg = document.getElementById('rv-preview-img');
-                const placeholder = document.getElementById('rv-preview-placeholder');
+                document.addEventListener('DOMContentLoaded', function () {
+                    const posterInput = document.getElementById('rv-poster-input');
+                    const previewImg = document.getElementById('rv-preview-img');
+                    const placeholder = document.getElementById('rv-preview-placeholder');
 
-                if (posterInput && previewImg && placeholder) {
-                    posterInput.addEventListener('input', function() {
-                        const url = this.value.trim();
-                        if (url) {
-                            previewImg.src = url;
-                            previewImg.style.display = 'block';
-                            placeholder.style.display = 'none';
-                        } else {
-                            previewImg.src = '';
-                            previewImg.style.display = 'none';
-                            placeholder.style.display = 'block';
-                        }
-                    });
-                }
-            });
+                    if (posterInput && previewImg && placeholder) {
+                        posterInput.addEventListener('input', function () {
+                            const url = this.value.trim();
+                            if (url) {
+                                previewImg.src = url;
+                                previewImg.style.display = 'block';
+                                placeholder.style.display = 'none';
+                            } else {
+                                previewImg.src = '';
+                                previewImg.style.display = 'none';
+                                placeholder.style.display = 'block';
+                            }
+                        });
+                    }
+                });
             </script>
 
             <!-- Trailer: chỉ link YouTube -->
@@ -278,134 +278,135 @@
 
 <!-- Validation and dirty Form check -->
 <script>
-document.getElementById('rv-movie-form').addEventListener('submit', function(e) {
-    let isValid = true;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    document.getElementById('rv-movie-form').addEventListener('submit', function (e) {
+        let isValid = true;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    const titleVal = document.getElementById('title').value.trim();
-    const titleErr = document.getElementById('err-title');
-    if (!titleVal) {
-        titleErr.textContent = 'Tên phim là trường bắt buộc và không thể để trống.';
-        isValid = false;
-    } else {
-        titleErr.textContent = '';
-    }
-
-    const durationVal = parseInt(document.getElementById('durationMin').value, 10);
-    const durationErr = document.getElementById('err-duration');
-    if (isNaN(durationVal) || durationVal <= 0 || durationVal > 999) {
-        durationErr.textContent = 'Thời lượng phim không hợp lệ (từ 1 đến 999 phút).';
-        isValid = false;
-    } else {
-        durationErr.textContent = '';
-    }
-
-    const descVal = document.getElementById('rv-movie-desc').value.trim();
-    const descErr = document.getElementById('err-desc');
-    if (!descVal) {
-        descErr.textContent = 'Mô tả tóm tắt phim là trường bắt buộc.';
-        isValid = false;
-    } else {
-        descErr.textContent = '';
-    }
-
-    const genresVal = (document.getElementById('rv-movie-genres-hidden').value || '').trim();
-    if (!genresVal) {
-        isValid = false;
-        window.showToast('Thiếu thể loại', 'Vui lòng chọn ít nhất một thể loại.', 'error');
-    }
-
-    const langVal = document.getElementById('language').value;
-    if (!langVal) {
-        isValid = false;
-        window.showToast('Thiếu ngôn ngữ', 'Vui lòng chọn ngôn ngữ chính.', 'error');
-    }
-
-    const statusVal = document.getElementById('status').value;
-    if (!statusVal) {
-        isValid = false;
-        window.showToast('Thiếu trạng thái', 'Vui lòng chọn trạng thái phát hành.', 'error');
-    }
-
-    const releaseInput = document.getElementById('releaseDate').value;
-    if (!releaseInput) {
-        isValid = false;
-        window.showToast('Thiếu ngày chiếu', 'Vui lòng chọn ngày khởi chiếu.', 'error');
-    } else if (statusVal) {
-        const release = new Date(releaseInput + 'T00:00:00');
-        if (statusVal === 'COMING_SOON' && release < today) {
+        const titleVal = document.getElementById('title').value.trim();
+        const titleErr = document.getElementById('err-title');
+        if (!titleVal) {
+            titleErr.textContent = 'Tên phim là trường bắt buộc và không thể để trống.';
             isValid = false;
-            window.showToast('Ngày không hợp lệ', 'Phim sắp chiếu: ngày khởi chiếu không được trước hôm nay.', 'error');
-        } else if (statusVal === 'NOW_SHOWING' && release > today) {
+        } else {
+            titleErr.textContent = '';
+        }
+
+        const durationVal = parseInt(document.getElementById('durationMin').value, 10);
+        const durationErr = document.getElementById('err-duration');
+        if (isNaN(durationVal) || durationVal <= 0 || durationVal > 999) {
+            durationErr.textContent = 'Thời lượng phim không hợp lệ (từ 1 đến 999 phút).';
             isValid = false;
-            window.showToast('Ngày không hợp lệ', 'Phim đang chiếu: ngày khởi chiếu không được sau hôm nay.', 'error');
-        } else if (statusVal === 'ENDED' && release >= today) {
+        } else {
+            durationErr.textContent = '';
+        }
+
+        const descVal = document.getElementById('rv-movie-desc').value.trim();
+        const descErr = document.getElementById('err-desc');
+        if (!descVal) {
+            descErr.textContent = 'Mô tả tóm tắt phim là trường bắt buộc.';
             isValid = false;
-            window.showToast('Ngày không hợp lệ', 'Phim đã kết thúc: ngày khởi chiếu phải trước hôm nay.', 'error');
-        }
-    }
-
-    const posterInput = document.getElementById('rv-poster-input');
-    const posterVal = posterInput.value.trim();
-    if (!posterVal) {
-        isValid = false;
-        window.showToast('Thiếu poster', 'Vui lòng nhập URL poster phim.', 'error');
-    }
-
-    if (!isValid) {
-        e.preventDefault();
-        if (titleErr.textContent || durationErr.textContent || descErr.textContent) {
-            window.showToast('Lỗi nhập liệu', 'Vui lòng kiểm tra lại các trường bắt buộc.', 'error');
-        }
-    } else {
-        document.getElementById('rv-form-save').classList.add('loading');
-    }
-});
-
-(function syncReleaseDateByStatus() {
-    const statusEl = document.getElementById('status');
-    const releaseDateEl = document.getElementById('releaseDate');
-    const endDateEl = document.getElementById('endDate');
-    if (!statusEl || !releaseDateEl || !endDateEl) return;
-
-    const todayIso = new Date().toISOString().slice(0, 10);
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterdayIso = yesterdayDate.toISOString().slice(0, 10);
-    const tomorrowDate = new Date();
-    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-    const tomorrowIso = tomorrowDate.toISOString().slice(0, 10);
-
-    const apply = () => {
-        releaseDateEl.removeAttribute('min');
-        releaseDateEl.removeAttribute('max');
-        endDateEl.removeAttribute('min');
-        endDateEl.removeAttribute('max');
-
-        // EndDate always >= ReleaseDate
-        if (releaseDateEl.value) {
-            endDateEl.min = releaseDateEl.value;
+        } else {
+            descErr.textContent = '';
         }
 
-        if (statusEl.value === 'COMING_SOON') {
-            // No sneak show -> Coming soon MUST be in the future
-            releaseDateEl.min = tomorrowIso;
-        } else if (statusEl.value === 'NOW_SHOWING') {
-            // Now showing MUST have started, and MUST NOT have ended
-            releaseDateEl.max = todayIso;
-            endDateEl.min = endDateEl.min > todayIso ? endDateEl.min : todayIso;
-        } else if (statusEl.value === 'ENDED') {
-            // Ended MUST be in the past
-            endDateEl.max = yesterdayIso;
-            releaseDateEl.max = yesterdayIso;
+        const genresVal = (document.getElementById('rv-movie-genres-hidden').value || '').trim();
+        if (!genresVal) {
+            isValid = false;
+            window.showToast('Thiếu thể loại', 'Vui lòng chọn ít nhất một thể loại.', 'error');
         }
-    };
 
-    statusEl.addEventListener('change', apply);
-    releaseDateEl.addEventListener('change', apply);
-    apply();
-})();
+        const langVal = document.getElementById('language').value;
+        if (!langVal) {
+            isValid = false;
+            window.showToast('Thiếu ngôn ngữ', 'Vui lòng chọn ngôn ngữ chính.', 'error');
+        }
+
+        const statusVal = document.getElementById('status').value;
+        if (!statusVal) {
+            isValid = false;
+            window.showToast('Thiếu trạng thái', 'Vui lòng chọn trạng thái phát hành.', 'error');
+        }
+
+        const releaseInput = document.getElementById('releaseDate').value;
+        if (!releaseInput) {
+            isValid = false;
+            window.showToast('Thiếu ngày chiếu', 'Vui lòng chọn ngày khởi chiếu.', 'error');
+        } else if (statusVal) {
+            const release = new Date(releaseInput + 'T00:00:00');
+            if (statusVal === 'COMING_SOON' && release < today) {
+                isValid = false;
+                window.showToast('Ngày không hợp lệ', 'Phim sắp chiếu: ngày khởi chiếu không được trước hôm nay.', 'error');
+            } else if (statusVal === 'NOW_SHOWING' && release > today) {
+                isValid = false;
+                window.showToast('Ngày không hợp lệ', 'Phim đang chiếu: ngày khởi chiếu không được sau hôm nay.', 'error');
+            } else if (statusVal === 'ENDED' && release >= today) {
+                isValid = false;
+                window.showToast('Ngày không hợp lệ', 'Phim đã kết thúc: ngày khởi chiếu phải trước hôm nay.', 'error');
+            }
+        }
+
+        const posterInput = document.getElementById('rv-poster-input');
+        const posterVal = posterInput.value.trim();
+        if (!posterVal) {
+            isValid = false;
+            window.showToast('Thiếu poster', 'Vui lòng nhập URL poster phim.', 'error');
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            if (titleErr.textContent || durationErr.textContent || descErr.textContent) {
+                window.showToast('Lỗi nhập liệu', 'Vui lòng kiểm tra lại các trường bắt buộc.', 'error');
+            }
+        } else {
+            document.getElementById('rv-form-save').classList.add('loading');
+        }
+    });
+
+    (function syncReleaseDateByStatus() {
+        const statusEl = document.getElementById('status');
+        const releaseDateEl = document.getElementById('releaseDate');
+        const endDateEl = document.getElementById('endDate');
+        if (!statusEl || !releaseDateEl || !endDateEl)
+            return;
+
+        const todayIso = new Date().toISOString().slice(0, 10);
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterdayIso = yesterdayDate.toISOString().slice(0, 10);
+        const tomorrowDate = new Date();
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const tomorrowIso = tomorrowDate.toISOString().slice(0, 10);
+
+        const apply = () => {
+            releaseDateEl.removeAttribute('min');
+            releaseDateEl.removeAttribute('max');
+            endDateEl.removeAttribute('min');
+            endDateEl.removeAttribute('max');
+
+            // EndDate always >= ReleaseDate
+            if (releaseDateEl.value) {
+                endDateEl.min = releaseDateEl.value;
+            }
+
+            if (statusEl.value === 'COMING_SOON') {
+                // No sneak show -> Coming soon MUST be in the future
+                releaseDateEl.min = tomorrowIso;
+            } else if (statusEl.value === 'NOW_SHOWING') {
+                // Now showing MUST have started, and MUST NOT have ended
+                releaseDateEl.max = todayIso;
+                endDateEl.min = endDateEl.min > todayIso ? endDateEl.min : todayIso;
+            } else if (statusEl.value === 'ENDED') {
+                // Ended MUST be in the past
+                endDateEl.max = yesterdayIso;
+                releaseDateEl.max = yesterdayIso;
+            }
+        };
+
+        statusEl.addEventListener('change', apply);
+        releaseDateEl.addEventListener('change', apply);
+        apply();
+    })();
 </script>
 
 </body>

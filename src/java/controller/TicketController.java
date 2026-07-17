@@ -17,8 +17,8 @@ import java.io.PrintWriter;
 import java.util.List;
 
 /**
- * Servlet quản lý e-ticket cho admin.
- * URL: /admin/tickets?action=list|detail|use|retry
+ * Servlet quản lý e-ticket cho admin. URL:
+ * /admin/tickets?action=list|detail|use|retry
  *
  * @author LONG
  */
@@ -31,12 +31,17 @@ public class TicketController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String action = req.getParameter("action");
-        if (action == null) action = "list";
+        if (action == null) {
+            action = "list";
+        }
 
         switch (action) {
-            case "list"   -> handleList  (req, resp);
-            case "detail" -> handleDetail(req, resp);
-            default       -> resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            case "list" ->
+                handleList(req, resp);
+            case "detail" ->
+                handleDetail(req, resp);
+            default ->
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
@@ -44,19 +49,26 @@ public class TicketController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String action = req.getParameter("action");
-        if (action == null) action = "";
+        if (action == null) {
+            action = "";
+        }
 
         switch (action) {
-            case "use"   -> handleUse  (req, resp);
-            case "retry" -> handleRetry(req, resp);
-            case "issue" -> handleIssue(req, resp);
-            default      -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            case "use" ->
+                handleUse(req, resp);
+            case "retry" ->
+                handleRetry(req, resp);
+            case "issue" ->
+                handleIssue(req, resp);
+            default ->
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
     // ── GET ───────────────────────────────────────────────────
-
-    /** Danh sách tất cả ticket, có thể lọc theo trạng thái. */
+    /**
+     * Danh sách tất cả ticket, có thể lọc theo trạng thái.
+     */
     private void handleList(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         int page = parsePage(req.getParameter("page"));
@@ -77,30 +89,32 @@ public class TicketController extends HttpServlet {
         req.getRequestDispatcher("/pages/admin/ticket-list.jsp").forward(req, resp);
     }
 
-    /** Chi tiết một ticket (hiển thị QR để admin kiểm tra / in lại). */
+    /**
+     * Chi tiết một ticket (hiển thị QR để admin kiểm tra / in lại).
+     */
     private void handleDetail(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String idStr = req.getParameter("bookingId");
-        if (idStr == null) idStr = req.getParameter("id");
+        if (idStr == null) {
+            idStr = req.getParameter("id");
+        }
         int bookingId = parseId(idStr);
         if (bookingId <= 0) {
             resp.sendRedirect(req.getContextPath() + "/admin/tickets?action=list");
             return;
         }
         Ticket ticket = ticketService.getTicketByBookingId(bookingId);
-        if (ticket == null) { 
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND); 
-            return; 
+        if (ticket == null) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
         req.setAttribute("ticket", ticket);
         req.getRequestDispatcher("/pages/shared/ticket-detail.jsp").forward(req, resp);
     }
 
     // ── POST ──────────────────────────────────────────────────
-
     /**
-     * Đánh dấu ticket đã sử dụng.
-     * Request: POST ?action=use&bookingId=123
+     * Đánh dấu ticket đã sử dụng. Request: POST ?action=use&bookingId=123
      * Response: {"success":true,"message":"..."}
      */
     private void handleUse(HttpServletRequest req, HttpServletResponse resp)
@@ -108,7 +122,9 @@ public class TicketController extends HttpServlet {
         resp.setContentType("application/json; charset=UTF-8");
         PrintWriter out = resp.getWriter();
         String idStr = req.getParameter("bookingId");
-        if (idStr == null) idStr = req.getParameter("id");
+        if (idStr == null) {
+            idStr = req.getParameter("id");
+        }
         int bookingId = parseId(idStr);
         if (bookingId <= 0) {
             out.print("{\"success\":false,\"message\":\"Booking ID không hợp lệ.\"}");
@@ -123,13 +139,12 @@ public class TicketController extends HttpServlet {
     }
 
     /**
-     * Admin retry sinh QR cho ticket PENDING_MANUAL.
-     * Request: POST ?action=retry&bookingId=123
-     * Response: JSON
+     * Admin retry sinh QR cho ticket PENDING_MANUAL. Request: POST
+     * ?action=retry&bookingId=123 Response: JSON
      */
     /**
-     * Phát hành e-ticket sau thanh toán (quầy / xác nhận thủ công).
-     * POST ?action=issue&bookingId=123
+     * Phát hành e-ticket sau thanh toán (quầy / xác nhận thủ công). POST
+     * ?action=issue&bookingId=123
      */
     private void handleIssue(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -141,7 +156,7 @@ public class TicketController extends HttpServlet {
             out.print("{\"success\":false,\"message\":\"Booking ID không hợp lệ.\"}");
             return;
         }
-        
+
         // Gọi service để cập nhật trạng thái thanh toán và sinh mã QR
         // Hàm này sẽ tự động sinh QR, lưu file, và gửi email xác nhận cho khách hàng
         Ticket ticket = ticketService.issueTicketAfterPayment(bookingId, getServletContext());
@@ -159,7 +174,9 @@ public class TicketController extends HttpServlet {
         resp.setContentType("application/json; charset=UTF-8");
         PrintWriter out = resp.getWriter();
         String idStr = req.getParameter("bookingId");
-        if (idStr == null) idStr = req.getParameter("id");
+        if (idStr == null) {
+            idStr = req.getParameter("id");
+        }
         int bookingId = parseId(idStr);
         if (bookingId <= 0) {
             out.print("{\"success\":false,\"message\":\"Booking ID không hợp lệ.\"}");
@@ -174,10 +191,12 @@ public class TicketController extends HttpServlet {
     }
 
     // ── Helpers ───────────────────────────────────────────────
-
     private int parseId(String s) {
-        try { return (s != null) ? Integer.parseInt(s.trim()) : 0; }
-        catch (NumberFormatException e) { return 0; }
+        try {
+            return (s != null) ? Integer.parseInt(s.trim()) : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private static int parsePage(String s) {

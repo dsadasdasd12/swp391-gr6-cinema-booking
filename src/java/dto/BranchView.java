@@ -9,9 +9,9 @@ import model.Branch;
 
 /**
  * DTO hiển thị cho trang "Hệ thống rạp": bọc một {@link Branch} (giữ nguyên các
- * cột của bảng dbo.BRANCHES) kèm dữ liệu ghép từ bảng khác để hiển thị —
- * tên rạp (dbo.CINEMA.name) và số phòng chiếu đang hoạt động (đếm dbo.HALLS).
- * Nhờ vậy entity Branch không phải mang field ngoài cột DB.
+ * cột của bảng dbo.BRANCHES) kèm dữ liệu ghép từ bảng khác để hiển thị — tên
+ * rạp (dbo.CINEMA.name) và số phòng chiếu đang hoạt động (đếm dbo.HALLS). Nhờ
+ * vậy entity Branch không phải mang field ngoài cột DB.
  *
  * @author Group6 - Huy (Module Duyệt phim)
  */
@@ -54,7 +54,9 @@ public class BranchView {
         this.hallCount = hallCount;
     }
 
-    /** Khung giờ mở cửa dạng "08:00 - 23:00"; rỗng nếu chưa có dữ liệu. */
+    /**
+     * Khung giờ mở cửa dạng "08:00 - 23:00"; rỗng nếu chưa có dữ liệu.
+     */
     public String getOpenHoursLabel() {
         if (branch == null || branch.getOpenTime() == null || branch.getCloseTime() == null) {
             return "";

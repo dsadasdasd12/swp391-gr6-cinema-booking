@@ -22,7 +22,12 @@
 <c:set var="sessionUser" value="${not empty sessionScope.user ? sessionScope.user : sessionScope.adminUser}" />
 <c:set var="isAdminRole"    value="${sessionUser.role == 'ADMIN'}" />
 <c:set var="isManagerRole"  value="${sessionUser.role == 'MANAGER'}" />
-<c:set var="isFnb"          value="${uri.contains('/admin/fnb-dashboard')}" />
+
+<c:set var="isAdminFnb"
+       value="${uri.contains('/admin/fnb-dashboard')}" />
+
+<c:set var="isManagerFnb"
+       value="${uri.contains('/manager/fnb')}" />
 
 <aside class="rv-sidebar">
     <!-- 🏠 Dashboard -->
@@ -129,6 +134,14 @@
         </div>
 
         <div class="rv-nav__group">
+            <a href="${ctx}/manager/fnb"
+               class="rv-nav__item ${isManagerFnb ? 'active' : ''}">
+
+                <i class="bi bi-cup-straw"></i>
+                Quản lý kho F&amp;B
+            </a>
+        </div>
+        <div class="rv-nav__group">
             <a href="${ctx}/manager/showtimesmanagement" class="rv-nav__item ${uri.contains('/manager/showtimesmanagement') ? 'active' : ''}">
                 <i class="bi bi-calendar-week-fill"></i>
                 Quản lý lịch chiếu
@@ -137,14 +150,16 @@
     </c:if>
 
 
-    <div class="rv-nav__group">
-        <a href="${ctx}/admin/fnb-dashboard"
-           class="rv-nav__item ${isFnb ? 'active' : ''}">
-            <i class="bi bi-cup-straw"></i>
-            Quản lý F&amp;B
-        </a>
-    </div>
+
     <c:if test="${isAdminRole}">
+        <div class="rv-nav__group">
+            <a href="${ctx}/admin/fnb-dashboard"
+               class="rv-nav__item ${isAdminFnb ? 'active' : ''}">
+
+                <i class="bi bi-cup-straw"></i>
+                Quản lý F&amp;B
+            </a>
+        </div>
         <div class="rv-nav__group">
             <a href="${ctx}/DiscountManager" class="rv-nav__item ${uri.contains('/DiscountManager') ? 'active' : ''}">
                 <i class="bi bi-tags-fill"></i>

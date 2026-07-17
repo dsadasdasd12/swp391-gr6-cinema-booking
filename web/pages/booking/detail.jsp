@@ -220,6 +220,18 @@
                                         </div>
                                     </div>
 
+                                    <c:if test="${not empty fnbLines}">
+                                        <div class="booking-summary-item" style="display:block">
+                                            <div class="booking-summary-label"><b>F&amp;B:</b></div>
+                                            <c:forEach var="item" items="${fnbLines}">
+                                                <div style="display:flex;justify-content:space-between;gap:16px;margin-top:8px">
+                                                    <span><c:out value="${item.name}"/> × ${item.quantity}</span>
+                                                    <strong>${item.lineTotalLabel}</strong>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </c:if>
+
                                 </div>
                                 <div class="booking-payment">
                                     <c:if test="${bk.booking.status == 'PENDING'}">

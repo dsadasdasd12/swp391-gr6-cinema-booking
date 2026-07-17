@@ -13,12 +13,16 @@ import util.EncodingUtil;
 public class SeatTypeDAO {
 
     private String normalizeCode(String code) {
-        if (code == null) return "";
+        if (code == null) {
+            return "";
+        }
         return code.trim().toUpperCase();
     }
 
     private String normalizeStatus(String status) {
-        if (status == null) return "ACTIVE";
+        if (status == null) {
+            return "ACTIVE";
+        }
         return status.trim().toUpperCase();
     }
 
@@ -26,8 +30,7 @@ public class SeatTypeDAO {
         String sql = "SELECT id, code, name, default_price, color, status, last_update FROM dbo.SEAT_TYPES ORDER BY id";
         List<SeatType> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -41,8 +44,7 @@ public class SeatTypeDAO {
         String sql = "SELECT id, code, name, default_price, color, status, last_update FROM dbo.SEAT_TYPES WHERE status = 'ACTIVE' ORDER BY id";
         List<SeatType> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -144,12 +146,12 @@ public class SeatTypeDAO {
         st.setDefaultPrice(rs.getDouble("default_price"));
         st.setColor(rs.getString("color"));
         st.setStatus(rs.getString("status"));
-        
+
         java.sql.Timestamp ts = rs.getTimestamp("last_update");
         if (ts != null) {
             st.setLastUpdate(ts.toLocalDateTime());
         }
-        
+
         return st;
     }
 }

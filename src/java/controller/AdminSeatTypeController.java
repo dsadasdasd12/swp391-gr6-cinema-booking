@@ -12,13 +12,17 @@ import service.SeatTypeService;
 
 @WebServlet(name = "AdminSeatTypeController", urlPatterns = {"/admin/seat-types"})
 public class AdminSeatTypeController extends HttpServlet {
+
     private final SeatTypeService seatTypeService = new SeatTypeService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Danh mục loại ghế và hệ số giá là dữ liệu toàn hệ thống, chỉ ADMIN quản lý.
-        if (!isAdmin(request)) { response.sendRedirect(request.getContextPath() + "/login"); return; }
+        if (!isAdmin(request)) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
         // State changes must use POST; a GET link cannot deactivate data.
         request.setAttribute("allSeatTypes", seatTypeService.getAll());
         request.getRequestDispatcher("/pages/admin/seat-types.jsp").forward(request, response);
@@ -27,7 +31,10 @@ public class AdminSeatTypeController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // Không cho phép thay đổi loại ghế bằng GET để tránh thao tác ngoài ý muốn.
-        if (!isAdmin(request)) { response.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
+        if (!isAdmin(request)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
         String action = request.getParameter("action");
         try {
             if ("add".equals(action)) {
@@ -59,16 +66,22 @@ public class AdminSeatTypeController extends HttpServlet {
         value.setName(request.getParameter("name"));
         value.setColor(request.getParameter("color"));
         value.setStatus(request.getParameter("status"));
-        try { value.setDefaultPrice(Double.parseDouble(request.getParameter("defaultPrice"))); }
-        catch (Exception e) { throw new IllegalArgumentException("Hệ số nhân giá không hợp lệ."); }
+        try {
+            value.setDefaultPrice(Double.parseDouble(request.getParameter("defaultPrice")));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Hệ số nhân giá không hợp lệ.");
+        }
         return value;
     }
 
     private int parsePositiveInt(String value) {
         try {
             int id = Integer.parseInt(value);
-            if (id > 0) return id;
-        } catch (Exception ignored) { }
+            if (id > 0) {
+                return id;
+            }
+        } catch (Exception ignored) {
+        }
         throw new IllegalArgumentException("Loại ghế không hợp lệ.");
     }
 

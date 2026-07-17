@@ -31,6 +31,7 @@ public class BookingDraftView implements Serializable {
      * Số tiền cuối khách phải thanh toán.
      */
     private double totalPrice;
+    private List<BookingFnbLine> fnbLines = new ArrayList<>();
 
     public Showtime getShowtime() {
         return showtime;
@@ -78,6 +79,26 @@ public class BookingDraftView implements Serializable {
 
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = Math.max(0, totalPrice);
+    }
+
+    public List<BookingFnbLine> getFnbLines() {
+        return fnbLines;
+    }
+
+    public void setFnbLines(List<BookingFnbLine> fnbLines) {
+        this.fnbLines = fnbLines == null ? new ArrayList<>() : fnbLines;
+    }
+
+    public double getFnbSubtotal() {
+        return fnbLines.stream().mapToDouble(BookingFnbLine::getLineTotal).sum();
+    }
+
+    public String getFnbSubtotalLabel() {
+        return formatMoney(getFnbSubtotal());
+    }
+
+    public String getGrandTotalLabel() {
+        return formatMoney(totalPrice + getFnbSubtotal());
     }
 
     public int getSeatCount() {

@@ -11,7 +11,7 @@
         <div>
             <div class="brand">🎬 RapViet</div>
             <p>Hệ thống đặt vé xem phim trực tuyến của chuỗi rạp RapViet.
-               Đặt vé nhanh, chọn ghế dễ dàng, nhận vé QR ngay trên điện thoại.</p>
+                Đặt vé nhanh, chọn ghế dễ dàng, nhận vé QR ngay trên điện thoại.</p>
         </div>
         <div>
             <h4>Khám phá</h4>

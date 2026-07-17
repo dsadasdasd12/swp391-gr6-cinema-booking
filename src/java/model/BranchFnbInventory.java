@@ -13,6 +13,20 @@ public class BranchFnbInventory {
     public BranchFnbInventory() {
     }
 
+    public BranchFnbInventory(
+            int branchId,
+            int productId,
+            int stockQuantity,
+            boolean enabledAtBranch,
+            LocalDateTime lastUpdate
+    ) {
+        this.branchId = branchId;
+        this.productId = productId;
+        this.stockQuantity = stockQuantity;
+        this.enabledAtBranch = enabledAtBranch;
+        this.lastUpdate = lastUpdate;
+    }
+
     public int getBranchId() {
         return branchId;
     }
@@ -51,5 +65,16 @@ public class BranchFnbInventory {
 
     public void setLastUpdate(LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    @Override
+    public String toString() {
+        return "BranchFnbInventory{"
+                + "branchId=" + branchId
+                + ", productId=" + productId
+                + ", stockQuantity=" + stockQuantity
+                + ", enabledAtBranch=" + enabledAtBranch
+                + ", lastUpdate=" + lastUpdate
+                + '}';
     }
 }

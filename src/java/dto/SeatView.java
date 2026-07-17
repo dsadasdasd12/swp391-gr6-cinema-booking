@@ -44,13 +44,16 @@ public class SeatView {
     }
 
     // ── Helper hiển thị (ưu tiên bảo trì > đã đặt > còn trống) ──────────
-
-    /** Có cho chọn ghế này không: chỉ khi không bảo trì và chưa đặt. */
+    /**
+     * Có cho chọn ghế này không: chỉ khi không bảo trì và chưa đặt.
+     */
     public boolean isSelectable() {
         return seat != null && !seat.isMaintenance() && !booked;
     }
 
-    /** Lớp CSS theo trạng thái: maintenance | booked | available. */
+    /**
+     * Lớp CSS theo trạng thái: maintenance | booked | available.
+     */
     public String getStatusClass() {
         if (seat != null && seat.isMaintenance()) {
             return "maintenance";
@@ -61,7 +64,9 @@ public class SeatView {
         return "available";
     }
 
-    /** Nhãn trạng thái tiếng Việt cho tooltip. */
+    /**
+     * Nhãn trạng thái tiếng Việt cho tooltip.
+     */
     public String getStatusLabel() {
         if (seat != null && seat.isMaintenance()) {
             return "Bảo trì";
@@ -71,14 +76,14 @@ public class SeatView {
         }
         return "Còn trống";
     }
-    
+
     private double price;
 
-public double getPrice() {
-    return price;
-}
+    public double getPrice() {
+        return price;
+    }
 
-public void setPrice(double price) {
-    this.price = price;
-}
+    public void setPrice(double price) {
+        this.price = price;
+    }
 }

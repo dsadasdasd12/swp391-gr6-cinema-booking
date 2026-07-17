@@ -9,6 +9,7 @@ import model.SeatType;
 import dao.SeatTypeDAO;
 
 public class SeatService {
+
     private final SeatDAO seatDAO = new SeatDAO();
     private final SeatTypeDAO seatTypeDAO = new SeatTypeDAO();
 
@@ -18,7 +19,9 @@ public class SeatService {
 
     public boolean updateSeatConfig(int hallId, String seatRow, int seatNumber, String seatType, boolean maintenance) {
         // Không gán ghế sang loại đã khóa; tránh tạo ghế mới không còn được phép bán.
-        if (!isActiveSeatType(seatType)) return false;
+        if (!isActiveSeatType(seatType)) {
+            return false;
+        }
         return seatDAO.updateSeatConfig(hallId, seatRow, seatNumber, seatType, maintenance);
     }
 
@@ -32,7 +35,9 @@ public class SeatService {
 
     public boolean insertSeat(int hallId, String seatRow, int seatNumber, String seatType, boolean maintenance) {
         // Điều kiện loại ghế active áp dụng cho cả thêm mới lẫn cập nhật ghế.
-        if (!isActiveSeatType(seatType)) return false;
+        if (!isActiveSeatType(seatType)) {
+            return false;
+        }
         return seatDAO.insertSeat(hallId, seatRow, seatNumber, seatType, maintenance);
     }
 

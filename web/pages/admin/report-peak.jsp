@@ -49,7 +49,7 @@
 <div class="rv-toolbar mb-4">
     <form method="get" action="${ctx}/admin/reports" class="d-flex align-items-end flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
         <input type="hidden" name="type" value="peak">
-        
+
         <div class="rv-form-group" style="margin: 0;">
             <label class="rv-label" for="fromDate" style="font-size: 11px; margin-bottom: 4px;">Từ ngày</label>
             <input type="date" id="fromDate" name="fromDate" class="rv-input" style="height: 38px;" required value="${report.fromDate}">
@@ -109,7 +109,7 @@
                                     <c:set var="matchedRow" value="${row}" />
                                 </c:if>
                             </c:forEach>
-                            
+
                             <tr>
                                 <td>
                                     <span style="font-weight:600;color:#fff;">
@@ -156,80 +156,80 @@
 <!-- Chart.js & Script -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    var ctx = document.getElementById('peakChart').getContext('2d');
-    var chartLabels = ${report.labelsJson};
-    var chartData   = ${report.dataJson};
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById('peakChart').getContext('2d');
+        var chartLabels = ${report.labelsJson};
+        var chartData = ${report.dataJson};
 
-    if (!chartLabels || chartLabels.length === 0) {
-        chartLabels = [];
-        chartData = [];
-        for (var i = 0; i < 24; i++) {
-            chartLabels.push(i.toString().padStart(2, '0') + ':00');
-            chartData.push(0);
+        if (!chartLabels || chartLabels.length === 0) {
+            chartLabels = [];
+            chartData = [];
+            for (var i = 0; i < 24; i++) {
+                chartLabels.push(i.toString().padStart(2, '0') + ':00');
+                chartData.push(0);
+            }
         }
-    }
 
-    var gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
+        var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
 
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: chartLabels,
-            datasets: [{
-                label: 'Số lượng đặt vé',
-                data: chartData,
-                borderColor: '#3b82f6',
-                borderWidth: 3,
-                backgroundColor: gradient,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#3b82f6',
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1a1d27',
-                    titleColor: '#fff',
-                    bodyColor: '#e8eaf0',
-                    borderColor: 'rgba(255,255,255,.08)',
-                    borderWidth: 1,
-                    callbacks: {
-                        label: function(context) {
-                            return ' Số lượng: ' + context.raw + ' đơn hàng';
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                        label: 'Số lượng đặt vé',
+                        data: chartData,
+                        borderColor: '#3b82f6',
+                        borderWidth: 3,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#3b82f6',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        backgroundColor: '#1a1d27',
+                        titleColor: '#fff',
+                        bodyColor: '#e8eaf0',
+                        borderColor: 'rgba(255,255,255,.08)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function (context) {
+                                return ' Số lượng: ' + context.raw + ' đơn hàng';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {color: 'rgba(255, 255, 255, 0.04)'},
+                        ticks: {color: '#8b8fa8', font: {size: 10}}
+                    },
+                    y: {
+                        grid: {color: 'rgba(255, 255, 255, 0.04)'},
+                        ticks: {
+                            color: '#8b8fa8',
+                            font: {size: 11},
+                            stepSize: 1
                         }
                     }
                 }
-            },
-            scales: {
-                x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
-                    ticks: { color: '#8b8fa8', font: { size: 10 } }
-                },
-                y: {
-                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
-                    ticks: {
-                        color: '#8b8fa8',
-                        font: { size: 11 },
-                        stepSize: 1
-                    }
-                }
             }
-        }
+        });
     });
-});
 </script>
 </body>
 </html>

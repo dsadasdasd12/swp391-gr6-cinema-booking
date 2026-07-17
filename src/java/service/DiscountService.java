@@ -21,8 +21,8 @@ public class DiscountService {
     }
 
     /**
-     * Chuyển dữ liệu thô từ form thành DiscountCode. Controller không tự xác thực
-     * hay tự tính quy tắc của mã giảm giá.
+     * Chuyển dữ liệu thô từ form thành DiscountCode. Controller không tự xác
+     * thực hay tự tính quy tắc của mã giảm giá.
      */
     public boolean createDiscountCode(String code, String type, String value, String maxDiscount,
             String minimumOrder, String maxUses, String startDate,

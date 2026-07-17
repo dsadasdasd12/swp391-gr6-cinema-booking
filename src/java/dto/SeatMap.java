@@ -11,7 +11,8 @@ import model.Showtime;
 /**
  * Gói toàn bộ dữ liệu cần để hiển thị sơ đồ ghế của một suất chiếu: thông tin
  * suất chiếu (phim, phòng, chi nhánh, ngày giờ — tái dùng {@link Showtime}),
- * các hàng ghế đã gom nhóm, và vài con số tổng hợp (tổng ghế, số ghế còn trống).
+ * các hàng ghế đã gom nhóm, và vài con số tổng hợp (tổng ghế, số ghế còn
+ * trống).
  *
  * @author Group6 - Huy (Module Duyệt phim)
  */

@@ -15,20 +15,25 @@ import service.ReviewService;
 /**
  * Controller cho luồng rate movie, viết review, sửa review và xóa review.
  *
- * <p>Luồng GET {@code /review?bookingId=...&movieId=...}:</p>
+ * <p>
+ * Luồng GET {@code /review?bookingId=...&movieId=...}:</p>
  * <ul>
- *   <li>Kiểm tra user đăng nhập.</li>
- *   <li>Lấy review đã tồn tại theo booking để quyết định chế độ tạo mới hay chỉnh sửa.</li>
- *   <li>Nếu chưa có review, gọi {@link ReviewService#canReview(int, int, int)}
- *       để đảm bảo user chỉ review phim từ booking hợp lệ của mình.</li>
- *   <li>Forward sang {@code /pages/review/form.jsp}.</li>
+ * <li>Kiểm tra user đăng nhập.</li>
+ * <li>Lấy review đã tồn tại theo booking để quyết định chế độ tạo mới hay chỉnh
+ * sửa.</li>
+ * <li>Nếu chưa có review, gọi {@link ReviewService#canReview(int, int, int)} để
+ * đảm bảo user chỉ review phim từ booking hợp lệ của mình.</li>
+ * <li>Forward sang {@code /pages/review/form.jsp}.</li>
  * </ul>
  *
- * <p>Luồng POST {@code /review}:</p>
+ * <p>
+ * Luồng POST {@code /review}:</p>
  * <ul>
- *   <li>{@code action=delete}: gọi service xóa review theo reviewId và userId.</li>
- *   <li>Không có action delete: nếu có reviewId thì update, nếu không thì create review mới.</li>
- *   <li>Redirect về trang chi tiết phim với thông báo kết quả.</li>
+ * <li>{@code action=delete}: gọi service xóa review theo reviewId và
+ * userId.</li>
+ * <li>Không có action delete: nếu có reviewId thì update, nếu không thì create
+ * review mới.</li>
+ * <li>Redirect về trang chi tiết phim với thông báo kết quả.</li>
  * </ul>
  *
  * @author HuyPD
@@ -128,7 +133,9 @@ public class ReviewController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/movie?id=" + movieId + "&msg=" + msg);
     }
 
-    /** Đọc số nguyên từ tham số, trả -1 nếu thiếu/sai định dạng. */
+    /**
+     * Đọc số nguyên từ tham số, trả -1 nếu thiếu/sai định dạng.
+     */
     private static int parseInt(String s) {
         if (s == null || s.isBlank()) {
             return -1;
@@ -140,7 +147,9 @@ public class ReviewController extends HttpServlet {
         }
     }
 
-    /** Đọc điểm sao nửa bước; trả -1 nếu thiếu hoặc sai định dạng. */
+    /**
+     * Đọc điểm sao nửa bước; trả -1 nếu thiếu hoặc sai định dạng.
+     */
     private static double parseRating(String s) {
         if (s == null || s.isBlank()) {
             return -1;

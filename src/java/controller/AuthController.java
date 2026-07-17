@@ -124,7 +124,7 @@ public class AuthController extends HttpServlet {
         String password = request.getParameter("password");
 
         email = email == null ? "" : email.trim();
-        
+
         // Kiểm tra dữ liệu đầu vào trước khi gọi service xác thực.
         if (email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập email và mật khẩu");

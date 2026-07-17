@@ -1,4 +1,5 @@
 package dao;
+
 import java.sql.*;
 import util.PasswordUtil;
 
@@ -11,48 +12,48 @@ public class UserDAO {
 
     public User login(String email, String password) {
 
-    String sql = """
+        String sql = """
         SELECT *
         FROM [USER]
         WHERE email = ?
         AND active = 1
     """;
 
-    Connection conn = DBContext.getInstance().getConnection();
+        Connection conn = DBContext.getInstance().getConnection();
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setString(1, email);
+            ps.setString(1, email);
 
-        ResultSet rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
 
-        if (rs.next()) {
-            String storedHash = rs.getString("password_hash");
+            if (rs.next()) {
+                String storedHash = rs.getString("password_hash");
 
-            if (!PasswordUtil.verifyPassword(password, storedHash)) {
-                return null;
+                if (!PasswordUtil.verifyPassword(password, storedHash)) {
+                    return null;
+                }
+
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(storedHash);
+                user.setGoogleId(rs.getString("google_id"));
+                user.setPhone(rs.getString("phone"));
+                user.setRole(rs.getString("role"));
+                user.setActive(rs.getBoolean("active"));
+                user.setEmailVerified(rs.getBoolean("email_verified"));
+
+                return user;
             }
 
-            User user = new User();
-            user.setId(rs.getInt("id"));
-            user.setFullName(rs.getString("full_name"));
-            user.setEmail(rs.getString("email"));
-            user.setPasswordHash(storedHash);
-            user.setGoogleId(rs.getString("google_id"));
-            user.setPhone(rs.getString("phone"));
-            user.setRole(rs.getString("role"));
-            user.setActive(rs.getBoolean("active"));
-            user.setEmailVerified(rs.getBoolean("email_verified"));
-
-            return user;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return null;
     }
-
-    return null;
-}
 
     public boolean emailExists(String email) {
 
@@ -339,7 +340,7 @@ public class UserDAO {
 
     public boolean createUserByAdmin(User user) {
 
-    String sql = """
+        String sql = """
         INSERT INTO [USER]
         (
             full_name,
@@ -364,31 +365,31 @@ public class UserDAO {
         )
     """;
 
-    Connection conn = DBContext.getInstance().getConnection();
+        Connection conn = DBContext.getInstance().getConnection();
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        String googleId = "local_" + user.getEmail();
+            String googleId = "local_" + user.getEmail();
 
-        ps.setString(1, user.getFullName());
-        ps.setString(2, user.getEmail());
-        ps.setString(3, user.getPasswordHash()); // BCrypt từ UserService
-        ps.setString(4, googleId);
-        ps.setString(5, user.getPhone());
-        ps.setString(6, user.getRole());
+            ps.setString(1, user.getFullName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPasswordHash()); // BCrypt từ UserService
+            ps.setString(4, googleId);
+            ps.setString(5, user.getPhone());
+            ps.setString(6, user.getRole());
 
-        return ps.executeUpdate() > 0;
+            return ps.executeUpdate() > 0;
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
-    return false;
-}
-    
     public boolean updateUserByAdmin(User user) {
 
-    String sql = """
+        String sql = """
         UPDATE [USER]
         SET full_name = ?,
             email = ?,
@@ -398,21 +399,21 @@ public class UserDAO {
         WHERE id = ?
     """;
 
-    Connection conn = DBContext.getInstance().getConnection();
+        Connection conn = DBContext.getInstance().getConnection();
 
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setString(1, user.getFullName());
-        ps.setString(2, user.getEmail());
-        ps.setString(3, user.getPhone());
-        ps.setString(4, user.getRole());
-        ps.setInt(5, user.getId());
+            ps.setString(1, user.getFullName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPhone());
+            ps.setString(4, user.getRole());
+            ps.setInt(5, user.getId());
 
-        return ps.executeUpdate() > 0;
+            return ps.executeUpdate() > 0;
 
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return false;
     }

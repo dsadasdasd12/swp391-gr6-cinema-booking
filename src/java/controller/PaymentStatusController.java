@@ -10,12 +10,15 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * API nhỏ cho UI theo dõi trạng thái thanh toán/booking.
  *
- * <p>Luồng UI:</p>
+ * <p>
+ * Luồng UI:</p>
  * <ul>
- *   <li>Client gọi GET {@code /payment/status?bookingId=...} khi cần polling trạng thái.</li>
- *   <li>Controller đọc {@code bookingId}, hỏi {@link BookingDAO#getBookingStatus(int)}.</li>
- *   <li>Nếu booking đã {@code CONFIRMED}, trả JSON {@code {"paid":true}}.</li>
- *   <li>Nếu thiếu/sai id hoặc chưa thanh toán, trả {@code {"paid":false}}.</li>
+ * <li>Client gọi GET {@code /payment/status?bookingId=...} khi cần polling
+ * trạng thái.</li>
+ * <li>Controller đọc {@code bookingId}, hỏi
+ * {@link BookingDAO#getBookingStatus(int)}.</li>
+ * <li>Nếu booking đã {@code CONFIRMED}, trả JSON {@code {"paid":true}}.</li>
+ * <li>Nếu thiếu/sai id hoặc chưa thanh toán, trả {@code {"paid":false}}.</li>
  * </ul>
  *
  * @author HuyPD

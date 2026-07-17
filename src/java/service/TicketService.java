@@ -12,8 +12,8 @@ import model.Ticket;
 
 import java.util.List;
 
-
 public class TicketService {
+
     private final AttendanceDAO attendanceDAO = new AttendanceDAO();
 
     public String checkInTicket(int bookingId, int staffId) {
@@ -24,9 +24,8 @@ public class TicketService {
     public String getSeatCodesByBookingId(int bookingId) {
         StringBuilder seatCodes = new StringBuilder();
         String sql = "SELECT s.seat_row, s.seat_number FROM dbo.BOOKING_SEATS bs "
-                   + "JOIN dbo.SEATS s ON bs.seat_id = s.id WHERE bs.booking_id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                + "JOIN dbo.SEATS s ON bs.seat_id = s.id WHERE bs.booking_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -45,46 +44,49 @@ public class TicketService {
             throw new NumberFormatException("Empty input");
         }
         String cleanIdStr = bookingIdStr.trim();
-        
+
         // Only signed ticket tokens are accepted; a URL/id alone must never check a ticket in.
         // Chuẩn hóa để mã quét không phân biệt hoa/thường, nhưng token DB vẫn được đối chiếu chính xác.
         String upper = cleanIdStr.toUpperCase();
         int resolvedId = -1;
         String expectedDbQrCode = null;
-        
+
         // Mỗi định dạng hợp lệ đều quy về id booking và qr_code chuẩn đang lưu trong BOOKINGS.
         if (upper.startsWith("RAPVIET-BOOKING-")) {
             try {
                 resolvedId = Integer.parseInt(cleanIdStr.substring(16).trim());
                 expectedDbQrCode = "RV-ONLINE-" + resolvedId;
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+            }
         } else if (upper.startsWith("RV-ONLINE-")) {
             try {
                 resolvedId = Integer.parseInt(cleanIdStr.substring(10).trim());
                 expectedDbQrCode = "RV-ONLINE-" + resolvedId;
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+            }
         } else if (upper.startsWith("RV-WALK-")) {
             try {
                 resolvedId = Integer.parseInt(cleanIdStr.substring(8).trim());
                 expectedDbQrCode = "RV-WALK-" + resolvedId;
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+            }
         } else if (upper.startsWith("TICKET-")) {
             try {
                 resolvedId = Integer.parseInt(cleanIdStr.substring(7).trim());
                 expectedDbQrCode = "RV-ONLINE-" + resolvedId;
-            } catch (NumberFormatException e) {}
+            } catch (NumberFormatException e) {
+            }
         }
-        
+
         // Nếu không khớp bất kỳ tiền tố hợp lệ nào
         if (resolvedId == -1 || expectedDbQrCode == null) {
             throw new NumberFormatException("Mã vé không đúng định dạng. Vui lòng quét mã QR hoặc nhập đầy đủ tiền tố (ví dụ: RV-ONLINE-5, RV-WALK-1).");
         }
-        
+
         // 3. Truy vấn từ Database để xác nhận mã vé khớp hoàn toàn với cột qr_code
         // Đây là bước bắt buộc: id suy ra từ QR chỉ hợp lệ khi qr_code trong DB khớp hoàn toàn.
         String sql = "SELECT id FROM dbo.BOOKINGS WHERE id = ? AND qr_code = ?";
-        try (Connection conn = new util.DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new util.DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, resolvedId);
             ps.setString(2, expectedDbQrCode);
             try (ResultSet rs = ps.executeQuery()) {
@@ -95,33 +97,31 @@ public class TicketService {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        
+
         throw new NumberFormatException("Mã vé không tồn tại hoặc không khớp với thông tin trong hệ thống.");
     }
-/*
+    /*
  * Hệ thống Quản lý Rạp chiếu phim RapViet
  * Module: E-Ticket & QR Code —  (Long)
- */
+     */
 
-
-
-/**
- * Business logic cho việc tạo và quản lý e-ticket.
- *
- * Flow chính:
- *   1. PaymentController gọi generateTicket(bookingId, customerEmail, ctx)
- *   2. Tạo ảnh QR từ token đã lưu ở BOOKINGS.qr_code
- *   3. Gửi ảnh QR qua email; token trong database không bị thay đổi
- *
- * @author LONG
- */
+    /**
+     * Business logic cho việc tạo và quản lý e-ticket.
+     *
+     * Flow chính: 1. PaymentController gọi generateTicket(bookingId,
+     * customerEmail, ctx) 2. Tạo ảnh QR từ token đã lưu ở BOOKINGS.qr_code 3.
+     * Gửi ảnh QR qua email; token trong database không bị thay đổi
+     *
+     * @author LONG
+     */
     private static final int MAX_QR_RETRIES = 3;
 
-    private final TicketDAO       ticketDAO       = new TicketDAO();
-    private final QRCodeService   qrCodeService   = new QRCodeService();
-    private       NotificationService notifService;
+    private final TicketDAO ticketDAO = new TicketDAO();
+    private final QRCodeService qrCodeService = new QRCodeService();
+    private NotificationService notifService;
 
-    public TicketService() {}
+    public TicketService() {
+    }
 
     // Constructor cho injection thủ công (hoặc test)
     public TicketService(NotificationService notifService) {
@@ -129,27 +129,30 @@ public class TicketService {
     }
 
     // ── Public API ────────────────────────────────────────────
-
     /**
      * Tạo e-ticket sau khi thanh toán xác nhận.
      *
-     * @param bookingId     id booking đã được confirm
+     * @param bookingId id booking đã được confirm
      * @param customerEmail email để gửi e-ticket
-     * @param ctx           ServletContext (cần cho email config)
+     * @param ctx ServletContext (cần cho email config)
      * @return ticket vừa tạo
      */
     public Ticket generateTicket(int bookingId, String customerEmail, ServletContext ctx) {
         Ticket existing = ticketDAO.findByBookingId(bookingId);
-        if (existing == null) return null;
+        if (existing == null) {
+            return null;
+        }
         String qrContent = existing.getQrCode();
-        if (qrContent == null || qrContent.isBlank()) qrContent = "RV-ONLINE-" + bookingId;
-        String qrBase64   = null;
+        if (qrContent == null || qrContent.isBlank()) {
+            qrContent = "RV-ONLINE-" + bookingId;
+        }
+        String qrBase64 = null;
         boolean qrSuccess = false;
 
         // ── Retry QR generation tối đa MAX_QR_RETRIES lần ────
         for (int attempt = 1; attempt <= MAX_QR_RETRIES; attempt++) {
             try {
-                qrBase64  = qrCodeService.generateQRBase64(qrContent);
+                qrBase64 = qrCodeService.generateQRBase64(qrContent);
                 qrSuccess = true;
                 break;
             } catch (Exception e) {
@@ -177,8 +180,9 @@ public class TicketService {
     }
 
     /**
-     * Hoàn tất luồng sau thanh toán: xác nhận booking, gửi email thanh toán, sinh e-ticket + email đặt vé.
-     * Gọi từ quầy (walk-in) hoặc PaymentController khi tích hợp thanh toán online.
+     * Hoàn tất luồng sau thanh toán: xác nhận booking, gửi email thanh toán,
+     * sinh e-ticket + email đặt vé. Gọi từ quầy (walk-in) hoặc
+     * PaymentController khi tích hợp thanh toán online.
      */
     public Ticket issueTicketAfterPayment(int bookingId, ServletContext ctx) {
         ticketDAO.confirmBooking(bookingId);
@@ -206,7 +210,9 @@ public class TicketService {
      */
     public List<Ticket> getAllTickets() {
         List<Ticket> tickets = ticketDAO.findAll();
-        for (Ticket ticket : tickets) hydrateQrImage(ticket);
+        for (Ticket ticket : tickets) {
+            hydrateQrImage(ticket);
+        }
         return tickets;
     }
 
@@ -220,7 +226,9 @@ public class TicketService {
 
         long total = ticketDAO.countTickets(keyword, statusFilter);
         List<Ticket> items = ticketDAO.findPaged(keyword, statusFilter, offset, safeSize);
-        for (Ticket ticket : items) hydrateQrImage(ticket);
+        for (Ticket ticket : items) {
+            hydrateQrImage(ticket);
+        }
 
         return new PageResult<>(items, total, safePage, safeSize);
     }
@@ -248,7 +256,9 @@ public class TicketService {
      */
     public boolean useTicket(int bookingId) {
         Ticket t = ticketDAO.findByBookingId(bookingId);
-        if (t == null || "COMPLETED".equals(t.getBookingStatus())) return false;
+        if (t == null || "COMPLETED".equals(t.getBookingStatus())) {
+            return false;
+        }
         return ticketDAO.markUsed(bookingId);
     }
 
@@ -257,7 +267,9 @@ public class TicketService {
      */
     public boolean retryQrGeneration(int bookingId) {
         Ticket ticket = ticketDAO.findByBookingId(bookingId);
-        if (ticket == null || ticket.getQrCode() == null || ticket.getQrCode().isBlank()) return false;
+        if (ticket == null || ticket.getQrCode() == null || ticket.getQrCode().isBlank()) {
+            return false;
+        }
         String qrContent = ticket.getQrCode();
         for (int attempt = 1; attempt <= MAX_QR_RETRIES; attempt++) {
             try {
@@ -273,7 +285,6 @@ public class TicketService {
     }
 
     // ── Private helpers ───────────────────────────────────────
-
     private NotificationService getNotifService() {
         if (notifService == null) {
             notifService = new NotificationService();
@@ -282,7 +293,9 @@ public class TicketService {
     }
 
     private void hydrateQrImage(Ticket ticket) {
-        if (ticket == null || ticket.getQrCode() == null || ticket.getQrCode().isBlank()) return;
+        if (ticket == null || ticket.getQrCode() == null || ticket.getQrCode().isBlank()) {
+            return;
+        }
         try {
             ticket.setQrCodeBase64(qrCodeService.generateQRBase64(ticket.getQrCode()));
         } catch (Exception e) {

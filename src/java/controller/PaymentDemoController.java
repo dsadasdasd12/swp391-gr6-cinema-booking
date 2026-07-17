@@ -1,6 +1,7 @@
 package controller;
 
 import dao.BookingPaymentDAO;
+import dao.BookingFnbDAO;
 import dao.SeatDAO;
 import dao.ShowtimeDAO;
 import dto.PaymentView;
@@ -42,6 +43,7 @@ public class PaymentDemoController extends HttpServlet {
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAO();
     private final SeatDAO seatDAO = new SeatDAO();
     private final BookingPaymentDAO bookingPaymentDAO = new BookingPaymentDAO();
+    private final BookingFnbDAO bookingFnbDAO = new BookingFnbDAO();
 
     @Override
     protected void doGet(HttpServletRequest request,
@@ -358,6 +360,7 @@ public class PaymentDemoController extends HttpServlet {
             request.setAttribute("ticket", null);
         } else {
             request.setAttribute("ticket", ticket);
+            request.setAttribute("fnbLines", bookingFnbDAO.findByBookingId(bookingId));
         }
 
         request.getRequestDispatcher(SUCCESS_PAGE)

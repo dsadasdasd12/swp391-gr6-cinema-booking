@@ -61,7 +61,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6 col-lg-8">
         <div class="admin-card d-flex align-items-center" style="height:100%;background:rgba(255,255,255,.01);">
             <div style="font-size:.85rem;color:var(--n-500);line-height:1.7;">
@@ -133,15 +133,15 @@
                                         <!-- Thanh tiến trình tùy biến -->
                                         <div style="flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,.02);">
                                             <div style="height:100%;border-radius:4px;width:${row.occupancy_rate}%;
-                                                ${row.occupancy_rate >= 70.0 ? 'background:#19c37d;' : ''}
-                                                ${row.occupancy_rate >= 40.0 and row.occupancy_rate < 70.0 ? 'background:#ffc107;' : ''}
-                                                ${row.occupancy_rate < 40.0 ? 'background:#ff6b6b;' : ''}">
+                                                 ${row.occupancy_rate >= 70.0 ? 'background:#19c37d;' : ''}
+                                                 ${row.occupancy_rate >= 40.0 and row.occupancy_rate < 70.0 ? 'background:#ffc107;' : ''}
+                                                 ${row.occupancy_rate < 40.0 ? 'background:#ff6b6b;' : ''}">
                                             </div>
                                         </div>
                                         <span style="font-size:.8rem;font-weight:700;min-width:48px;text-align:right;
-                                            ${row.occupancy_rate >= 70.0 ? 'color:#19c37d;' : ''}
-                                            ${row.occupancy_rate >= 40.0 and row.occupancy_rate < 70.0 ? 'color:#ffc107;' : ''}
-                                            ${row.occupancy_rate < 40.0 ? 'color:#ff6b6b;' : ''}">
+                                              ${row.occupancy_rate >= 70.0 ? 'color:#19c37d;' : ''}
+                                              ${row.occupancy_rate >= 40.0 and row.occupancy_rate < 70.0 ? 'color:#ffc107;' : ''}
+                                              ${row.occupancy_rate < 40.0 ? 'color:#ff6b6b;' : ''}">
                                             ${row.occupancy_rate}%
                                         </span>
                                     </div>
@@ -161,75 +161,79 @@
 <!-- Chart.js & Script -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    var ctx = document.getElementById('occupancyChart').getContext('2d');
-    var chartLabels = ${report.labelsJson};
-    var chartData   = ${report.dataJson};
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById('occupancyChart').getContext('2d');
+        var chartLabels = ${report.labelsJson};
+        var chartData = ${report.dataJson};
 
-    if (!chartLabels || chartLabels.length === 0) {
-        chartLabels = ["Chưa có dữ liệu"];
-        chartData = [0];
-    }
+        if (!chartLabels || chartLabels.length === 0) {
+            chartLabels = ["Chưa có dữ liệu"];
+            chartData = [0];
+        }
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: chartLabels,
-            datasets: [{
-                label: 'Tỷ lệ lấp đầy (%)',
-                data: chartData,
-                backgroundColor: function(context) {
-                    var val = context.raw;
-                    if (val >= 70) return 'rgba(25, 195, 125, 0.75)'; // Xanh lá
-                    if (val >= 40) return 'rgba(255, 193, 7, 0.75)';  // Vàng
-                    return 'rgba(255, 107, 107, 0.75)';              // Đỏ
-                },
-                borderColor: function(context) {
-                    var val = context.raw;
-                    if (val >= 70) return '#19c37d';
-                    if (val >= 40) return '#ffc107';
-                    return '#ff6b6b';
-                },
-                borderWidth: 1.2,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            indexAxis: 'y', // Biểu đồ dạng thanh nằm ngang cực kỳ phù hợp cho so sánh phòng
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1a1d27',
-                    titleColor: '#fff',
-                    bodyColor: '#e8eaf0',
-                    borderColor: 'rgba(255,255,255,.08)',
-                    borderWidth: 1,
-                    callbacks: {
-                        label: function(context) {
-                            return 'Tỷ lệ lấp đầy: ' + context.raw + '%';
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                        label: 'Tỷ lệ lấp đầy (%)',
+                        data: chartData,
+                        backgroundColor: function (context) {
+                            var val = context.raw;
+                            if (val >= 70)
+                                return 'rgba(25, 195, 125, 0.75)'; // Xanh lá
+                            if (val >= 40)
+                                return 'rgba(255, 193, 7, 0.75)';  // Vàng
+                            return 'rgba(255, 107, 107, 0.75)';              // Đỏ
+                        },
+                        borderColor: function (context) {
+                            var val = context.raw;
+                            if (val >= 70)
+                                return '#19c37d';
+                            if (val >= 40)
+                                return '#ffc107';
+                            return '#ff6b6b';
+                        },
+                        borderWidth: 1.2,
+                        borderRadius: 4
+                    }]
+            },
+            options: {
+                indexAxis: 'y', // Biểu đồ dạng thanh nằm ngang cực kỳ phù hợp cho so sánh phòng
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        backgroundColor: '#1a1d27',
+                        titleColor: '#fff',
+                        bodyColor: '#e8eaf0',
+                        borderColor: 'rgba(255,255,255,.08)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function (context) {
+                                return 'Tỷ lệ lấp đầy: ' + context.raw + '%';
+                            }
                         }
                     }
-                }
-            },
-            scales: {
-                x: {
-                    max: 100,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                    ticks: { color: '#64748B', font: { size: 11 } }
                 },
-                y: {
-                    grid: { display: false },
-                    ticks: { color: '#64748B', font: { size: 10 } }
+                scales: {
+                    x: {
+                        max: 100,
+                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
+                        ticks: {color: '#64748B', font: {size: 11}}
+                    },
+                    y: {
+                        grid: {display: false},
+                        ticks: {color: '#64748B', font: {size: 10}}
+                    }
                 }
             }
-        }
+        });
     });
-});
 </script>
 </body>
 </html>

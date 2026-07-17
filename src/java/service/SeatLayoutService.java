@@ -4,8 +4,8 @@ import dao.ShowtimeDAO;
 import java.util.Map;
 
 /**
- * Chứa toàn bộ quy tắc kiểm tra và thay đổi sơ đồ ghế của manager.
- * Controller chỉ chuyển action/dữ liệu form vào service này.
+ * Chứa toàn bộ quy tắc kiểm tra và thay đổi sơ đồ ghế của manager. Controller
+ * chỉ chuyển action/dữ liệu form vào service này.
  */
 public class SeatLayoutService {
 

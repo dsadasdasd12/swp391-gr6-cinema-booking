@@ -5,14 +5,14 @@
 package dto;
 
 /**
- * DTO nhẹ phục vụ trang danh sách phim của admin (movie-list.jsp).
- * Chỉ chứa các trường cần hiển thị trong bảng; tránh đưa toàn bộ model xuống JSP.
+ * DTO nhẹ phục vụ trang danh sách phim của admin (movie-list.jsp). Chỉ chứa các
+ * trường cần hiển thị trong bảng; tránh đưa toàn bộ model xuống JSP.
  *
  * @author LONG
  */
 public class MovieDTO {
 
-    private int    id;
+    private int id;
     private String title;
     private String status;            // COMING_SOON | NOW_SHOWING | ENDED
     private String statusLabel;       // Nhãn tiếng Việt
@@ -23,51 +23,88 @@ public class MovieDTO {
     private boolean hasActiveShowtimes; // true → không cho xóa
 
     // ── Constructors ─────────────────────────────────────────
-
-    public MovieDTO() {}
+    public MovieDTO() {
+    }
 
     public MovieDTO(int id, String title, String status, String statusLabel,
-                    String categoryNames, String durationLabel,
-                    String posterUrl, String director, boolean hasActiveShowtimes) {
-        this.id                = id;
-        this.title             = title;
-        this.status            = status;
-        this.statusLabel       = statusLabel;
-        this.categoryNames     = categoryNames;
-        this.durationLabel     = durationLabel;
-        this.posterUrl         = posterUrl;
-        this.director          = director;
+            String categoryNames, String durationLabel,
+            String posterUrl, String director, boolean hasActiveShowtimes) {
+        this.id = id;
+        this.title = title;
+        this.status = status;
+        this.statusLabel = statusLabel;
+        this.categoryNames = categoryNames;
+        this.durationLabel = durationLabel;
+        this.posterUrl = posterUrl;
+        this.director = director;
         this.hasActiveShowtimes = hasActiveShowtimes;
     }
 
     // ── Getters & Setters ────────────────────────────────────
+    public int getId() {
+        return id;
+    }
 
-    public int getId()                     { return id; }
-    public void setId(int id)              { this.id = id; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getTitle()               { return title; }
-    public void setTitle(String title)     { this.title = title; }
+    public String getTitle() {
+        return title;
+    }
 
-    public String getStatus()              { return status; }
-    public void setStatus(String status)   { this.status = status; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public String getStatusLabel()         { return statusLabel; }
-    public void setStatusLabel(String s)   { this.statusLabel = s; }
+    public String getStatus() {
+        return status;
+    }
 
-    public String getCategoryNames()       { return categoryNames; }
-    public void setCategoryNames(String s) { this.categoryNames = s; }
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-    public String getDurationLabel()       { return durationLabel; }
-    public void setDurationLabel(String s) { this.durationLabel = s; }
+    public String getStatusLabel() {
+        return statusLabel;
+    }
 
-    public String getPosterUrl()           { return posterUrl; }
-    public void setPosterUrl(String s)     { this.posterUrl = s; }
+    public void setStatusLabel(String s) {
+        this.statusLabel = s;
+    }
+
+    public String getCategoryNames() {
+        return categoryNames;
+    }
+
+    public void setCategoryNames(String s) {
+        this.categoryNames = s;
+    }
+
+    public String getDurationLabel() {
+        return durationLabel;
+    }
+
+    public void setDurationLabel(String s) {
+        this.durationLabel = s;
+    }
+
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    public void setPosterUrl(String s) {
+        this.posterUrl = s;
+    }
 
     public boolean isPosterExternalUrl() {
         return posterUrl != null && (posterUrl.startsWith("http://") || posterUrl.startsWith("https://"));
     }
 
-    /** Đường dẫn poster không có dấu / đầu — dùng trong &lt;img src="${ctx}/..."&gt;. */
+    /**
+     * Đường dẫn poster không có dấu / đầu — dùng trong &lt;img
+     * src="${ctx}/..."&gt;.
+     */
     public String getPosterWebPath() {
         if (posterUrl == null || posterUrl.isBlank()) {
             return "";
@@ -79,22 +116,37 @@ public class MovieDTO {
         return p;
     }
 
-    public String getDirector()            { return director; }
-    public void setDirector(String director) { this.director = director; }
+    public String getDirector() {
+        return director;
+    }
 
-    public boolean isHasActiveShowtimes()          { return hasActiveShowtimes; }
-    public void setHasActiveShowtimes(boolean b)   { this.hasActiveShowtimes = b; }
+    public void setDirector(String director) {
+        this.director = director;
+    }
+
+    public boolean isHasActiveShowtimes() {
+        return hasActiveShowtimes;
+    }
+
+    public void setHasActiveShowtimes(boolean b) {
+        this.hasActiveShowtimes = b;
+    }
 
     /**
-     * CSS class dùng cho badge trạng thái trong Bootstrap 5.
-     * NOW_SHOWING → success, COMING_SOON → warning, ENDED → secondary
+     * CSS class dùng cho badge trạng thái trong Bootstrap 5. NOW_SHOWING →
+     * success, COMING_SOON → warning, ENDED → secondary
      */
     public String getStatusBadgeClass() {
-        if (status == null) return "secondary";
+        if (status == null) {
+            return "secondary";
+        }
         switch (status) {
-            case "NOW_SHOWING":  return "success";
-            case "COMING_SOON":  return "warning";
-            default:             return "secondary";
+            case "NOW_SHOWING":
+                return "success";
+            case "COMING_SOON":
+                return "warning";
+            default:
+                return "secondary";
         }
     }
 }

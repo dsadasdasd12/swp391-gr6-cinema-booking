@@ -1,7 +1,10 @@
 package dto;
 
-/** Authoritative price quote returned to a counter terminal. */
+/**
+ * Authoritative price quote returned to a counter terminal.
+ */
 public class CounterBookingQuote {
+
     private final boolean valid;
     private final String message;
     private final double subtotal;
@@ -19,10 +22,28 @@ public class CounterBookingQuote {
     public static CounterBookingQuote valid(double subtotal, double discountAmount) {
         return new CounterBookingQuote(true, "", subtotal, discountAmount, Math.max(0, subtotal - discountAmount));
     }
-    public static CounterBookingQuote invalid(String message) { return new CounterBookingQuote(false, message, 0, 0, 0); }
-    public boolean isValid() { return valid; }
-    public String getMessage() { return message; }
-    public double getSubtotal() { return subtotal; }
-    public double getDiscountAmount() { return discountAmount; }
-    public double getTotal() { return total; }
+
+    public static CounterBookingQuote invalid(String message) {
+        return new CounterBookingQuote(false, message, 0, 0, 0);
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public double getSubtotal() {
+        return subtotal;
+    }
+
+    public double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public double getTotal() {
+        return total;
+    }
 }

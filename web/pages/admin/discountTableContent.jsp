@@ -82,8 +82,8 @@
                                                 <input type="hidden" name="status" value="PAUSED">
                                                 <button type="submit" class="btn-action" title="Tạm dừng hoạt động">
                                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                                        <rect x="6" y="4" width="4" height="16"></rect>
-                                                        <rect x="14" y="4" width="4" height="16"></rect>
+                                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                                    <rect x="14" y="4" width="4" height="16"></rect>
                                                     </svg>
                                                 </button>
                                             </form>
@@ -95,7 +95,7 @@
                                                 <input type="hidden" name="status" value="ACTIVE">
                                                 <button type="submit" class="btn-action" title="Kích hoạt hoạt động" style="color: #34d399;">
                                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
                                                     </svg>
                                                 </button>
                                             </form>
@@ -108,8 +108,8 @@
                                         <input type="hidden" name="id" value="${d.id}">
                                         <button type="submit" class="btn-action btn-delete" title="Xóa mã">
                                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                             </svg>
                                         </button>
                                     </form>
@@ -123,9 +123,9 @@
         <c:otherwise>
             <div style="padding: 60px; text-align: center; color: var(--muted-text);">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 15px; opacity: 0.5;">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
                 </svg>
                 <p style="font-weight: 600; margin: 0; font-size: 16px;">Hệ thống chưa có mã giảm giá nào</p>
                 <p style="font-size: 13px; margin: 5px 0 0 0;">Bấm nút "Thêm Mã Giảm Giá" để tạo chương trình khuyến mãi đầu tiên.</p>

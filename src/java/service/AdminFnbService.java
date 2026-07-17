@@ -624,99 +624,99 @@ public class AdminFnbService {
     }
 
     public boolean changeComboAllowedToSell(
-        int comboId,
-        boolean allowed) {
+            int comboId,
+            boolean allowed) {
 
-    if (comboId <= 0) {
-        throw new IllegalArgumentException(
-                "Combo không hợp lệ."
-        );
-    }
-
-    try (Connection conn =
-                 DBContext.getInstance().getConnection()) {
-
-        conn.setAutoCommit(false);
-
-        try {
-            FnbComboDTO combo =
-                    fnbAdminDAO.findComboById(
-                            conn,
-                            comboId
-                    );
-
-            if (combo == null) {
-                throw new IllegalArgumentException(
-                        "Không tìm thấy combo."
-                );
-            }
-
-            if (allowed
-                    && !"ACTIVE".equalsIgnoreCase(
-                            combo.getStatus()
-                    )) {
-
-                throw new IllegalArgumentException(
-                        "Không thể cho phép bán combo "
-                        + "đang ngừng hoạt động."
-                );
-            }
-
-            if (allowed) {
-
-                List<String> unavailableItems =
-                        fnbAdminDAO
-                                .findUnavailableComboItemNames(
-                                        conn,
-                                        comboId
-                                );
-
-                if (!unavailableItems.isEmpty()) {
-
-                    throw new IllegalArgumentException(
-                            "Không thể cho phép bán combo. "
-                            + "Các sản phẩm sau đang ngừng hoạt động "
-                            + "hoặc không được phép bán: "
-                            + String.join(", ", unavailableItems)
-                            + "."
-                    );
-                }
-            }
-
-            boolean updated =
-                    fnbAdminDAO.updateComboAllowedToSell(
-                            conn,
-                            comboId,
-                            allowed
-                    );
-
-            conn.commit();
-            return updated;
-
-        } catch (Exception e) {
-
-            conn.rollback();
-
-            if (e instanceof IllegalArgumentException) {
-                throw (IllegalArgumentException) e;
-            }
-
-            throw new RuntimeException(
-                    "Không thể cập nhật quyền bán combo.",
-                    e
+        if (comboId <= 0) {
+            throw new IllegalArgumentException(
+                    "Combo không hợp lệ."
             );
-
-        } finally {
-            conn.setAutoCommit(true);
         }
 
-    } catch (SQLException e) {
-        throw new RuntimeException(
-                "Lỗi kết nối cơ sở dữ liệu.",
-                e
-        );
+        try (Connection conn
+                = DBContext.getInstance().getConnection()) {
+
+            conn.setAutoCommit(false);
+
+            try {
+                FnbComboDTO combo
+                        = fnbAdminDAO.findComboById(
+                                conn,
+                                comboId
+                        );
+
+                if (combo == null) {
+                    throw new IllegalArgumentException(
+                            "Không tìm thấy combo."
+                    );
+                }
+
+                if (allowed
+                        && !"ACTIVE".equalsIgnoreCase(
+                                combo.getStatus()
+                        )) {
+
+                    throw new IllegalArgumentException(
+                            "Không thể cho phép bán combo "
+                            + "đang ngừng hoạt động."
+                    );
+                }
+
+                if (allowed) {
+
+                    List<String> unavailableItems
+                            = fnbAdminDAO
+                                    .findUnavailableComboItemNames(
+                                            conn,
+                                            comboId
+                                    );
+
+                    if (!unavailableItems.isEmpty()) {
+
+                        throw new IllegalArgumentException(
+                                "Không thể cho phép bán combo. "
+                                + "Các sản phẩm sau đang ngừng hoạt động "
+                                + "hoặc không được phép bán: "
+                                + String.join(", ", unavailableItems)
+                                + "."
+                        );
+                    }
+                }
+
+                boolean updated
+                        = fnbAdminDAO.updateComboAllowedToSell(
+                                conn,
+                                comboId,
+                                allowed
+                        );
+
+                conn.commit();
+                return updated;
+
+            } catch (Exception e) {
+
+                conn.rollback();
+
+                if (e instanceof IllegalArgumentException) {
+                    throw (IllegalArgumentException) e;
+                }
+
+                throw new RuntimeException(
+                        "Không thể cập nhật quyền bán combo.",
+                        e
+                );
+
+            } finally {
+                conn.setAutoCommit(true);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi kết nối cơ sở dữ liệu.",
+                    e
+            );
+        }
     }
-}
 
     private void validateCombo(
             FnbComboFormDTO dto) {

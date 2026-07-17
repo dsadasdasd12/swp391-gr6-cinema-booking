@@ -12,12 +12,16 @@ import service.CinemaService;
 /**
  * Controller cho luồng xem tình trạng ghế của một suất chiếu.
  *
- * <p>Luồng UI:</p>
+ * <p>
+ * Luồng UI:</p>
  * <ul>
- *   <li>User mở GET {@code /seats?showtimeId=...} từ danh sách suất chiếu.</li>
- *   <li>Controller đọc showtimeId và gọi {@link CinemaService#getSeatMap(int)}.</li>
- *   <li>Nếu showtime không hợp lệ, trả status 404 và render trang ghế ở trạng thái not found.</li>
- *   <li>Nếu hợp lệ, forward {@code seatMap} sang {@code /pages/seat/availability.jsp}.</li>
+ * <li>User mở GET {@code /seats?showtimeId=...} từ danh sách suất chiếu.</li>
+ * <li>Controller đọc showtimeId và gọi
+ * {@link CinemaService#getSeatMap(int)}.</li>
+ * <li>Nếu showtime không hợp lệ, trả status 404 và render trang ghế ở trạng
+ * thái not found.</li>
+ * <li>Nếu hợp lệ, forward {@code seatMap} sang
+ * {@code /pages/seat/availability.jsp}.</li>
  * </ul>
  *
  * @author HuyPD
@@ -66,8 +70,8 @@ public class SeatAvailabilityController extends HttpServlet {
     }
 
     /**
-     * Doc id tu tham so request.
-     * Return -1 khi value null, rong hoac khong parse duoc thanh so.
+     * Doc id tu tham so request. Return -1 khi value null, rong hoac khong
+     * parse duoc thanh so.
      */
     private static int parseId(String s) {
         if (s == null || s.isBlank()) {

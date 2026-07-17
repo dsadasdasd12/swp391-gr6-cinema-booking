@@ -1,6 +1,7 @@
 package dao;
 
 import dto.BookingView;
+import dto.BookingFnbLine;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,13 +13,14 @@ import model.Booking;
 import util.DBContext;
 
 public class BookingDAO {
+
     private static final String WALKIN_CUSTOMER_EMAIL = "walkin@rapviet.local";
 
     // 1. WRITE: Tạo hóa đơn bán vé tại quầy (WALK-IN TRANSACTION)
     public int createWalkinBooking(int showtimeId, List<Integer> seatIds, List<Double> seatPrices,
-                                   double totalPrice, String paymentMethod, double discountAmount, 
-                                   String discountReason, String voucherCode, int staffId) {
-        
+            double totalPrice, String paymentMethod, double discountAmount,
+            String discountReason, String voucherCode, int staffId) {
+
         String insertBookingSql = "INSERT INTO dbo.BOOKINGS (user_id, showtime_id, source, status, total_price, qr_code, booked_at, last_update) "
                 + "VALUES (?, ?, 'WALKIN', ?, ?, NULL, GETDATE(), GETDATE())";
 
@@ -31,7 +33,7 @@ public class BookingDAO {
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         String insertDiscountSql = "INSERT INTO dbo.COUNTER_DISCOUNTS (booking_id, applied_by, reason, amount, applied_at) "
-                                 + "VALUES (?, ?, ?, ?, GETDATE())";
+                + "VALUES (?, ?, ?, ?, GETDATE())";
         String consumeVoucherSql = "UPDATE dbo.DISCOUNT_CODES SET used_count = used_count + 1, last_update = GETDATE() "
                 + "WHERE code = ? AND status = 'ACTIVE' AND start_date <= GETDATE() AND end_date >= GETDATE() "
                 + "AND used_count < max_uses";
@@ -190,13 +192,17 @@ public class BookingDAO {
         return -1;
     }
 
-    /** Counter sales must not be assigned to a staff account or a real customer. */
+    /**
+     * Counter sales must not be assigned to a staff account or a real customer.
+     */
     private int getOrCreateWalkinCustomer(Connection conn) throws java.sql.SQLException {
         String findSql = "SELECT id FROM dbo.[USER] WHERE email = ?";
         try (PreparedStatement ps = conn.prepareStatement(findSql)) {
             ps.setString(1, WALKIN_CUSTOMER_EMAIL);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         }
 
@@ -210,12 +216,16 @@ public class BookingDAO {
             ps.setString(5, "");
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) return keys.getInt(1);
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
             }
         } catch (java.sql.SQLIntegrityConstraintViolationException duplicate) {
             try (PreparedStatement ps = conn.prepareStatement(findSql)) {
                 ps.setString(1, WALKIN_CUSTOMER_EMAIL);
-                try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : -1; }
+                try (ResultSet rs = ps.executeQuery()) {
+                    return rs.next() ? rs.getInt(1) : -1;
+                }
             }
         }
         return -1;
@@ -483,8 +493,12 @@ public class BookingDAO {
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             ps.setInt(2, branchId);
-            try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getString(1) : null; }
-        } catch (Exception e) { e.printStackTrace(); }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString(1) : null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -500,24 +514,37 @@ public class BookingDAO {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(bookingSql)) {
-                ps.setInt(1, bookingId); ps.setInt(2, branchId);
-                if (ps.executeUpdate() != 1) { conn.rollback(); return false; }
+                ps.setInt(1, bookingId);
+                ps.setInt(2, branchId);
+                if (ps.executeUpdate() != 1) {
+                    conn.rollback();
+                    return false;
+                }
             }
-            try (PreparedStatement ps = conn.prepareStatement(paymentSql)) { ps.setInt(1, bookingId); ps.executeUpdate(); }
+            try (PreparedStatement ps = conn.prepareStatement(paymentSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
             conn.commit();
             return true;
         } catch (Exception e) {
-            if (conn != null) try { conn.rollback(); } catch (Exception ignored) { }
+            if (conn != null) try {
+                conn.rollback();
+            } catch (Exception ignored) {
+            }
             e.printStackTrace();
         } finally {
-            if (conn != null) try { conn.close(); } catch (Exception ignored) { }
+            if (conn != null) try {
+                conn.close();
+            } catch (Exception ignored) {
+            }
         }
         return false;
     }
 
     public int createPendingBooking(int userId, int showtimeId, List<Integer> seatIds,
             List<Double> seatPrices, double totalPrice,
-            String voucherCode, double voucherDiscount) {
+            String voucherCode, double voucherDiscount, List<BookingFnbLine> fnbLines) {
         if (userId <= 0 || showtimeId <= 0 || seatIds == null || seatIds.isEmpty()
                 || seatPrices == null || seatPrices.size() != seatIds.size()) {
             return -1;
@@ -566,6 +593,17 @@ public class BookingDAO {
                 + "AND used_count < max_uses";
         String insertVoucherHistorySql = "INSERT INTO dbo.VOUCHER_HISTORY "
                 + "(booking_id, user_id, discount_code_id, discount_amount, used_at) VALUES (?, ?, ?, ?, GETDATE())";
+        String insertFnbSql = "INSERT INTO dbo.BOOKING_FNB "
+                + "(booking_id,item_type,product_id,combo_id,item_name,quantity,unit_price,status,last_update) "
+                + "VALUES (?,?,?,?,?,?,?,'PENDING',GETDATE())";
+        String consumeProductSql = "UPDATE dbo.BRANCH_FNB_INVENTORY SET stock_quantity=stock_quantity-?,last_update=GETDATE() "
+                + "WHERE branch_id=(SELECT h.branch_id FROM SHOWTIMES st JOIN HALLS h ON h.id=st.hall_id WHERE st.id=?) "
+                + "AND product_id=? AND enabled_at_branch=1 AND stock_quantity>=?";
+        String consumeComboSql = "UPDATE inv SET inv.stock_quantity=inv.stock_quantity-(ci.quantity*?),inv.last_update=GETDATE() "
+                + "FROM dbo.BRANCH_FNB_INVENTORY inv JOIN dbo.FNB_COMBO_ITEMS ci ON ci.product_id=inv.product_id "
+                + "JOIN dbo.HALLS h ON h.branch_id=inv.branch_id JOIN dbo.SHOWTIMES st ON st.hall_id=h.id "
+                + "WHERE st.id=? AND ci.combo_id=? AND inv.enabled_at_branch=1 "
+                + "AND inv.stock_quantity>=ci.quantity*?";
 
         Connection conn = null;
         try {
@@ -633,7 +671,8 @@ public class BookingDAO {
             try (PreparedStatement ps = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, userId);
                 ps.setInt(2, showtimeId);
-                ps.setDouble(3, totalPrice);
+                double fnbTotal = fnbLines == null ? 0 : fnbLines.stream().mapToDouble(BookingFnbLine::getLineTotal).sum();
+                ps.setDouble(3, totalPrice + fnbTotal);
                 ps.executeUpdate();
 
                 try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -664,10 +703,70 @@ public class BookingDAO {
                 ps.executeBatch();
             }
 
+            if (fnbLines != null && !fnbLines.isEmpty()) {
+                try (PreparedStatement insert = conn.prepareStatement(insertFnbSql)) {
+                    for (BookingFnbLine line : fnbLines) {
+                        int affected;
+                        if ("PRODUCT".equals(line.getItemType())) {
+                            try (PreparedStatement stock = conn.prepareStatement(consumeProductSql)) {
+                                stock.setInt(1, line.getQuantity());
+                                stock.setInt(2, showtimeId);
+                                stock.setInt(3, line.getItemId());
+                                stock.setInt(4, line.getQuantity());
+                                affected = stock.executeUpdate();
+                            }
+                            if (affected != 1) {
+                                conn.rollback();
+                                return -1;
+                            }
+                        } else if ("COMBO".equals(line.getItemType())) {
+                            int required;
+                            try (PreparedStatement count = conn.prepareStatement("SELECT COUNT(*) FROM FNB_COMBO_ITEMS WHERE combo_id=?")) {
+                                count.setInt(1, line.getItemId());
+                                try (ResultSet rs = count.executeQuery()) {
+                                    rs.next();
+                                    required = rs.getInt(1);
+                                }
+                            }
+                            try (PreparedStatement stock = conn.prepareStatement(consumeComboSql)) {
+                                stock.setInt(1, line.getQuantity());
+                                stock.setInt(2, showtimeId);
+                                stock.setInt(3, line.getItemId());
+                                stock.setInt(4, line.getQuantity());
+                                affected = stock.executeUpdate();
+                            }
+                            if (required == 0 || affected != required) {
+                                conn.rollback();
+                                return -1;
+                            }
+                        } else {
+                            conn.rollback();
+                            return -1;
+                        }
+
+                        insert.setInt(1, bookingId);
+                        insert.setString(2, line.getItemType());
+                        if ("PRODUCT".equals(line.getItemType())) {
+                            insert.setInt(3, line.getItemId());
+                            insert.setNull(4, java.sql.Types.INTEGER);
+                        } else {
+                            insert.setNull(3, java.sql.Types.INTEGER);
+                            insert.setInt(4, line.getItemId());
+                        }
+                        insert.setString(5, line.getName());
+                        insert.setInt(6, line.getQuantity());
+                        insert.setDouble(7, line.getUnitPrice());
+                        insert.addBatch();
+                    }
+                    insert.executeBatch();
+                }
+            }
+
             try (PreparedStatement ps = conn.prepareStatement(insertPaymentSql)) {
                 ps.setInt(1, bookingId);
                 ps.setString(2, "RVS" + bookingId);
-                ps.setDouble(3, totalPrice);
+                double fnbTotal = fnbLines == null ? 0 : fnbLines.stream().mapToDouble(BookingFnbLine::getLineTotal).sum();
+                ps.setDouble(3, totalPrice + fnbTotal);
                 ps.executeUpdate();
             }
 
@@ -763,6 +862,17 @@ public class BookingDAO {
         String updatePaymentSql = "UPDATE dbo.PAYMENTS "
                 + "SET status = 'FAILED', last_update = GETDATE() "
                 + "WHERE booking_id = ?";
+        String restoreProductsSql = "UPDATE inv SET inv.stock_quantity=inv.stock_quantity+bf.quantity,inv.last_update=GETDATE() "
+                + "FROM BRANCH_FNB_INVENTORY inv JOIN BOOKING_FNB bf ON bf.product_id=inv.product_id "
+                + "JOIN BOOKINGS b ON b.id=bf.booking_id JOIN SHOWTIMES st ON st.id=b.showtime_id "
+                + "JOIN HALLS h ON h.id=st.hall_id AND h.branch_id=inv.branch_id "
+                + "WHERE bf.booking_id=? AND bf.item_type='PRODUCT' AND bf.status<>'CANCELLED'";
+        String restoreCombosSql = "UPDATE inv SET inv.stock_quantity=inv.stock_quantity+(ci.quantity*bf.quantity),inv.last_update=GETDATE() "
+                + "FROM BRANCH_FNB_INVENTORY inv JOIN FNB_COMBO_ITEMS ci ON ci.product_id=inv.product_id "
+                + "JOIN BOOKING_FNB bf ON bf.combo_id=ci.combo_id JOIN BOOKINGS b ON b.id=bf.booking_id "
+                + "JOIN SHOWTIMES st ON st.id=b.showtime_id JOIN HALLS h ON h.id=st.hall_id AND h.branch_id=inv.branch_id "
+                + "WHERE bf.booking_id=? AND bf.item_type='COMBO' AND bf.status<>'CANCELLED'";
+        String cancelFnbSql = "UPDATE BOOKING_FNB SET status='CANCELLED',last_update=GETDATE() WHERE booking_id=? AND status<>'CANCELLED'";
 
         Connection conn = null;
         try {
@@ -779,6 +889,19 @@ public class BookingDAO {
             if (affected == 0) {
                 conn.rollback();
                 return false;
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(restoreProductsSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(restoreCombosSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(cancelFnbSql)) {
+                ps.setInt(1, bookingId);
+                ps.executeUpdate();
             }
 
             try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {

@@ -17,8 +17,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Servlet quản lý lịch sử thông báo giao dịch.
- * URL: /admin/notifications?action=list
+ * Servlet quản lý lịch sử thông báo giao dịch. URL:
+ * /admin/notifications?action=list
  */
 @WebServlet("/admin/notifications")
 public class NotificationController extends HttpServlet {

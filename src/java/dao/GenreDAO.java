@@ -25,14 +25,15 @@ import util.EncodingUtil;
  */
 public class GenreDAO {
 
-    /** Tất cả thể loại đang hoạt động, sắp theo tên — cho ô lọc. */
+    /**
+     * Tất cả thể loại đang hoạt động, sắp theo tên — cho ô lọc.
+     */
     public List<Genre> findAllActive() {
         String sql = "SELECT id, name, description, status "
                 + "FROM dbo.CATEGORY WHERE status = 'ACTIVE' ORDER BY name";
         List<Genre> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -43,7 +44,9 @@ public class GenreDAO {
         return list;
     }
 
-    /** Các thể loại gắn với một phim (qua bảng dbo.MOVIES_CATEGORY). */
+    /**
+     * Các thể loại gắn với một phim (qua bảng dbo.MOVIES_CATEGORY).
+     */
     public List<Genre> findByMovieId(int movieId) {
         String sql = "SELECT c.id, c.name, c.description, c.status "
                 + "FROM dbo.CATEGORY c "
@@ -69,8 +72,7 @@ public class GenreDAO {
         String sql = "SELECT id, name, description, status FROM dbo.CATEGORY ORDER BY name";
         List<Genre> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
@@ -121,7 +123,9 @@ public class GenreDAO {
         return false;
     }
 
-    /** Ánh xạ một dòng ResultSet sang đối tượng Genre. */
+    /**
+     * Ánh xạ một dòng ResultSet sang đối tượng Genre.
+     */
     private Genre map(ResultSet rs) throws SQLException {
         Genre c = new Genre();
         c.setId(rs.getInt("id"));

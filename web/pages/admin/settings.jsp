@@ -201,17 +201,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 <script>
-(function () {
-    var hash = window.location.hash;
-    if (hash && hash.startsWith('#panel-')) {
-        var btn = document.querySelector('[data-bs-target="' + hash + '"]');
-        if (btn && typeof bootstrap !== 'undefined') {
-            bootstrap.Tab.getOrCreateInstance(btn).show();
+    (function () {
+        var hash = window.location.hash;
+        if (hash && hash.startsWith('#panel-')) {
+            var btn = document.querySelector('[data-bs-target="' + hash + '"]');
+            if (btn && typeof bootstrap !== 'undefined') {
+                bootstrap.Tab.getOrCreateInstance(btn).show();
+            }
         }
-    }
-})();
+    })();
 </script>
 </body>
 </html>

@@ -30,7 +30,9 @@ import service.CinemaService;
 @WebServlet(name = "ShowtimeListController", urlPatterns = {"/showtimes"})
 public class ShowtimeListController extends HttpServlet {
 
-    /** Định dạng ngày trao đổi với view (khớp <input type="date">). */
+    /**
+     * Định dạng ngày trao đổi với view (khớp <input type="date">).
+     */
     private static final DateTimeFormatter ISO_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final CinemaService cinemaService = new CinemaService();
@@ -75,7 +77,9 @@ public class ShowtimeListController extends HttpServlet {
         return branches.isEmpty() ? -1 : branches.get(0).getBranch().getId();
     }
 
-    /** Đọc ngày dạng yyyy-MM-dd; trả về hôm nay nếu thiếu hoặc sai định dạng. */
+    /**
+     * Đọc ngày dạng yyyy-MM-dd; trả về hôm nay nếu thiếu hoặc sai định dạng.
+     */
     private static LocalDate parseDate(String raw) {
         if (raw != null && !raw.isBlank()) {
             try {

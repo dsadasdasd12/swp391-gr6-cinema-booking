@@ -340,6 +340,7 @@ public class HallDAO {
 
     @FunctionalInterface
     private interface SqlWork {
+
         boolean execute(Connection conn) throws SQLException;
     }
 

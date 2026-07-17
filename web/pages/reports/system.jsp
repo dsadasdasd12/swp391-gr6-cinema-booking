@@ -39,14 +39,14 @@
 <!-- ── DATE RANGE & BRANCH FILTERS ── -->
 <div class="rv-toolbar">
     <form method="get" action="${ctx}/admin/reports/system" class="d-flex align-items-end flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
-        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--s-3); flex: 1; min-width: 400px;">
             <!-- From Date -->
             <div class="rv-form-group" style="margin: 0;">
                 <label class="rv-label" for="fromDate" style="font-size: 11px; margin-bottom: 4px;">Từ ngày</label>
                 <input type="date" id="fromDate" name="fromDate" class="rv-input" style="height: 38px;" required value="${report.fromDate}">
             </div>
-            
+
             <!-- To Date -->
             <div class="rv-form-group" style="margin: 0;">
                 <label class="rv-label" for="toDate" style="font-size: 11px; margin-bottom: 4px;">Đến ngày</label>
@@ -189,35 +189,35 @@
 
 <!-- Load Chart Renderer -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const checkChartLoaded = setInterval(() => {
-        if (window.RVCharts && typeof Chart !== 'undefined') {
-            clearInterval(checkChartLoaded);
-            renderDashboardCharts();
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkChartLoaded = setInterval(() => {
+            if (window.RVCharts && typeof Chart !== 'undefined') {
+                clearInterval(checkChartLoaded);
+                renderDashboardCharts();
+            }
+        }, 100);
+
+        function renderDashboardCharts() {
+            // Line Chart: Revenue
+            const revLabels = ${report.revenueLabelsJson};
+            const revData = ${report.revenueDataJson};
+            window.RVCharts.createLineChart('revChart', revLabels, revData, 'Doanh thu (₫)');
+
+            // Bar Chart: Ticket Sales
+            const ticketLabels = ${report.ticketLabelsJson};
+            const ticketData = ${report.ticketDataJson};
+            window.RVCharts.createBarChart('ticketChart', ticketLabels, ticketData, 'Vé');
+
+            // Horizontal Bar Chart: Occupancy
+            const occLabels = ${report.occupancyLabelsJson};
+            const occData = ${report.occupancyDataJson};
+            window.RVCharts.createHorizontalBarChart('occChart', occLabels, occData);
+
+            // Peak Hours Custom Heatmap Matrix
+            const heatmapMatrix = ${report.heatmapMatrixJson};
+            window.RVCharts.renderPeakHoursHeatmap('heatmapContainer', heatmapMatrix);
         }
-    }, 100);
-
-    function renderDashboardCharts() {
-        // Line Chart: Revenue
-        const revLabels = ${report.revenueLabelsJson};
-        const revData = ${report.revenueDataJson};
-        window.RVCharts.createLineChart('revChart', revLabels, revData, 'Doanh thu (₫)');
-
-        // Bar Chart: Ticket Sales
-        const ticketLabels = ${report.ticketLabelsJson};
-        const ticketData = ${report.ticketDataJson};
-        window.RVCharts.createBarChart('ticketChart', ticketLabels, ticketData, 'Vé');
-
-        // Horizontal Bar Chart: Occupancy
-        const occLabels = ${report.occupancyLabelsJson};
-        const occData = ${report.occupancyDataJson};
-        window.RVCharts.createHorizontalBarChart('occChart', occLabels, occData);
-
-        // Peak Hours Custom Heatmap Matrix
-        const heatmapMatrix = ${report.heatmapMatrixJson};
-        window.RVCharts.renderPeakHoursHeatmap('heatmapContainer', heatmapMatrix);
-    }
-});
+    });
 </script>
 
 </body>

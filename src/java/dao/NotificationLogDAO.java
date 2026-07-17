@@ -28,7 +28,9 @@ public class NotificationLogDAO {
                 + "(user_id, branch_id, sent_by, type, title, message, status) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return false;
+        if (conn == null) {
+            return false;
+        }
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             if (log.getUserId() != null) {
                 ps.setInt(1, log.getUserId());
@@ -59,9 +61,8 @@ public class NotificationLogDAO {
     }
 
     /**
-     * Đếm tổng log (đã loại PROMOTION).
-     * type: BOOKING_CONFIRM | PAYMENT_CONFIRM | SYSTEM | ""
-     * status: SENT | FAILED | PENDING | ""
+     * Đếm tổng log (đã loại PROMOTION). type: BOOKING_CONFIRM | PAYMENT_CONFIRM
+     * | SYSTEM | "" status: SENT | FAILED | PENDING | ""
      */
     public long countLogs(String keyword, String type, String status) {
         String kw = keyword == null ? "" : keyword.trim();
@@ -78,10 +79,14 @@ public class NotificationLogDAO {
         }
         if (status != null && !status.isBlank()) {
             switch (status) {
-                case "SENT" -> sql.append(" AND n.status = 'SENT'");
-                case "FAILED" -> sql.append(" AND n.status = 'FAILED'");
-                case "PENDING" -> sql.append(" AND (n.status IS NULL OR n.status = 'DRAFT')");
-                default -> {}
+                case "SENT" ->
+                    sql.append(" AND n.status = 'SENT'");
+                case "FAILED" ->
+                    sql.append(" AND n.status = 'FAILED'");
+                case "PENDING" ->
+                    sql.append(" AND (n.status IS NULL OR n.status = 'DRAFT')");
+                default -> {
+                }
             }
         }
         if (!kw.isEmpty()) {
@@ -114,7 +119,7 @@ public class NotificationLogDAO {
      * Lấy trang log (đã loại PROMOTION).
      */
     public List<NotificationLog> findPaged(String keyword, String type, String status,
-                                           int offset, int pageSize) {
+            int offset, int pageSize) {
         String kw = keyword == null ? "" : keyword.trim();
         String like = "%" + kw + "%";
 
@@ -130,10 +135,14 @@ public class NotificationLogDAO {
         }
         if (status != null && !status.isBlank()) {
             switch (status) {
-                case "SENT" -> sql.append(" AND n.status = 'SENT'");
-                case "FAILED" -> sql.append(" AND n.status = 'FAILED'");
-                case "PENDING" -> sql.append(" AND (n.status IS NULL OR n.status = 'DRAFT')");
-                default -> {}
+                case "SENT" ->
+                    sql.append(" AND n.status = 'SENT'");
+                case "FAILED" ->
+                    sql.append(" AND n.status = 'FAILED'");
+                case "PENDING" ->
+                    sql.append(" AND (n.status IS NULL OR n.status = 'DRAFT')");
+                default -> {
+                }
             }
         }
         if (!kw.isEmpty()) {
@@ -178,11 +187,15 @@ public class NotificationLogDAO {
                 + "ORDER BY n.sent_at DESC";
         List<NotificationLog> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return list;
+        if (conn == null) {
+            return list;
+        }
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bookingTitlePrefix(bookingId) + "%");
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapRow(rs));
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
             }
         } catch (SQLException e) {
             System.getLogger(NotificationLogDAO.class.getName())
@@ -196,7 +209,9 @@ public class NotificationLogDAO {
                 + "SET status = ?, message = COALESCE(message, '') + ?, sent_at = GETDATE() "
                 + "WHERE id = ?";
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return false;
+        if (conn == null) {
+            return false;
+        }
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, mapStatusToDb(status));
             ps.setString(2, " [retry=" + retryCount + "]");
@@ -212,13 +227,17 @@ public class NotificationLogDAO {
     private List<NotificationLog> queryList(String sql, Integer bookingId) {
         List<NotificationLog> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();
-        if (conn == null) return list;
+        if (conn == null) {
+            return list;
+        }
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             if (bookingId != null) {
                 ps.setString(1, bookingTitlePrefix(bookingId) + "%");
             }
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapRow(rs));
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
             }
         } catch (SQLException e) {
             System.getLogger(NotificationLogDAO.class.getName())
@@ -265,20 +284,30 @@ public class NotificationLogDAO {
     }
 
     private String mapStatusToDb(String status) {
-        if (status == null) return "DRAFT";
+        if (status == null) {
+            return "DRAFT";
+        }
         return switch (status) {
-            case "SENT" -> "SENT";
-            case "FAILED" -> "FAILED";
-            default -> "DRAFT";
+            case "SENT" ->
+                "SENT";
+            case "FAILED" ->
+                "FAILED";
+            default ->
+                "DRAFT";
         };
     }
 
     private String mapStatusFromDb(String status) {
-        if (status == null) return "PENDING";
+        if (status == null) {
+            return "PENDING";
+        }
         return switch (status) {
-            case "SENT" -> "SENT";
-            case "FAILED" -> "FAILED";
-            default -> "PENDING";
+            case "SENT" ->
+                "SENT";
+            case "FAILED" ->
+                "FAILED";
+            default ->
+                "PENDING";
         };
     }
 
@@ -287,7 +316,9 @@ public class NotificationLogDAO {
     }
 
     private Integer extractBookingIdFromTitle(String title) {
-        if (title == null || !title.startsWith("Booking #")) return null;
+        if (title == null || !title.startsWith("Booking #")) {
+            return null;
+        }
         int end = title.indexOf(' ', 9);
         String num = end > 9 ? title.substring(9, end) : title.substring(9);
         try {
@@ -298,7 +329,9 @@ public class NotificationLogDAO {
     }
 
     private String extractErrorMessage(String message) {
-        if (message == null) return null;
+        if (message == null) {
+            return null;
+        }
         if (message.startsWith("[booking_id=")) {
             int close = message.indexOf(']');
             if (close > 0 && close + 1 < message.length()) {
@@ -310,11 +343,17 @@ public class NotificationLogDAO {
     }
 
     private int extractRetryCount(String message) {
-        if (message == null) return 0;
+        if (message == null) {
+            return 0;
+        }
         int idx = message.lastIndexOf("[retry=");
-        if (idx < 0) return 0;
+        if (idx < 0) {
+            return 0;
+        }
         int end = message.indexOf(']', idx);
-        if (end < 0) return 0;
+        if (end < 0) {
+            return 0;
+        }
         try {
             return Integer.parseInt(message.substring(idx + 7, end));
         } catch (NumberFormatException e) {

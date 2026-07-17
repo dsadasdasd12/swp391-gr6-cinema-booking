@@ -30,7 +30,7 @@
             <div class="container">
                 <div class="flow-head">
                     <div>
-                        <div class="flow-step">Bước 5 / 5</div>
+                        <div class="flow-step">Bước 6 / 6</div>
                         <h1 class="page-title">Xác nhận đặt vé</h1>
                     </div>
                 </div>
@@ -97,15 +97,25 @@
 
                                 <div>
                                     <span class="k">Tổng cần thanh toán</span>
-                                    <strong>${draftView.totalPriceLabel}</strong>
+                                    <strong>${draftView.grandTotalLabel}</strong>
                                 </div>
                             </div>
+
+                            <c:if test="${not empty draftView.fnbLines}">
+                                <h3 style="margin-top:20px">F&amp;B đã chọn</h3>
+                                <div class="booking-seat-lines">
+                                    <c:forEach var="item" items="${draftView.fnbLines}">
+                                        <div class="booking-seat-line"><span><c:out value="${item.name}"/> × ${item.quantity}</span><strong>${item.lineTotalLabel}</strong></div>
+                                    </c:forEach>
+                                    <div class="booking-seat-line"><span>Tổng F&amp;B</span><strong>${draftView.fnbSubtotalLabel}</strong></div>
+                                </div>
+                            </c:if>
 
                             <c:if test="${not empty voucherQuote}">
                                 <div class="notice ok">
                                     Mã <strong><c:out value="${voucherQuote.code}"/></strong> đã được áp dụng:
                                     giảm ${voucherQuote.discountAmount} đ. Tổng thanh toán:
-                                    ${draftView.totalPrice - voucherQuote.discountAmount} đ.
+                                    ${draftView.grandTotalLabel}.
                                 </div>
                             </c:if>
 
@@ -126,7 +136,7 @@
                             </form>
 
                             <div class="bd-actions">
-                                <a class="btn btn-ghost" href="${ctx}/booking/seats?showtimeId=${st.id}">Chọn lại ghế</a>
+                                <a class="btn btn-ghost" href="${ctx}/booking/fnb">Sửa F&amp;B</a>
                                 <%-- This final POST invokes BookingService#createPendingBooking and clears draft session state on success. --%>
                                 <form method="post" action="${ctx}/booking/confirm">
                                     <button type="submit" class="btn btn-primary">Xác nhận đặt vé</button>

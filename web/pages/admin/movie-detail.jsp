@@ -45,8 +45,8 @@
                 </c:when>
                 <c:otherwise>
                     <div style="width:100%;aspect-ratio:2/3;border-radius:10px;background:rgba(255,255,255,.04);
-                                display:flex;align-items:center;justify-content:center;
-                                border:2px dashed var(--clr-border);margin-bottom:1rem;">
+                         display:flex;align-items:center;justify-content:center;
+                         border:2px dashed var(--clr-border);margin-bottom:1rem;">
                         <div style="color:var(--clr-muted);"><i class="bi bi-image" style="font-size:3rem;opacity:.3;"></i>
                             <p style="font-size:.75rem;">Chưa có poster</p>
                         </div>
@@ -148,6 +148,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 </body>
 </html>

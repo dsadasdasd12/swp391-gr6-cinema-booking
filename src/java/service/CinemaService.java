@@ -36,14 +36,17 @@ public class CinemaService {
     private final ShowtimeDAO showtimeDAO = new ShowtimeDAO();
     private final SeatDAO seatDAO = new SeatDAO();
 
-    /** Danh sách chi nhánh đang hoạt động (kèm tên rạp + số phòng) cho trang "Hệ thống rạp". */
+    /**
+     * Danh sách chi nhánh đang hoạt động (kèm tên rạp + số phòng) cho trang "Hệ
+     * thống rạp".
+     */
     public List<BranchView> getActiveBranchViews() {
         return branchDAO.findActiveBranchViews();
     }
 
     /**
-     * Suất chiếu của một chi nhánh trong một ngày, đã gom nhóm theo phim (DAO trả
-     * sẵn DTO). Trả về danh sách rỗng nếu tham số không hợp lệ.
+     * Suất chiếu của một chi nhánh trong một ngày, đã gom nhóm theo phim (DAO
+     * trả sẵn DTO). Trả về danh sách rỗng nếu tham số không hợp lệ.
      */
     public List<MovieShowtimes> getShowtimesByMovie(int branchId, LocalDate date) {
         if (branchId <= 0 || date == null) {

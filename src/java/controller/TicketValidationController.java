@@ -54,7 +54,7 @@ public class TicketValidationController extends HttpServlet {
         }
         if ("validate".equalsIgnoreCase(action)) {
             String bookingIdStr = request.getParameter("bookingId");
-            
+
             if (bookingIdStr == null || bookingIdStr.trim().isEmpty()) {
                 request.setAttribute("validationError", "MÃ VÉ KHÔNG HỢP LỆ: Vui lòng nhập mã vé hợp lệ!");
                 request.getRequestDispatcher("ticketValidation.jsp").forward(request, response);
@@ -65,23 +65,23 @@ public class TicketValidationController extends HttpServlet {
                 // Hỗ trợ trích xuất và chuẩn hóa bookingId thông qua TicketService
                 // TicketService xác minh mã quét với cột BOOKINGS.qr_code trong database.
                 int bookingId = ticketService.parseBookingId(bookingIdStr);
-                
+
                 // AttendanceDAO kiểm tra thêm branch, thời gian xem và trạng thái để cập nhật check-in an toàn.
                 String result = ticketService.checkInTicket(bookingId, staffId);
-                
+
                 if ("SUCCESS".equalsIgnoreCase(result)) {
                     model.Booking booking = bookingService.getBookingById(bookingId);
                     Showtime st = showtimeService.getShowtimeById(booking.getShowtimeId());
-                    
+
                     request.setAttribute("validationSuccess", true);
                     request.setAttribute("booking", booking);
                     request.setAttribute("showtime", st);
-                    
+
                     // Lấy mã ghế thông qua TicketService
                     // Chỉ hiển thị thông tin ghế sau khi check-in thành công.
                     String seatCodes = ticketService.getSeatCodesByBookingId(bookingId);
                     request.setAttribute("seatCodes", seatCodes);
-                    
+
                 } else {
                     request.setAttribute("validationError", result);
                 }

@@ -3,7 +3,9 @@ package dto;
 import java.time.format.DateTimeFormatter;
 import model.Review;
 
-/** Dữ liệu review hiển thị ở trang chi tiết phim, kèm tên người đánh giá. */
+/**
+ * Dữ liệu review hiển thị ở trang chi tiết phim, kèm tên người đánh giá.
+ */
 public class ReviewView {
 
     private Review review;
@@ -33,7 +35,9 @@ public class ReviewView {
         this.userFullName = userFullName;
     }
 
-    /** Hiển thị 5 sao, hỗ trợ nửa sao: 3.5 = ★★★◐☆. */
+    /**
+     * Hiển thị 5 sao, hỗ trợ nửa sao: 3.5 = ★★★◐☆.
+     */
     public String getStars() {
         if (review == null) {
             return "";

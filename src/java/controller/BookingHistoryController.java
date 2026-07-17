@@ -13,13 +13,16 @@ import service.BookingService;
 /**
  * Controller cho luồng xem lịch sử đặt vé của khách hàng.
  *
- * <p>Luồng UI:</p>
+ * <p>
+ * Luồng UI:</p>
  * <ul>
- *   <li>User mở GET {@code /my-bookings} từ menu lịch sử đặt vé.</li>
- *   <li>Controller kiểm tra session; nếu chưa đăng nhập thì redirect {@code /login}.</li>
- *   <li>Gọi {@link BookingService#getHistory(int)} theo userId hiện tại.</li>
- *   <li>Đẩy danh sách booking sang {@code /pages/booking/history.jsp}.</li>
- *   <li>Từ mỗi dòng booking, user có thể mở chi tiết hoặc review nếu đủ điều kiện.</li>
+ * <li>User mở GET {@code /my-bookings} từ menu lịch sử đặt vé.</li>
+ * <li>Controller kiểm tra session; nếu chưa đăng nhập thì redirect
+ * {@code /login}.</li>
+ * <li>Gọi {@link BookingService#getHistory(int)} theo userId hiện tại.</li>
+ * <li>Đẩy danh sách booking sang {@code /pages/booking/history.jsp}.</li>
+ * <li>Từ mỗi dòng booking, user có thể mở chi tiết hoặc review nếu đủ điều
+ * kiện.</li>
  * </ul>
  *
  * @author HuyPD
@@ -64,9 +67,8 @@ public class BookingHistoryController extends HttpServlet {
     /**
      * Lay nguoi dung dang dang nhap tu session.
      *
-     * Tung buoc:
-     * 1. request.getSession(false): chi lay session neu da ton tai, khong tao session moi.
-     * 2. Neu khong co session thi user chua dang nhap.
+     * Tung buoc: 1. request.getSession(false): chi lay session neu da ton tai,
+     * khong tao session moi. 2. Neu khong co session thi user chua dang nhap.
      * 3. Lay attribute "user" do AuthController set sau khi login thanh cong.
      * 4. Chi return khi object trong session that su la User.
      */

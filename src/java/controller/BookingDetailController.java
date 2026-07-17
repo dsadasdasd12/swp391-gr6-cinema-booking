@@ -11,12 +11,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.User;
 import service.BookingService;
+import dao.BookingFnbDAO;
 
 /**
- * Controller cho luong xem chi tiet booking, theo doi trang thai va huy booking.
+ * Controller cho luong xem chi tiet booking, theo doi trang thai va huy
+ * booking.
  *
- * <p>GET {@code /my-booking?id=...}: user xem chi tiet ve da dat.</p>
- * <p>POST {@code /my-booking}: user gui form huy booking.</p>
+ * <p>
+ * GET {@code /my-booking?id=...}: user xem chi tiet ve da dat.</p>
+ * <p>
+ * POST {@code /my-booking}: user gui form huy booking.</p>
  *
  * @author HuyPD
  */
@@ -36,6 +40,7 @@ public class BookingDetailController extends HttpServlet {
      * Controller khong goi DAO truc tiep de tranh lap logic kiem tra quyen.
      */
     private final BookingService bookingService = new BookingService();
+    private final BookingFnbDAO bookingFnbDAO = new BookingFnbDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -69,6 +74,7 @@ public class BookingDetailController extends HttpServlet {
             // Attribute "bk" la object chi tiet booking de JSP render thong tin ve/phim/ghe.
             request.setAttribute("bk", booking);
             request.setAttribute("statusHistory", bookingService.getStatusHistory(booking.getBooking().getId()));
+            request.setAttribute("fnbLines", bookingFnbDAO.findByBookingId(booking.getBooking().getId()));
 
             // Noi dung chuyen khoan co dang RVS + bookingId de webhook tach ra duoc booking can confirm.
             String transferContent = "RVS" + booking.getBooking().getId();
@@ -77,8 +83,8 @@ public class BookingDetailController extends HttpServlet {
              * Tao URL anh QR tu dich vu VietQR.
              * amount la tong tien booking, addInfo la noi dung chuyen khoan, accountName la ten chu TK.
              */
-            String paymentQr =
-                    "https://img.vietqr.io/image/"
+            String paymentQr
+                    = "https://img.vietqr.io/image/"
                     + BANK_CODE + "-"
                     + ACCOUNT_NO
                     + "-compact2.png"
@@ -118,17 +124,17 @@ public class BookingDetailController extends HttpServlet {
     }
 
     /**
-     * Lay user dang dang nhap.
-     * Ham nay tai su dung helper cua BookingHistoryController de tat ca controller booking
-     * cung doc session theo mot cach thong nhat.
+     * Lay user dang dang nhap. Ham nay tai su dung helper cua
+     * BookingHistoryController de tat ca controller booking cung doc session
+     * theo mot cach thong nhat.
      */
     private static User currentUser(HttpServletRequest request) {
         return BookingHistoryController.currentUser(request);
     }
 
     /**
-     * Doc id tu tham so request.
-     * Return -1 neu null, rong hoac khong phai so de cac service xu ly nhu id khong hop le.
+     * Doc id tu tham so request. Return -1 neu null, rong hoac khong phai so de
+     * cac service xu ly nhu id khong hop le.
      */
     private static int parseId(String s) {
         if (s == null || s.isBlank()) {

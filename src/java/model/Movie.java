@@ -12,7 +12,8 @@ import java.util.List;
 
 /**
  * Entity ánh xạ một dòng của bảng dbo.MOVIES, kèm vài trường hiển thị suy diễn
- * (thể loại, ngôn ngữ, điểm đánh giá trung bình) phục vụ các màn hình duyệt phim.
+ * (thể loại, ngôn ngữ, điểm đánh giá trung bình) phục vụ các màn hình duyệt
+ * phim.
  *
  * Lưu ý: mọi xử lý định dạng để hiển thị đều đặt ở đây (tầng model) để JSP chỉ
  * cần gọi getter, không phải nhúng code Java.
@@ -171,17 +172,19 @@ public class Movie {
     public void setReviewCount(int reviewCount) {
         this.reviewCount = reviewCount;
     }
-    
-    public int getDurationHours() {
-    return durationMin / 60;
-}
 
-public int getDurationRemainingMinutes() {
-    return durationMin % 60;
-}
+    public int getDurationHours() {
+        return durationMin / 60;
+    }
+
+    public int getDurationRemainingMinutes() {
+        return durationMin % 60;
+    }
     // ── Các getter hỗ trợ hiển thị (để JSP gọi trực tiếp qua EL) ──
 
-    /** Nhãn trạng thái tiếng Việt, ví dụ "Đang chiếu". */
+    /**
+     * Nhãn trạng thái tiếng Việt, ví dụ "Đang chiếu".
+     */
     public String getStatusLabel() {
         if (status == null) {
             return "";
@@ -198,7 +201,9 @@ public int getDurationRemainingMinutes() {
         }
     }
 
-    /** Lớp CSS cho badge trạng thái (now / soon / ended). */
+    /**
+     * Lớp CSS cho badge trạng thái (now / soon / ended).
+     */
     public String getStatusBadgeClass() {
         if ("NOW_SHOWING".equals(status)) {
             return "now";
@@ -209,7 +214,9 @@ public int getDurationRemainingMinutes() {
         return "ended";
     }
 
-    /** Danh sách tên thể loại nối bằng dấu phẩy, ví dụ "Hành động, Viễn tưởng". */
+    /**
+     * Danh sách tên thể loại nối bằng dấu phẩy, ví dụ "Hành động, Viễn tưởng".
+     */
     public String getCategoryNames() {
         StringBuilder sb = new StringBuilder();
         for (Category c : categories) {
@@ -221,7 +228,9 @@ public int getDurationRemainingMinutes() {
         return sb.toString();
     }
 
-    /** Danh sách ngôn ngữ (kèm Phụ đề/Lồng tiếng) nối bằng dấu phẩy. */
+    /**
+     * Danh sách ngôn ngữ (kèm Phụ đề/Lồng tiếng) nối bằng dấu phẩy.
+     */
     public String getLanguageNames() {
         StringBuilder sb = new StringBuilder();
         for (Language l : languages) {
@@ -233,7 +242,9 @@ public int getDurationRemainingMinutes() {
         return sb.toString();
     }
 
-    /** Thời lượng dạng "2h 15m". */
+    /**
+     * Thời lượng dạng "2h 15m".
+     */
     public String getDurationLabel() {
         int h = durationMin / 60;
         int m = durationMin % 60;
@@ -243,46 +254,62 @@ public int getDurationRemainingMinutes() {
         return m + "m";
     }
 
-    /** Điểm đánh giá làm tròn 1 chữ số thập phân để hiển thị. */
+    /**
+     * Điểm đánh giá làm tròn 1 chữ số thập phân để hiển thị.
+     */
     public double getRatingRounded() {
         return Math.round(avgRating * 10.0) / 10.0;
     }
 
-    /** Số sao đặc (0..5) để vẽ dải sao trên trang chi tiết. */
+    /**
+     * Số sao đặc (0..5) để vẽ dải sao trên trang chi tiết.
+     */
     public int getRoundedStars() {
         return (int) Math.round(getRatingRounded());
     }
 
-    /** Năm khởi chiếu, hoặc 0 nếu chưa có. */
+    /**
+     * Năm khởi chiếu, hoặc 0 nếu chưa có.
+     */
     public int getReleaseYear() {
         return releaseDate == null ? 0 : releaseDate.getYear();
     }
 
-    /** Ngày khởi chiếu dạng dd/MM/yyyy, hoặc rỗng nếu chưa có. */
+    /**
+     * Ngày khởi chiếu dạng dd/MM/yyyy, hoặc rỗng nếu chưa có.
+     */
     public String getReleaseDateLabel() {
         return releaseDate == null ? ""
                 : releaseDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
-    /** Giá trị cho input type="date" (yyyy-MM-dd). */
+    /**
+     * Giá trị cho input type="date" (yyyy-MM-dd).
+     */
     public String getReleaseDateForInput() {
         return releaseDate == null ? ""
                 : releaseDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
-    /** Ngày kết thúc chiếu dạng dd/MM/yyyy, hoặc rỗng nếu chưa có. */
+    /**
+     * Ngày kết thúc chiếu dạng dd/MM/yyyy, hoặc rỗng nếu chưa có.
+     */
     public String getEndDateLabel() {
         return endDate == null ? ""
                 : endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
-    /** Giá trị cho input type="date" (yyyy-MM-dd). */
+    /**
+     * Giá trị cho input type="date" (yyyy-MM-dd).
+     */
     public String getEndDateForInput() {
         return endDate == null ? ""
                 : endDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
-    /** Chuẩn hóa đường dẫn lưu DB / hiển thị (bỏ dấu / đầu). */
+    /**
+     * Chuẩn hóa đường dẫn lưu DB / hiển thị (bỏ dấu / đầu).
+     */
     public static String normalizePosterPath(String url) {
         if (url == null || url.isBlank()) {
             return null;
@@ -297,7 +324,9 @@ public int getDurationRemainingMinutes() {
         return p.isEmpty() ? null : p;
     }
 
-    /** Đường dẫn poster tương đối (không có dấu / đầu) để ghép với contextPath. */
+    /**
+     * Đường dẫn poster tương đối (không có dấu / đầu) để ghép với contextPath.
+     */
     public String getPosterWebPath() {
         String p = normalizePosterPath(posterUrl);
         return p == null ? "" : p;
@@ -316,7 +345,8 @@ public int getDurationRemainingMinutes() {
     }
 
     /**
-     * Giá trị form select ngôn ngữ (Vietnamese, English, …) từ ngôn ngữ đầu tiên của phim.
+     * Giá trị form select ngôn ngữ (Vietnamese, English, …) từ ngôn ngữ đầu
+     * tiên của phim.
      */
     public String getPrimaryLanguageFormValue() {
         if (languages == null || languages.isEmpty()) {

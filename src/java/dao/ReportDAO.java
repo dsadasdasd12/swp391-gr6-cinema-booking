@@ -17,15 +17,15 @@ import util.DBContext;
 import util.EncodingUtil;
 
 /**
- * DAO thực hiện các truy vấn báo cáo & phân tích số liệu động.
- * Kết quả trả về dạng danh sách các hàng (Map<String, Object>) để ReportService đóng gói vào ReportDTO.
+ * DAO thực hiện các truy vấn báo cáo & phân tích số liệu động. Kết quả trả về
+ * dạng danh sách các hàng (Map<String, Object>) để ReportService đóng gói vào
+ * ReportDTO.
  *
  * @author LONG
  */
 public class ReportDAO {
 
     // ── 1. DOANH THU THEO NGÀY ────────────────────────────────
-
     /**
      * Báo cáo doanh thu theo ngày trong khoảng thời gian.
      */
@@ -44,7 +44,6 @@ public class ReportDAO {
     }
 
     // ── 2. DOANH SỐ THEO CHI NHÁNH ─────────────────────────────
-
     /**
      * Báo cáo doanh số và số lượng vé bán ra theo từng chi nhánh.
      */
@@ -67,10 +66,9 @@ public class ReportDAO {
     }
 
     // ── 3. TỈ LỆ LẤP ĐẦY PHÒNG CHIẾU ───────────────────────────
-
     /**
-     * Thống kê tỉ lệ lấp đầy theo phòng chiếu (HALLS) dựa trên số ghế đã bán trong SHOWTIMES.
-     * Sử dụng total_seats từ dbo.HALLS theo yêu cầu hệ thống.
+     * Thống kê tỉ lệ lấp đầy theo phòng chiếu (HALLS) dựa trên số ghế đã bán
+     * trong SHOWTIMES. Sử dụng total_seats từ dbo.HALLS theo yêu cầu hệ thống.
      */
     public List<Map<String, Object>> getOccupancyRate() {
         String sql = "SELECT "
@@ -108,7 +106,6 @@ public class ReportDAO {
     }
 
     // ── 4. PHIM ĂN KHÁCH NHẤT ──────────────────────────────────
-
     /**
      * Báo cáo các phim ăn khách nhất theo số vé bán ra và doanh thu.
      */
@@ -131,7 +128,6 @@ public class ReportDAO {
     }
 
     // ── 5. HOẠT ĐỘNG KHÁCH HÀNG ────────────────────────────────
-
     /**
      * Báo cáo hoạt động khách hàng: số lần đặt, vé mua, tổng chi tiêu.
      */
@@ -155,7 +151,6 @@ public class ReportDAO {
     }
 
     // ── 6. GIỜ CAO ĐIỂM (PEAK HOURS) ───────────────────────────
-
     /**
      * Báo cáo khung giờ đặt vé cao điểm trong ngày.
      */
@@ -174,7 +169,6 @@ public class ReportDAO {
     }
 
     // ── Nền tảng thực thi JDBC động ────────────────────────────
-
     private List<Map<String, Object>> executeQuery(String sql, Object... params) {
         List<Map<String, Object>> list = new ArrayList<>();
         Connection conn = DBContext.getInstance().getConnection();

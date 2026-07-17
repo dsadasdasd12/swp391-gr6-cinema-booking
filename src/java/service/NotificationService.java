@@ -24,13 +24,11 @@ import util.DBContext;
 /**
  * Dịch vụ gửi thông báo (email) cho hệ thống RapViet.
  *
- *  — Gửi xác nhận đặt vé / thanh toán:
- *   - Tự động gọi sau khi booking confirmed / payment success
- *   - Retry tối đa 3 lần, log mỗi lần thử
+ * — Gửi xác nhận đặt vé / thanh toán: - Tự động gọi sau khi booking confirmed /
+ * payment success - Retry tối đa 3 lần, log mỗi lần thử
  *
- *  — Gửi thông báo khuyến mãi:
- *   - Admin tạo nội dung + chọn đối tượng
- *   - Gửi batch, log từng người nhận
+ * — Gửi thông báo khuyến mãi: - Admin tạo nội dung + chọn đối tượng - Gửi
+ * batch, log từng người nhận
  *
  * @author LONG
  */
@@ -38,20 +36,19 @@ public class NotificationService {
 
     private static final int MAX_EMAIL_RETRIES = 3;
 
-    private final EmailService        emailService = new EmailService();
-    private final NotificationLogDAO  logDAO       = new NotificationLogDAO();
-    private final TicketDAO           ticketDAO    = new TicketDAO();
+    private final EmailService emailService = new EmailService();
+    private final NotificationLogDAO logDAO = new NotificationLogDAO();
+    private final TicketDAO ticketDAO = new TicketDAO();
 
     // ═══════════════════════════════════════════════════════════
     //  — Booking / Payment Confirmation
     // ═══════════════════════════════════════════════════════════
-
     /**
-     * Gửi email xác nhận đặt vé cho khách hàng.
-     * Được gọi từ TicketService sau khi sinh e-ticket thành công.
+     * Gửi email xác nhận đặt vé cho khách hàng. Được gọi từ TicketService sau
+     * khi sinh e-ticket thành công.
      *
      * @param bookingId id booking đã confirmed
-     * @param ctx       ServletContext (cần cho email config)
+     * @param ctx ServletContext (cần cho email config)
      */
     public void sendBookingConfirmation(int bookingId, ServletContext ctx) {
         // Lấy thông tin booking bằng một truy vấn join
@@ -98,7 +95,9 @@ public class NotificationService {
      */
     public void sendPaymentConfirmation(int bookingId, String amount, ServletContext ctx) {
         BookingInfo info = loadBookingInfo(bookingId);
-        if (info == null) return;
+        if (info == null) {
+            return;
+        }
 
         String subject = "RapViet — Thanh toán thành công: " + amount + " VNĐ";
         String body = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>"
@@ -131,20 +130,19 @@ public class NotificationService {
     // ═══════════════════════════════════════════════════════════
     //  — Promotion / Batch Emails
     // ═══════════════════════════════════════════════════════════
-
     /**
-     * Gửi email khuyến mãi hàng loạt.
-     * Mỗi email được log riêng (SENT / FAILED per recipient).
+     * Gửi email khuyến mãi hàng loạt. Mỗi email được log riêng (SENT / FAILED
+     * per recipient).
      *
-     * @param emails    danh sách email người nhận
-     * @param subject   tiêu đề
-     * @param htmlBody  nội dung HTML
-     * @param ctx       ServletContext
+     * @param emails danh sách email người nhận
+     * @param subject tiêu đề
+     * @param htmlBody nội dung HTML
+     * @param ctx ServletContext
      * @return số email gửi thành công
      */
     public int sendPromotion(List<String> emails, String subject, String htmlBody, ServletContext ctx) {
         Session session = EmailUtil.getMailSession(ctx);
-        String from     = EmailUtil.getFromEmail(ctx);
+        String from = EmailUtil.getFromEmail(ctx);
         int successCount = 0;
 
         for (String email : emails) {
@@ -167,7 +165,7 @@ public class NotificationService {
                     log.setRetryCount(attempt);
                     System.getLogger(NotificationService.class.getName())
                             .log(System.Logger.Level.WARNING,
-                                 "Promo email attempt " + attempt + " failed for " + email, e);
+                                    "Promo email attempt " + attempt + " failed for " + email, e);
                 }
             }
 
@@ -191,8 +189,7 @@ public class NotificationService {
         List<String> emails = new java.util.ArrayList<>();
         String sql = "SELECT email FROM dbo.[USER] WHERE role='CUSTOMER' AND active=1";
         Connection conn = DBContext.getInstance().getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 emails.add(rs.getString("email"));
             }
@@ -214,7 +211,7 @@ public class NotificationService {
      * Lấy trang log để hiển thị trang admin.
      */
     public PageResult<NotificationLog> getLogsPaged(String keyword, String type, String status,
-                                                     int page, int pageSize) {
+            int page, int pageSize) {
         int safePage = page < 1 ? 1 : page;
         int safeSize = pageSize < 1 ? 10 : pageSize;
         int offset = (safePage - 1) * safeSize;
@@ -227,12 +224,13 @@ public class NotificationService {
     // ═══════════════════════════════════════════════════════════
     // Private helpers
     // ═══════════════════════════════════════════════════════════
-
-    /** Retry gửi email tối đa MAX_EMAIL_RETRIES lần, cập nhật log sau mỗi lần. */
+    /**
+     * Retry gửi email tối đa MAX_EMAIL_RETRIES lần, cập nhật log sau mỗi lần.
+     */
     private void sendWithRetry(ServletContext ctx, String to,
-                               String subject, String body, NotificationLog log) {
+            String subject, String body, NotificationLog log) {
         Session session = EmailUtil.getMailSession(ctx);
-        String  from    = EmailUtil.getFromEmail(ctx);
+        String from = EmailUtil.getFromEmail(ctx);
 
         for (int attempt = 1; attempt <= MAX_EMAIL_RETRIES; attempt++) {
             try {
@@ -246,8 +244,8 @@ public class NotificationService {
                 logDAO.updateStatus(log.getNotificationId(), "FAILED", attempt);
                 System.getLogger(NotificationService.class.getName())
                         .log(System.Logger.Level.WARNING,
-                             "Email attempt " + attempt + "/" + MAX_EMAIL_RETRIES
-                             + " to " + to + " failed: " + e.getMessage());
+                                "Email attempt " + attempt + "/" + MAX_EMAIL_RETRIES
+                                + " to " + to + " failed: " + e.getMessage());
             }
         }
     }
@@ -270,13 +268,13 @@ public class NotificationService {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     BookingInfo info = new BookingInfo();
-                    info.bookingId    = rs.getInt("booking_id");
-                    info.userId       = rs.getInt("user_id");
+                    info.bookingId = rs.getInt("booking_id");
+                    info.userId = rs.getInt("user_id");
                     info.customerName = rs.getString("full_name");
-                    info.email        = rs.getString("email");
-                    info.movieTitle   = rs.getString("movie_title");
-                    info.showtimeStr  = rs.getString("showtime_str");
-                    info.totalPrice   = rs.getBigDecimal("total_price").toPlainString();
+                    info.email = rs.getString("email");
+                    info.movieTitle = rs.getString("movie_title");
+                    info.showtimeStr = rs.getString("showtime_str");
+                    info.totalPrice = rs.getBigDecimal("total_price").toPlainString();
                     return info;
                 }
             }
@@ -287,27 +285,32 @@ public class NotificationService {
         return null;
     }
 
-    /** DTO nội bộ cho dữ liệu booking dùng khi soạn email. */
+    /**
+     * DTO nội bộ cho dữ liệu booking dùng khi soạn email.
+     */
     private static class BookingInfo {
+
         String customerName;
         String email;
         String movieTitle;
         String showtimeStr;
         String totalPrice;
-        int    bookingId;
-        int    userId;
+        int bookingId;
+        int userId;
     }
 
-    /** Soạn HTML email xác nhận booking. */
+    /**
+     * Soạn HTML email xác nhận booking.
+     */
     private String buildBookingEmailHtml(BookingInfo info, Ticket ticket, String ticketLink) {
         StringBuilder sb = new StringBuilder();
         sb.append("<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;")
-          .append("background:#1a1d27;color:#e8eaf0;border-radius:12px;overflow:hidden;'>");
+                .append("background:#1a1d27;color:#e8eaf0;border-radius:12px;overflow:hidden;'>");
         // Header
         sb.append("<div style='background:#e50914;padding:1.5rem 2rem;text-align:center;'>")
-          .append("<h1 style='color:#fff;margin:0;font-size:1.5rem;'>🎬 RapViet Cinema</h1>")
-          .append("<p style='color:rgba(255,255,255,.8);margin:.25rem 0 0;font-size:.9rem;'>Xác nhận đặt vé</p>")
-          .append("</div>");
+                .append("<h1 style='color:#fff;margin:0;font-size:1.5rem;'>🎬 RapViet Cinema</h1>")
+                .append("<p style='color:rgba(255,255,255,.8);margin:.25rem 0 0;font-size:.9rem;'>Xác nhận đặt vé</p>")
+                .append("</div>");
         // Body
         sb.append("<div style='padding:2rem;'>");
         sb.append("<p>Xin chào <strong>").append(esc(info.customerName)).append("</strong>,</p>");
@@ -322,18 +325,20 @@ public class NotificationService {
         if (ticket != null && ticket.getQrCodeBase64() != null) {
             sb.append("<div style='text-align:center;margin:1.5rem 0;'>");
             sb.append("<img src='data:image/png;base64,").append(ticket.getQrCodeBase64())
-              .append("' alt='QR Code' style='width:200px;border-radius:8px;border:2px solid #333;'>");
+                    .append("' alt='QR Code' style='width:200px;border-radius:8px;border:2px solid #333;'>");
             sb.append("<p style='font-size:.8rem;color:#8b8fa8;margin-top:.5rem;'>Xuất trình mã QR tại quầy soát vé</p>");
             sb.append("</div>");
         }
         sb.append("<p style='font-size:.85rem;color:#8b8fa8;margin-top:1.5rem;'>")
-          .append("Cảm ơn bạn đã sử dụng RapViet Cinema!<br>")
-          .append("Nếu cần hỗ trợ, vui lòng liên hệ hotline hoặc reply email này.</p>");
+                .append("Cảm ơn bạn đã sử dụng RapViet Cinema!<br>")
+                .append("Nếu cần hỗ trợ, vui lòng liên hệ hotline hoặc reply email này.</p>");
         sb.append("</div></div>");
         return sb.toString();
     }
 
-    /** Một dòng thông tin trong email (label: value). */
+    /**
+     * Một dòng thông tin trong email (label: value).
+     */
     private String infoRow(String label, String value) {
         return "<tr><td style='padding:.5rem .75rem;color:#8b8fa8;font-size:.85rem;border-bottom:1px solid #333;'>"
                 + esc(label)
@@ -342,9 +347,13 @@ public class NotificationService {
                 + "</td></tr>";
     }
 
-    /** Escape HTML tối thiểu cho email. */
+    /**
+     * Escape HTML tối thiểu cho email.
+     */
     private String esc(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 }

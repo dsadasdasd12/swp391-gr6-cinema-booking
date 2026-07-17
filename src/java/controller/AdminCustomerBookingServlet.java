@@ -25,8 +25,8 @@ public class AdminCustomerBookingServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null || (session.getAttribute("adminUser") == null && 
-            (session.getAttribute("user") == null || !"ADMIN".equals(((User)session.getAttribute("user")).getRole())))) {
+        if (session == null || (session.getAttribute("adminUser") == null
+                && (session.getAttribute("user") == null || !"ADMIN".equals(((User) session.getAttribute("user")).getRole())))) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
@@ -54,7 +54,7 @@ public class AdminCustomerBookingServlet extends HttpServlet {
         String status = req.getParameter("status");
 
         List<BookingView> bookings = bookingService.getHistory(customerId, status);
-        
+
         req.setAttribute("customer", customer);
         req.setAttribute("bookings", bookings);
         req.setAttribute("statusFilter", status);

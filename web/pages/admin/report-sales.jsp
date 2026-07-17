@@ -49,7 +49,7 @@
 <div class="rv-toolbar mb-4">
     <form method="get" action="${ctx}/admin/reports" class="d-flex align-items-end flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
         <input type="hidden" name="type" value="sales">
-        
+
         <div class="rv-form-group" style="margin: 0;">
             <label class="rv-label" for="fromDate" style="font-size: 11px; margin-bottom: 4px;">Từ ngày</label>
             <input type="date" id="fromDate" name="fromDate" class="rv-input" style="height: 38px;" required value="${report.fromDate}">
@@ -84,7 +84,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Số vé bán -->
     <div class="col-md-4">
         <div class="admin-card d-flex align-items-center gap-3"
@@ -157,10 +157,10 @@
                             <tr>
                                 <td>
                                     <span style="display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;
-                                        ${status.index == 0 ? 'background:#ffd700;color:#000;' : ''}
-                                        ${status.index == 1 ? 'background:#c0c0c0;color:#000;' : ''}
-                                        ${status.index == 2 ? 'background:#cd7f32;color:#000;' : ''}
-                                        ${status.index > 2 ? 'background:rgba(0,0,0,.08);color:var(--n-500);' : ''}">
+                                          ${status.index == 0 ? 'background:#ffd700;color:#000;' : ''}
+                                          ${status.index == 1 ? 'background:#c0c0c0;color:#000;' : ''}
+                                          ${status.index == 2 ? 'background:#cd7f32;color:#000;' : ''}
+                                          ${status.index > 2 ? 'background:rgba(0,0,0,.08);color:var(--n-500);' : ''}">
                                         ${status.index + 1}
                                     </span>
                                 </td>
@@ -191,73 +191,73 @@
 <!-- Chart.js & Script -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    var ctx = document.getElementById('salesChart').getContext('2d');
-    var chartLabels = ${report.labelsJson};
-    var chartData   = ${report.dataJson};
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById('salesChart').getContext('2d');
+        var chartLabels = ${report.labelsJson};
+        var chartData = ${report.dataJson};
 
-    if (!chartLabels || chartLabels.length === 0) {
-        chartLabels = ["Chưa có dữ liệu"];
-        chartData = [0];
-    }
+        if (!chartLabels || chartLabels.length === 0) {
+            chartLabels = ["Chưa có dữ liệu"];
+            chartData = [0];
+        }
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: chartLabels,
-            datasets: [{
-                label: 'Doanh thu (VNĐ)',
-                data: chartData,
-                backgroundColor: 'rgba(25, 195, 125, 0.75)',
-                borderColor: '#19c37d',
-                borderWidth: 1.5,
-                borderRadius: 6,
-                barThickness: 32
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1E293B',
-                    titleColor: '#fff',
-                    bodyColor: '#F8FAFC',
-                    borderColor: 'rgba(0,0,0,.08)',
-                    borderWidth: 1,
-                    callbacks: {
-                        label: function(context) {
-                            return 'Doanh thu: ' + context.raw.toLocaleString('vi-VN') + ' VNĐ';
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: chartData,
+                        backgroundColor: 'rgba(25, 195, 125, 0.75)',
+                        borderColor: '#19c37d',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        barThickness: 32
+                    }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        backgroundColor: '#1E293B',
+                        titleColor: '#fff',
+                        bodyColor: '#F8FAFC',
+                        borderColor: 'rgba(0,0,0,.08)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function (context) {
+                                return 'Doanh thu: ' + context.raw.toLocaleString('vi-VN') + ' VNĐ';
+                            }
                         }
                     }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                    ticks: { color: '#64748B', font: { size: 11 } }
                 },
-                y: {
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                    ticks: {
-                        color: '#64748B',
-                        font: { size: 11 },
-                        callback: function(value) {
-                            if (value >= 1000000) {
-                                return (value / 1000000) + 'M';
+                scales: {
+                    x: {
+                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
+                        ticks: {color: '#64748B', font: {size: 11}}
+                    },
+                    y: {
+                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
+                        ticks: {
+                            color: '#64748B',
+                            font: {size: 11},
+                            callback: function (value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000) + 'M';
+                                }
+                                return value.toLocaleString('vi-VN');
                             }
-                            return value.toLocaleString('vi-VN');
                         }
                     }
                 }
             }
-        }
+        });
     });
-});
 </script>
 </body>
 </html>

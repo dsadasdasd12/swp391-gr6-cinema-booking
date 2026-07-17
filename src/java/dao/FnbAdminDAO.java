@@ -22,7 +22,6 @@ public class FnbAdminDAO {
     // =========================================================
     // CATEGORY
     // =========================================================
-
     public List<FnbCategoryDTO> findAllCategories() {
         List<FnbCategoryDTO> categories = new ArrayList<>();
 
@@ -44,9 +43,7 @@ public class FnbAdminDAO {
             ORDER BY c.id
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 FnbCategoryDTO dto = new FnbCategoryDTO();
@@ -73,8 +70,7 @@ public class FnbAdminDAO {
                 (?, ?, 'ACTIVE', GETDATE())
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, category.getName());
             ps.setString(2, category.getDescription());
@@ -94,8 +90,7 @@ public class FnbAdminDAO {
             WHERE id = ?
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, category.getName());
             ps.setString(2, category.getDescription());
@@ -115,8 +110,7 @@ public class FnbAdminDAO {
               AND (? IS NULL OR id <> ?)
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, name);
             setNullableInteger(ps, 2, categoryId);
@@ -175,7 +169,6 @@ public class FnbAdminDAO {
     // =========================================================
     // PRODUCT
     // =========================================================
-
     public List<FnbProductDTO> findProductsByCategory(int categoryId) {
         List<FnbProductDTO> products = new ArrayList<>();
 
@@ -198,8 +191,7 @@ public class FnbAdminDAO {
             ORDER BY p.id DESC
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, categoryId);
 
@@ -239,9 +231,7 @@ public class FnbAdminDAO {
             ORDER BY c.name, p.name
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 products.add(mapProductDTO(rs));
@@ -271,8 +261,7 @@ public class FnbAdminDAO {
             VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', GETDATE())
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, product.getCategoryId());
             ps.setString(2, product.getName());
@@ -302,8 +291,7 @@ public class FnbAdminDAO {
             WHERE id = ?
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, product.getCategoryId());
             ps.setString(2, product.getName());
@@ -391,7 +379,6 @@ public class FnbAdminDAO {
     // PRODUCT - COMBO RELATION
     // Giữ nguyên chữ ký để không ảnh hưởng Service hiện tại.
     // =========================================================
-
     public List<Integer> findComboIdsContainingProduct(Connection conn, int productId)
             throws SQLException {
 
@@ -450,7 +437,6 @@ public class FnbAdminDAO {
     // =========================================================
     // COMBO
     // =========================================================
-
     public List<FnbComboDTO> findAllCombos() {
         List<FnbComboDTO> combos = new ArrayList<>();
 
@@ -480,9 +466,7 @@ public class FnbAdminDAO {
             ORDER BY c.id DESC
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 FnbComboDTO combo = mapComboDTO(rs);
@@ -695,8 +679,7 @@ public class FnbAdminDAO {
             WHERE id = ?
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, status);
             ps.setString(2, status);
@@ -765,7 +748,6 @@ public class FnbAdminDAO {
     // =========================================================
     // PRIVATE HELPERS
     // =========================================================
-
     private Connection getConnection() throws SQLException {
         return DBContext.getInstance().getConnection();
     }

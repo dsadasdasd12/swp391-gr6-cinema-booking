@@ -53,14 +53,14 @@
 <div class="rv-toolbar">
     <form method="get" action="${ctx}/admin/reports" class="d-flex align-items-end flex-wrap gap-3 w-100" style="margin: 0; padding: 0; border: none; background: none;">
         <input type="hidden" name="type" value="revenue">
-        
+
         <div style="display: flex; gap: var(--s-3); flex: 1; min-width: 280px;">
             <!-- From Date -->
             <div class="rv-form-group" style="flex: 1; margin: 0;">
                 <label class="rv-label" for="fromDate" style="font-size: 11px; margin-bottom: 4px;">Từ ngày</label>
                 <input type="date" id="fromDate" name="fromDate" class="rv-input" style="height: 38px;" required value="${report.fromDate}">
             </div>
-            
+
             <!-- To Date -->
             <div class="rv-form-group" style="flex: 1; margin: 0;">
                 <label class="rv-label" for="toDate" style="font-size: 11px; margin-bottom: 4px;">Đến ngày</label>
@@ -124,7 +124,7 @@
     <div class="rv-card__header">
         <span class="rv-card__title"><i class="bi bi-list-columns" style="margin-right: 8px; color: var(--primary)"></i>Bảng số liệu chi tiết</span>
     </div>
-    
+
     <c:choose>
         <c:when test="${empty report.rows}">
             <div class="rv-empty">
@@ -164,7 +164,7 @@
                                 </td>
                             </tr>
                         </c:forEach>
-                        
+
                         <!-- Totals Row -->
                         <tr style="background: var(--n-50); font-weight: 700;">
                             <td>TỔNG CỘNG HÀNG</td>
@@ -184,26 +184,26 @@
 
 <!-- Render Line Chart script -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const checkChartLoaded = setInterval(() => {
-        if (window.RVCharts && typeof Chart !== 'undefined') {
-            clearInterval(checkChartLoaded);
-            initChart();
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkChartLoaded = setInterval(() => {
+            if (window.RVCharts && typeof Chart !== 'undefined') {
+                clearInterval(checkChartLoaded);
+                initChart();
+            }
+        }, 100);
+
+        function initChart() {
+            let labels = ${report.labelsJson};
+            let data = ${report.dataJson};
+
+            if (!labels || labels.length === 0) {
+                labels = ["Chưa có số liệu"];
+                data = [0];
+            }
+
+            window.RVCharts.createLineChart('revenueChartCanvas', labels, data, 'Doanh thu ngày (₫)');
         }
-    }, 100);
-
-    function initChart() {
-        let labels = ${report.labelsJson};
-        let data = ${report.dataJson};
-
-        if (!labels || labels.length === 0) {
-            labels = ["Chưa có số liệu"];
-            data = [0];
-        }
-
-        window.RVCharts.createLineChart('revenueChartCanvas', labels, data, 'Doanh thu ngày (₫)');
-    }
-});
+    });
 </script>
 
 </body>

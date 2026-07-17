@@ -1,4 +1,5 @@
 package model;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -22,10 +23,10 @@ public class User implements Serializable {
     }
 
     public User(int id, String fullName, String email,
-                String passwordHash, String googleId,
-                String phone, String role,
-                boolean active, boolean emailVerified,
-                LocalDateTime createdAt, LocalDateTime lastUpdate) {
+            String passwordHash, String googleId,
+            String phone, String role,
+            boolean active, boolean emailVerified,
+            LocalDateTime createdAt, LocalDateTime lastUpdate) {
 
         this.id = id;
         this.fullName = fullName;
@@ -127,9 +128,20 @@ public class User implements Serializable {
     public void setLastUpdate(LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
-    
-    public boolean isAdmin()      { return "ADMIN".equals(role); }
-    public boolean isManager()    { return "MANAGER".equals(role); }
-    public boolean isStaff()      { return "STAFF".equals(role); }
-    public boolean isCustomer()   { return "CUSTOMER".equals(role); }
+
+    public boolean isAdmin() {
+        return "ADMIN".equals(role);
+    }
+
+    public boolean isManager() {
+        return "MANAGER".equals(role);
+    }
+
+    public boolean isStaff() {
+        return "STAFF".equals(role);
+    }
+
+    public boolean isCustomer() {
+        return "CUSTOMER".equals(role);
+    }
 }

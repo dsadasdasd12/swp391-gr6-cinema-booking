@@ -300,17 +300,17 @@
         document.getElementById('editName').value = name;
         document.getElementById('editDefaultPrice').value = defaultPrice;
         document.getElementById('editColor').value = color || '#10b981';
-        
+
         var statusSelect = document.getElementById('editStatus');
         statusSelect.value = status;
-        
+
         if (code === 'STANDARD' || code === 'VIP' || code === 'COUPLE') {
             statusSelect.value = 'ACTIVE';
             statusSelect.disabled = true;
         } else {
             statusSelect.disabled = false;
         }
-        
+
         new bootstrap.Modal(document.getElementById('editSeatTypeModal')).show();
     }
 </script>

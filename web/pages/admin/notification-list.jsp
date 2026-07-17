@@ -102,9 +102,9 @@
                                 <td style="color:var(--clr-muted);font-size:.8rem;">${l.id}</td>
                                 <td>
                                     <span style="font-size:.78rem;padding:.2rem .5rem;border-radius:6px;
-                                        ${l.notificationType == 'BOOKING_CONFIRM' ? 'background:rgba(25,195,125,.12);color:#19c37d;' : ''}
-                                        ${l.notificationType == 'PAYMENT_CONFIRM' ? 'background:rgba(59,130,246,.12);color:#3b82f6;' : ''}
-                                        ${l.notificationType == 'SYSTEM'          ? 'background:rgba(139,143,168,.12);color:#8b8fa8;' : ''}">
+                                          ${l.notificationType == 'BOOKING_CONFIRM' ? 'background:rgba(25,195,125,.12);color:#19c37d;' : ''}
+                                          ${l.notificationType == 'PAYMENT_CONFIRM' ? 'background:rgba(59,130,246,.12);color:#3b82f6;' : ''}
+                                          ${l.notificationType == 'SYSTEM'          ? 'background:rgba(139,143,168,.12);color:#8b8fa8;' : ''}">
                                         <c:out value="${l.typeLabel}"/>
                                     </span>
                                 </td>
@@ -151,7 +151,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+crossorigin="anonymous"></script>
 
 </body>
 </html>
