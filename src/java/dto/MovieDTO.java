@@ -20,6 +20,7 @@ public class MovieDTO {
     private String durationLabel;     // "2h 15m"
     private String posterUrl;
     private String director;
+    private String actor;             // Thêm cột diễn viên
     private boolean hasActiveShowtimes; // true → không cho xóa
 
     // ── Constructors ─────────────────────────────────────────
@@ -28,7 +29,7 @@ public class MovieDTO {
 
     public MovieDTO(int id, String title, String status, String statusLabel,
             String categoryNames, String durationLabel,
-            String posterUrl, String director, boolean hasActiveShowtimes) {
+            String posterUrl, String director, String actor, boolean hasActiveShowtimes) {
         this.id = id;
         this.title = title;
         this.status = status;
@@ -37,6 +38,7 @@ public class MovieDTO {
         this.durationLabel = durationLabel;
         this.posterUrl = posterUrl;
         this.director = director;
+        this.actor = actor;
         this.hasActiveShowtimes = hasActiveShowtimes;
     }
 
@@ -124,6 +126,14 @@ public class MovieDTO {
         this.director = director;
     }
 
+    public String getActor() {
+        return actor;
+    }
+
+    public void setActor(String actor) {
+        this.actor = actor;
+    }
+
     public boolean isHasActiveShowtimes() {
         return hasActiveShowtimes;
     }
@@ -131,6 +141,7 @@ public class MovieDTO {
     public void setHasActiveShowtimes(boolean b) {
         this.hasActiveShowtimes = b;
     }
+
 
     /**
      * CSS class dùng cho badge trạng thái trong Bootstrap 5. NOW_SHOWING →

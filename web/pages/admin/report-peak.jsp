@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Báo cáo giờ cao điểm (report-peak.jsp)
     Servlet: ReportController ?type=peak
     (Long — )
@@ -68,20 +68,24 @@
 </div>
 
 <!-- Đồ thị trực quan (Chart.js) -->
-<div class="admin-card mb-4">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-clock-history" style="color:var(--clr-primary);margin-right:.4rem;"></i> Biểu đồ lượng đặt vé theo giờ trong ngày (24 giờ)
-    </h2>
-    <div class="chart-box" style="height:320px;">
+<div class="rv-card mb-4">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-clock-history" style="color:var(--clr-primary);margin-right:.4rem;"></i> Biểu đồ lượng đặt vé theo giờ trong ngày (24 giờ)
+        </span>
+    </div>
+    <div class="chart-box" style="height:320px; padding: 1rem;">
         <canvas id="peakChart"></canvas>
     </div>
 </div>
 
 <!-- Chi tiết giờ cao điểm -->
-<div class="admin-card">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-list-columns" style="color:var(--clr-primary);margin-right:.4rem;"></i> Số liệu chi tiết theo từng khung giờ
-    </h2>
+<div class="rv-card">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-list-columns" style="color:var(--clr-primary);margin-right:.4rem;"></i> Số liệu chi tiết theo từng khung giờ
+        </span>
+    </div>
     <c:choose>
         <c:when test="${empty report.rows}">
             <div class="text-center py-5" style="color:var(--clr-muted);">
@@ -90,8 +94,8 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div style="overflow-x:auto;">
-                <table class="admin-table">
+            <div class="rv-table-responsive">
+                <table class="rv-table">
                     <thead>
                         <tr>
                             <th>Khung giờ đặt vé</th>
@@ -213,18 +217,19 @@ crossorigin="anonymous"></script>
                         }
                     }
                 },
-                scales: {
-                    x: {
-                        grid: {color: 'rgba(255, 255, 255, 0.04)'},
-                        ticks: {color: '#8b8fa8', font: {size: 10}}
-                    },
-                    y: {
-                        grid: {color: 'rgba(255, 255, 255, 0.04)'},
-                        ticks: {
-                            color: '#8b8fa8',
-                            font: {size: 11},
-                            stepSize: 1
-                        }
+
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: { color: '#94a3b8', font: { size: 11, family: "'Inter', sans-serif" } }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: {
+                        color: '#94a3b8',
+                        font: { size: 12, family: "'Inter', sans-serif" },
+                        stepSize: 1
                     }
                 }
             }

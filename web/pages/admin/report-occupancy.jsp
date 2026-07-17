@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Báo cáo tỉ lệ lấp đầy phòng chiếu (report-occupancy.jsp)
     Servlet: ReportController ?type=occupancy
     (Long — )
@@ -48,8 +48,8 @@
 <!-- KPI Card lấp đầy trung bình -->
 <div class="row g-4 mb-4">
     <div class="col-md-6 col-lg-4">
-        <div class="admin-card d-flex align-items-center gap-4"
-             style="background: linear-gradient(135deg, rgba(59,130,246,.05), rgba(59,130,246,.12)); border-color: rgba(59,130,246,.2);">
+        <div class="rv-card d-flex align-items-center gap-4"
+             style="background: linear-gradient(135deg, rgba(59,130,246,.05), rgba(59,130,246,.12)); border-color: rgba(59,130,246,.2); padding: 1.5rem; border-radius: var(--r-xl); border: 1px solid rgba(59,130,246,.2);">
             <div style="width:54px;height:54px;background:rgba(59,130,246,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#3b82f6;font-size:1.75rem;">
                 <i class="bi bi-percent"></i>
             </div>
@@ -63,7 +63,7 @@
     </div>
 
     <div class="col-md-6 col-lg-8">
-        <div class="admin-card d-flex align-items-center" style="height:100%;background:rgba(255,255,255,.01);">
+        <div class="rv-card d-flex align-items-center" style="height:100%;background:rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.05); border-radius: var(--r-xl); padding: 1.5rem;">
             <div style="font-size:.85rem;color:var(--n-500);line-height:1.7;">
                 <i class="bi bi-info-circle text-info me-1"></i> Tỷ lệ lấp đầy hiển thị tỷ số giữa <strong>số ghế thực tế đã bán (CONFIRMED/USED)</strong> và <strong>tổng số ghế cung cấp</strong> (tính bằng: <code>tổng số suất chiếu active</code> nhân với <code>sức chứa ghế của phòng đó (total_seats)</code>).
             </div>
@@ -72,20 +72,24 @@
 </div>
 
 <!-- Đồ thị trực quan (Chart.js) -->
-<div class="admin-card mb-4">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-bar-chart-steps" style="color:var(--clr-primary);margin-right:.4rem;"></i> Biểu đồ so sánh tỷ lệ lấp đầy giữa các phòng chiếu
-    </h2>
-    <div class="chart-box" style="height:350px;">
+<div class="rv-card mb-4">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-bar-chart-steps" style="color:var(--clr-primary);margin-right:.4rem;"></i> Biểu đồ so sánh tỷ lệ lấp đầy giữa các phòng chiếu
+        </span>
+    </div>
+    <div class="chart-box" style="height:350px; padding: 1rem;">
         <canvas id="occupancyChart"></canvas>
     </div>
 </div>
 
 <!-- Bảng chi tiết -->
-<div class="admin-card">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-table" style="color:var(--clr-primary);margin-right:.4rem;"></i> Số liệu chi tiết theo từng phòng chiếu
-    </h2>
+<div class="rv-card">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-table" style="color:var(--clr-primary);margin-right:.4rem;"></i> Số liệu chi tiết theo từng phòng chiếu
+        </span>
+    </div>
     <c:choose>
         <c:when test="${empty report.rows}">
             <div class="text-center py-5" style="color:var(--clr-muted);">
@@ -94,8 +98,8 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div style="overflow-x:auto;">
-                <table class="admin-table">
+            <div class="rv-table-responsive">
+                <table class="rv-table">
                     <thead>
                         <tr>
                             <th>Chi nhánh</th>
@@ -223,12 +227,12 @@ crossorigin="anonymous"></script>
                 scales: {
                     x: {
                         max: 100,
-                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
-                        ticks: {color: '#64748B', font: {size: 11}}
+                        grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                        ticks: { color: '#94a3b8', font: { size: 12, family: "'Inter', sans-serif" } }
                     },
                     y: {
-                        grid: {display: false},
-                        ticks: {color: '#64748B', font: {size: 10}}
+                        grid: { display: false },
+                        ticks: { color: '#e2e8f0', font: { size: 12, family: "'Inter', sans-serif" } }
                     }
                 }
             }

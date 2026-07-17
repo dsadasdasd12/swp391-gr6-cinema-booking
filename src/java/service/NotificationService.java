@@ -10,6 +10,7 @@ import jakarta.servlet.ServletContext;
 import dto.PageResult;
 import model.NotificationLog;
 import model.Ticket;
+import model.User;
 import util.EmailUtil;
 
 import jakarta.mail.MessagingException;
@@ -355,5 +356,52 @@ public class NotificationService {
             return "";
         }
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    public boolean deleteNotification(int id) {
+        return logDAO.delete(id);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  — System Notifications
+    // ═══════════════════════════════════════════════════════════
+
+    public void sendSystemWelcome(User user) {
+        if (user == null || user.getEmail() == null) return;
+        NotificationLog log = new NotificationLog();
+        log.setUserId(user.getId());
+        log.setType("SYSTEM");
+        log.setSubject("Hệ thống — Chào mừng thành viên mới");
+        log.setRecipientEmail(user.getEmail());
+        log.setStatus("SENT");
+        log.setRetryCount(0);
+        log.setErrorMessage("Đăng ký tài khoản thành công: " + esc(user.getFullName()));
+        logDAO.insert(log);
+    }
+
+    public void sendSystemAccountCreated(String email, String role, String fullName) {
+        if (email == null) return;
+        NotificationLog log = new NotificationLog();
+        log.setUserId(null); // System action without direct link to admin ID for simplicity
+        log.setType("SYSTEM");
+        log.setSubject("Hệ thống — Cấp tài khoản " + role);
+        log.setRecipientEmail(email);
+        log.setStatus("SENT");
+        log.setRetryCount(0);
+        log.setErrorMessage("Đã cấp quyền truy cập quản trị cho: " + esc(fullName));
+        logDAO.insert(log);
+    }
+
+    public void sendSystemAccountDeleted(String email, String role) {
+        if (email == null) return;
+        NotificationLog log = new NotificationLog();
+        log.setUserId(null); 
+        log.setType("SYSTEM");
+        log.setSubject("Hệ thống — Thu hồi tài khoản " + role);
+        log.setRecipientEmail(email);
+        log.setStatus("SENT");
+        log.setRetryCount(0);
+        log.setErrorMessage("Tài khoản quản trị đã bị xóa khỏi hệ thống.");
+        logDAO.insert(log);
     }
 }

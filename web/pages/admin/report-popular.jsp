@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Báo cáo phim ăn khách nhất (report-popular.jsp)
     Servlet: ReportController ?type=popular
     (Long — )
@@ -103,20 +103,24 @@
 </div>
 
 <!-- Đồ thị trực quan (Chart.js) -->
-<div class="admin-card mb-4">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-pie-chart" style="color:var(--clr-primary);margin-right:.4rem;"></i> Tỷ lệ phân bố vé bán ra theo Phim (Top Phim)
-    </h2>
-    <div class="chart-box" style="height:320px;">
+<div class="rv-card mb-4">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-pie-chart" style="color:var(--clr-primary);margin-right:.4rem;"></i> Tỷ lệ phân bố vé bán ra theo Phim (Top Phim)
+        </span>
+    </div>
+    <div class="chart-box" style="height:320px; padding: 1rem;">
         <canvas id="popularChart"></canvas>
     </div>
 </div>
 
 <!-- Chi tiết xếp hạng -->
-<div class="admin-card">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-trophy" style="color:var(--clr-primary);margin-right:.4rem;"></i> Xếp hạng phim ăn khách nhất
-    </h2>
+<div class="rv-card">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-trophy" style="color:var(--clr-primary);margin-right:.4rem;"></i> Xếp hạng phim ăn khách nhất
+        </span>
+    </div>
     <c:choose>
         <c:when test="${empty report.rows}">
             <div class="text-center py-5" style="color:var(--n-500);">
@@ -125,8 +129,8 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div style="overflow-x:auto;">
-                <table class="admin-table">
+            <div class="rv-table-responsive">
+                <table class="rv-table">
                     <thead>
                         <tr>
                             <th>Hạng</th>
@@ -138,7 +142,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach var="row" items="${report.rows}" varStatus="status">
+                        <c:forEach var="row" items="${report.rows}" varStatus="status" end="4">
                             <tr>
                                 <td>
                                     <span style="display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;
@@ -201,42 +205,42 @@ crossorigin="anonymous"></script>
             chartData = [0];
         }
 
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: chartLabels,
-                datasets: [{
-                        data: chartData,
-                        backgroundColor: [
-                            '#e50914', '#ff6b35', '#3b82f6', '#19c37d', '#8b8fa8',
-                            '#ffd700', '#c0c0c0', '#cd7f32', '#9c27b0', '#e91e63'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            color: '#64748B',
-                            font: {size: 11},
-                            padding: 15
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#1E293B',
-                        titleColor: '#fff',
-                        bodyColor: '#F8FAFC',
-                        borderColor: 'rgba(0,0,0,.08)',
-                        borderWidth: 1,
-                        callbacks: {
-                            label: function (context) {
-                                return ' ' + context.label + ': ' + context.raw.toLocaleString('vi-VN') + ' vé';
-                            }
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: [
+                    '#e50914', '#ff6b35', '#3b82f6', '#19c37d', '#8b8fa8',
+                    '#ffd700', '#c0c0c0', '#cd7f32', '#9c27b0', '#e91e63'
+                ],
+                borderWidth: 2,
+                borderColor: '#1e1e2d'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#94a3b8',
+                        font: { size: 12, family: "'Inter', sans-serif" },
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#1E293B',
+                    titleColor: '#fff',
+                    bodyColor: '#F8FAFC',
+                    borderColor: 'rgba(0,0,0,.08)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.label + ': ' + context.raw.toLocaleString('vi-VN') + ' vé';
                         }
                     }
                 }

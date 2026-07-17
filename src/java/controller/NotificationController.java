@@ -39,6 +39,16 @@ public class NotificationController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String action = req.getParameter("action");
+        if ("delete".equals(action)) {
+            try {
+                int id = Integer.parseInt(req.getParameter("id"));
+                boolean ok = notifService.deleteNotification(id);
+                if (ok) {
+                    req.getSession().setAttribute("flashSuccess", "Đã xóa thông báo thành công!");
+                }
+            } catch (NumberFormatException ignored) {}
+        }
         resp.sendRedirect(req.getContextPath() + "/admin/notifications?action=list");
     }
 

@@ -94,6 +94,7 @@
                             <th>Tên phim</th>
                             <th>Thể loại</th>
                             <th>Thời lượng</th>
+                            <th>Diễn viên</th>
                             <th>Trạng thái</th>
                                 <c:if test="${sessionScope.user.admin}">
                                 <th style="width: 140px; text-align: center;">Thao tác</th>
@@ -145,6 +146,11 @@
                                         <i class="bi bi-clock-history" style="color: var(--n-400); margin-right: 4px;"></i>
                                         <c:out value="${m.durationLabel}"/>
                                     </div>
+                                </td>
+
+                                <!-- Column: Actor -->
+                                <td>
+                                    <c:out value="${not empty m.actor ? m.actor : '—'}"/>
                                 </td>
 
                                 <!-- Column: Status badge -->

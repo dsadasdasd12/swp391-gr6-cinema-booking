@@ -148,6 +148,7 @@ public class ReportService {
         double totalRevenue = 0;
         int totalTickets = 0;
 
+        int count = 0;
         for (Map<String, Object> row : rows) {
             Number rev = (Number) row.get("revenue");
             Number tkt = (Number) row.get("ticket_count");
@@ -159,9 +160,12 @@ public class ReportService {
                 totalTickets += tkt.intValue();
             }
 
-            String title = (String) row.get("movie_title");
-            report.getLabels().add(title != null ? title : "Không tên");
-            report.getData().add(tkt != null ? tkt.intValue() : 0);
+            if (count < 5) {
+                String title = (String) row.get("movie_title");
+                report.getLabels().add(title != null ? title : "Không tên");
+                report.getData().add(tkt != null ? tkt.intValue() : 0);
+                count++;
+            }
         }
 
         report.setTotalRevenue(totalRevenue);

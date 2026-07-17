@@ -1,4 +1,4 @@
-﻿<%--
+<%--
     RapViet Admin — Báo cáo doanh số chi nhánh (report-sales.jsp)
     Servlet: ReportController ?type=sales
     (Long — )
@@ -71,8 +71,8 @@
 <div class="row g-4 mb-4">
     <!-- Doanh thu chi nhánh -->
     <div class="col-md-4">
-        <div class="admin-card d-flex align-items-center gap-3" 
-             style="background: linear-gradient(135deg, rgba(25,195,125,.05), rgba(25,195,125,.12)); border-color: rgba(25,195,125,.2);">
+        <div class="rv-card d-flex align-items-center gap-3" 
+             style="background: linear-gradient(135deg, rgba(25,195,125,.05), rgba(25,195,125,.12)); border-color: rgba(25,195,125,.2); padding: 1.5rem; border-radius: var(--r-xl); border: 1px solid rgba(25,195,125,.2);">
             <div style="width:48px;height:48px;background:rgba(25,195,125,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#19c37d;font-size:1.5rem;">
                 <i class="bi bi-shop"></i>
             </div>
@@ -87,8 +87,8 @@
 
     <!-- Số vé bán -->
     <div class="col-md-4">
-        <div class="admin-card d-flex align-items-center gap-3"
-             style="background: linear-gradient(135deg, rgba(255,107,53,.05), rgba(255,107,53,.12)); border-color: rgba(255,107,53,.2);">
+        <div class="rv-card d-flex align-items-center gap-3"
+             style="background: linear-gradient(135deg, rgba(255,107,53,.05), rgba(255,107,53,.12)); border-color: rgba(255,107,53,.2); padding: 1.5rem; border-radius: var(--r-xl); border: 1px solid rgba(255,107,53,.2);">
             <div style="width:48px;height:48px;background:rgba(255,107,53,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--clr-accent);font-size:1.5rem;">
                 <i class="bi bi-ticket-perforated"></i>
             </div>
@@ -103,8 +103,8 @@
 
     <!-- Số giao dịch -->
     <div class="col-md-4">
-        <div class="admin-card d-flex align-items-center gap-3"
-             style="background: linear-gradient(135deg, rgba(59,130,246,.05), rgba(59,130,246,.12)); border-color: rgba(59,130,246,.2);">
+        <div class="rv-card d-flex align-items-center gap-3"
+             style="background: linear-gradient(135deg, rgba(59,130,246,.05), rgba(59,130,246,.12)); border-color: rgba(59,130,246,.2); padding: 1.5rem; border-radius: var(--r-xl); border: 1px solid rgba(59,130,246,.2);">
             <div style="width:48px;height:48px;background:rgba(59,130,246,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#3b82f6;font-size:1.5rem;">
                 <i class="bi bi-cart-check"></i>
             </div>
@@ -119,20 +119,24 @@
 </div>
 
 <!-- Biểu đồ -->
-<div class="admin-card mb-4">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-bar-chart" style="color:var(--clr-primary);margin-right:.4rem;"></i> Doanh thu của từng cụm rạp
-    </h2>
-    <div class="chart-box" style="height:320px;">
+<div class="rv-card mb-4">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-bar-chart" style="color:var(--clr-primary);margin-right:.4rem;"></i> Doanh thu của từng cụm rạp
+        </span>
+    </div>
+    <div class="chart-box" style="height:320px; padding: 1rem;">
         <canvas id="salesChart"></canvas>
     </div>
 </div>
 
 <!-- Danh sách -->
-<div class="admin-card">
-    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1.25rem;">
-        <i class="bi bi-list-stars" style="color:var(--clr-primary);margin-right:.4rem;"></i> Chi tiết xếp hạng doanh số
-    </h2>
+<div class="rv-card">
+    <div class="rv-card__header">
+        <span class="rv-card__title">
+            <i class="bi bi-list-stars" style="color:var(--clr-primary);margin-right:.4rem;"></i> Chi tiết xếp hạng doanh số
+        </span>
+    </div>
     <c:choose>
         <c:when test="${empty report.rows}">
             <div class="text-center py-5" style="color:var(--clr-muted);">
@@ -141,8 +145,8 @@
             </div>
         </c:when>
         <c:otherwise>
-            <div style="overflow-x:auto;">
-                <table class="admin-table">
+            <div class="rv-table-responsive">
+                <table class="rv-table">
                     <thead>
                         <tr>
                             <th>Hạng</th>
@@ -235,25 +239,24 @@ crossorigin="anonymous"></script>
                             }
                         }
                     }
-                },
-                scales: {
-                    x: {
-                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
-                        ticks: {color: '#64748B', font: {size: 11}}
-                    },
-                    y: {
-                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
-                        ticks: {
-                            color: '#64748B',
-                            font: {size: 11},
-                            callback: function (value) {
-                                if (value >= 1000000) {
-                                    return (value / 1000000) + 'M';
-                                }
-                                return value.toLocaleString('vi-VN');
+
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: { color: '#94a3b8', font: { size: 12, family: "'Inter', sans-serif" },
+                        callback: function(value) {
+                            if (value >= 1000000) {
+                                return (value / 1000000) + 'M';
                             }
                         }
                     }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#e2e8f0', font: { size: 12, family: "'Inter', sans-serif" } }
                 }
             }
         });

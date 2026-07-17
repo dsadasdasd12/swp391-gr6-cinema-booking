@@ -18,6 +18,11 @@ public class TicketService {
 
     private final AttendanceDAO attendanceDAO = new AttendanceDAO();
 
+
+    public boolean deleteTicket(int bookingId) {
+        return ticketDAO.deleteTicket(bookingId);
+    }
+
     public String checkInTicket(int bookingId, int staffId) {
         // AttendanceDAO kiểm tra branch, thời gian và cập nhật trạng thái check-in nguyên tử.
         return attendanceDAO.checkInTicket(bookingId, staffId);
