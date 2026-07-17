@@ -1045,6 +1045,28 @@
     color: #ffce3a;
     letter-spacing: 1px;
 }
+/*
+ * Sao của review công khai: dùng cùng ký tự ★ cho đầy/nửa/rỗng để không phụ thuộc
+ * vào glyph ◐ của font. Với review-star--half, nền gradient chỉ hiện trong phần chữ
+ * nhờ background-clip:text, tạo đúng nửa ngôi sao vàng ở mọi trình duyệt hiện đại.
+ */
+.review-star {
+    display: inline-block;
+    width: 1em;
+    line-height: 1;
+}
+.review-star--full {
+    color: #ffce3a;
+}
+.review-star--empty {
+    color: #4a505c;
+}
+.review-star--half {
+    color: transparent;
+    background: linear-gradient(90deg, #ffce3a 50%, #4a505c 50%);
+    background-clip: text;
+    -webkit-background-clip: text;
+}
 .review-date {
     color: #7d828c;
     font-size: 12px;
