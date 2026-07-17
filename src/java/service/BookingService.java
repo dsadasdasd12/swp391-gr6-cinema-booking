@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.time.LocalDate;
 import model.Booking;
 import model.BookingStatusHistory;
 import model.Seat;
@@ -393,6 +395,53 @@ public class BookingService {
             return new ArrayList<>();
         }
         return bookingDAO.findHistoryByUser(userId, status);
+    }
+
+    /**
+     * Trả về đúng một trang lịch sử booking cho Customer.
+     *
+     * status từ Controller được chuẩn hóa trước bằng normalizeStatus; giá trị lạ sẽ thành null
+     * (tương đương "tất cả trạng thái"). Sau đó Service gọi
+     * {@link BookingDAO#findHistoryByUserPaging(int, String, LocalDate, LocalDate, int, int)}.
+     * Việc lọc nằm ở DAO/SQL chứ không lọc trong JSP, để danh sách, tổng số và phân trang
+     * luôn dựa trên cùng một tập dữ liệu.
+     */
+    public List<BookingView> getHistoryPage(int userId, String status,
+            LocalDate fromDate, LocalDate toDate, int page, int pageSize) {
+        if (userId <= 0) {
+            return new ArrayList<>();
+        }
+        return bookingDAO.findHistoryByUserPaging(userId, normalizeStatus(status),
+                fromDate, toDate, Math.max(1, page), Math.max(1, pageSize));
+    }
+
+    /**
+     * Đếm số booking khớp filter hiện tại. Controller dùng kết quả này để tính totalPages
+     * và hiển thị số "đơn phù hợp". Query đếm dùng cùng điều kiện với query lấy danh sách.
+     */
+    public int countHistory(int userId, String status, LocalDate fromDate, LocalDate toDate) {
+        if (userId <= 0) {
+            return 0;
+        }
+        return bookingDAO.countHistoryByUser(userId, normalizeStatus(status), fromDate, toDate);
+    }
+
+    /**
+     * Lấy số lượng theo trạng thái để JSP hiển thị badge ở các tab PENDING, CONFIRMED,
+     * CHECKED_IN, USED và CANCELLED. DAO vẫn bắt buộc điều kiện userId nên số liệu của
+     * Customer khác không thể bị lộ ra màn hình hiện tại.
+     */
+    public Map<String, Integer> getHistoryStatusCounts(int userId, LocalDate fromDate, LocalDate toDate) {
+        return userId <= 0 ? new java.util.LinkedHashMap<>()
+                : bookingDAO.countHistoryByUserStatus(userId, fromDate, toDate);
+    }
+
+    /**
+     * Trả status đã chuẩn hóa cho JSP đánh dấu tab đang được chọn. Status không hợp lệ
+     * trả null để JSP active tab "Tất cả", đồng bộ với query thực tế.
+     */
+    public String normalizeHistoryStatus(String status) {
+        return normalizeStatus(status);
     }
 
     public BookingView getDetail(int bookingId, int userId) {

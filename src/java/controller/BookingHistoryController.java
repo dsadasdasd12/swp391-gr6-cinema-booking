@@ -1,6 +1,8 @@
 package controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -30,6 +32,12 @@ import service.BookingService;
 @WebServlet(name = "BookingHistoryController", urlPatterns = {"/my-bookings"})
 public class BookingHistoryController extends HttpServlet {
 
+    /**
+     * Mỗi trang chỉ hiển thị 6 đơn để bảng không quá dài, đồng thời vẫn có thể demo
+     * rõ cơ chế phân trang. Giá trị này được dùng cùng lúc ở phép đếm và câu SQL lấy trang.
+     */
+    private static final int PAGE_SIZE = 6;
+
     /*
      * Service gom logic nghiep vu cua booking.
      * Controller chi dieu phoi request/response, khong tu xu ly SQL.
@@ -52,10 +60,48 @@ public class BookingHistoryController extends HttpServlet {
         }
 
         /*
-         * Lay lich su booking theo userId.
-         * Viec truyen user.getId() giup tranh loi user A xem duoc booking cua user B.
+         * Đọc filter từ query string, ví dụ:
+         * /my-bookings?status=CONFIRMED&fromDate=2026-07-01&toDate=2026-07-31&page=2.
+         * Dùng GET thay vì session để người dùng refresh, bookmark hoặc chuyển trang
+         * vẫn giữ đúng bộ lọc. parseDate/parsePositiveInt chặn giá trị sai trước khi gọi Service.
          */
-        request.setAttribute("bookings", bookingService.getHistory(user.getId()));
+        String status = request.getParameter("status");
+        LocalDate fromDate = parseDate(request.getParameter("fromDate"));
+        LocalDate toDate = parseDate(request.getParameter("toDate"));
+        int page = Math.max(1, parsePositiveInt(request.getParameter("page"), 1));
+
+        /*
+         * Mọi lời gọi đều truyền user.getId() lấy từ session, không lấy userId từ URL.
+         * Vì vậy khách A không thể đổi tham số trên browser để đọc lịch sử booking của khách B.
+         *
+         * countHistory(...) gọi BookingService -> BookingDAO -> SELECT COUNT(*) với cùng filter
+         * như danh sách. totalBookings là tổng sau filter status; totalAllBookings bỏ filter status
+         * để badge tab "Tất cả" luôn phản ánh đúng tổng đơn trong khoảng ngày đang chọn.
+         */
+        int totalBookings = bookingService.countHistory(user.getId(), status, fromDate, toDate);
+        int totalAllBookings = bookingService.countHistory(user.getId(), null, fromDate, toDate);
+        int totalPages = Math.max(1, (int) Math.ceil(totalBookings / (double) PAGE_SIZE));
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        /*
+         * getHistoryPage(...) trả List<BookingView> đã join phim/rap/phòng/ghế.
+         * Các attribute này là dữ liệu đầu vào duy nhất của history.jsp:
+         * - bookings: từng dòng của bảng;
+         * - statusCounts: số đơn theo từng trạng thái để vẽ tab;
+         * - selectedStatus/fromDate/toDate/page: giữ trạng thái filter và phân trang trên UI.
+         */
+        request.setAttribute("bookings", bookingService.getHistoryPage(
+                user.getId(), status, fromDate, toDate, page, PAGE_SIZE));
+        request.setAttribute("statusCounts", bookingService.getHistoryStatusCounts(user.getId(), fromDate, toDate));
+        request.setAttribute("selectedStatus", bookingService.normalizeHistoryStatus(status));
+        request.setAttribute("fromDate", fromDate == null ? "" : fromDate.toString());
+        request.setAttribute("toDate", toDate == null ? "" : toDate.toString());
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalBookings", totalBookings);
+        request.setAttribute("totalAllBookings", totalAllBookings);
 
         /*
          * forward giu nguyen request hien tai va dua attribute "bookings" sang JSP.
@@ -79,5 +125,34 @@ public class BookingHistoryController extends HttpServlet {
         }
         Object u = session.getAttribute("user");
         return (u instanceof User) ? (User) u : null;
+    }
+
+    /**
+     * Chuyển chuỗi từ input type="date" (yyyy-MM-dd) thành LocalDate.
+     * Nếu người dùng tự sửa URL thành ngày không hợp lệ thì trả null, nghĩa là không áp dụng filter ngày,
+     * thay vì làm controller ném lỗi 500.
+     */
+    private static LocalDate parseDate(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(raw.trim());
+        } catch (DateTimeParseException ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Phân trang cũng không tin trực tiếp giá trị từ browser. Chỉ nhận số nguyên dương;
+     * các giá trị như page=-1 hoặc page=abc sẽ quay về trang mặc định.
+     */
+    private static int parsePositiveInt(String raw, int defaultValue) {
+        try {
+            int value = Integer.parseInt(raw);
+            return value > 0 ? value : defaultValue;
+        } catch (NumberFormatException ignored) {
+            return defaultValue;
+        }
     }
 }

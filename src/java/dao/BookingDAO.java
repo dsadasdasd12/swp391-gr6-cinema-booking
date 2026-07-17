@@ -7,8 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Booking;
 import util.DBContext;
 
@@ -1215,5 +1219,131 @@ public class BookingDAO {
         }
 
         return 0;
+    }
+
+    /**
+     * Query một trang lịch sử booking cho màn hình "Vé của tôi".
+     *
+     * Dữ liệu đi từ BookingService xuống các tham số userId/status/fromDate/toDate/page/pageSize.
+     * bookingViewSelect() join BOOKINGS với SHOWTIMES, MOVIES, BRANCHES, HALLS và BOOKING_SEATS
+     * để mỗi BookingView đã có đủ thông tin cho một dòng JSP; JSP không phải gọi thêm DAO.
+     * Tất cả filter đều bind qua PreparedStatement, không nối dữ liệu request vào SQL nên tránh SQL Injection.
+     */
+    public List<BookingView> findHistoryByUserPaging(int userId, String status,
+            LocalDate fromDate, LocalDate toDate, int page, int pageSize) {
+        List<BookingView> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(bookingViewSelect())
+                .append("WHERE bk.user_id = ? ");
+        appendHistoryFilters(sql, status, fromDate, toDate);
+        sql.append("GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, ")
+                .append("bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email ")
+                .append("ORDER BY bk.booked_at DESC, bk.id DESC ")
+                .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+        try (Connection conn = new DBContext().getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int index = 1;
+            ps.setInt(index++, userId);
+            index = bindHistoryFilters(ps, index, status, fromDate, toDate);
+            ps.setInt(index++, (page - 1) * pageSize);
+            ps.setInt(index, pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBookingView(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Đếm booking bằng chính điều kiện filter của query lấy trang. Nhờ vậy Controller tính
+     * totalPages chính xác, không xuất hiện tình huống bảng có 2 dòng nhưng lại báo 3 trang.
+     */
+    public int countHistoryByUser(int userId, String status, LocalDate fromDate, LocalDate toDate) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM dbo.BOOKINGS bk WHERE bk.user_id = ? ");
+        appendHistoryFilters(sql, status, fromDate, toDate);
+        try (Connection conn = new DBContext().getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int index = 1;
+            ps.setInt(index++, userId);
+            bindHistoryFilters(ps, index, status, fromDate, toDate);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * Đếm số đơn theo trạng thái chỉ bằng một câu GROUP BY cho các tab lọc nhanh của JSP.
+     * Map được khởi tạo sẵn đủ 5 trạng thái với giá trị 0, vì vậy giao diện vẫn hiển thị tab
+     * ổn định ngay cả khi Customer chưa có booking ở một trạng thái nào đó.
+     */
+    public Map<String, Integer> countHistoryByUserStatus(int userId, LocalDate fromDate, LocalDate toDate) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        String[] statuses = {"PENDING", "CONFIRMED", "CHECKED_IN", "USED", "CANCELLED"};
+        for (String status : statuses) {
+            counts.put(status, 0);
+        }
+
+        StringBuilder sql = new StringBuilder("SELECT bk.status, COUNT(*) AS total ")
+                .append("FROM dbo.BOOKINGS bk WHERE bk.user_id = ? ");
+        appendHistoryFilters(sql, null, fromDate, toDate);
+        sql.append("GROUP BY bk.status");
+        try (Connection conn = new DBContext().getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int index = 1;
+            ps.setInt(index++, userId);
+            bindHistoryFilters(ps, index, null, fromDate, toDate);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    counts.put(rs.getString("status"), rs.getInt("total"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return counts;
+    }
+
+    /**
+     * Nối các điều kiện filter hợp lệ vào SQL. status đã được BookingService chuẩn hóa.
+     * Ngày kết thúc dùng mốc nhỏ hơn ngày kế tiếp (DATEADD day, 1) để lấy đủ mọi giờ trong ngày đó,
+     * ví dụ toDate=2026-07-17 vẫn gồm booking lúc 23:59 ngày 17/07.
+     */
+    private void appendHistoryFilters(StringBuilder sql, String status, LocalDate fromDate, LocalDate toDate) {
+        if (status != null) {
+            sql.append("AND bk.status = ? ");
+        }
+        if (fromDate != null) {
+            sql.append("AND bk.booked_at >= ? ");
+        }
+        if (toDate != null) {
+            // Dùng cận trên độc quyền của ngày kế tiếp để không mất booking có phần giờ/phút/giây.
+            sql.append("AND bk.booked_at < DATEADD(day, 1, ?) ");
+        }
+    }
+
+    /**
+     * Bind giá trị PreparedStatement đúng thứ tự mà appendHistoryFilters đã thêm dấu ?:
+     * status -> fromDate -> toDate. Nếu đổi thứ tự bind, câu SQL sẽ lọc sai dữ liệu hoặc ném SQLException.
+     */
+    private int bindHistoryFilters(PreparedStatement ps, int index, String status,
+            LocalDate fromDate, LocalDate toDate) throws Exception {
+        if (status != null) {
+            ps.setString(index++, status);
+        }
+        if (fromDate != null) {
+            ps.setDate(index++, Date.valueOf(fromDate));
+        }
+        if (toDate != null) {
+            ps.setDate(index++, Date.valueOf(toDate));
+        }
+        return index;
     }
 }
