@@ -4,6 +4,7 @@ import dao.BookingDAO;
 import dao.BookingStatusHistoryDAO;
 import dao.DiscountDAO;
 import dto.BookingDraftView;
+import dto.BookingFnbLine;
 import dto.BookingSeatLine;
 import dto.BookingView;
 import dto.CounterBookingQuote;
@@ -35,18 +36,64 @@ public class BookingService {
      * server; không sử dụng các trường tổng tiền/giảm giá do trình duyệt gửi
      * lên.
      */
-    public int createCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds,
+    /**
+     * Giữ overload cũ để các controller khác chưa truyền F&B vẫn compile.
+     */
+    public int createCounterBooking(int staffId, int showtimeId,
+            List<Integer> requestedSeatIds,
             String voucherCode, String paymentMethod) {
-        CounterCalculation calculation = calculateCounterBooking(staffId, showtimeId, requestedSeatIds, voucherCode);
-        // Quầy chỉ hỗ trợ hai phương thức thanh toán đã được hệ thống định nghĩa.
-        if (!"CASH".equalsIgnoreCase(paymentMethod) && !"BANKING".equalsIgnoreCase(paymentMethod)) {
-            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
-        }
-        return bookingDAO.createWalkinBooking(showtimeId, calculation.seatIds, calculation.prices,
-                calculation.quote.getTotal(), paymentMethod.toUpperCase(), calculation.quote.getDiscountAmount(),
-                calculation.voucher.isValid() ? "Mã giảm giá: " + calculation.voucher.getCode() : "",
-                calculation.voucher.isValid() ? calculation.voucher.getCode() : null, staffId);
+        return createCounterBooking(
+                staffId,
+                showtimeId,
+                requestedSeatIds,
+                voucherCode,
+                paymentMethod,
+                Collections.emptyList()
+        );
     }
+
+    // ===== F&B STAFF - CREATE COUNTER BOOKING BEGIN =====
+    public int createCounterBooking(int staffId, int showtimeId,
+            List<Integer> requestedSeatIds,
+            String voucherCode, String paymentMethod,
+            List<BookingFnbLine> selectedFnb) {
+
+        CounterCalculation calculation = calculateCounterBooking(
+                staffId,
+                showtimeId,
+                requestedSeatIds,
+                voucherCode
+        );
+
+        if (!"CASH".equalsIgnoreCase(paymentMethod)
+                && !"BANKING".equalsIgnoreCase(paymentMethod)) {
+            throw new IllegalArgumentException(
+                    "Phương thức thanh toán không hợp lệ."
+            );
+        }
+
+        List<BookingFnbLine> safeFnb = selectedFnb == null
+                ? Collections.emptyList()
+                : selectedFnb;
+
+        return bookingDAO.createWalkinBooking(
+                showtimeId,
+                calculation.seatIds,
+                calculation.prices,
+                calculation.quote.getTotal(),
+                paymentMethod.toUpperCase(),
+                calculation.quote.getDiscountAmount(),
+                calculation.voucher.isValid()
+                        ? "Mã giảm giá: " + calculation.voucher.getCode()
+                        : "",
+                calculation.voucher.isValid()
+                        ? calculation.voucher.getCode()
+                        : null,
+                staffId,
+                safeFnb
+        );
+    }
+    // ===== F&B STAFF - CREATE COUNTER BOOKING END =====
 
     /**
      * Trả về báo giá để giao diện quầy hiển thị cho khách. Báo giá này dùng

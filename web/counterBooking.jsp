@@ -441,6 +441,217 @@
                     transform: rotate(360deg);
                 }
             }
+
+            /* ===== F&B STAFF - CSS BEGIN ===== */
+            /* Drawer, tab món lẻ/combo, card sản phẩm và phần F&B trong hóa đơn */
+            /* ================= F&B DRAWER ================= */
+            .fnb-drawer-toggle {
+                position: fixed;
+                top: 50%;
+                right: 350px;
+                z-index: 920;
+                transform: translateY(-50%);
+                width: 46px;
+                min-height: 108px;
+                padding: 12px 8px;
+                border: 1px solid rgba(255, 51, 102, 0.65);
+                border-right: 0;
+                border-radius: 12px 0 0 12px;
+                background: linear-gradient(180deg, #ff3366, #d91f52);
+                color: #fff;
+                font: inherit;
+                font-size: 12px;
+                font-weight: 800;
+                cursor: pointer;
+                writing-mode: vertical-rl;
+                box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3);
+                transition: right .28s ease, opacity .2s ease;
+            }
+
+            .fnb-drawer-toggle:hover { opacity: .9; }
+            body.fnb-drawer-open .fnb-drawer-toggle { right: 770px; }
+
+            .fnb-drawer {
+                position: fixed;
+                z-index: 910;
+                top: 81px;
+                right: 350px;
+                width: 420px;
+                height: calc(100vh - 81px);
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                border-left: 1px solid var(--border-color);
+                border-right: 1px solid var(--border-color);
+                background: rgba(7, 12, 27, .98);
+                box-shadow: -20px 0 45px rgba(0, 0, 0, .4);
+                transform: translateX(100%);
+                visibility: hidden;
+                transition: transform .28s ease, visibility .28s ease;
+            }
+
+            body.fnb-drawer-open .fnb-drawer {
+                transform: translateX(0);
+                visibility: visible;
+            }
+
+            .fnb-drawer-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 18px;
+                border-bottom: 1px solid var(--border-color);
+                background: rgba(255,255,255,.025);
+            }
+
+            .fnb-drawer-header h3 { margin: 0; font-size: 17px; }
+            .fnb-drawer-header p { margin: 4px 0 0; color: var(--muted-text); font-size: 11px; }
+
+            .fnb-close-button {
+                width: 36px;
+                height: 36px;
+                border: 1px solid var(--border-color);
+                border-radius: 9px;
+                background: rgba(255,255,255,.04);
+                color: #fff;
+                cursor: pointer;
+                font-size: 20px;
+            }
+
+            .fnb-tabs {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                padding: 14px 18px 10px;
+            }
+
+            .fnb-tab-button {
+                padding: 10px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                background: rgba(255,255,255,.035);
+                color: var(--muted-text);
+                font: inherit;
+                font-weight: 700;
+                cursor: pointer;
+            }
+
+            .fnb-tab-button.active {
+                border-color: #ff3366;
+                background: rgba(255,51,102,.14);
+                color: #fff;
+            }
+
+            .fnb-drawer-body {
+                min-height: 0;
+                flex: 1;
+                overflow-y: auto;
+                padding: 8px 18px 18px;
+            }
+
+            .fnb-tab-panel { display: none; }
+            .fnb-tab-panel.active { display: grid; gap: 10px; }
+
+            .fnb-pos-card {
+                display: grid;
+                grid-template-columns: 68px minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 11px;
+                padding: 10px;
+                border: 1px solid var(--border-color);
+                border-radius: 11px;
+                background: rgba(255,255,255,.035);
+            }
+
+            .fnb-pos-card img {
+                width: 68px;
+                height: 68px;
+                object-fit: cover;
+                border-radius: 9px;
+                background: #111827;
+            }
+
+            .fnb-pos-info { min-width: 0; }
+            .fnb-pos-info strong {
+                display: block;
+                overflow: hidden;
+                color: #fff;
+                font-size: 13px;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            .fnb-pos-info small {
+                display: block;
+                margin-top: 4px;
+                color: var(--muted-text);
+                font-size: 10px;
+                line-height: 1.35;
+            }
+            .fnb-pos-price { margin-top: 7px; color: #fbbf24; font-size: 12px; font-weight: 800; }
+
+            .fnb-qty-control {
+                display: grid;
+                grid-template-columns: 30px 36px 30px;
+                height: 32px;
+                overflow: hidden;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+            }
+            .fnb-qty-control button {
+                border: 0;
+                background: rgba(255,255,255,.07);
+                color: #fff;
+                cursor: pointer;
+                font-size: 17px;
+            }
+            .fnb-qty-value {
+                display: grid;
+                place-items: center;
+                background: rgba(0,0,0,.25);
+                color: #fff;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .fnb-drawer-footer {
+                flex-shrink: 0;
+                padding: 15px 18px 18px;
+                border-top: 1px solid var(--border-color);
+                background: rgba(255,255,255,.025);
+            }
+            .fnb-drawer-total {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 11px;
+                color: var(--muted-text);
+                font-size: 13px;
+            }
+            .fnb-drawer-total strong { color: #10b981; font-size: 16px; }
+            .fnb-done-button {
+                width: 100%;
+                padding: 12px;
+                border: 0;
+                border-radius: 8px;
+                background: #ff3366;
+                color: #fff;
+                font: inherit;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+            .fnb-cart-section { margin-top: 20px; }
+            .fnb-cart-empty { color: var(--muted-text); font-size: 12px; }
+            .fnb-cart-name { color: #fff; font-size: 12px; font-weight: 700; }
+            .fnb-cart-meta { color: var(--muted-text); font-size: 10px; margin-top: 3px; }
+
+            @media (max-width: 1250px) {
+                .fnb-drawer { right: 0; width: min(420px, 92vw); }
+                .fnb-drawer-toggle { right: 0; }
+                body.fnb-drawer-open .fnb-drawer-toggle { right: min(420px, 92vw); }
+            }
+
+            /* ===== F&B STAFF - CSS END ===== */
         </style>
     </head>
     <body>
@@ -458,6 +669,122 @@
                 <a href="logout" style="margin-left: 20px; color: #ff3366; font-weight: bold;">Đăng Xuất</a>
             </nav>
         </header>
+
+
+
+        <!-- ===== F&B STAFF - DRAWER UI BEGIN ===== -->
+        <button type="button" class="fnb-drawer-toggle" id="fnbDrawerToggle" onclick="toggleFnbDrawer()">
+            F&amp;B
+        </button>
+
+        <aside class="fnb-drawer" id="fnbDrawer" aria-hidden="true">
+            <div class="fnb-drawer-header">
+                <div>
+                    <h3>Đồ ăn &amp; thức uống</h3>
+                    <p>Chọn thêm sản phẩm cho khách mua vé tại quầy</p>
+                </div>
+                <button type="button" class="fnb-close-button" onclick="closeFnbDrawer()" aria-label="Đóng">×</button>
+            </div>
+
+            <div class="fnb-tabs">
+                <button type="button" class="fnb-tab-button active" data-fnb-tab="items" onclick="switchFnbTab('items')">Món lẻ</button>
+                <button type="button" class="fnb-tab-button" data-fnb-tab="combos" onclick="switchFnbTab('combos')">Combo</button>
+            </div>
+
+            <div class="fnb-drawer-body">
+                <div class="fnb-tab-panel active" id="fnbTab-items">
+                    <c:choose>
+                        <c:when test="${not empty staffFnbItems}">
+                            <c:forEach items="${staffFnbItems}" var="item">
+                                <article class="fnb-pos-card">
+                                    <c:choose>
+                                        <c:when test="${empty item.imageUrl}">
+                                            <img src="${pageContext.request.contextPath}/assets/images/fnb-placeholder.png"
+                                                 alt="${item.productName}">
+                                        </c:when>
+                                        <c:when test="${item.imageUrl.startsWith('http')}">
+                                            <img src="${item.imageUrl}" alt="${item.productName}">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="${pageContext.request.contextPath}${item.imageUrl}"
+                                                 alt="${item.productName}">
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <div class="fnb-pos-info">
+                                        <strong>${item.productName}</strong>
+                                        <small>${item.categoryName} · Còn ${item.stockQuantity}</small>
+                                        <div class="fnb-pos-price">${item.sellingPrice} đ</div>
+                                    </div>
+                                    <div class="fnb-qty-control">
+                                        <button type="button" onclick="changeFnbQuantity('PRODUCT', ${item.productId}, -1)">−</button>
+                                        <span class="fnb-qty-value" id="fnbQty-PRODUCT-${item.productId}">0</span>
+                                        <button type="button"
+                                                onclick="changeFnbQuantity('PRODUCT', ${item.productId}, 1)"
+                                                data-fnb-add
+                                                data-type="PRODUCT"
+                                                data-id="${item.productId}"
+                                                data-name="${item.productName}"
+                                                data-price="${item.sellingPrice}"
+                                                data-max="${item.stockQuantity}">+</button>
+                                    </div>
+                                </article>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise><div class="fnb-cart-empty">Chi nhánh chưa có món lẻ đang được phép bán.</div></c:otherwise>
+                    </c:choose>
+                </div>
+
+                <div class="fnb-tab-panel" id="fnbTab-combos">
+                    <c:choose>
+                        <c:when test="${not empty staffFnbCombos}">
+                            <c:forEach items="${staffFnbCombos}" var="combo">
+                                <article class="fnb-pos-card">
+                                    <c:choose>
+                                        <c:when test="${empty combo.imageUrl}">
+                                            <img src="${pageContext.request.contextPath}/assets/images/fnb-placeholder.png"
+                                                 alt="${combo.comboName}">
+                                        </c:when>
+                                        <c:when test="${combo.imageUrl.startsWith('http')}">
+                                            <img src="${combo.imageUrl}" alt="${combo.comboName}">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="${pageContext.request.contextPath}${combo.imageUrl}"
+                                                 alt="${combo.comboName}">
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <div class="fnb-pos-info">
+                                        <strong>${combo.comboName}</strong>
+                                        <small>${combo.itemSummary} · Có thể bán ${combo.availableQuantity}</small>
+                                        <div class="fnb-pos-price">${combo.sellingPrice} đ</div>
+                                    </div>
+                                    <div class="fnb-qty-control">
+                                        <button type="button" onclick="changeFnbQuantity('COMBO', ${combo.comboId}, -1)">−</button>
+                                        <span class="fnb-qty-value" id="fnbQty-COMBO-${combo.comboId}">0</span>
+                                        <button type="button"
+                                                onclick="changeFnbQuantity('COMBO', ${combo.comboId}, 1)"
+                                                data-fnb-add
+                                                data-type="COMBO"
+                                                data-id="${combo.comboId}"
+                                                data-name="${combo.comboName}"
+                                                data-price="${combo.sellingPrice}"
+                                                data-max="${combo.availableQuantity}">+</button>
+                                    </div>
+                                </article>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise><div class="fnb-cart-empty">Chi nhánh chưa có combo đang được phép bán.</div></c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+
+            <div class="fnb-drawer-footer">
+                <div class="fnb-drawer-total">
+                    <span>Tạm tính F&amp;B</span>
+                    <strong id="fnbDrawerTotal">0 đ</strong>
+                </div>
+                <button type="button" class="fnb-done-button" onclick="closeFnbDrawer()">Hoàn tất chọn F&amp;B</button>
+            </div>
+        </aside>
 
         <main class="pos-grid">
 
@@ -579,6 +906,10 @@
                             <input type="hidden" name="action" value="book">
                             <input type="hidden" name="showtimeId" value="${selectedShowtime.id}">
                             <input type="hidden" id="selectedSeatsInput" name="selectedSeats" value="">
+                            <!-- ===== F&B STAFF - FORM DATA BEGIN ===== -->
+                            <!-- Dữ liệu gửi lên server theo dạng PRODUCT:id:qty hoặc COMBO:id:qty -->
+                            <input type="hidden" id="selectedFnbInput" name="selectedFnb" value="">
+                            <!-- ===== F&B STAFF - FORM DATA END ===== -->
 
                             <!-- Thông tin vé đang đặt -->
                             <div style="padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
@@ -595,6 +926,17 @@
                                     <div id="emptyCartMessage" style="color: var(--muted-text); font-size: 13px;">Chưa có ghế nào được chọn.</div>
                                 </div>
                             </div>
+
+
+                            <!-- ===== F&B STAFF - CART INVOICE BEGIN ===== -->
+                            <div class="fnb-cart-section">
+                                <div style="font-size: 13px; font-weight: 600; color: var(--muted-text); margin-bottom: 10px;">F&amp;B ĐÃ CHỌN</div>
+                                <div id="fnbCartItemsList">
+                                    <div class="fnb-cart-empty" id="emptyFnbMessage">Chưa chọn món lẻ hoặc combo.</div>
+                                </div>
+                            </div>
+
+                            <!-- ===== F&B STAFF - CART INVOICE END ===== -->
 
                             <!-- Áp dụng mã giảm giá -->
                             <div style="margin-top: 30px;">
@@ -625,6 +967,12 @@
                                     <span style="font-size: 13px; color: var(--muted-text);">Tạm tính (Ghế):</span>
                                     <span style="font-size: 14px; font-weight: 600;" id="subtotalDisplay">0 đ</span>
                                 </div>
+                                <!-- ===== F&B STAFF - TOTAL BEGIN ===== -->
+                                <div class="total-row">
+                                    <span style="font-size: 13px; color: var(--muted-text);">Tạm tính (F&amp;B):</span>
+                                    <span style="font-size: 14px; font-weight: 600; color: #fbbf24;" id="fnbSubtotalDisplay">0 đ</span>
+                                </div>
+                                <!-- ===== F&B STAFF - TOTAL END ===== -->
                                 <div class="total-row">
                                     <span style="font-size: 13px; color: var(--muted-text);">Giảm giá:</span>
                                     <span style="font-size: 14px; font-weight: 600; color: #f87171;" id="discountDisplay">0 đ</span>
@@ -648,6 +996,8 @@
                 </c:choose>
             </section>
         </main>
+
+        <!-- ===== F&B STAFF - DRAWER UI END ===== -->
 
         <!-- Modal Hộp thoại thanh toán (CASH / BANKING) -->
         <div id="paymentModal" class="modal">
@@ -704,8 +1054,92 @@
 
         <script>
             let selectedSeats = [];
+            /* ===== F&B STAFF - JAVASCRIPT BEGIN ===== */
+            // Giỏ F&B chạy phía client và đồng bộ vào selectedFnbInput.
+            let selectedFnb = [];
             let serverQuote = {subtotal: 0, discountAmount: 0, total: 0};
             let currentPendingBookingId = null;
+
+
+            function toggleFnbDrawer() {
+                const opened = document.body.classList.toggle('fnb-drawer-open');
+                document.getElementById('fnbDrawer').setAttribute('aria-hidden', opened ? 'false' : 'true');
+            }
+
+            function closeFnbDrawer() {
+                document.body.classList.remove('fnb-drawer-open');
+                document.getElementById('fnbDrawer').setAttribute('aria-hidden', 'true');
+            }
+
+            function switchFnbTab(tab) {
+                document.querySelectorAll('.fnb-tab-button').forEach(button => {
+                    button.classList.toggle('active', button.dataset.fnbTab === tab);
+                });
+                document.querySelectorAll('.fnb-tab-panel').forEach(panel => panel.classList.remove('active'));
+                document.getElementById('fnbTab-' + tab).classList.add('active');
+            }
+
+            function changeFnbQuantity(type, id, delta) {
+                const addButton = document.querySelector('[data-fnb-add][data-type="' + type + '"][data-id="' + id + '"]');
+                if (!addButton) return;
+
+                const name = addButton.dataset.name;
+                const price = Number(addButton.dataset.price || 0);
+                const max = Number(addButton.dataset.max || 0);
+                let line = selectedFnb.find(item => item.type === type && item.id === id);
+                const current = line ? line.quantity : 0;
+                const next = Math.max(0, Math.min(max, current + delta));
+
+                if (next === current) return;
+                if (!line && next > 0) {
+                    line = {type, id, name, price, max, quantity: next};
+                    selectedFnb.push(line);
+                } else if (line) {
+                    line.quantity = next;
+                    if (next === 0) selectedFnb = selectedFnb.filter(item => item !== line);
+                }
+
+                const qtyElement = document.getElementById('fnbQty-' + type + '-' + id);
+                if (qtyElement) qtyElement.textContent = next;
+                updateFnbCartUI();
+            }
+
+            function getFnbSubtotal() {
+                return selectedFnb.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            }
+
+            function updateFnbCartUI() {
+                const list = document.getElementById('fnbCartItemsList');
+                const hidden = document.getElementById('selectedFnbInput');
+                if (!list || !hidden) return;
+
+                list.innerHTML = '';
+                if (selectedFnb.length === 0) {
+                    list.innerHTML = '<div class="fnb-cart-empty" id="emptyFnbMessage">Chưa chọn món lẻ hoặc combo.</div>';
+                } else {
+                    selectedFnb.forEach(item => {
+                        const row = document.createElement('div');
+                        row.className = 'cart-item-row';
+                        row.innerHTML = '<div><div class="fnb-cart-name">' + item.quantity + ' × ' + escapeHtml(item.name) + '</div>' +
+                                '<div class="fnb-cart-meta">' + (item.type === 'COMBO' ? 'Combo' : 'Món lẻ') + '</div></div>' +
+                                '<span style="color:#fbbf24;font-size:12px;font-weight:700;">' +
+                                (item.price * item.quantity).toLocaleString('vi-VN') + ' đ</span>';
+                        list.appendChild(row);
+                    });
+                }
+
+                hidden.value = selectedFnb.map(item => item.type + ':' + item.id + ':' + item.quantity).join(',');
+                const subtotal = getFnbSubtotal();
+                document.getElementById('fnbDrawerTotal').innerText = subtotal.toLocaleString('vi-VN') + ' đ';
+                document.getElementById('fnbSubtotalDisplay').innerText = subtotal.toLocaleString('vi-VN') + ' đ';
+                updateTotalSum();
+            }
+
+            function escapeHtml(value) {
+                return String(value || '').replace(/[&<>'"]/g, character => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+                })[character]);
+            }
 
             function toggleSeatSelection(button) {
                 const id = parseInt(button.getAttribute('data-id'));
@@ -870,11 +1304,14 @@
             }
 
             function updateTotalSum() {
-                let subtotal = Number(serverQuote.subtotal || 0);
-                let discount = Number(serverQuote.discountAmount || 0);
-                let total = Number(serverQuote.total || 0);
+                const localSeatSubtotal = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+                const seatSubtotal = Number(serverQuote.subtotal || localSeatSubtotal);
+                const discount = Number(serverQuote.discountAmount || 0);
+                const fnbSubtotal = getFnbSubtotal();
+                const total = Math.max(0, seatSubtotal - discount + fnbSubtotal);
 
-                document.getElementById('subtotalDisplay').innerText = subtotal.toLocaleString('vi-VN') + " đ";
+                document.getElementById('subtotalDisplay').innerText = seatSubtotal.toLocaleString('vi-VN') + " đ";
+                document.getElementById('fnbSubtotalDisplay').innerText = fnbSubtotal.toLocaleString('vi-VN') + " đ";
                 document.getElementById('discountDisplay').innerText = (discount > 0 ? "-" : "") + discount.toLocaleString('vi-VN') + " đ";
                 document.getElementById('totalDisplay').innerText = total.toLocaleString('vi-VN') + " đ";
             }
@@ -920,7 +1357,8 @@
                 if (discountInput && discountInput.value) {
                     discount = parseFloat(discountInput.value);
                 }
-                let total = subtotal - discount;
+                const fnbSubtotal = getFnbSubtotal();
+                let total = subtotal - discount + fnbSubtotal;
                 if (total < 0)
                     total = 0;
 
@@ -939,6 +1377,7 @@
                     body.innerHTML =
                             '<div style="text-align: left; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">' +
                             '<p style="margin: 5px 0;">Ghế chọn: <strong style="color: #fff;">' + seatCodes + '</strong></p>' +
+                            '<p style="margin: 5px 0;">F&amp;B: <strong style="color: #fbbf24;">' + fnbSubtotal.toLocaleString('vi-VN') + ' đ</strong></p>' +
                             '<p style="margin: 5px 0;">Tổng tiền: <strong style="color: #10b981; font-size: 18px;">' + total.toLocaleString('vi-VN') + ' đ</strong></p>' +
                             '<hr style="border-color: rgba(255,255,255,0.08); margin: 15px 0;">' +
                             '<p style="color: #fbbf24; font-weight: 600; margin: 0; line-height: 1.4;">👉 Vui lòng nhận đủ số tiền mặt trên từ khách hàng trước khi xác nhận.</p>' +
@@ -1088,6 +1527,8 @@
                 url.searchParams.delete('bookingSuccessId');
                 window.history.replaceState({}, document.title, url.toString());
             }
+
+            /* ===== F&B STAFF - JAVASCRIPT END ===== */
 
             // INITIALIZE AND APPLY DYNAMIC CLIENT-SIDE FILTERS FOR POS LEFT PANEL
             let posItems = [];

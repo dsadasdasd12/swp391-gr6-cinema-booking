@@ -1,6 +1,10 @@
 package controller;
 
+import dao.BookingFnbDAO;
+import dto.BookingFnbLine;
 import dto.CounterBookingQuote;
+import dto.StaffFnbComboDTO;
+import dto.StaffFnbProductDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,7 +13,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Seat;
 import model.Showtime;
 import model.User;
@@ -27,6 +33,7 @@ public class CounterBookingController extends HttpServlet {
     private final SeatService seatService = new SeatService();
     private final TicketService ticketService = new TicketService();
     private final UserService userService = new UserService();
+    private final BookingFnbDAO bookingFnbDAO = new BookingFnbDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -91,7 +98,7 @@ public class CounterBookingController extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
                 return;
             }
-            createBooking(request, response, staffId);
+            createBooking(request, response, staffId, branchId);
             return;
         }
         if ("printTicket".equalsIgnoreCase(action)) {
@@ -117,28 +124,84 @@ public class CounterBookingController extends HttpServlet {
                 return;
             }
             writeJson(response, "{\"success\":true,\"subtotal\":" + quote.getSubtotal()
-                    + ",\"discountAmount\":" + quote.getDiscountAmount() + ",\"total\":" + quote.getTotal() + "}");
+                    + ",\"discountAmount\":" + quote.getDiscountAmount()
+                    + ",\"total\":" + quote.getTotal()
+                    + ",\"fnbSubtotal\":0}");
         } catch (Exception e) {
             writeJson(response, "{\"success\":false,\"message\":\"Dữ liệu không hợp lệ.\"}");
         }
     }
 
-    private void createBooking(HttpServletRequest request, HttpServletResponse response, int staffId) throws IOException {
+    // ===== F&B STAFF - CREATE BOOKING BEGIN =====
+    private void createBooking(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            int staffId,
+            int branchId
+    ) throws IOException {
+
         int showtimeId = parseId(request.getParameter("showtimeId"));
+
         try {
-            // Service tính lại toàn bộ trước lúc ghi DB, tránh sửa giá hoặc mã giảm ở trình duyệt.
-            int bookingId = bookingService.createCounterBooking(staffId, showtimeId,
-                    parseSeatIds(request.getParameter("selectedSeats")), request.getParameter("discountCode"),
-                    request.getParameter("paymentMethod"));
+            /*
+             * selectedFnb có định dạng:
+             * PRODUCT:productId:quantity,COMBO:comboId:quantity
+             *
+             * Controller chỉ tách dữ liệu đầu vào.
+             * BookingFnbDAO sẽ kiểm tra lại món/combo có được bán tại chi nhánh
+             * và số lượng thực tế còn khả dụng hay không.
+             */
+            Map<String, Integer> fnbQuantities =
+                    parseFnbSelection(request.getParameter("selectedFnb"));
+
+            List<BookingFnbLine> selectedFnb =
+                    bookingFnbDAO.resolveSelection(branchId, fnbQuantities);
+
+            /*
+             * Service phải tính lại toàn bộ giá vé và giá F&B từ DB,
+             * sau đó lưu BOOKING, BOOKING_SEATS và BOOKING_FNB
+             * trong cùng một transaction.
+             */
+            int bookingId = bookingService.createCounterBooking(
+                    staffId,
+                    showtimeId,
+                    parseSeatIds(request.getParameter("selectedSeats")),
+                    request.getParameter("discountCode"),
+                    request.getParameter("paymentMethod"),
+                    selectedFnb
+            );
+
             if (bookingId <= 0) {
-                throw new IllegalArgumentException("Không thể tạo vé; ghế hoặc mã giảm giá vừa thay đổi.");
+                throw new IllegalArgumentException(
+                        "Không thể tạo vé; ghế, voucher hoặc F&B vừa thay đổi."
+                );
             }
-            response.sendRedirect("CounterBooking?showtimeId=" + showtimeId + "&bookingSuccessId=" + bookingId);
+
+            response.sendRedirect(
+                    "CounterBooking?showtimeId="
+                    + showtimeId
+                    + "&bookingSuccessId="
+                    + bookingId
+            );
         } catch (IllegalArgumentException e) {
             request.getSession().setAttribute("msgError", e.getMessage());
-            response.sendRedirect("CounterBooking" + (showtimeId > 0 ? "?showtimeId=" + showtimeId : ""));
+            response.sendRedirect(
+                    "CounterBooking"
+                    + (showtimeId > 0 ? "?showtimeId=" + showtimeId : "")
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute(
+                    "msgError",
+                    "Không thể tạo booking. Vui lòng kiểm tra tồn kho F&B và thử lại."
+            );
+            response.sendRedirect(
+                    "CounterBooking"
+                    + (showtimeId > 0 ? "?showtimeId=" + showtimeId : "")
+            );
         }
     }
+    // ===== F&B STAFF - CREATE BOOKING END =====
 
     private void printTicket(HttpServletRequest request, HttpServletResponse response, int staffId) throws ServletException, IOException {
         int bookingId = parseId(request.getParameter("bookingId"));
@@ -155,6 +218,11 @@ public class CounterBookingController extends HttpServlet {
         request.setAttribute("booking", booking);
         request.setAttribute("showtime", showtimeService.getShowtimeById(booking.getShowtimeId()));
         request.setAttribute("seatCodes", ticketService.getSeatCodesByBookingId(bookingId));
+
+        // ===== F&B STAFF - PRINT TICKET BEGIN =====
+        request.setAttribute("bookingFnbLines", bookingFnbDAO.findByBookingId(bookingId));
+        // ===== F&B STAFF - PRINT TICKET END =====
+
         request.getRequestDispatcher("ticketPrint.jsp").forward(request, response);
     }
 
@@ -162,6 +230,23 @@ public class CounterBookingController extends HttpServlet {
         // Danh sách suất chiếu và ghế luôn giới hạn theo chi nhánh đã phân công.
         request.setAttribute("showtimeList", showtimeService.getActiveShowtimesByBranch(branchId));
         List<model.SeatType> types = seatService.getAllSeatTypes();
+        
+        // ===== F&B STAFF - BEGIN =====
+        // Chỉ lấy F&B thỏa các điều kiện trong BookingFnbDAO:
+        // - sản phẩm/combo ACTIVE
+        // - Admin cho phép bán
+        // - Manager bật bán tại đúng chi nhánh
+        // - còn tồn kho / còn đủ nguyên liệu tạo combo
+        List<StaffFnbProductDTO> staffFnbItems =
+                bookingFnbDAO.findSellableProductsByBranch(branchId);
+
+        List<StaffFnbComboDTO> staffFnbCombos =
+                bookingFnbDAO.findSellableCombosByBranch(branchId);
+
+        request.setAttribute("staffFnbItems", staffFnbItems);
+        request.setAttribute("staffFnbCombos", staffFnbCombos);
+        // ===== F&B STAFF - END =====
+        
         request.setAttribute("allSeatTypes", types);
         int showtimeId = parseId(request.getParameter("showtimeId"));
         Showtime selected = showtimeId <= 0 ? null : showtimeService.getShowtimeById(showtimeId);
@@ -188,6 +273,13 @@ public class CounterBookingController extends HttpServlet {
         if (successId > 0 && bookingService.getCounterBookingStatus(((User) request.getSession(false).getAttribute("user")).getId(), successId) != null) {
             request.setAttribute("bookingSuccessId", successId);
             request.setAttribute("successBooking", bookingService.getBookingById(successId));
+
+            // ===== F&B STAFF - SUCCESS SUMMARY BEGIN =====
+            request.setAttribute(
+                    "successBookingFnbLines",
+                    bookingFnbDAO.findByBookingId(successId)
+            );
+            // ===== F&B STAFF - SUCCESS SUMMARY END =====
         }
         request.getRequestDispatcher("counterBooking.jsp").forward(request, response);
     }
@@ -207,6 +299,71 @@ public class CounterBookingController extends HttpServlet {
         }
         return result;
     }
+
+    // ===== F&B STAFF - PARSE SELECTION BEGIN =====
+    /**
+     * Tách selectedFnb theo định dạng:
+     * PRODUCT:1:2,COMBO:3:1
+     *
+     * Key trả về có dạng PRODUCT:id hoặc COMBO:id.
+     */
+    private Map<String, Integer> parseFnbSelection(String value) {
+        Map<String, Integer> result = new LinkedHashMap<>();
+
+        if (value == null || value.trim().isEmpty()) {
+            return result;
+        }
+
+        for (String rawItem : value.split(",")) {
+            String item = rawItem == null ? "" : rawItem.trim();
+
+            if (item.isEmpty()) {
+                continue;
+            }
+
+            String[] parts = item.split(":");
+
+            if (parts.length != 3) {
+                throw new IllegalArgumentException(
+                        "Dữ liệu F&B không đúng định dạng."
+                );
+            }
+
+            String itemType = parts[0].trim().toUpperCase();
+            int itemId = parseId(parts[1]);
+            int quantity = parseId(parts[2]);
+
+            if (!"PRODUCT".equals(itemType)
+                    && !"COMBO".equals(itemType)) {
+                throw new IllegalArgumentException(
+                        "Loại F&B không hợp lệ."
+                );
+            }
+
+            if (itemId <= 0) {
+                throw new IllegalArgumentException(
+                        "Mã món F&B không hợp lệ."
+                );
+            }
+
+            if (quantity < 0) {
+                throw new IllegalArgumentException(
+                        "Số lượng F&B không hợp lệ."
+                );
+            }
+
+            String key = itemType + ":" + itemId;
+
+            /*
+             * Nếu client gửi trùng một món nhiều lần thì cộng dồn,
+             * sau đó DAO vẫn kiểm tra lại giới hạn tồn kho thực tế.
+             */
+            result.merge(key, quantity, Integer::sum);
+        }
+
+        return result;
+    }
+    // ===== F&B STAFF - PARSE SELECTION END =====
 
     private int parseId(String value) {
         try {

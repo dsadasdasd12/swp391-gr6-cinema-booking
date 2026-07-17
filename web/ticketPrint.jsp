@@ -232,13 +232,86 @@
                     <span>Vị trí ghế:</span>
                     <strong style="font-size: 15px; letter-spacing: 1px;">${seatCodes}</strong>
                 </div>
+
+
+                <!-- ===== F&B STAFF - RECEIPT BEGIN ===== -->
+                <c:set var="fnbTotal" value="${0}" />
+
+                <c:forEach items="${bookingFnbLines}" var="item">
+                    <c:set var="fnbTotal"
+                           value="${fnbTotal + item.lineTotal}" />
+                </c:forEach>
+
+                <c:set var="ticketTotal"
+                       value="${booking.totalPrice - fnbTotal}" />
+
+                <c:if test="${not empty bookingFnbLines}">
+                    <section style="
+                             margin-top: 18px;
+                             padding-top: 12px;
+                             border-top: 1px dashed #000000;">
+
+                        <div style="
+                             text-align: center;
+                             font-size: 15px;
+                             font-weight: 700;
+                             margin-bottom: 10px;">
+                            F&amp;B
+                        </div>
+
+                        <c:forEach items="${bookingFnbLines}" var="item">
+                            <div class="details-row">
+                                <span style="max-width: 175px;">
+                                    ${item.name} x${item.quantity}
+                                </span>
+
+                                <strong>
+                                    <fmt:formatNumber
+                                        value="${item.lineTotal}"
+                                        pattern="#,##0"/> đ
+                                </strong>
+                            </div>
+                        </c:forEach>
+                    </section>
+                </c:if>
+                <!-- ===== F&B STAFF - RECEIPT END ===== -->
             </main>
 
             <footer style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #000000;">
+                <div class="details-row">
+                    <span>Tiền vé:</span>
+                    <strong>
+                        <fmt:formatNumber
+                            value="${ticketTotal}"
+                            pattern="#,##0"/> đ
+                    </strong>
+                </div>
+
+                <c:if test="${fnbTotal > 0}">
+                    <div class="details-row">
+                        <span>Tiền F&amp;B:</span>
+                        <strong>
+                            <fmt:formatNumber
+                                value="${fnbTotal}"
+                                pattern="#,##0"/> đ
+                        </strong>
+                    </div>
+                </c:if>
+
+                <div style="
+                     border-top: 1px dashed #000000;
+                     margin: 10px 0;">
+                </div>
+
                 <div class="details-row" style="font-size: 15px; font-weight: 700;">
                     <span>Tổng tiền:</span>
-                    <span><fmt:formatNumber value="${booking.totalPrice}" pattern="#,##0"/> đ</span>
+                    <span>
+                        <fmt:formatNumber
+                            value="${booking.totalPrice}"
+                            pattern="#,##0"/> đ
+                    </span>
                 </div>
+
                 <div class="details-row" style="font-size: 12px; color: #4b5563;">
                     <span>Thanh toán:</span>
                     <span>Tiền mặt (CASH)</span>

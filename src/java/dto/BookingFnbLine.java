@@ -2,6 +2,17 @@ package dto;
 
 import java.io.Serializable;
 
+/**
+ * =====================================================
+ * F&B STAFF POS DTO
+ * Dùng cho:
+ * - Hiển thị món lẻ
+ * - Hiển thị combo
+ * - Giỏ hàng F&B
+ * - Lưu BOOKING_FNB
+ * - In hóa đơn
+ * =====================================================
+ */
 public class BookingFnbLine implements Serializable {
 
     private String itemType;
@@ -19,6 +30,14 @@ public class BookingFnbLine implements Serializable {
 
     public void setItemType(String itemType) {
         this.itemType = itemType;
+    }
+
+    public boolean isCombo() {
+        return "COMBO".equalsIgnoreCase(itemType);
+    }
+
+    public boolean isProduct() {
+        return "PRODUCT".equalsIgnoreCase(itemType);
     }
 
     public int getItemId() {
