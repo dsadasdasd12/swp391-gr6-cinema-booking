@@ -212,15 +212,16 @@
     </head>
     <body>
 
-        <!-- Header Navigation -->
-        <header class="navbar">
-            <h1>RAPVIET CONSOLE <span style="font-size: 13px; color: var(--muted-text); margin-left: 10px; font-weight: normal; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); vertical-align: middle;">CN: ${staffBranchName}</span></h1>
-            <nav class="nav-links">
-                <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
-                    <a href="ShowtimeManager">Suất Chiếu & Giá Vé</a>
-                </c:if>
-                <a href="CounterBooking">Quầy Bán Vé (POS)</a>
-                <a href="TicketValidation" class="active">Soát Vé Cổng</a>
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <h1>RAPVIET CONSOLE <span style="font-size: 13px; color: var(--muted-text); margin-left: 10px; font-weight: normal; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); vertical-align: middle;">CN: ${staffBranchName}</span></h1>
+        <nav class="nav-links">
+            <c:if test="${sessionScope.user.role == 'MANAGER' || sessionScope.user.role == 'ADMIN'}">
+                <a href="ShowtimeManager">Suất Chiếu & Giá Vé</a>
+            </c:if>
+            <a href="CounterBooking">Quầy Bán Vé (POS)</a>
+            <a href="TicketValidation" class="active">Soát Vé Cổng</a>
+            <a href="TicketValidation?action=history">Lịch sử soát vé</a>
 
                 <a href="logout" style="margin-left: 20px; color: #ff3366; font-weight: bold;">Đăng Xuất</a>
             </nav>

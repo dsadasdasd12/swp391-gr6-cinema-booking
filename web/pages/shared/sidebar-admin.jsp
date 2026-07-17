@@ -169,6 +169,7 @@
     </c:if>
 
     <!-- ── REPORTING & ANALYTICS ── -->
+    <c:if test="${isAdminRole}">
     <div class="rv-nav__label">Báo cáo &amp; Phân tích</div>
 
     <div class="rv-nav__group ${isReport ? 'open' : ''}">
@@ -235,6 +236,7 @@
         </div>
     </div>
 
+    </c:if>
     <div class="rv-nav__spacer"></div>
     <div class="rv-nav__divider"></div>
 

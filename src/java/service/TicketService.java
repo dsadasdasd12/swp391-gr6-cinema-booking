@@ -1,6 +1,7 @@
 package service;
 
 import dao.AttendanceDAO;
+import dto.AttendanceHistoryView;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +12,7 @@ import dto.PageResult;
 import model.Ticket;
 
 import java.util.List;
+import java.time.LocalDate;
 
 public class TicketService {
 
@@ -290,6 +292,19 @@ public class TicketService {
             notifService = new NotificationService();
         }
         return notifService;
+    }
+
+    /** Lấy lịch sử check-in của một staff trong ngày được chọn. */
+    public List<AttendanceHistoryView> getCheckInHistory(int staffId, LocalDate checkedDate,
+            int offset, int pageSize) {
+        if (staffId <= 0) {
+            return List.of();
+        }
+        return attendanceDAO.getHistoryByStaff(staffId, checkedDate, offset, pageSize);
+    }
+
+    public int countCheckInHistory(int staffId, LocalDate checkedDate) {
+        return staffId <= 0 ? 0 : attendanceDAO.countHistoryByStaff(staffId, checkedDate);
     }
 
     private void hydrateQrImage(Ticket ticket) {
