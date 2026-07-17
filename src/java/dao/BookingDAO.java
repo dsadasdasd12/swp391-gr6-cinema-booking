@@ -20,16 +20,16 @@ public class BookingDAO {
                                    String discountReason, String voucherCode, int staffId) {
         
         String insertBookingSql = "INSERT INTO dbo.BOOKINGS (user_id, showtime_id, source, status, total_price, qr_code, booked_at, last_update) "
-                                + "VALUES (?, ?, 'WALKIN', ?, ?, NULL, GETDATE(), GETDATE())";
-        
+                + "VALUES (?, ?, 'WALKIN', ?, ?, NULL, GETDATE(), GETDATE())";
+
         String updateQrSql = "UPDATE dbo.BOOKINGS SET qr_code = ? WHERE id = ?";
-        
+
         String insertBookingSeatsSql = "INSERT INTO dbo.BOOKING_SEATS (booking_id, seat_id, price, last_update) "
-                                     + "VALUES (?, ?, ?, GETDATE())";
-        
+                + "VALUES (?, ?, ?, GETDATE())";
+
         String insertPaymentSql = "INSERT INTO dbo.PAYMENTS (booking_id, type, method, transaction_id, status, amount, paid_at, gateway, last_update) "
-                                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
-        
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+
         String insertDiscountSql = "INSERT INTO dbo.COUNTER_DISCOUNTS (booking_id, applied_by, reason, amount, applied_at) "
                                  + "VALUES (?, ?, ?, ?, GETDATE())";
         String consumeVoucherSql = "UPDATE dbo.DISCOUNT_CODES SET used_count = used_count + 1, last_update = GETDATE() "
@@ -59,9 +59,9 @@ public class BookingDAO {
 
             // Kiểm tra trùng lặp ghế trước khi chèn để ngăn double booking tuyệt đối
             StringBuilder checkSeatSql = new StringBuilder("SELECT COUNT(*) FROM dbo.BOOKING_SEATS bs ")
-                .append("JOIN dbo.BOOKINGS b ON bs.booking_id = b.id ")
-                .append("WHERE b.showtime_id = ? AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'USED') ")
-                .append("AND bs.seat_id IN (");
+                    .append("JOIN dbo.BOOKINGS b ON bs.booking_id = b.id ")
+                    .append("WHERE b.showtime_id = ? AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'USED') ")
+                    .append("AND bs.seat_id IN (");
             for (int i = 0; i < seatIds.size(); i++) {
                 checkSeatSql.append("?");
                 if (i < seatIds.size() - 1) {
@@ -69,7 +69,7 @@ public class BookingDAO {
                 }
             }
             checkSeatSql.append(")");
-            
+
             try (PreparedStatement ps = conn.prepareStatement(checkSeatSql.toString())) {
                 ps.setInt(1, showtimeId);
                 for (int i = 0; i < seatIds.size(); i++) {
@@ -92,7 +92,7 @@ public class BookingDAO {
                 ps.setString(3, bStatus);
                 ps.setDouble(4, totalPrice);
                 ps.executeUpdate();
-                
+
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         bookingId = rs.getInt(1);
@@ -225,12 +225,12 @@ public class BookingDAO {
     public boolean changeBookingSeats(int bookingId, List<Integer> oldSeatIds, List<Integer> newSeatIds, List<Double> newPrices) {
         String deleteSql = "DELETE FROM dbo.BOOKING_SEATS WHERE booking_id = ? AND seat_id = ?";
         String insertSql = "INSERT INTO dbo.BOOKING_SEATS (booking_id, seat_id, price, last_update) VALUES (?, ?, ?, GETDATE())";
-        
+
         Connection conn = null;
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
-            
+
             // Xóa ghế cũ
             try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
                 for (int oldId : oldSeatIds) {
@@ -240,7 +240,7 @@ public class BookingDAO {
                 }
                 ps.executeBatch();
             }
-            
+
             // Thêm ghế mới
             try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
                 for (int i = 0; i < newSeatIds.size(); i++) {
@@ -251,17 +251,25 @@ public class BookingDAO {
                 }
                 ps.executeBatch();
             }
-            
+
             conn.commit();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             if (conn != null) {
-                try { conn.rollback(); } catch (Exception re) { re.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (Exception re) {
+                    re.printStackTrace();
+                }
             }
         } finally {
             if (conn != null) {
-                try { conn.close(); } catch (Exception ce) { ce.printStackTrace(); }
+                try {
+                    conn.close();
+                } catch (Exception ce) {
+                    ce.printStackTrace();
+                }
             }
         }
         return false;
@@ -270,18 +278,18 @@ public class BookingDAO {
     // 3. READ: Lấy danh sách ID ghế đã bán hoặc đang bị khóa tạm thời trong giỏ hàng
     public List<Integer> getBookedSeatIds(int showtimeId) {
         List<Integer> list = new ArrayList<>();
-        
+
         // SQL lấy ghế đã bán chính thức (Trạng thái đặt vé không phải CANCELLED)
         String bookedSql = "SELECT bs.seat_id "
-                         + "FROM dbo.BOOKING_SEATS bs "
-                         + "JOIN dbo.BOOKINGS b ON bs.booking_id = b.id "
-                         + "WHERE b.showtime_id = ? AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'USED')";
-        
+                + "FROM dbo.BOOKING_SEATS bs "
+                + "JOIN dbo.BOOKINGS b ON bs.booking_id = b.id "
+                + "WHERE b.showtime_id = ? AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'USED')";
+
         // SQL lấy ghế đang bị khóa tạm thời trong giỏ hàng (Expires/Locked chưa hết hạn)
         String lockedSql = "SELECT ci.seat_id "
-                         + "FROM dbo.CART_ITEMS ci "
-                         + "JOIN dbo.CART c ON ci.cart_id = c.id "
-                         + "WHERE c.showtime_id = ? AND ci.locked_until > GETDATE()";
+                + "FROM dbo.CART_ITEMS ci "
+                + "JOIN dbo.CART c ON ci.cart_id = c.id "
+                + "WHERE c.showtime_id = ? AND ci.locked_until > GETDATE()";
 
         try (Connection conn = new DBContext().getConnection()) {
             // A. Lấy ghế đã đặt chính thức
@@ -314,20 +322,19 @@ public class BookingDAO {
     // 4. READ SINGLE: Lấy thông tin chi tiết một hóa đơn đặt vé
     public model.Booking getBookingById(int id) {
         String sql = "SELECT * FROM dbo.BOOKINGS WHERE id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new model.Booking(
-                        rs.getInt("id"),
-                        rs.getInt("user_id"),
-                        rs.getInt("showtime_id"),
-                        rs.getString("source"),
-                        rs.getString("status"),
-                        rs.getDouble("total_price"),
-                        rs.getString("qr_code"),
-                        rs.getTimestamp("booked_at")
+                            rs.getInt("id"),
+                            rs.getInt("user_id"),
+                            rs.getInt("showtime_id"),
+                            rs.getString("source"),
+                            rs.getString("status"),
+                            rs.getDouble("total_price"),
+                            rs.getString("qr_code"),
+                            rs.getTimestamp("booked_at")
                     );
                 }
             }
@@ -341,20 +348,19 @@ public class BookingDAO {
     public List<model.Booking> getRecentBookings(int limit) {
         List<model.Booking> list = new ArrayList<>();
         String sql = "SELECT TOP (?) * FROM dbo.BOOKINGS ORDER BY id DESC";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new model.Booking(
-                        rs.getInt("id"),
-                        rs.getInt("user_id"),
-                        rs.getInt("showtime_id"),
-                        rs.getString("source"),
-                        rs.getString("status"),
-                        rs.getDouble("total_price"),
-                        rs.getString("qr_code"),
-                        rs.getTimestamp("booked_at")
+                            rs.getInt("id"),
+                            rs.getInt("user_id"),
+                            rs.getInt("showtime_id"),
+                            rs.getString("source"),
+                            rs.getString("status"),
+                            rs.getDouble("total_price"),
+                            rs.getString("qr_code"),
+                            rs.getTimestamp("booked_at")
                     ));
                 }
             }
@@ -368,17 +374,17 @@ public class BookingDAO {
     public boolean confirmPayment(int bookingId, String transactionId, double amount, String gateway) {
         String updateBookingSql = "UPDATE dbo.BOOKINGS SET status = 'CONFIRMED', last_update = GETDATE() WHERE id = ?";
         String updatePaymentSql = "UPDATE dbo.PAYMENTS SET status = 'SUCCESS', transaction_id = ?, amount = ?, gateway = ?, paid_at = GETDATE(), last_update = GETDATE() WHERE booking_id = ?";
-        
+
         Connection conn = null;
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
-            
+
             try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
                 ps.setInt(1, bookingId);
                 ps.executeUpdate();
             }
-            
+
             try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
                 ps.setString(1, transactionId);
                 ps.setDouble(2, amount);
@@ -386,17 +392,25 @@ public class BookingDAO {
                 ps.setInt(4, bookingId);
                 ps.executeUpdate();
             }
-            
+
             conn.commit();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             if (conn != null) {
-                try { conn.rollback(); } catch (Exception ex) { ex.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         } finally {
             if (conn != null) {
-                try { conn.close(); } catch (Exception ex) { ex.printStackTrace(); }
+                try {
+                    conn.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }
         return false;
@@ -405,8 +419,7 @@ public class BookingDAO {
     // getBookingStatus: Trả về trạng thái của booking
     public String getBookingStatus(int bookingId) {
         String sql = "SELECT status FROM dbo.BOOKINGS WHERE id = ?";
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -423,32 +436,40 @@ public class BookingDAO {
     public boolean cancelBooking(int bookingId) {
         String updateBookingSql = "UPDATE dbo.BOOKINGS SET status = 'CANCELLED', last_update = GETDATE() WHERE id = ?";
         String updatePaymentSql = "UPDATE dbo.PAYMENTS SET status = 'FAILED', last_update = GETDATE() WHERE booking_id = ?";
-        
+
         Connection conn = null;
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
-            
+
             try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
                 ps.setInt(1, bookingId);
                 ps.executeUpdate();
             }
-            
+
             try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
                 ps.setInt(1, bookingId);
                 ps.executeUpdate();
             }
-            
+
             conn.commit();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             if (conn != null) {
-                try { conn.rollback(); } catch (Exception ex) { ex.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         } finally {
             if (conn != null) {
-                try { conn.close(); } catch (Exception ex) { ex.printStackTrace(); }
+                try {
+                    conn.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }
         return false;
@@ -495,8 +516,8 @@ public class BookingDAO {
     }
 
     public int createPendingBooking(int userId, int showtimeId, List<Integer> seatIds,
-                                    List<Double> seatPrices, double totalPrice,
-                                    String voucherCode, double voucherDiscount) {
+            List<Double> seatPrices, double totalPrice,
+            String voucherCode, double voucherDiscount) {
         if (userId <= 0 || showtimeId <= 0 || seatIds == null || seatIds.isEmpty()
                 || seatPrices == null || seatPrices.size() != seatIds.size()) {
             return -1;
@@ -695,8 +716,7 @@ public class BookingDAO {
                 + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email "
                 + "ORDER BY bk.booked_at DESC, bk.id DESC";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             if (status != null && !status.trim().isEmpty()) {
                 ps.setString(2, status);
@@ -722,8 +742,7 @@ public class BookingDAO {
                 + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
                 + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             ps.setInt(2, userId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -805,8 +824,7 @@ public class BookingDAO {
         String normalizedKeyword = blankToNull(keyword);
         String like = normalizedKeyword == null ? null : "%" + normalizedKeyword + "%";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, staffId);
             ps.setString(2, normalizedStatus);
             ps.setString(3, normalizedStatus);
@@ -832,8 +850,7 @@ public class BookingDAO {
                 + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
                 + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             ps.setInt(2, staffId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -927,8 +944,7 @@ public class BookingDAO {
     }
 
     private boolean updateStaffBookingStatus(String sql, int bookingId, int staffId) {
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             ps.setInt(2, staffId);
             return ps.executeUpdate() > 0;
@@ -946,7 +962,9 @@ public class BookingDAO {
                 + "u.full_name AS customer_name, u.email AS customer_email, "
                 + "STRING_AGG(CONCAT(se.seat_row, se.seat_number), ', ') "
                 + "WITHIN GROUP (ORDER BY se.seat_row, se.seat_number) AS seat_labels, "
-                + "COUNT(se.id) AS seat_count "
+                //+ "COUNT(se.id) AS seat_count "
+                + "COUNT(se.id) AS seat_count, "
+                + "COALESCE(SUM(bs.price), 0) AS seat_subtotal "
                 + "FROM dbo.BOOKINGS bk "
                 + "JOIN dbo.[USER] u ON u.id = bk.user_id "
                 + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
@@ -980,6 +998,20 @@ public class BookingDAO {
         view.setShowStart(showStart == null ? null : showStart.toLocalDateTime());
         view.setSeatLabels(rs.getString("seat_labels") == null ? "" : rs.getString("seat_labels"));
         view.setSeatCount(rs.getInt("seat_count"));
+        double seatSubtotal = rs.getDouble("seat_subtotal");
+        double finalTotal = booking.getTotalPrice();
+
+        /*
+ * Online booking hiện chưa có voucher.
+ * Vì vậy phần chênh lệch giữa tổng giá ghế và tổng cuối
+ * chính là ưu đãi mua 5 tặng 1.
+         */
+        double buyFiveDiscount = Math.max(0, seatSubtotal - finalTotal);
+        double voucherDiscount = 0;
+
+        view.setSeatSubtotal(seatSubtotal);
+        view.setBuyFiveDiscount(buyFiveDiscount);
+        view.setVoucherDiscount(voucherDiscount);
         view.setCustomerName(rs.getString("customer_name"));
         view.setCustomerEmail(rs.getString("customer_email"));
 
@@ -1010,57 +1042,55 @@ public class BookingDAO {
         }
         return value.trim();
     }
-    
+
     public List<BookingView> findHistoryByUserPaging(int userId, int page, int pageSize) {
-    List<BookingView> list = new ArrayList<>();
+        List<BookingView> list = new ArrayList<>();
 
-    int offset = (page - 1) * pageSize;
+        int offset = (page - 1) * pageSize;
 
-    String sql = bookingViewSelect()
-            + "WHERE bk.user_id = ? "
-            + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
-            + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email "
-            + "ORDER BY bk.booked_at DESC, bk.id DESC "
-            + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = bookingViewSelect()
+                + "WHERE bk.user_id = ? "
+                + "GROUP BY bk.id, bk.user_id, bk.showtime_id, bk.source, bk.status, bk.total_price, "
+                + "bk.qr_code, bk.booked_at, m.id, m.title, br.name, h.name, s.start_time, u.full_name, u.email "
+                + "ORDER BY bk.booked_at DESC, bk.id DESC "
+                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
-    try (Connection conn = new DBContext().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setInt(1, userId);
-        ps.setInt(2, offset);
-        ps.setInt(3, pageSize);
+            ps.setInt(1, userId);
+            ps.setInt(2, offset);
+            ps.setInt(3, pageSize);
 
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapBookingView(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBookingView(rs));
+                }
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
 
-    return list;
-}
-    
     public int countHistoryByUser(int userId) {
-    String sql = "SELECT COUNT(*) FROM dbo.BOOKINGS WHERE user_id = ?";
+        String sql = "SELECT COUNT(*) FROM dbo.BOOKINGS WHERE user_id = ?";
 
-    try (Connection conn = new DBContext().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setInt(1, userId);
+            ps.setInt(1, userId);
 
-        try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return 0;
     }
-
-    return 0;
-}
 }

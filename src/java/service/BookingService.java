@@ -17,6 +17,7 @@ import model.Booking;
 import model.BookingStatusHistory;
 import model.Seat;
 import model.Showtime;
+import java.util.Collections;
 
 public class BookingService {
 
@@ -159,46 +160,162 @@ public class BookingService {
         return branchId > 0 && bookingDAO.cancelPendingBookingInBranch(bookingId, branchId);
     }
 
-    public BookingDraftView buildDraftView(int showtimeId, List<Integer> seatIds) {
-        Showtime showtime = showtimeService.getBookableShowtime(showtimeId);
-        if (showtime == null) {
-            throw new IllegalArgumentException("Suất chiếu không còn mở đặt vé.");
+//    public BookingDraftView buildDraftView(int showtimeId, List<Integer> seatIds) {
+//        Showtime showtime = showtimeService.getBookableShowtime(showtimeId);
+//        if (showtime == null) {
+//            throw new IllegalArgumentException("Suất chiếu không còn mở đặt vé.");
+//        }
+//
+//        List<Integer> cleanSeatIds = cleanSeatIds(seatIds);
+//        if (cleanSeatIds.isEmpty()) {
+//            throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế.");
+//        }
+//
+//        List<SeatView> seatViews = seatService.getSeatViewsByShowtimeAndIds(showtimeId, cleanSeatIds);
+//        if (seatViews.size() != cleanSeatIds.size()) {
+//            throw new IllegalArgumentException("Danh sách ghế không hợp lệ.");
+//        }
+//
+//        BookingDraftView draftView = new BookingDraftView();
+//        draftView.setShowtime(showtime);
+//
+//        List<BookingSeatLine> lines = new ArrayList<>();
+//        double total = 0;
+//        for (SeatView seatView : seatViews) {
+//            if (seatView == null || !seatView.isSelectable()) {
+//                throw new IllegalArgumentException("Một hoặc nhiều ghế đã được đặt hoặc đang bảo trì.");
+//            }
+//
+//            Seat seat = seatView.getSeat();
+//            double price = showtimeService.getSeatPrice(
+//                    showtimeId,
+//                    seat.getSeatType(),
+//                    showtime.getBasePrice()
+//            );
+//            total += price;
+//            lines.add(new BookingSeatLine(seat, price));
+//        }
+//
+//        draftView.setSeats(lines);
+//        draftView.setTotalPrice(total);
+//        return draftView;
+//    }
+     public BookingDraftView buildDraftView(int showtimeId, List<Integer> seatIds) {
+    Showtime showtime = showtimeService.getBookableShowtime(showtimeId);
+    if (showtime == null) {
+        throw new IllegalArgumentException("Suất chiếu không còn mở đặt vé.");
+    }
+
+    List<Integer> cleanSeatIds = cleanSeatIds(seatIds);
+    if (cleanSeatIds.isEmpty()) {
+        throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế.");
+    }
+
+    List<SeatView> seatViews
+            = seatService.getSeatViewsByShowtimeAndIds(showtimeId, cleanSeatIds);
+
+    if (seatViews.size() != cleanSeatIds.size()) {
+        throw new IllegalArgumentException("Danh sách ghế không hợp lệ.");
+    }
+
+    BookingDraftView draftView = new BookingDraftView();
+    draftView.setShowtime(showtime);
+
+    List<BookingSeatLine> lines = new ArrayList<>();
+    List<Double> seatPrices = new ArrayList<>();
+
+    double seatSubtotal = 0;
+
+    for (SeatView seatView : seatViews) {
+        if (seatView == null || !seatView.isSelectable()) {
+            throw new IllegalArgumentException(
+                    "Một hoặc nhiều ghế đã được đặt hoặc đang bảo trì."
+            );
         }
 
-        List<Integer> cleanSeatIds = cleanSeatIds(seatIds);
-        if (cleanSeatIds.isEmpty()) {
-            throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế.");
-        }
-
-        List<SeatView> seatViews = seatService.getSeatViewsByShowtimeAndIds(showtimeId, cleanSeatIds);
-        if (seatViews.size() != cleanSeatIds.size()) {
+        Seat seat = seatView.getSeat();
+        if (seat == null) {
             throw new IllegalArgumentException("Danh sách ghế không hợp lệ.");
         }
 
-        BookingDraftView draftView = new BookingDraftView();
-        draftView.setShowtime(showtime);
+        /*
+         * Giá được lấy lại hoàn toàn ở server.
+         * Không sử dụng giá từ request hoặc JavaScript.
+         */
+        double price = showtimeService.getSeatPrice(
+                showtimeId,
+                seat.getSeatType(),
+                showtime.getBasePrice()
+        );
 
-        List<BookingSeatLine> lines = new ArrayList<>();
-        double total = 0;
-        for (SeatView seatView : seatViews) {
-            if (seatView == null || !seatView.isSelectable()) {
-                throw new IllegalArgumentException("Một hoặc nhiều ghế đã được đặt hoặc đang bảo trì.");
-            }
-
-            Seat seat = seatView.getSeat();
-            double price = showtimeService.getSeatPrice(
-                    showtimeId,
-                    seat.getSeatType(),
-                    showtime.getBasePrice()
+        if (price < 0) {
+            throw new IllegalArgumentException(
+                    "Không thể xác định giá của ghế " + seat.getSeatCode() + "."
             );
-            total += price;
-            lines.add(new BookingSeatLine(seat, price));
         }
 
-        draftView.setSeats(lines);
-        draftView.setTotalPrice(total);
-        return draftView;
+        seatSubtotal += price;
+        seatPrices.add(price);
+        lines.add(new BookingSeatLine(seat, price));
     }
+
+    /*
+     * Cứ mỗi 5 ghế thì có 1 vé miễn phí.
+     *
+     * 4 ghế  -> 0 vé miễn phí
+     * 5 ghế  -> 1 vé miễn phí
+     * 6-9    -> 1 vé miễn phí
+     * 10 ghế -> 2 vé miễn phí
+     */
+    int freeTicketCount = seatPrices.size() / 5;
+
+    /*
+     * Ghế miễn phí phải là các ghế có giá thấp nhất.
+     * Sort bản sao của danh sách giá để không thay đổi thứ tự ghế hiển thị.
+     */
+    List<Double> sortedPrices = new ArrayList<>(seatPrices);
+    Collections.sort(sortedPrices);
+
+    double buyFiveDiscount = 0;
+    for (int i = 0; i < freeTicketCount; i++) {
+        buyFiveDiscount += sortedPrices.get(i);
+    }
+
+    /*
+     * Online booking hiện chưa có voucher.
+     * Khi tích hợp voucher, voucher phải được tính trên:
+     *
+     * seatSubtotal - buyFiveDiscount
+     */
+    double voucherDiscount = 0;
+
+    double amountAfterBuyFive = Math.max(
+            0,
+            seatSubtotal - buyFiveDiscount
+    );
+
+    /*
+     * Không cho voucher làm tổng tiền âm.
+     */
+    voucherDiscount = Math.min(
+            Math.max(0, voucherDiscount),
+            amountAfterBuyFive
+    );
+
+    double finalTotal = Math.max(
+            0,
+            amountAfterBuyFive - voucherDiscount
+    );
+
+    draftView.setSeats(lines);
+    draftView.setSeatSubtotal(seatSubtotal);
+    draftView.setBuyFiveDiscount(buyFiveDiscount);
+    draftView.setVoucherDiscount(voucherDiscount);
+    draftView.setTotalPrice(finalTotal);
+
+    return draftView;
+}
+
 
     public VoucherQuote quoteVoucher(String voucherCode, double subtotal) {
         // Hàm này là nguồn kiểm tra voucher dùng chung cho web đặt vé và quầy vé.
