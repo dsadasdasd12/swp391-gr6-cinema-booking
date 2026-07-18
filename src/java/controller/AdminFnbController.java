@@ -141,40 +141,41 @@ public class AdminFnbController extends HttpServlet {
         switch (path) {
             case "/admin/fnb-dashboard/category/save":
                 saveCategory(request, response);
-                break;
+                return;
 
             case "/admin/fnb-dashboard/category/status":
                 changeCategoryStatus(request, response);
-                break;
+                return;
 
             case "/admin/fnb-dashboard/product/save":
                 saveProduct(request, response);
-                break;
+                return;
 
             case "/admin/fnb-dashboard/product/status":
                 changeProductStatus(request, response);
-                break;
+                return;
 
             case "/admin/fnb-dashboard/toggle-sale":
                 toggleProductSale(request, response);
-                break;
+                return;
 
             case "/admin/fnb-dashboard/combo/save":
                 saveCombo(request, response);
-                break;
+                return;
 
             case "/admin/fnb-dashboard/combo/status":
                 changeComboStatus(request, response);
-                break;
+                return;
 
             case "/admin/fnb-dashboard/combo/toggle-sale":
                 toggleComboSale(request, response);
-                break;
+                return;
+
             default:
                 response.sendRedirect(
-                        request.getContextPath() + "/admin/fnb-dashboard"
+                        request.getContextPath()
+                        + "/admin/fnb-dashboard"
                 );
-                break;
         }
     }
 
@@ -353,30 +354,74 @@ public class AdminFnbController extends HttpServlet {
         );
     }
 
-    private void saveProduct(HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException {
+    private void saveProduct(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
 
         String idRaw = request.getParameter("id");
-        String categoryIdRaw = request.getParameter("categoryId");
+        String categoryIdRaw
+                = request.getParameter("categoryId");
+
+        int categoryId;
 
         try {
-            FnbProductFormDTO dto = new FnbProductFormDTO();
+            categoryId = Integer.parseInt(categoryIdRaw);
 
-            if (idRaw != null && !idRaw.isBlank()) {
-                dto.setId(Integer.parseInt(idRaw));
+            if (categoryId <= 0) {
+                throw new IllegalArgumentException(
+                        "Danh mục sản phẩm không hợp lệ."
+                );
             }
 
-            dto.setCategoryId(Integer.parseInt(categoryIdRaw));
+            FnbProductFormDTO dto
+                    = new FnbProductFormDTO();
+
+            if (idRaw != null && !idRaw.isBlank()) {
+                int productId = Integer.parseInt(idRaw);
+
+                if (productId <= 0) {
+                    throw new IllegalArgumentException(
+                            "Sản phẩm không hợp lệ."
+                    );
+                }
+
+                dto.setId(productId);
+            }
+
+            dto.setCategoryId(categoryId);
             dto.setName(request.getParameter("name"));
-            dto.setDescription(request.getParameter("description"));
-            dto.setProductType(request.getParameter("productType"));
-            dto.setSellingPrice(
-                    new BigDecimal(request.getParameter("sellingPrice"))
+            dto.setDescription(
+                    request.getParameter("description")
             );
-            dto.setImageUrl(request.getParameter("imageUrl"));
+            dto.setProductType(
+                    request.getParameter("productType")
+            );
+
+            String sellingPriceRaw
+                    = request.getParameter("sellingPrice");
+
+            if (sellingPriceRaw == null
+                    || sellingPriceRaw.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Vui lòng nhập giá bán."
+                );
+            }
+
+            dto.setSellingPrice(
+                    new BigDecimal(sellingPriceRaw.trim())
+            );
+
+            dto.setImageUrl(
+                    request.getParameter("imageUrl")
+            );
+
             dto.setAllowedToSell(
-                    "true".equals(request.getParameter("allowedToSell"))
+                    "true".equalsIgnoreCase(
+                            request.getParameter(
+                                    "allowedToSell"
+                            )
+                    )
             );
 
             adminFnbService.saveProduct(dto);
@@ -386,15 +431,45 @@ public class AdminFnbController extends HttpServlet {
                     "Lưu sản phẩm thành công.",
                     "success"
             );
+
+        } catch (NumberFormatException e) {
+            setFlash(
+                    request,
+                    "ID danh mục, ID sản phẩm hoặc giá bán không hợp lệ.",
+                    "error"
+            );
+
+        } catch (IllegalArgumentException e) {
+            setFlash(
+                    request,
+                    e.getMessage(),
+                    "error"
+            );
+
         } catch (Exception e) {
-            setFlash(request, e.getMessage(), "error");
+            e.printStackTrace();
+
+            setFlash(
+                    request,
+                    "Không thể lưu sản phẩm. Vui lòng thử lại.",
+                    "error"
+            );
         }
 
-        response.sendRedirect(
-                request.getContextPath()
-                + "/admin/fnb-dashboard?categoryId="
-                + categoryIdRaw
-        );
+        if (response.isCommitted()) {
+            return;
+        }
+
+        String redirectUrl
+                = request.getContextPath()
+                + "/admin/fnb-dashboard";
+
+        if (categoryIdRaw != null
+                && categoryIdRaw.matches("\\d+")) {
+            redirectUrl += "?categoryId=" + categoryIdRaw;
+        }
+
+        response.sendRedirect(redirectUrl);
     }
 
     private void changeProductStatus(HttpServletRequest request,

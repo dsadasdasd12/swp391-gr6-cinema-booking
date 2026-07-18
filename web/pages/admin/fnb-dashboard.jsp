@@ -368,21 +368,22 @@
 
                                                   <c:choose>
 
-                                                      <c:when test="${not empty combo.imageUrl}">
+                                                      <c:when test="${empty combo.imageUrl}">
+                                                          <img src="${ctx}/assets/img/fnb/popcorn_large.png"
+                                                               alt="<c:out value='${combo.name}'/>">
+                                                      </c:when>
 
-                                                          <img
-                                                              src="${ctx}/${combo.imageUrl}"
-                                                              alt="<c:out value='${combo.name}' />"
-                                                              onerror="this.src='${ctx}/assets/img/default-fnb.png'">
-
+                                                      <c:when test="${combo.imageUrl.startsWith('http://')
+                                                                      or combo.imageUrl.startsWith('https://')}">
+                                                              <img src="<c:out value='${combo.imageUrl}'/>"
+                                                                   alt="<c:out value='${combo.name}'/>"
+                                                                   onerror="this.onerror=null;this.src='${ctx}/assets/img/fnb/popcorn_large.png';">
                                                       </c:when>
 
                                                       <c:otherwise>
-
-                                                          <img
-                                                              src="${ctx}/assets/img/default-fnb.png"
-                                                              alt="Combo mặc định">
-
+                                                          <img src="${ctx}${combo.imageUrl.startsWith('/') ? '' : '/'}<c:out value='${combo.imageUrl}'/>"
+                                                               alt="<c:out value='${combo.name}'/>"
+                                                               onerror="this.onerror=null;this.src='${ctx}/assets/img/fnb/popcorn_large.png';">
                                                       </c:otherwise>
 
                                                   </c:choose>
@@ -665,12 +666,27 @@
 
                                                     <div class="fnb-product-image">
 
-                                                        <img
-                                                            src="${ctx}/${not empty product.imageUrl
-                                                                   ? product.imageUrl
-                                                                   : 'assets/img/default-fnb.png'}"
-                                                            alt="<c:out value='${product.name}' />"
-                                                            onerror="this.src='${ctx}/assets/img/default-fnb.png'">
+                                                        <c:choose>
+
+                                                            <c:when test="${empty product.imageUrl}">
+                                                                <img src="${ctx}/assets/img/fnb/pepsi.png"
+                                                                     alt="<c:out value='${product.name}'/>">
+                                                            </c:when>
+
+                                                            <c:when test="${product.imageUrl.startsWith('http://')
+                                                                            or product.imageUrl.startsWith('https://')}">
+                                                                    <img src="<c:out value='${product.imageUrl}'/>"
+                                                                         alt="<c:out value='${product.name}'/>"
+                                                                         onerror="this.onerror=null;this.src='${ctx}/assets/img/fnb/pepsi.png';">
+                                                            </c:when>
+
+                                                            <c:otherwise>
+                                                                <img src="${ctx}${product.imageUrl.startsWith('/') ? '' : '/'}<c:out value='${product.imageUrl}'/>"
+                                                                     alt="<c:out value='${product.name}'/>"
+                                                                     onerror="this.onerror=null;this.src='${ctx}/assets/img/fnb/pepsi.png';">
+                                                            </c:otherwise>
+
+                                                        </c:choose>
 
                                                     </div>
 
@@ -759,6 +775,7 @@
                                                                     data-category-id="${product.categoryId}"
                                                                     data-name="<c:out value='${product.name}' />"
                                                                     data-description="<c:out value='${product.description}' />"
+                                                                    data-product-type="<c:out value='${product.productType}' />"
                                                                     data-selling-price="${product.sellingPrice}"
                                                                     data-image-url="<c:out value='${product.imageUrl}' />"
                                                                     data-allowed-to-sell="${product.allowedToSell}"
@@ -937,11 +954,6 @@
                                    id="productId"
                                    name="id">
 
-                            <input type="hidden"
-                                   id="productType"
-                                   name="productType"
-                                   value="ITEM">
-
                             <div class="fnb-form-group">
 
                                 <label for="productCategoryId">
@@ -1007,15 +1019,21 @@
 
                                 <div class="fnb-form-group">
 
-                                    <label>
+                                    <label for="productType">
 
                                         Loại sản phẩm
 
                                     </label>
 
-                                    <input type="text"
-                                           value="Đồ ăn / nước uống"
-                                           disabled>
+                                    <select id="productType"
+                                            name="productType"
+                                            required>
+
+                                        <option value="ITEM">
+                                            Sản phẩm bán lẻ
+                                        </option>
+
+                                    </select>
 
                                 </div>
 
@@ -1193,9 +1211,9 @@
                                     <div class="combo-image-preview">
 
                                         <img id="comboImagePreview"
-                                             src="${ctx}/assets/img/default-fnb.png"
+                                             src="${ctx}/assets/img/fnb/popcorn_large.png"
                                              alt="Ảnh combo"
-                                             onerror="this.src='${ctx}/assets/img/default-fnb.png'">
+                                             onerror="this.onerror=null;this.src='${ctx}/assets/img/fnb/popcorn_large.png';">
 
                                     </div>
 
@@ -1285,11 +1303,27 @@
 
                                                         <div class="combo-product-image">
 
-                                                            <img src="${ctx}/${not empty item.imageUrl
-                                                                        ? item.imageUrl
-                                                                        : 'assets/img/default-fnb.png'}"
-                                                                 alt="<c:out value='${item.name}' />"
-                                                                 onerror="this.src='${ctx}/assets/img/default-fnb.png'">
+                                                            <c:choose>
+
+                                                                <c:when test="${empty item.imageUrl}">
+                                                                    <img src="${ctx}/assets/img/fnb/pepsi.png"
+                                                                         alt="<c:out value='${item.name}'/>">
+                                                                </c:when>
+
+                                                                <c:when test="${item.imageUrl.startsWith('http://')
+                                                                                or item.imageUrl.startsWith('https://')}">
+                                                                        <img src="<c:out value='${item.imageUrl}'/>"
+                                                                             alt="<c:out value='${item.name}'/>"
+                                                                             onerror="this.onerror=null;this.src='${ctx}/assets/img/fnb/pepsi.png';">
+                                                                </c:when>
+
+                                                                <c:otherwise>
+                                                                    <img src="${ctx}${item.imageUrl.startsWith('/') ? '' : '/'}<c:out value='${item.imageUrl}'/>"
+                                                                         alt="<c:out value='${item.name}'/>"
+                                                                         onerror="this.onerror=null;this.src='${ctx}/assets/img/fnb/pepsi.png';">
+                                                                </c:otherwise>
+
+                                                            </c:choose>
 
                                                         </div>
 
@@ -1617,6 +1651,7 @@
                                 button.dataset.categoryId,
                                 button.dataset.name,
                                 button.dataset.description,
+                                button.dataset.productType,
                                 button.dataset.sellingPrice,
                                 button.dataset.imageUrl,
                                 button.dataset.allowedToSell
@@ -1628,6 +1663,7 @@
                             categoryId,
                             name,
                             description,
+                            productType,
                             sellingPrice,
                             imageUrl,
                             allowedToSell) {
@@ -1654,7 +1690,7 @@
 
                         document.getElementById(
                                 "productType"
-                                ).value = "ITEM";
+                                ).value = productType || "ITEM";
 
                         document.getElementById(
                                 "productSellingPrice"
@@ -1780,7 +1816,7 @@
                         if (!imagePath) {
 
                             preview.src =
-                                    "${ctx}/assets/img/default-fnb.png";
+                                    "${ctx}/assets/img/fnb/popcorn_large.png";
 
                             return;
                         }
