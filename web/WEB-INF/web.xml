@@ -24,4 +24,20 @@
         <param-name>mail.smtp.password</param-name>
         <param-value>qsrx wbqy udid oqlj</param-value>
     </context-param>
+    
+    
+    <context-param>
+        <param-name>bank.code</param-name>
+        <param-value>BIDV</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>bank.accountNo</param-name>
+        <param-value>96247GGDYW</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>bank.accountName</param-name>
+        <param-value>TRAN THE TRUONG</param-value>
+    </context-param>
 </web-app>

@@ -468,8 +468,12 @@
                 transition: right .28s ease, opacity .2s ease;
             }
 
-            .fnb-drawer-toggle:hover { opacity: .9; }
-            body.fnb-drawer-open .fnb-drawer-toggle { right: 770px; }
+            .fnb-drawer-toggle:hover {
+                opacity: .9;
+            }
+            body.fnb-drawer-open .fnb-drawer-toggle {
+                right: 770px;
+            }
 
             .fnb-drawer {
                 position: fixed;
@@ -505,8 +509,15 @@
                 background: rgba(255,255,255,.025);
             }
 
-            .fnb-drawer-header h3 { margin: 0; font-size: 17px; }
-            .fnb-drawer-header p { margin: 4px 0 0; color: var(--muted-text); font-size: 11px; }
+            .fnb-drawer-header h3 {
+                margin: 0;
+                font-size: 17px;
+            }
+            .fnb-drawer-header p {
+                margin: 4px 0 0;
+                color: var(--muted-text);
+                font-size: 11px;
+            }
 
             .fnb-close-button {
                 width: 36px;
@@ -550,8 +561,13 @@
                 padding: 8px 18px 18px;
             }
 
-            .fnb-tab-panel { display: none; }
-            .fnb-tab-panel.active { display: grid; gap: 10px; }
+            .fnb-tab-panel {
+                display: none;
+            }
+            .fnb-tab-panel.active {
+                display: grid;
+                gap: 10px;
+            }
 
             .fnb-pos-card {
                 display: grid;
@@ -572,7 +588,9 @@
                 background: #111827;
             }
 
-            .fnb-pos-info { min-width: 0; }
+            .fnb-pos-info {
+                min-width: 0;
+            }
             .fnb-pos-info strong {
                 display: block;
                 overflow: hidden;
@@ -588,7 +606,12 @@
                 font-size: 10px;
                 line-height: 1.35;
             }
-            .fnb-pos-price { margin-top: 7px; color: #fbbf24; font-size: 12px; font-weight: 800; }
+            .fnb-pos-price {
+                margin-top: 7px;
+                color: #fbbf24;
+                font-size: 12px;
+                font-weight: 800;
+            }
 
             .fnb-qty-control {
                 display: grid;
@@ -627,7 +650,10 @@
                 color: var(--muted-text);
                 font-size: 13px;
             }
-            .fnb-drawer-total strong { color: #10b981; font-size: 16px; }
+            .fnb-drawer-total strong {
+                color: #10b981;
+                font-size: 16px;
+            }
             .fnb-done-button {
                 width: 100%;
                 padding: 12px;
@@ -640,15 +666,35 @@
                 cursor: pointer;
             }
 
-            .fnb-cart-section { margin-top: 20px; }
-            .fnb-cart-empty { color: var(--muted-text); font-size: 12px; }
-            .fnb-cart-name { color: #fff; font-size: 12px; font-weight: 700; }
-            .fnb-cart-meta { color: var(--muted-text); font-size: 10px; margin-top: 3px; }
+            .fnb-cart-section {
+                margin-top: 20px;
+            }
+            .fnb-cart-empty {
+                color: var(--muted-text);
+                font-size: 12px;
+            }
+            .fnb-cart-name {
+                color: #fff;
+                font-size: 12px;
+                font-weight: 700;
+            }
+            .fnb-cart-meta {
+                color: var(--muted-text);
+                font-size: 10px;
+                margin-top: 3px;
+            }
 
             @media (max-width: 1250px) {
-                .fnb-drawer { right: 0; width: min(420px, 92vw); }
-                .fnb-drawer-toggle { right: 0; }
-                body.fnb-drawer-open .fnb-drawer-toggle { right: min(420px, 92vw); }
+                .fnb-drawer {
+                    right: 0;
+                    width: min(420px, 92vw);
+                }
+                .fnb-drawer-toggle {
+                    right: 0;
+                }
+                body.fnb-drawer-open .fnb-drawer-toggle {
+                    right: min(420px, 92vw);
+                }
             }
 
             /* ===== F&B STAFF - CSS END ===== */
@@ -896,7 +942,7 @@
                 <c:if test="${not empty sessionScope.msgError}">
                     <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px;" id="errorAlert">
                         ${sessionScope.msgError}
-                        <% session.removeAttribute("msgError"); %>
+                        <% session.removeAttribute("msgError");%>
                     </div>
                 </c:if>
 
@@ -1081,7 +1127,8 @@
 
             function changeFnbQuantity(type, id, delta) {
                 const addButton = document.querySelector('[data-fnb-add][data-type="' + type + '"][data-id="' + id + '"]');
-                if (!addButton) return;
+                if (!addButton)
+                    return;
 
                 const name = addButton.dataset.name;
                 const price = Number(addButton.dataset.price || 0);
@@ -1090,17 +1137,20 @@
                 const current = line ? line.quantity : 0;
                 const next = Math.max(0, Math.min(max, current + delta));
 
-                if (next === current) return;
+                if (next === current)
+                    return;
                 if (!line && next > 0) {
                     line = {type, id, name, price, max, quantity: next};
                     selectedFnb.push(line);
                 } else if (line) {
                     line.quantity = next;
-                    if (next === 0) selectedFnb = selectedFnb.filter(item => item !== line);
+                    if (next === 0)
+                        selectedFnb = selectedFnb.filter(item => item !== line);
                 }
 
                 const qtyElement = document.getElementById('fnbQty-' + type + '-' + id);
-                if (qtyElement) qtyElement.textContent = next;
+                if (qtyElement)
+                    qtyElement.textContent = next;
                 updateFnbCartUI();
             }
 
@@ -1111,7 +1161,8 @@
             function updateFnbCartUI() {
                 const list = document.getElementById('fnbCartItemsList');
                 const hidden = document.getElementById('selectedFnbInput');
-                if (!list || !hidden) return;
+                if (!list || !hidden)
+                    return;
 
                 list.innerHTML = '';
                 if (selectedFnb.length === 0) {
@@ -1137,8 +1188,8 @@
 
             function escapeHtml(value) {
                 return String(value || '').replace(/[&<>'"]/g, character => ({
-                    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-                })[character]);
+                        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+                    })[character]);
             }
 
             function toggleSeatSelection(button) {
@@ -1397,9 +1448,9 @@
 
                 title.innerText = "Chuyển Khoản Banking QR (Đơn #" + bookingId + ")";
 
-                const bankId = "MB";
-                const accountNo = "0972282208";
-                const accountName = "Hoang Ngoc Tu";
+                const bankId = "${bankCode}";
+                const accountNo = "${bankAccountNo}";
+                const accountName = "${bankAccountName}";
                 // Nội dung chuyển khoản định danh: RVS[bookingId]
                 const content = "RVS" + bookingId;
                 const qrUrl = 'https://img.vietqr.io/image/' + bankId + '-' + accountNo + '-print.png?amount=' + amount + '&addInfo=' + encodeURIComponent(content) + '&accountName=' + encodeURIComponent(accountName);
@@ -1429,44 +1480,71 @@
             }
 
             function checkBookingStatusFromServer(bookingId) {
-                fetch('CounterBooking?action=checkPaymentStatus&bookingId=' + bookingId)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'CONFIRMED') {
-                                // Thanh toán thành công!
-                                if (checkPaymentInterval) {
-                                    clearInterval(checkPaymentInterval);
-                                    checkPaymentInterval = null;
-                                }
-
-                                // Cập nhật giao diện trạng thái thành công
-                                const statusDiv = document.getElementById('bankingStatus');
-                                if (statusDiv) {
-                                    statusDiv.innerHTML = '<span style="color: #10b981; font-weight: 700; font-size: 14px;">✓ Đã nhận đủ tiền! Đang chuyển tiếp...</span>';
-                                }
-
-                                setTimeout(() => {
-                                    // RẤT QUAN TRỌNG: Đặt lại ID bằng null trước khi đóng modal
-                                    // để tránh hàm closePaymentModal hiểu nhầm là người dùng chủ động bấm Hủy đơn!
-                                    currentPendingBookingId = null;
-                                    closePaymentModal();
-                                    // Chuyển sang màn hình successModal
-                                    // Cập nhật URL hiện tại để khi reload hoặc in vé có đúng bookingId
-                                    const url = new URL(window.location.href);
-                                    url.searchParams.set('bookingSuccessId', bookingId);
-                                    window.history.replaceState({}, document.title, url.toString());
-
-                                    // Cập nhật đường link in vé động trên successModal
-                                    const printBtn = document.querySelector("#successModal .btn-modal-primary");
-                                    if (printBtn) {
-                                        printBtn.setAttribute("href", "CounterBooking?action=printTicket&bookingId=" + bookingId);
-                                    }
-
-                                    openSuccessModal();
-                                }, 1200);
+                fetch(
+                        '${pageContext.request.contextPath}'
+                        + '/CounterBooking?action=checkPaymentStatus'
+                        + '&bookingId='
+                        + encodeURIComponent(bookingId),
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            cache: 'no-store'
+                        }
+                )
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(
+                                        'Không thể kiểm tra thanh toán: HTTP '
+                                        + response.status
+                                        );
                             }
+
+                            return response.json();
                         })
-                        .catch(err => console.error("Lỗi kiểm tra trạng thái thanh toán:", err));
+                        .then(data => {
+                            if (data.status !== 'CONFIRMED') {
+                                return;
+                            }
+
+                            if (checkPaymentInterval) {
+                                clearInterval(checkPaymentInterval);
+                                checkPaymentInterval = null;
+                            }
+
+                            /*
+                             * Không gọi closePaymentModal() ở đây vì method đó có thể
+                             * gửi request hủy booking PENDING.
+                             */
+                            currentPendingBookingId = null;
+
+                            const statusDiv =
+                                    document.getElementById('bankingStatus');
+
+                            if (statusDiv) {
+                                statusDiv.innerHTML =
+                                        '<span style="color:#10b981;'
+                                        + 'font-weight:700;font-size:14px;">'
+                                        + '✓ Thanh toán thành công! Đang mở vé...'
+                                        + '</span>';
+                            }
+
+                            setTimeout(() => {
+                                window.location.href =
+                                        '${pageContext.request.contextPath}'
+                                        + '/CounterBooking'
+                                        + '?action=printTicket'
+                                        + '&bookingId='
+                                        + encodeURIComponent(bookingId);
+                            }, 1000);
+                        })
+                        .catch(error => {
+                            console.error(
+                                    'Lỗi kiểm tra trạng thái thanh toán:',
+                                    error
+                                    );
+                        });
             }
 
 

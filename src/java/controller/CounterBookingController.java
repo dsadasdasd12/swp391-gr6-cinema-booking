@@ -151,11 +151,11 @@ public class CounterBookingController extends HttpServlet {
              * BookingFnbDAO sẽ kiểm tra lại món/combo có được bán tại chi nhánh
              * và số lượng thực tế còn khả dụng hay không.
              */
-            Map<String, Integer> fnbQuantities =
-                    parseFnbSelection(request.getParameter("selectedFnb"));
+            Map<String, Integer> fnbQuantities
+                    = parseFnbSelection(request.getParameter("selectedFnb"));
 
-            List<BookingFnbLine> selectedFnb =
-                    bookingFnbDAO.resolveSelection(branchId, fnbQuantities);
+            List<BookingFnbLine> selectedFnb
+                    = bookingFnbDAO.resolveSelection(branchId, fnbQuantities);
 
             /*
              * Service phải tính lại toàn bộ giá vé và giá F&B từ DB,
@@ -203,50 +203,100 @@ public class CounterBookingController extends HttpServlet {
     }
     // ===== F&B STAFF - CREATE BOOKING END =====
 
-    private void printTicket(HttpServletRequest request, HttpServletResponse response, int staffId) throws ServletException, IOException {
-        int bookingId = parseId(request.getParameter("bookingId"));
-        // Chỉ in được booking thuộc đúng chi nhánh của staff hiện tại.
-        if (bookingService.getCounterBookingStatus(staffId, bookingId) == null) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+    private void printTicket(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            int staffId
+    ) throws ServletException, IOException {
+
+        int bookingId = parseId(
+                request.getParameter("bookingId")
+        );
+
+        if (bookingId <= 0) {
+            response.sendError(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Booking ID không hợp lệ."
+            );
             return;
         }
-        model.Booking booking = bookingService.getBookingById(bookingId);
+
+        String status = bookingService.getCounterBookingStatus(
+                staffId,
+                bookingId
+        );
+
+        if (status == null) {
+            response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN,
+                    "Booking không thuộc chi nhánh của nhân viên."
+            );
+            return;
+        }
+
+        if (!"CONFIRMED".equalsIgnoreCase(status)) {
+            response.sendError(
+                    HttpServletResponse.SC_CONFLICT,
+                    "Booking chưa được thanh toán thành công."
+            );
+            return;
+        }
+
+        model.Booking booking
+                = bookingService.getBookingById(bookingId);
+
         if (booking == null) {
-            response.sendRedirect("CounterBooking");
+            response.sendError(
+                    HttpServletResponse.SC_NOT_FOUND,
+                    "Không tìm thấy booking."
+            );
             return;
         }
+
         request.setAttribute("booking", booking);
-        request.setAttribute("showtime", showtimeService.getShowtimeById(booking.getShowtimeId()));
-        request.setAttribute("seatCodes", ticketService.getSeatCodesByBookingId(bookingId));
 
-        // ===== F&B STAFF - PRINT TICKET BEGIN =====
-        request.setAttribute("bookingFnbLines", bookingFnbDAO.findByBookingId(bookingId));
-        // ===== F&B STAFF - PRINT TICKET END =====
+        request.setAttribute(
+                "showtime",
+                showtimeService.getShowtimeById(
+                        booking.getShowtimeId()
+                )
+        );
 
-        request.getRequestDispatcher("ticketPrint.jsp").forward(request, response);
+        request.setAttribute(
+                "seatCodes",
+                ticketService.getSeatCodesByBookingId(bookingId)
+        );
+
+        request.setAttribute(
+                "bookingFnbLines",
+                bookingFnbDAO.findByBookingId(bookingId)
+        );
+
+        request.getRequestDispatcher("/ticketPrint.jsp")
+                .forward(request, response);
     }
 
     private void renderCounter(HttpServletRequest request, HttpServletResponse response, int branchId) throws ServletException, IOException {
         // Danh sách suất chiếu và ghế luôn giới hạn theo chi nhánh đã phân công.
         request.setAttribute("showtimeList", showtimeService.getActiveShowtimesByBranch(branchId));
         List<model.SeatType> types = seatService.getAllSeatTypes();
-        
+
         // ===== F&B STAFF - BEGIN =====
         // Chỉ lấy F&B thỏa các điều kiện trong BookingFnbDAO:
         // - sản phẩm/combo ACTIVE
         // - Admin cho phép bán
         // - Manager bật bán tại đúng chi nhánh
         // - còn tồn kho / còn đủ nguyên liệu tạo combo
-        List<StaffFnbProductDTO> staffFnbItems =
-                bookingFnbDAO.findSellableProductsByBranch(branchId);
+        List<StaffFnbProductDTO> staffFnbItems
+                = bookingFnbDAO.findSellableProductsByBranch(branchId);
 
-        List<StaffFnbComboDTO> staffFnbCombos =
-                bookingFnbDAO.findSellableCombosByBranch(branchId);
+        List<StaffFnbComboDTO> staffFnbCombos
+                = bookingFnbDAO.findSellableCombosByBranch(branchId);
 
         request.setAttribute("staffFnbItems", staffFnbItems);
         request.setAttribute("staffFnbCombos", staffFnbCombos);
         // ===== F&B STAFF - END =====
-        
+
         request.setAttribute("allSeatTypes", types);
         int showtimeId = parseId(request.getParameter("showtimeId"));
         Showtime selected = showtimeId <= 0 ? null : showtimeService.getShowtimeById(showtimeId);
@@ -281,6 +331,27 @@ public class CounterBookingController extends HttpServlet {
             );
             // ===== F&B STAFF - SUCCESS SUMMARY END =====
         }
+        String bankCode = getServletContext()
+                .getInitParameter("bank.code");
+
+        String bankAccountNo = getServletContext()
+                .getInitParameter("bank.accountNo");
+
+        String bankAccountName = getServletContext()
+                .getInitParameter("bank.accountName");
+
+        if (bankCode == null || bankCode.isBlank()
+                || bankAccountNo == null || bankAccountNo.isBlank()
+                || bankAccountName == null || bankAccountName.isBlank()) {
+
+            throw new ServletException(
+                    "Chưa cấu hình đầy đủ thông tin ngân hàng trong web.xml."
+            );
+        }
+
+        request.setAttribute("bankCode", bankCode.trim());
+        request.setAttribute("bankAccountNo", bankAccountNo.trim());
+        request.setAttribute("bankAccountName", bankAccountName.trim());
         request.getRequestDispatcher("counterBooking.jsp").forward(request, response);
     }
 
@@ -302,8 +373,7 @@ public class CounterBookingController extends HttpServlet {
 
     // ===== F&B STAFF - PARSE SELECTION BEGIN =====
     /**
-     * Tách selectedFnb theo định dạng:
-     * PRODUCT:1:2,COMBO:3:1
+     * Tách selectedFnb theo định dạng: PRODUCT:1:2,COMBO:3:1
      *
      * Key trả về có dạng PRODUCT:id hoặc COMBO:id.
      */
