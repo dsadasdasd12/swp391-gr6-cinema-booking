@@ -4,6 +4,7 @@ import dto.RegisterDTO;
 import dao.UserDAO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
+import java.util.concurrent.CompletableFuture;
 import model.User;
 import util.EmailUtil;
 import util.PasswordUtil;
@@ -46,16 +47,47 @@ public class AuthService {
         EmailUtil.sendOtp(ctx, email, otp);
     }
 
+    // ===== OTP ASYNC - BEGIN =====
+    /**
+     * Gửi OTP ở background.
+     *
+     * Method này trả về ngay sau khi tạo tác vụ gửi email, vì vậy Controller
+     * có thể redirect người dùng tới màn xác thực mà không phải đợi SMTP.
+     */
+    public void sendOtpAsync(ServletContext ctx, String email, String otp) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                sendOtp(ctx, email, otp);
+            } catch (Exception ex) {
+                System.err.println(
+                        "Không thể gửi OTP tới email " + email + ": " + ex.getMessage()
+                );
+                ex.printStackTrace();
+            }
+        });
+    }
+    // ===== OTP ASYNC - END =====
+
     public void sendVerifyOtp(ServletContext ctx, HttpSession session, User user) {
         String otp = generateOtp();
+
+        // Lưu OTP xác thực email trước để màn verify có thể sử dụng ngay.
         createVerifyOtpSession(session, user, otp);
-        sendOtp(ctx, user.getEmail(), otp);
+
+        // ===== OTP ASYNC - BEGIN =====
+        sendOtpAsync(ctx, user.getEmail(), otp);
+        // ===== OTP ASYNC - END =====
     }
 
     public void sendResetOtp(ServletContext ctx, HttpSession session, User user, String email) {
         String otp = generateOtp();
+
+        // Lưu OTP reset password trước để màn confirm-reset-otp có thể sử dụng ngay.
         createResetOtpSession(session, user, email, otp);
-        sendOtp(ctx, email, otp);
+
+        // ===== OTP ASYNC - BEGIN =====
+        sendOtpAsync(ctx, email, otp);
+        // ===== OTP ASYNC - END =====
     }
 
     public void createVerifyOtpSession(HttpSession session, User user, String otp) {

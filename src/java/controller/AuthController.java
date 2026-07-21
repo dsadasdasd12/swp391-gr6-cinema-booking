@@ -350,9 +350,12 @@ public class AuthController extends HttpServlet {
             session.setAttribute("emailOtp", newOtp);
             session.setAttribute("otpExpiredAt", System.currentTimeMillis() + 5 * 60 * 1000);
 
-            authService.sendOtp(getServletContext(), verifyUser.getEmail(), newOtp);
+            // ===== OTP ASYNC - BEGIN =====
+            // Gửi OTP ở background để không chặn request hiện tại.
+            authService.sendOtpAsync(getServletContext(), verifyUser.getEmail(), newOtp);
+            // ===== OTP ASYNC - END =====
 
-            request.setAttribute("success", "OTP mới đã được gửi tới email của bạn");
+            request.setAttribute("success", "OTP mới đang được gửi tới email của bạn");
             request.getRequestDispatcher("/pages/verify-email.jsp").forward(request, response);
             return;
         }
@@ -368,9 +371,12 @@ public class AuthController extends HttpServlet {
             session.setAttribute("resetOtp", newOtp);
             session.setAttribute("resetOtpExpiredAt", System.currentTimeMillis() + 5 * 60 * 1000);
 
-            authService.sendOtp(getServletContext(), resetEmail, newOtp);
+            // ===== OTP ASYNC - BEGIN =====
+            // Gửi OTP ở background để không chặn request hiện tại.
+            authService.sendOtpAsync(getServletContext(), resetEmail, newOtp);
+            // ===== OTP ASYNC - END =====
 
-            request.setAttribute("success", "OTP mới đã được gửi tới email của bạn");
+            request.setAttribute("success", "OTP mới đang được gửi tới email của bạn");
             request.getRequestDispatcher("/pages/confirm-reset-otp.jsp").forward(request, response);
             return;
         }
