@@ -62,7 +62,7 @@ public class BookingService {
                 staffId,
                 showtimeId,
                 requestedSeatIds,
-                voucherCode
+                null
         );
 
         if (!"CASH".equalsIgnoreCase(paymentMethod)
@@ -76,18 +76,28 @@ public class BookingService {
                 ? Collections.emptyList()
                 : selectedFnb;
 
+        double orderSubtotal = calculation.quote.getSubtotal()
+                + safeFnb.stream().mapToDouble(BookingFnbLine::getLineTotal).sum();
+        VoucherQuote orderVoucher = voucherCode == null || voucherCode.trim().isEmpty()
+                ? VoucherQuote.invalid("") : quoteVoucher(voucherCode, orderSubtotal);
+        if (voucherCode != null && !voucherCode.trim().isEmpty() && !orderVoucher.isValid()) {
+            throw new IllegalArgumentException(orderVoucher.getMessage());
+        }
+        double discount = orderVoucher.isValid() ? orderVoucher.getDiscountAmount() : 0;
+
         return bookingDAO.createWalkinBooking(
                 showtimeId,
                 calculation.seatIds,
                 calculation.prices,
-                calculation.quote.getTotal(),
+                // DAO nhận tổng cuối của toàn đơn; voucher có thể giảm cả F&B.
+                Math.max(0, orderSubtotal - discount),
                 paymentMethod.toUpperCase(),
-                calculation.quote.getDiscountAmount(),
-                calculation.voucher.isValid()
-                        ? "Mã giảm giá: " + calculation.voucher.getCode()
+                discount,
+                orderVoucher.isValid()
+                        ? "Mã giảm giá: " + orderVoucher.getCode()
                         : "",
-                calculation.voucher.isValid()
-                        ? calculation.voucher.getCode()
+                orderVoucher.isValid()
+                        ? orderVoucher.getCode()
                         : null,
                 staffId,
                 safeFnb
@@ -100,8 +110,21 @@ public class BookingService {
      * cùng công thức với lúc lưu vé, nên nhân viên thấy đúng số tiền sẽ thu.
      */
     public CounterBookingQuote quoteCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds, String voucherCode) {
+        return quoteCounterBooking(staffId, showtimeId, requestedSeatIds, voucherCode, Collections.emptyList());
+    }
+
+    public CounterBookingQuote quoteCounterBooking(int staffId, int showtimeId, List<Integer> requestedSeatIds,
+            String voucherCode, List<BookingFnbLine> selectedFnb) {
         try {
-            return calculateCounterBooking(staffId, showtimeId, requestedSeatIds, voucherCode).quote;
+            CounterCalculation calculation = calculateCounterBooking(staffId, showtimeId, requestedSeatIds, null);
+            double subtotal = calculation.quote.getSubtotal()
+                    + (selectedFnb == null ? 0 : selectedFnb.stream().mapToDouble(BookingFnbLine::getLineTotal).sum());
+            VoucherQuote voucher = voucherCode == null || voucherCode.trim().isEmpty()
+                    ? VoucherQuote.invalid("") : quoteVoucher(voucherCode, subtotal);
+            if (voucherCode != null && !voucherCode.trim().isEmpty() && !voucher.isValid()) {
+                return CounterBookingQuote.invalid(voucher.getMessage());
+            }
+            return CounterBookingQuote.valid(subtotal, voucher.isValid() ? voucher.getDiscountAmount() : 0);
         } catch (IllegalArgumentException e) {
             return CounterBookingQuote.invalid(e.getMessage());
         }
@@ -419,14 +442,19 @@ public class BookingService {
             prices.add(line.getPrice());
         }
 
-        double discount = voucherQuote != null && voucherQuote.isValid() ? voucherQuote.getDiscountAmount() : 0;
-        String voucherCode = discount > 0 ? voucherQuote.getCode() : null;
+        // Tính lại từ dữ liệu server để voucher áp dụng cho cả vé và F&B, không tin giá client/session.
+        double orderSubtotal = draftView.getTotalPrice() + draftView.getFnbSubtotal();
+        VoucherQuote verifiedVoucher = voucherQuote != null && voucherQuote.isValid()
+                ? quoteVoucher(voucherQuote.getCode(), orderSubtotal) : VoucherQuote.invalid("");
+        if (voucherQuote != null && voucherQuote.isValid() && !verifiedVoucher.isValid()) return -1;
+        double discount = verifiedVoucher.isValid() ? verifiedVoucher.getDiscountAmount() : 0;
+        String voucherCode = discount > 0 ? verifiedVoucher.getCode() : null;
         return bookingDAO.createPendingBooking(
                 userId,
                 draftView.getShowtime().getId(),
                 seatIds,
                 prices,
-                Math.max(0, draftView.getTotalPrice() - discount),
+                Math.max(0, orderSubtotal - discount),
                 voucherCode,
                 discount,
                 draftView.getFnbLines()

@@ -111,14 +111,17 @@ public class CounterBookingController extends HttpServlet {
 
     private void quoteVoucher(HttpServletRequest request, HttpServletResponse response, int staffId) throws IOException {
         try {
+            int branchId = userService.getBranchIdOfStaff(staffId);
+            List<BookingFnbLine> fnbLines = bookingFnbDAO.resolveSelection(branchId,
+                    parseFnbSelection(request.getParameter("selectedFnb")));
             // Không đọc discountAmount/total từ client: service tự đọc ghế, giá và voucher từ DB.
             CounterBookingQuote quote = bookingService.quoteCounterBooking(staffId,
                     parseId(request.getParameter("showtimeId")), parseSeatIds(request.getParameter("selectedSeats")),
-                    request.getParameter("code"));
+                    request.getParameter("code"), fnbLines);
             if (!quote.isValid()) {
                 // Voucher sai vẫn trả báo giá gốc để nhân viên thông báo đúng số tiền cho khách.
                 CounterBookingQuote baseQuote = bookingService.quoteCounterBooking(staffId,
-                        parseId(request.getParameter("showtimeId")), parseSeatIds(request.getParameter("selectedSeats")), null);
+                        parseId(request.getParameter("showtimeId")), parseSeatIds(request.getParameter("selectedSeats")), null, fnbLines);
                 writeJson(response, "{\"success\":false,\"message\":\"" + json(quote.getMessage())
                         + "\",\"subtotal\":" + baseQuote.getSubtotal() + ",\"discountAmount\":0,\"total\":" + baseQuote.getTotal() + "}");
                 return;
@@ -126,7 +129,7 @@ public class CounterBookingController extends HttpServlet {
             writeJson(response, "{\"success\":true,\"subtotal\":" + quote.getSubtotal()
                     + ",\"discountAmount\":" + quote.getDiscountAmount()
                     + ",\"total\":" + quote.getTotal()
-                    + ",\"fnbSubtotal\":0}");
+                    + ",\"fnbSubtotal\":" + fnbLines.stream().mapToDouble(BookingFnbLine::getLineTotal).sum() + "}");
         } catch (Exception e) {
             writeJson(response, "{\"success\":false,\"message\":\"Dữ liệu không hợp lệ.\"}");
         }

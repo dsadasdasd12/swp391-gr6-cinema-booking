@@ -413,8 +413,9 @@ public class BookingController extends HttpServlet {
             request.setAttribute("draftView", draftView);
             String voucherCode = currentVoucherCode(request);
             if (voucherCode != null) {
-                VoucherQuote voucherQuote = bookingService.quoteVoucher(voucherCode, draftView.getTotalPrice());
+                VoucherQuote voucherQuote = bookingService.quoteVoucher(voucherCode, draftView.getTotalPrice() + draftView.getFnbSubtotal());
                 if (voucherQuote.isValid()) {
+                    draftView.setVoucherDiscount(voucherQuote.getDiscountAmount());
                     request.setAttribute("voucherQuote", voucherQuote);
                 } else {
                     request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
@@ -461,13 +462,18 @@ public class BookingController extends HttpServlet {
                     draftView.getShowtime().getBranchId(), draft.getFnbQuantities()));
             String requestedAction = request.getParameter("action");
             String submittedVoucher = request.getParameter("voucherCode");
+            if ("removeVoucher".equals(requestedAction)) {
+                request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
+                showConfirm(request, response, null);
+                return;
+            }
             if ("applyVoucher".equals(requestedAction)) {
                 if (submittedVoucher == null || submittedVoucher.trim().isEmpty()) {
                     request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
                     showConfirm(request, response, "Vui lòng nhập mã giảm giá.");
                     return;
                 }
-                VoucherQuote voucherQuote = bookingService.quoteVoucher(submittedVoucher, draftView.getTotalPrice());
+                VoucherQuote voucherQuote = bookingService.quoteVoucher(submittedVoucher, draftView.getTotalPrice() + draftView.getFnbSubtotal());
                 if (!voucherQuote.isValid()) {
                     showConfirm(request, response, voucherQuote.getMessage());
                     return;
@@ -480,12 +486,15 @@ public class BookingController extends HttpServlet {
             VoucherQuote voucherQuote = null;
             String voucherCode = currentVoucherCode(request);
             if (voucherCode != null) {
-                voucherQuote = bookingService.quoteVoucher(voucherCode, draftView.getTotalPrice());
+                voucherQuote = bookingService.quoteVoucher(voucherCode, draftView.getTotalPrice() + draftView.getFnbSubtotal());
                 if (!voucherQuote.isValid()) {
                     request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
                     showConfirm(request, response, voucherQuote.getMessage());
                     return;
                 }
+            }
+            if (voucherQuote != null && voucherQuote.isValid()) {
+                draftView.setVoucherDiscount(voucherQuote.getDiscountAmount());
             }
             /*
              * Tao booking pending trong DB.
@@ -501,8 +510,11 @@ public class BookingController extends HttpServlet {
             request.getSession().removeAttribute(DRAFT_SESSION_KEY);
             request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
             // Dua user sang trang chi tiet booking de xem QR/thanh toan/theo doi trang thai.
+            boolean complimentary = draftView.getTotalPrice() + draftView.getFnbSubtotal()
+                    - draftView.getVoucherDiscount() <= 0.0001d;
             response.sendRedirect(request.getContextPath()
-                    + "/my-booking?id=" + bookingId + "&msg=booking_created");
+                    + "/my-booking?id=" + bookingId + "&msg="
+                    + (complimentary ? "booking_free" : "booking_created"));
         } catch (IllegalArgumentException e) {
             // Loi validate thi quay lai man confirm va hien message.
             showConfirm(request, response, e.getMessage());

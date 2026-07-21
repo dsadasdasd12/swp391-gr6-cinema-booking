@@ -133,6 +133,9 @@
                                 <label for="voucherCode" class="k" style="display:block; margin-bottom:6px;">Mã giảm giá</label>
                                 <input id="voucherCode" name="voucherCode" type="text" value="${voucherQuote.code}" placeholder="VD: GIAM20K" style="text-transform:uppercase;">
                                 <button type="submit" name="action" value="applyVoucher" class="btn btn-ghost">Áp dụng mã</button>
+                                <c:if test="${not empty voucherQuote}">
+                                    <button type="submit" name="action" value="removeVoucher" class="btn btn-ghost" title="Bỏ mã giảm giá" aria-label="Bỏ mã giảm giá" style="color:#f87171; border-color:#ef4444;">× Bỏ mã</button>
+                                </c:if>
                             </form>
 
                             <div class="bd-actions">

@@ -990,6 +990,7 @@
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     <input type="text" id="discountCodeInput" name="discountCode" class="form-input" placeholder="Nhập mã voucher (ví dụ: GIAM20K)..." style="text-transform: uppercase; flex: 1; margin: 0;">
                                     <button type="button" class="btn-pricing" onclick="applyVoucher()" style="padding: 10px 15px; border-radius: 8px; margin: 0; font-size: 12px; font-weight: 700; white-space: nowrap; height: 42px; border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.15); color: #a5b4fc; cursor: pointer; transition: all 0.3s;">Áp Dụng</button>
+                                    <button type="button" id="clearVoucherButton" onclick="clearVoucher()" title="Bỏ mã giảm giá" aria-label="Bỏ mã giảm giá" style="display:none; width:42px; height:42px; border-radius:8px; border:1px solid #ef4444; background:rgba(239,68,68,.12); color:#f87171; font-size:22px; cursor:pointer;">×</button>
                                 </div>
                                 <div id="voucherFeedback" style="font-size: 11px; margin-top: 6px; font-weight: 600; min-height: 16px;"></div>
 
@@ -1158,6 +1159,24 @@
                 return selectedFnb.reduce((sum, item) => sum + item.price * item.quantity, 0);
             }
 
+            function syncFnbSelection() {
+                const payload = selectedFnb.map(item => item.type + ':' + item.id + ':' + item.quantity).join(',');
+                const hidden = document.getElementById('selectedFnbInput');
+                if (hidden) {
+                    hidden.value = payload;
+                }
+                return payload;
+            }
+
+            function getOrderQuoteKey() {
+                const seats = selectedSeats.map(item => item.id).sort((a, b) => a - b).join(',');
+                return seats + '|' + syncFnbSelection();
+            }
+
+            function hasCurrentServerQuote() {
+                return serverQuote && serverQuote.quoteKey === getOrderQuoteKey();
+            }
+
             function updateFnbCartUI() {
                 const list = document.getElementById('fnbCartItemsList');
                 const hidden = document.getElementById('selectedFnbInput');
@@ -1179,11 +1198,17 @@
                     });
                 }
 
-                hidden.value = selectedFnb.map(item => item.type + ':' + item.id + ':' + item.quantity).join(',');
+                syncFnbSelection();
                 const subtotal = getFnbSubtotal();
                 document.getElementById('fnbDrawerTotal').innerText = subtotal.toLocaleString('vi-VN') + ' đ';
                 document.getElementById('fnbSubtotalDisplay').innerText = subtotal.toLocaleString('vi-VN') + ' đ';
-                updateTotalSum();
+                serverQuote = {subtotal: 0, discountAmount: 0, total: 0};
+                const voucherCode = document.getElementById('discountCodeInput').value.trim();
+                if (selectedSeats.length > 0 && voucherCode) {
+                    applyVoucherSilent();
+                } else {
+                    updateTotalSum();
+                }
             }
 
             function escapeHtml(value) {
@@ -1246,8 +1271,13 @@
                 subtotalDisp.innerText = subtotal.toLocaleString('vi-VN') + " đ";
                 document.getElementById('selectedSeatsInput').value = ids.join(',');
 
-                // Tự động cập nhật lại giảm giá âm thầm khi thay đổi ghế ngồi
-                applyVoucherSilent();
+                // Báo giá cũ không còn hợp lệ khi ghế thay đổi.
+                serverQuote = {subtotal: 0, discountAmount: 0, total: 0};
+                if (document.getElementById('discountCodeInput').value.trim()) {
+                    applyVoucherSilent();
+                } else {
+                    updateTotalSum();
+                }
             }
 
             // --- HÀM XỬ LÝ ÁP DỤNG VOUCHER ---
@@ -1277,15 +1307,22 @@
 
                 const seatIds = selectedSeats.map(s => s.id).join(',');
                 const showtimeId = document.querySelector('input[name="showtimeId"]').value;
+                const quoteKey = getOrderQuoteKey();
+                const selectedFnbPayload = syncFnbSelection();
                 fetch('CounterBooking?action=checkVoucher&code=' + encodeURIComponent(code)
-                        + '&showtimeId=' + encodeURIComponent(showtimeId) + '&selectedSeats=' + encodeURIComponent(seatIds))
+                        + '&showtimeId=' + encodeURIComponent(showtimeId) + '&selectedSeats=' + encodeURIComponent(seatIds)
+                        + '&selectedFnb=' + encodeURIComponent(selectedFnbPayload))
                         .then(response => response.json())
                         .then(data => {
+                            if (quoteKey !== getOrderQuoteKey()) {
+                                return;
+                            }
                             if (data.success) {
                                 feedback.style.color = '#34d399';
                                 feedback.innerText = '✓ Thành công! Giảm: ' + data.discountAmount.toLocaleString('vi-VN') + ' đ';
 
-                                serverQuote = data;
+                                serverQuote = Object.assign({}, data, {quoteKey: quoteKey});
+                                document.getElementById('clearVoucherButton').style.display = 'inline-block';
                                 document.getElementById('discountAmount').value = data.discountAmount;
                                 document.getElementById('discountReason').value = 'Mã giảm giá: ' + code;
 
@@ -1293,8 +1330,9 @@
                             } else {
                                 feedback.style.color = '#f87171';
                                 feedback.innerText = '✗ ' + data.message;
-                                serverQuote = data;
+                                serverQuote = Object.assign({}, data, {quoteKey: quoteKey});
                                 document.getElementById('discountAmount').value = 0;
+                                document.getElementById('clearVoucherButton').style.display = 'none';
                                 document.getElementById('discountReason').value = '';
                                 updateTotalSum();
                             }
@@ -1320,21 +1358,29 @@
 
                 const seatIds = selectedSeats.map(s => s.id).join(',');
                 const showtimeId = document.querySelector('input[name="showtimeId"]').value;
+                const quoteKey = getOrderQuoteKey();
+                const selectedFnbPayload = syncFnbSelection();
                 fetch('CounterBooking?action=checkVoucher&code=' + encodeURIComponent(code)
-                        + '&showtimeId=' + encodeURIComponent(showtimeId) + '&selectedSeats=' + encodeURIComponent(seatIds))
+                        + '&showtimeId=' + encodeURIComponent(showtimeId) + '&selectedSeats=' + encodeURIComponent(seatIds)
+                        + '&selectedFnb=' + encodeURIComponent(selectedFnbPayload))
                         .then(response => response.json())
                         .then(data => {
+                            if (quoteKey !== getOrderQuoteKey()) {
+                                return;
+                            }
                             if (data.success) {
                                 feedback.style.color = '#34d399';
                                 feedback.innerText = '✓ Thành công! Giảm: ' + data.discountAmount.toLocaleString('vi-VN') + ' đ';
-                                serverQuote = data;
+                                serverQuote = Object.assign({}, data, {quoteKey: quoteKey});
+                                document.getElementById('clearVoucherButton').style.display = 'inline-block';
                                 document.getElementById('discountAmount').value = data.discountAmount;
                                 document.getElementById('discountReason').value = 'Mã giảm giá: ' + code;
                             } else {
                                 feedback.style.color = '#f87171';
                                 feedback.innerText = '✗ ' + data.message;
-                                serverQuote = data;
+                                serverQuote = Object.assign({}, data, {quoteKey: quoteKey});
                                 document.getElementById('discountAmount').value = 0;
+                                document.getElementById('clearVoucherButton').style.display = 'none';
                                 document.getElementById('discountReason').value = '';
                             }
                             updateTotalSum();
@@ -1348,20 +1394,30 @@
                 serverQuote = {subtotal: 0, discountAmount: 0, total: 0};
                 document.getElementById('discountAmount').value = 0;
                 document.getElementById('discountReason').value = '';
+                document.getElementById('clearVoucherButton').style.display = 'none';
                 const feedback = document.getElementById('voucherFeedback');
                 if (feedback && !keepFeedback)
                     feedback.innerText = '';
                 updateTotalSum();
             }
 
+            function clearVoucher() {
+                document.getElementById('discountCodeInput').value = '';
+                resetAppliedVoucher();
+                document.getElementById('voucherFeedback').style.color = '#a5b4fc';
+                document.getElementById('voucherFeedback').innerText = 'Đã bỏ mã giảm giá.';
+            }
+
             function updateTotalSum() {
                 const localSeatSubtotal = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
-                const seatSubtotal = Number(serverQuote.subtotal || localSeatSubtotal);
-                const discount = Number(serverQuote.discountAmount || 0);
                 const fnbSubtotal = getFnbSubtotal();
-                const total = Math.max(0, seatSubtotal - discount + fnbSubtotal);
+                const localOrderSubtotal = localSeatSubtotal + fnbSubtotal;
+                const quoteIsCurrent = hasCurrentServerQuote();
+                const discount = quoteIsCurrent ? Number(serverQuote.discountAmount || 0) : 0;
+                // Server total already includes seats, F&B, and voucher discount.
+                const total = quoteIsCurrent ? Number(serverQuote.total || 0) : localOrderSubtotal;
 
-                document.getElementById('subtotalDisplay').innerText = seatSubtotal.toLocaleString('vi-VN') + " đ";
+                document.getElementById('subtotalDisplay').innerText = localSeatSubtotal.toLocaleString('vi-VN') + " đ";
                 document.getElementById('fnbSubtotalDisplay').innerText = fnbSubtotal.toLocaleString('vi-VN') + " đ";
                 document.getElementById('discountDisplay').innerText = (discount > 0 ? "-" : "") + discount.toLocaleString('vi-VN') + " đ";
                 document.getElementById('totalDisplay').innerText = total.toLocaleString('vi-VN') + " đ";
@@ -1403,15 +1459,11 @@
 
                 let subtotal = 0;
                 selectedSeats.forEach(s => subtotal += s.price);
-                let discount = 0;
-                const discountInput = document.getElementById('discountAmount');
-                if (discountInput && discountInput.value) {
-                    discount = parseFloat(discountInput.value);
-                }
                 const fnbSubtotal = getFnbSubtotal();
-                let total = subtotal - discount + fnbSubtotal;
-                if (total < 0)
-                    total = 0;
+                const quoteIsCurrent = hasCurrentServerQuote();
+                const total = quoteIsCurrent
+                        ? Number(serverQuote.total || 0)
+                        : subtotal + fnbSubtotal;
 
                 const paymentMethod = document.getElementById('paymentMethod').value;
                 const modal = document.getElementById('paymentModal');

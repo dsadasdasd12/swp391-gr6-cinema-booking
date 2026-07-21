@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.User;
 import service.BookingService;
+import service.QRCodeService;
 import dao.BookingFnbDAO;
 
 /**
@@ -41,6 +42,7 @@ public class BookingDetailController extends HttpServlet {
      */
     private final BookingService bookingService = new BookingService();
     private final BookingFnbDAO bookingFnbDAO = new BookingFnbDAO();
+    private final QRCodeService qrCodeService = new QRCodeService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -75,6 +77,21 @@ public class BookingDetailController extends HttpServlet {
             request.setAttribute("bk", booking);
             request.setAttribute("statusHistory", bookingService.getStatusHistory(booking.getBooking().getId()));
             request.setAttribute("fnbLines", bookingFnbDAO.findByBookingId(booking.getBooking().getId()));
+
+            // Mã trong BOOKINGS.qr_code là mã vé mà nhân viên quét tại cổng.
+            // Khi đơn đã xác nhận, render QR e-ticket thay vì QR thanh toán.
+            boolean issuedTicket = "CONFIRMED".equalsIgnoreCase(booking.getBooking().getStatus())
+                    || "CHECKED_IN".equalsIgnoreCase(booking.getBooking().getStatus())
+                    || "USED".equalsIgnoreCase(booking.getBooking().getStatus());
+            if (issuedTicket && booking.getBooking().getQrCode() != null
+                    && !booking.getBooking().getQrCode().trim().isEmpty()) {
+                try {
+                    request.setAttribute("ticketQrBase64",
+                            qrCodeService.generateQRBase64(booking.getBooking().getQrCode()));
+                } catch (Exception ignored) {
+                    // Vẫn hiện mã chữ để staff có thể nhập thủ công nếu QR không render được.
+                }
+            }
 
             // Noi dung chuyen khoan co dang RVS + bookingId de webhook tach ra duoc booking can confirm.
             String transferContent = "RVS" + booking.getBooking().getId();

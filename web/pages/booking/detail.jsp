@@ -126,6 +126,9 @@
                         <c:if test="${param.msg == 'booking_created'}">
                             <div class="notice ok">Đã tạo booking. Vui lòng hoàn tất thanh toán để vé được xác nhận.</div>
                         </c:if>
+                        <c:if test="${param.msg == 'booking_free'}">
+                            <div class="notice ok">Voucher đã thanh toán toàn bộ đơn. Vé đã được xác nhận, không cần chuyển khoản.</div>
+                        </c:if>
                         <c:if test="${param.msg == 'cancel_failed'}">
                             <div class="notice err">Không thể hủy đơn này (đơn đã sử dụng/đã hủy hoặc không cho phép hủy).</div>
                         </c:if>
@@ -248,6 +251,18 @@
                                                 <b>Nội dung CK:</b> <code>${transferContent}</code><br>
 
                                             </p>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${bk.booking.status != 'PENDING' and bk.booking.status != 'CANCELLED' and not empty bk.booking.qrCode}">
+                                        <div class="booking-qr-right">
+                                            <h3>Vé điện tử</h3>
+                                            <c:if test="${not empty ticketQrBase64}">
+                                                <img class="payment-qr-img"
+                                                     src="data:image/png;base64,${ticketQrBase64}"
+                                                     alt="QR mã vé">
+                                            </c:if>
+                                            <p><b>Mã vé:</b> <code><c:out value="${bk.booking.qrCode}"/></code></p>
+                                            <p>Xuất trình mã này tại cổng để nhân viên soát vé.</p>
                                         </div>
                                     </c:if>
                                 </div>

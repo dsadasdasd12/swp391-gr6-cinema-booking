@@ -44,7 +44,7 @@ public class BookingDAO {
 
     // ===== F&B STAFF - WALK-IN TRANSACTION BEGIN =====
     public int createWalkinBooking(int showtimeId, List<Integer> seatIds,
-            List<Double> seatPrices, double ticketTotal,
+            List<Double> seatPrices, double orderTotal,
             String paymentMethod, double discountAmount,
             String discountReason, String voucherCode, int staffId,
             List<BookingFnbLine> selectedFnb) {
@@ -97,12 +97,11 @@ public class BookingDAO {
                 ? java.util.Collections.emptyList()
                 : selectedFnb;
 
-        double fnbTotal = safeFnb.stream()
-                .filter(line -> line != null && line.getQuantity() > 0)
-                .mapToDouble(BookingFnbLine::getLineTotal)
-                .sum();
-
-        double finalTotal = Math.max(0, ticketTotal + fnbTotal);
+        // orderTotal đã được service tính từ giá ghế + F&B - voucher trên server.
+        // Không cộng F&B thêm lần nữa, vì voucher có thể giảm vượt phần tiền ghế.
+        double finalTotal = Math.max(0, orderTotal);
+        boolean complimentary = finalTotal <= 0.0001d;
+        boolean requiresBanking = "BANKING".equalsIgnoreCase(paymentMethod) && !complimentary;
 
         Connection conn = null;
         try {
@@ -156,7 +155,7 @@ public class BookingDAO {
             try (PreparedStatement ps = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, walkinCustomerId);
                 ps.setInt(2, showtimeId);
-                String bStatus = "BANKING".equalsIgnoreCase(paymentMethod) ? "PENDING" : "CONFIRMED";
+                String bStatus = requiresBanking ? "PENDING" : "CONFIRMED";
                 ps.setString(3, bStatus);
                 ps.setDouble(4, finalTotal);
                 ps.executeUpdate();
@@ -195,7 +194,7 @@ public class BookingDAO {
             }
 
             // ===== F&B STAFF - SAVE WALK-IN F&B BEGIN =====
-            String bookingFnbStatus = "BANKING".equalsIgnoreCase(paymentMethod)
+            String bookingFnbStatus = requiresBanking
                     ? "PENDING"
                     : "PREPARING";
 
@@ -282,10 +281,15 @@ public class BookingDAO {
             String transId;
             String payStatus;
             java.sql.Timestamp paidAt;
-            String payType = "BANKING".equalsIgnoreCase(paymentMethod) ? "ONLINE" : "CASH";
-            String payMethod = "BANKING".equalsIgnoreCase(paymentMethod) ? "BANKING" : "CASH";
+            String payType = requiresBanking ? "ONLINE" : "CASH";
+            String payMethod = complimentary ? null : (requiresBanking ? "BANKING" : "CASH");
 
-            if ("BANKING".equalsIgnoreCase(paymentMethod)) {
+            if (complimentary) {
+                // Đơn miễn phí do voucher: xác nhận ngay, tuyệt đối không tạo QR/chờ SePay.
+                transId = "FREE-VOUCHER-" + System.currentTimeMillis() + "-" + bookingId;
+                payStatus = "SUCCESS";
+                paidAt = new java.sql.Timestamp(System.currentTimeMillis());
+            } else if (requiresBanking) {
                 transId = "PENDING-TX-" + System.currentTimeMillis() + "-" + bookingId;
                 payStatus = "PENDING";
                 paidAt = null;
@@ -298,7 +302,11 @@ public class BookingDAO {
             try (PreparedStatement ps = conn.prepareStatement(insertPaymentSql)) {
                 ps.setInt(1, bookingId);
                 ps.setString(2, payType); // type: CASH hoặc ONLINE
-                ps.setString(3, payMethod); // method: CASH hoặc BANKING
+                if (payMethod == null) {
+                    ps.setNull(3, java.sql.Types.VARCHAR);
+                } else {
+                    ps.setString(3, payMethod); // method: CASH hoặc BANKING
+                }
                 ps.setString(4, transId);
                 ps.setString(5, payStatus);
                 ps.setDouble(6, finalTotal);
@@ -704,12 +712,31 @@ public class BookingDAO {
         String cancelFnbSql = "UPDATE dbo.BOOKING_FNB "
                 + "SET status = 'CANCELLED', last_update = GETDATE() "
                 + "WHERE booking_id = ? AND status <> 'CANCELLED'";
+        String findVoucherSql = "SELECT reason FROM dbo.COUNTER_DISCOUNTS "
+                + "WHERE booking_id = ? AND reason LIKE N'Mã giảm giá:%'";
+        String restoreVoucherSql = "UPDATE dbo.DISCOUNT_CODES "
+                + "SET used_count = used_count - 1, last_update = GETDATE() "
+                + "WHERE code = ? AND used_count > 0";
 
         Connection conn = null;
 
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
+
+            String voucherCodeToRestore = null;
+            try (PreparedStatement ps = conn.prepareStatement(findVoucherSql)) {
+                ps.setInt(1, bookingId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String reason = rs.getString("reason");
+                        int separator = reason == null ? -1 : reason.indexOf(':');
+                        if (separator >= 0) {
+                            voucherCodeToRestore = reason.substring(separator + 1).trim().toUpperCase();
+                        }
+                    }
+                }
+            }
 
             try (PreparedStatement ps = conn.prepareStatement(bookingSql)) {
                 ps.setInt(1, bookingId);
@@ -718,6 +745,17 @@ public class BookingDAO {
                 if (ps.executeUpdate() != 1) {
                     conn.rollback();
                     return false;
+                }
+            }
+
+            // Voucher của đơn Banking chỉ là lượt giữ tạm ở PENDING. Hủy thì hoàn đúng một lượt.
+            if (voucherCodeToRestore != null && !voucherCodeToRestore.isEmpty()) {
+                try (PreparedStatement ps = conn.prepareStatement(restoreVoucherSql)) {
+                    ps.setString(1, voucherCodeToRestore);
+                    if (ps.executeUpdate() != 1) {
+                        conn.rollback();
+                        return false;
+                    }
                 }
             }
 
@@ -771,6 +809,8 @@ public class BookingDAO {
                 || seatPrices == null || seatPrices.size() != seatIds.size()) {
             return -1;
         }
+        // Voucher có thể làm tổng đơn online bằng 0. Đơn miễn phí phải xác nhận ngay.
+        boolean complimentary = totalPrice <= 0.0001d;
 
         String checkShowtimeSql = "SELECT COUNT(*) FROM dbo.SHOWTIMES "
                 + "WHERE id = ? AND status IN ('SCHEDULED','ON_SALE') "
@@ -798,7 +838,7 @@ public class BookingDAO {
 
         String insertBookingSql = "INSERT INTO dbo.BOOKINGS "
                 + "(user_id, showtime_id, source, status, total_price, qr_code, booked_at, last_update) "
-                + "VALUES (?, ?, 'ONLINE', 'PENDING', ?, NULL, GETDATE(), GETDATE())";
+                + "VALUES (?, ?, 'ONLINE', ?, ?, NULL, GETDATE(), GETDATE())";
 
         String updateQrSql = "UPDATE dbo.BOOKINGS SET qr_code = ? WHERE id = ?";
 
@@ -807,7 +847,7 @@ public class BookingDAO {
 
         String insertPaymentSql = "INSERT INTO dbo.PAYMENTS "
                 + "(booking_id, type, method, transaction_id, status, amount, paid_at, gateway, last_update) "
-                + "VALUES (?, 'ONLINE', 'BANKING', ?, 'PENDING', ?, NULL, 'MANUAL', GETDATE())";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, 'MANUAL', GETDATE())";
 
         String consumeVoucherSql = "UPDATE dbo.DISCOUNT_CODES SET used_count = used_count + 1, last_update = GETDATE() "
                 + "OUTPUT INSERTED.id "
@@ -817,7 +857,7 @@ public class BookingDAO {
                 + "(booking_id, user_id, discount_code_id, discount_amount, used_at) VALUES (?, ?, ?, ?, GETDATE())";
         String insertFnbSql = "INSERT INTO dbo.BOOKING_FNB "
                 + "(booking_id,item_type,product_id,combo_id,item_name,quantity,unit_price,status,last_update) "
-                + "VALUES (?,?,?,?,?,?,?,'PENDING',GETDATE())";
+                + "VALUES (?,?,?,?,?,?,?, ?,GETDATE())";
         String consumeProductSql = "UPDATE dbo.BRANCH_FNB_INVENTORY SET stock_quantity=stock_quantity-?,last_update=GETDATE() "
                 + "WHERE branch_id=(SELECT h.branch_id FROM SHOWTIMES st JOIN HALLS h ON h.id=st.hall_id WHERE st.id=?) "
                 + "AND product_id=? AND enabled_at_branch=1 AND stock_quantity>=?";
@@ -893,8 +933,9 @@ public class BookingDAO {
             try (PreparedStatement ps = conn.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, userId);
                 ps.setInt(2, showtimeId);
-                double fnbTotal = fnbLines == null ? 0 : fnbLines.stream().mapToDouble(BookingFnbLine::getLineTotal).sum();
-                ps.setDouble(3, totalPrice + fnbTotal);
+                // totalPrice đã là tổng đơn sau voucher (vé + F&B), không cộng F&B lần hai.
+                ps.setString(3, complimentary ? "CONFIRMED" : "PENDING");
+                ps.setDouble(4, totalPrice);
                 ps.executeUpdate();
 
                 try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -978,6 +1019,7 @@ public class BookingDAO {
                         insert.setString(5, line.getName());
                         insert.setInt(6, line.getQuantity());
                         insert.setDouble(7, line.getUnitPrice());
+                        insert.setString(8, complimentary ? "PREPARING" : "PENDING");
                         insert.addBatch();
                     }
                     insert.executeBatch();
@@ -986,9 +1028,20 @@ public class BookingDAO {
 
             try (PreparedStatement ps = conn.prepareStatement(insertPaymentSql)) {
                 ps.setInt(1, bookingId);
-                ps.setString(2, "RVS" + bookingId);
-                double fnbTotal = fnbLines == null ? 0 : fnbLines.stream().mapToDouble(BookingFnbLine::getLineTotal).sum();
-                ps.setDouble(3, totalPrice + fnbTotal);
+                ps.setString(2, "ONLINE");
+                if (complimentary) {
+                    ps.setNull(3, java.sql.Types.VARCHAR);
+                    ps.setString(4, "FREE-VOUCHER-" + bookingId);
+                    ps.setString(5, "SUCCESS");
+                    ps.setDouble(6, totalPrice);
+                    ps.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
+                } else {
+                    ps.setString(3, "BANKING");
+                    ps.setString(4, "RVS" + bookingId);
+                    ps.setString(5, "PENDING");
+                    ps.setDouble(6, totalPrice);
+                    ps.setNull(7, java.sql.Types.TIMESTAMP);
+                }
                 ps.executeUpdate();
             }
 
@@ -1080,7 +1133,9 @@ public class BookingDAO {
     public boolean cancelByUser(int bookingId, int userId) {
         String updateBookingSql = "UPDATE dbo.BOOKINGS "
                 + "SET status = 'CANCELLED', last_update = GETDATE() "
-                + "WHERE id = ? AND user_id = ? AND status IN ('PENDING','CONFIRMED')";
+                + "WHERE id = ? AND user_id = ? AND status = ?";
+        String selectStatusSql = "SELECT status FROM dbo.BOOKINGS WITH (UPDLOCK, HOLDLOCK) "
+                + "WHERE id = ? AND user_id = ?";
         String updatePaymentSql = "UPDATE dbo.PAYMENTS "
                 + "SET status = 'FAILED', last_update = GETDATE() "
                 + "WHERE booking_id = ?";
@@ -1095,22 +1150,55 @@ public class BookingDAO {
                 + "JOIN SHOWTIMES st ON st.id=b.showtime_id JOIN HALLS h ON h.id=st.hall_id AND h.branch_id=inv.branch_id "
                 + "WHERE bf.booking_id=? AND bf.item_type='COMBO' AND bf.status<>'CANCELLED'";
         String cancelFnbSql = "UPDATE BOOKING_FNB SET status='CANCELLED',last_update=GETDATE() WHERE booking_id=? AND status<>'CANCELLED'";
+        String restoreVoucherSql = "UPDATE dc SET dc.used_count = dc.used_count - 1, dc.last_update = GETDATE() "
+                + "FROM dbo.DISCOUNT_CODES dc JOIN dbo.VOUCHER_HISTORY vh ON vh.discount_code_id = dc.id "
+                + "WHERE vh.booking_id = ? AND dc.used_count > 0";
+        String deleteVoucherHistorySql = "DELETE FROM dbo.VOUCHER_HISTORY WHERE booking_id = ?";
 
         Connection conn = null;
         try {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
 
+            String previousStatus = null;
+            try (PreparedStatement ps = conn.prepareStatement(selectStatusSql)) {
+                ps.setInt(1, bookingId);
+                ps.setInt(2, userId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        previousStatus = rs.getString("status");
+                    }
+                }
+            }
+            if (!"PENDING".equalsIgnoreCase(previousStatus)
+                    && !"CONFIRMED".equalsIgnoreCase(previousStatus)) {
+                conn.rollback();
+                return false;
+            }
+
             int affected;
             try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
                 ps.setInt(1, bookingId);
                 ps.setInt(2, userId);
+                ps.setString(3, previousStatus);
                 affected = ps.executeUpdate();
             }
 
             if (affected == 0) {
                 conn.rollback();
                 return false;
+            }
+
+            // Voucher online chỉ bị "giữ" ở PENDING. Hủy trước thanh toán phải hoàn lượt dùng.
+            if ("PENDING".equalsIgnoreCase(previousStatus)) {
+                try (PreparedStatement ps = conn.prepareStatement(restoreVoucherSql)) {
+                    ps.setInt(1, bookingId);
+                    ps.executeUpdate();
+                }
+                try (PreparedStatement ps = conn.prepareStatement(deleteVoucherHistorySql)) {
+                    ps.setInt(1, bookingId);
+                    ps.executeUpdate();
+                }
             }
 
             try (PreparedStatement ps = conn.prepareStatement(restoreProductsSql)) {
@@ -1309,7 +1397,9 @@ public class BookingDAO {
                 + "WITHIN GROUP (ORDER BY se.seat_row, se.seat_number) AS seat_labels, "
                 //+ "COUNT(se.id) AS seat_count "
                 + "COUNT(se.id) AS seat_count, "
-                + "COALESCE(SUM(bs.price), 0) AS seat_subtotal "
+                + "COALESCE(SUM(bs.price), 0) AS seat_subtotal, "
+                + "COALESCE((SELECT SUM(bf.quantity * bf.unit_price) FROM dbo.BOOKING_FNB bf WHERE bf.booking_id = bk.id AND bf.status <> 'CANCELLED'), 0) AS fnb_subtotal, "
+                + "COALESCE((SELECT SUM(vh.discount_amount) FROM dbo.VOUCHER_HISTORY vh WHERE vh.booking_id = bk.id), 0) AS voucher_discount "
                 + "FROM dbo.BOOKINGS bk "
                 + "JOIN dbo.[USER] u ON u.id = bk.user_id "
                 + "JOIN dbo.SHOWTIMES s ON s.id = bk.showtime_id "
@@ -1351,8 +1441,8 @@ public class BookingDAO {
  * Vì vậy phần chênh lệch giữa tổng giá ghế và tổng cuối
  * chính là ưu đãi mua 5 tặng 1.
          */
-        double buyFiveDiscount = Math.max(0, seatSubtotal - finalTotal);
-        double voucherDiscount = 0;
+        double voucherDiscount = rs.getDouble("voucher_discount");
+        double buyFiveDiscount = Math.max(0, seatSubtotal + rs.getDouble("fnb_subtotal") - voucherDiscount - finalTotal);
 
         view.setSeatSubtotal(seatSubtotal);
         view.setBuyFiveDiscount(buyFiveDiscount);

@@ -98,7 +98,8 @@ public class BookingDraftView implements Serializable {
     }
 
     public String getGrandTotalLabel() {
-        return formatMoney(totalPrice + getFnbSubtotal());
+        // Voucher áp dụng cho toàn bộ đơn (vé sau ưu đãi mua 5 tặng 1 + F&B).
+        return formatMoney(Math.max(0, totalPrice + getFnbSubtotal() - voucherDiscount));
     }
 
     public int getSeatCount() {

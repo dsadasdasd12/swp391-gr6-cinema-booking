@@ -1,6 +1,7 @@
 @ -1,571 +1,840 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="topUser" value="${sessionScope.user}" />
@@ -128,9 +129,219 @@
                 font-size: var(--text-base);
             }
 
+            /* Dashboard theo dõi riêng của manager, không dùng báo cáo Admin. */
+            .manager-performance {
+                margin: 0 0 var(--s-6);
+            }
+
+            .manager-performance__filter {
+                display: grid;
+                grid-template-columns: 128px 128px minmax(220px, 1fr) auto;
+                gap: var(--s-3);
+                align-items: end;
+                padding: var(--s-4);
+            }
+
+            .manager-performance__filter label {
+                display: grid;
+                gap: 6px;
+                color: var(--n-500);
+                font-size: var(--text-xs);
+                font-weight: 700;
+            }
+
+            /* Chrome mặc định vẽ icon lịch tối vì forms.css dùng color-scheme: light. */
+            .manager-performance__filter .rv-input[type="date"] {
+                color-scheme: dark;
+            }
+
+            .manager-performance__filter .rv-input[type="date"]::-webkit-calendar-picker-indicator {
+                opacity: .95;
+            }
+
+            .manager-performance__kpis {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: var(--s-3);
+                margin: 0 0 var(--s-4);
+            }
+
+            .manager-revenue-summary {
+                display: grid;
+                grid-template-columns: minmax(210px, 1.4fr) repeat(4, minmax(120px, 1fr));
+                gap: var(--s-3);
+                margin: 0 0 var(--s-4);
+                padding: var(--s-4);
+                border: 1px solid rgba(229, 9, 20, .32);
+                border-radius: var(--r-lg);
+                background: linear-gradient(110deg, rgba(229, 9, 20, .12), rgba(255, 255, 255, .02));
+            }
+
+            .manager-revenue-summary__label,
+            .manager-revenue-summary__metric-label {
+                display: block;
+                color: var(--n-500);
+                font-size: var(--text-xs);
+                font-weight: 700;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+            }
+
+            .manager-revenue-summary__value {
+                display: block;
+                margin-top: var(--s-2);
+                color: var(--primary-light);
+                font-family: Outfit, Inter, sans-serif;
+                font-size: 27px;
+                font-weight: 800;
+            }
+
+            .manager-revenue-summary__metric-value {
+                display: block;
+                margin-top: var(--s-2);
+                color: var(--n-800);
+                font-size: var(--text-md);
+                font-weight: 800;
+            }
+
+            .manager-operation-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: var(--s-3);
+                margin: 0 0 var(--s-4);
+            }
+
+            .manager-operation-card {
+                padding: var(--s-4);
+                border: 1px solid var(--n-200);
+                border-radius: var(--r-lg);
+                background: var(--n-50);
+            }
+
+            .manager-operation-card__title {
+                display: flex;
+                align-items: center;
+                gap: var(--s-2);
+                margin: 0 0 var(--s-3);
+                color: var(--n-700);
+                font-size: var(--text-sm);
+                font-weight: 800;
+            }
+
+            .manager-operation-card__rows {
+                display: grid;
+                gap: var(--s-2);
+            }
+
+            .manager-operation-card__row {
+                display: flex;
+                justify-content: space-between;
+                gap: var(--s-3);
+                color: var(--n-500);
+                font-size: var(--text-sm);
+            }
+
+            .manager-operation-card__row strong { color: var(--n-800); }
+            .manager-operation-card__row--alert strong { color: var(--primary-light); }
+
+            .manager-top-movies {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .manager-top-movies li {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: var(--s-2);
+                padding: var(--s-2) 0;
+                border-bottom: 1px solid var(--n-200);
+                color: var(--n-500);
+                font-size: var(--text-sm);
+            }
+
+            .manager-top-movies li:last-child { border-bottom: 0; }
+            .manager-top-movies strong { color: var(--n-800); }
+
+            .manager-performance__kpi {
+                padding: var(--s-4);
+                border: 1px solid var(--n-200);
+                border-radius: var(--r-lg);
+                background: var(--n-50);
+            }
+
+            .manager-performance__kpi-label {
+                display: block;
+                margin-bottom: var(--s-2);
+                color: var(--n-500);
+                font-size: var(--text-xs);
+                font-weight: 700;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+            }
+
+            .manager-performance__kpi-value {
+                color: var(--n-800);
+                font-family: Outfit, Inter, sans-serif;
+                font-size: 28px;
+                font-weight: 800;
+            }
+
+            .manager-performance__kpi--sold .manager-performance__kpi-value,
+            .manager-performance__kpi--rate .manager-performance__kpi-value {
+                color: var(--primary-light);
+            }
+
+            .manager-performance__footer {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: var(--s-3);
+                padding: var(--s-3) var(--s-4);
+                border-top: 1px solid var(--n-200);
+                color: var(--n-500);
+                font-size: var(--text-sm);
+            }
+
+            .manager-performance__footer a {
+                color: var(--primary-light);
+                font-weight: 700;
+                text-decoration: none;
+            }
+
+            .manager-performance__empty {
+                padding: var(--s-6);
+                color: var(--n-500);
+                text-align: center;
+            }
+
+            @media (max-width: 900px) {
+                .manager-performance__filter {
+                    grid-template-columns: 1fr 1fr;
+                }
+
+                .manager-performance__kpis {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .manager-revenue-summary {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .manager-operation-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
             @media (max-width: 680px) {
                 .manager-dashboard-link {
                     min-height: 164px;
+                }
+
+                .manager-performance__filter,
+                .manager-performance__kpis,
+                .manager-revenue-summary {
+                    grid-template-columns: 1fr;
                 }
             }
         </style>
@@ -410,6 +621,197 @@
                         </span>
                     </div>
                 </div>
+
+                <%-- Theo dõi vận hành: dữ liệu chỉ thuộc chi nhánh của manager đăng nhập. --%>
+                <section id="performance" class="manager-performance" aria-labelledby="performance-title">
+                    <div class="rv-card">
+                        <div class="rv-card__header">
+                            <span id="performance-title" class="rv-card__title">
+                                <i class="bi bi-bar-chart-line-fill" style="margin-right: 8px; color: var(--primary-light);"></i>
+                                Theo dõi vận hành chi nhánh
+                            </span>
+                            <span class="rv-badge rv-badge--manager">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <c:out value="${performanceBranchName}" />
+                            </span>
+                        </div>
+
+                        <c:choose>
+                            <c:when test="${performanceUnavailable}">
+                                <div class="manager-performance__empty">
+                                    Tài khoản manager chưa được gán chi nhánh nên chưa thể xem dữ liệu vận hành.
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <form method="get" action="${ctx}/manager/dashboard" class="manager-performance__filter">
+                                    <label>
+                                        Từ ngày
+                                        <input class="rv-input" type="date" name="fromDate"
+                                               value="${performanceFromDate}">
+                                    </label>
+                                    <label>
+                                        Đến ngày
+                                        <input class="rv-input" type="date" name="toDate"
+                                               value="${performanceToDate}">
+                                    </label>
+                                    <label>
+                                        Phim
+                                        <select class="rv-select" name="movie">
+                                            <option value="">Tất cả phim</option>
+                                            <c:forEach items="${performanceMovies}" var="movie">
+                                                <option value="${movie}" ${performanceSelectedMovie eq movie ? 'selected' : ''}>
+                                                    <c:out value="${movie}" />
+                                                </option>
+                                            </c:forEach>
+                                        </select>
+                                    </label>
+                                    <button class="rv-btn rv-btn--primary" type="submit">
+                                        <i class="bi bi-funnel-fill"></i> Lọc
+                                    </button>
+                                    <a class="rv-btn rv-btn--ghost" href="${ctx}/manager/dashboard">
+                                        <i class="bi bi-x-circle"></i> Xóa lọc
+                                    </a>
+                                </form>
+
+                                <c:set var="performance" value="${performanceReport}" />
+                                <div class="rv-card__body">
+                                    <section class="manager-revenue-summary" aria-label="Doanh thu chi nhánh">
+                                        <a href="${ctx}/manager/revenue" style="text-decoration:none; color:inherit;">
+                                            <span class="manager-revenue-summary__label">Doanh thu thực nhận</span>
+                                            <strong class="manager-revenue-summary__value"><fmt:formatNumber value="${performanceRevenue.netRevenue}" type="number" maxFractionDigits="0" /> đ</strong>
+                                        </a>
+                                        <div>
+                                            <span class="manager-revenue-summary__metric-label">Tiền vé</span>
+                                            <strong class="manager-revenue-summary__metric-value"><fmt:formatNumber value="${performanceRevenue.ticketRevenue}" type="number" maxFractionDigits="0" /> đ</strong>
+                                        </div>
+                                        <div>
+                                            <span class="manager-revenue-summary__metric-label">F&amp;B</span>
+                                            <strong class="manager-revenue-summary__metric-value"><fmt:formatNumber value="${performanceRevenue.fnbRevenue}" type="number" maxFractionDigits="0" /> đ</strong>
+                                        </div>
+                                        <div>
+                                            <span class="manager-revenue-summary__metric-label">Giảm giá</span>
+                                            <strong class="manager-revenue-summary__metric-value"><fmt:formatNumber value="${performanceRevenue.discountAmount}" type="number" maxFractionDigits="0" /> đ</strong>
+                                        </div>
+                                        <div>
+                                            <span class="manager-revenue-summary__metric-label">Giao dịch thành công</span>
+                                            <strong class="manager-revenue-summary__metric-value"><c:out value="${performanceRevenue.paidBookings}" /></strong>
+                                        </div>
+                                    </section>
+                                    <section class="manager-operation-grid" aria-label="Tình hình vận hành">
+                                        <article class="manager-operation-card">
+                                            <h3 class="manager-operation-card__title"><i class="bi bi-calendar-event"></i> <a href="${ctx}/manager/showtimesmanagement" style="color:inherit;">Suất chiếu</a></h3>
+                                            <div class="manager-operation-card__rows">
+                                                <div class="manager-operation-card__row"><span>Sắp diễn ra</span><strong>${performanceOperations.upcomingShowtimes}</strong></div>
+                                                <div class="manager-operation-card__row"><span>Đã hoàn tất</span><strong>${performanceOperations.completedShowtimes}</strong></div>
+                                                <div class="manager-operation-card__row"><span>Đã hủy</span><strong>${performanceOperations.cancelledShowtimes}</strong></div>
+                                                <div class="manager-operation-card__row manager-operation-card__row--alert"><span>Sắp chiếu bán dưới 20%</span><strong>${performanceOperations.lowSalesShowtimes}</strong></div>
+                                            </div>
+                                        </article>
+                                        <article class="manager-operation-card">
+                                            <h3 class="manager-operation-card__title"><i class="bi bi-door-open-fill"></i> <a href="${ctx}/manager/halls" style="color:inherit;">Phòng chiếu</a></h3>
+                                            <div class="manager-operation-card__rows">
+                                                <div class="manager-operation-card__row"><span>Đang hoạt động</span><strong>${performanceOperations.activeHalls}</strong></div>
+                                                <div class="manager-operation-card__row"><span>Bảo trì</span><strong>${performanceOperations.maintenanceHalls}</strong></div>
+                                                <div class="manager-operation-card__row"><span>Ghế khả dụng</span><strong>${performanceOperations.availableSeats}</strong></div>
+                                            </div>
+                                        </article>
+                                        <article class="manager-operation-card">
+                                            <h3 class="manager-operation-card__title"><i class="bi bi-cup-hot-fill"></i> <a href="${ctx}/manager/fnb?tab=items" style="color:inherit;">Kho F&amp;B</a></h3>
+                                            <div class="manager-operation-card__rows">
+                                                <div class="manager-operation-card__row"><span>Sắp hết (1–9)</span><strong>${performanceOperations.lowStockItems}</strong></div>
+                                                <div class="manager-operation-card__row manager-operation-card__row--alert"><span>Hết hàng</span><strong>${performanceOperations.outOfStockItems}</strong></div>
+                                                <div class="manager-operation-card__row"><span>Doanh số F&amp;B</span><strong><fmt:formatNumber value="${performanceRevenue.fnbRevenue}" type="number" maxFractionDigits="0" /> đ</strong></div>
+                                            </div>
+                                        </article>
+                                    </section>
+                                    <section class="manager-operation-card" aria-labelledby="top-movies-title" style="margin-bottom: var(--s-4);">
+                                        <h3 id="top-movies-title" class="manager-operation-card__title"><i class="bi bi-film"></i> Hiệu suất phim nổi bật</h3>
+                                        <ul class="manager-top-movies">
+                                            <c:choose>
+                                                <c:when test="${empty performanceTopMovies}"><li><span>Chưa có suất chiếu phù hợp.</span></li></c:when>
+                                                <c:otherwise><c:forEach items="${performanceTopMovies}" var="moviePerformance">
+                                                    <c:url var="movieDetail" value="/manager/dashboard"><c:param name="fromDate" value="${performanceFromDate}"/><c:param name="toDate" value="${performanceToDate}"/><c:param name="movie" value="${moviePerformance.movieTitle}"/></c:url><li><span><a href="${movieDetail}" style="color:inherit;"><strong><c:out value="${moviePerformance.movieTitle}" /></strong></a> · ${moviePerformance.soldSeats}/${moviePerformance.capacity} ghế · ${moviePerformance.showtimeCount} suất</span><strong><fmt:formatNumber value="${moviePerformance.occupancyRate}" minFractionDigits="0" maxFractionDigits="2" />%</strong></li>
+                                                </c:forEach></c:otherwise>
+                                            </c:choose>
+                                        </ul>
+                                    </section>
+                                    <div class="manager-performance__kpis">
+                                        <article class="manager-performance__kpi">
+                                            <span class="manager-performance__kpi-label">Suất chiếu</span>
+                                            <strong class="manager-performance__kpi-value"><c:out value="${performance.totalShowtimes}" /></strong>
+                                        </article>
+                                        <article class="manager-performance__kpi manager-performance__kpi--sold">
+                                            <span class="manager-performance__kpi-label">Ghế đã bán</span>
+                                            <strong class="manager-performance__kpi-value"><c:out value="${performance.soldSeats}" /></strong>
+                                        </article>
+                                        <article class="manager-performance__kpi">
+                                            <span class="manager-performance__kpi-label">Ghế còn trống</span>
+                                            <strong class="manager-performance__kpi-value"><c:out value="${performance.remainingSeats}" /></strong>
+                                        </article>
+                                        <article class="manager-performance__kpi manager-performance__kpi--rate">
+                                            <span class="manager-performance__kpi-label">Tỷ lệ lấp đầy</span>
+                                            <strong class="manager-performance__kpi-value"><fmt:formatNumber value="${performance.occupancyRate}" minFractionDigits="0" maxFractionDigits="2" />%</strong>
+                                        </article>
+                                    </div>
+                                </div>
+
+                                <div class="rv-table-wrap">
+                                    <table class="rv-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Thời gian</th>
+                                                <th>Phim</th>
+                                                <th>Phòng</th>
+                                                <th style="text-align:right;">Đã bán / Sức chứa</th>
+                                                <th style="text-align:right;">Lấp đầy</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:choose>
+                                                <c:when test="${empty performanceRows}">
+                                                    <tr><td colspan="5" class="manager-performance__empty">Không có suất chiếu trong khoảng thời gian đã chọn.</td></tr>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:forEach items="${performanceRows}" var="showtime">
+                                                        <tr>
+                                                            <td><fmt:formatDate value="${showtime.startTime}" pattern="dd/MM/yyyy HH:mm" /></td>
+                                                            <td><strong><c:out value="${showtime.movieTitle}" /></strong></td>
+                                                            <td><c:out value="${showtime.hallName}" /></td>
+                                                            <td style="text-align:right;"><c:out value="${showtime.soldSeats}" /> / <c:out value="${showtime.capacity}" /></td>
+                                                            <td style="text-align:right; color: var(--success); font-weight: 700;"><fmt:formatNumber value="${showtime.occupancyRate}" minFractionDigits="0" maxFractionDigits="2" />%</td>
+                                                        </tr>
+                                                    </c:forEach>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="manager-performance__footer">
+                                    <span>Trang <c:out value="${performancePage}" /> / <c:out value="${performanceTotalPages}" /> · <c:out value="${performanceTotal}" /> suất chiếu</span>
+                                    <c:if test="${performancePage gt 1}">
+                                        <c:url var="previousPage" value="/manager/dashboard">
+                                            <c:param name="fromDate" value="${performanceFromDate}" />
+                                            <c:param name="toDate" value="${performanceToDate}" />
+                                            <c:param name="movie" value="${performanceSelectedMovie}" />
+                                            <c:param name="page" value="${performancePage - 1}" />
+                                        </c:url>
+                                        <a href="${previousPage}">← Trước</a>
+                                    </c:if>
+                                    <c:if test="${performancePage lt performanceTotalPages}">
+                                        <c:url var="nextPage" value="/manager/dashboard">
+                                            <c:param name="fromDate" value="${performanceFromDate}" />
+                                            <c:param name="toDate" value="${performanceToDate}" />
+                                            <c:param name="movie" value="${performanceSelectedMovie}" />
+                                            <c:param name="page" value="${performancePage + 1}" />
+                                        </c:url>
+                                        <a href="${nextPage}">Sau →</a>
+                                    </c:if>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </section>
 
                 <div class="rv-kpi-grid">
 
