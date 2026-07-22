@@ -958,7 +958,15 @@
 
                 <c:choose>
                     <c:when test="${not empty selectedShowtime}">
-                        <form action="CounterBooking" method="POST" id="bookingForm" onsubmit="return validateCheckout()">
+                        <%--
+                            Form tạo vé tại quầy.
+                            Nút "Xác Nhận Giao Dịch" nằm trong payment modal (ở ngoài thẻ form),
+                            nên nó dùng thuộc tính form="bookingForm" để submit form này theo cơ chế
+                            HTML chuẩn. Cách này không phụ thuộc vào inline onclick/form.submit(),
+                            tránh tình trạng staff bấm xác nhận nhưng request POST không được gửi tới
+                            CounterBookingController.
+                        --%>
+                        <form action="CounterBooking" method="POST" id="bookingForm" onsubmit="return beforeSubmitBooking()">
                             <input type="hidden" name="action" value="book">
                             <input type="hidden" name="showtimeId" value="${selectedShowtime.id}">
                             <input type="hidden" id="selectedSeatsInput" name="selectedSeats" value="">
@@ -1065,7 +1073,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-modal-secondary" onclick="closePaymentModal()">Hủy</button>
-                    <button type="button" class="btn-modal-primary" id="btnConfirmPayment" onclick="submitBookingForm()">Xác Nhận Giao Dịch</button>
+                    <%--
+                        form="bookingForm" liên kết nút trong modal với form POS phía trên.
+                        Khi staff xác nhận tiền mặt, trình duyệt sẽ gửi POST action=book trực tiếp
+                        đến CounterBookingController; controller gọi BookingService rồi BookingDAO
+                        để tạo BOOKINGS / BOOKING_SEATS / PAYMENTS trong cùng transaction.
+                    --%>
+                    <button type="submit" form="bookingForm" class="btn-modal-primary" id="btnConfirmPayment">Xác Nhận Giao Dịch</button>
                 </div>
             </div>
         </div>
@@ -1094,14 +1108,24 @@
             </div>
         </div>
 
-        <c:if test="${not empty successBooking}">
+        <%--
+            Sau POST tạo vé, CounterBookingController redirect về cùng trang cùng
+            bookingSuccessId. Đây là tín hiệu giao dịch đã commit. Không phụ thuộc hoàn
+            toàn vào successBooking vì truy vấn chi tiết có thể tạm thời không trả dữ liệu
+            trong lúc DB vừa reset/reload; tiền mặt vẫn phải hiện kết quả thành công ngay.
+        --%>
+        <c:if test="${not empty param.bookingSuccessId}">
             <script>
                 window.addEventListener('DOMContentLoaded', () => {
+                    // Trang mới không được giữ lại modal xác nhận tiền mặt của request trước.
+                    document.getElementById('paymentModal').style.display = 'none';
                 <c:choose>
-                    <c:when test="${successBooking.status == 'PENDING'}">
+                    <%-- Chỉ mở QR khi server đọc được booking PENDING thực sự. --%>
+                    <c:when test="${not empty successBooking and successBooking.status == 'PENDING'}">
                     openPendingPaymentModal(${successBooking.id}, ${successBooking.totalPrice});
                     </c:when>
                     <c:otherwise>
+                    <%-- CASH/đơn miễn phí hoặc fallback sau redirect: hiện modal thành công. --%>
                     openSuccessModal();
                     </c:otherwise>
                 </c:choose>
@@ -1560,6 +1584,30 @@
                 return true;
             }
 
+            /*
+             * Điểm chặn cuối của form POS trước khi browser gửi POST /CounterBooking.
+             *
+             * - validateCheckout() bảo đảm staff đã chọn ghế hợp lệ.
+             * - Sau khi hợp lệ, khóa nút để một lần double-click không tạo hai request.
+             * - Không tự submit ở đây: return true để cơ chế submit chuẩn của HTML tiếp tục chạy.
+             *   Request sau đó đi tới CounterBookingController#createBooking(), rồi service/DAO
+             *   tính lại giá và kiểm tra ghế một lần nữa ở server.
+             */
+            function beforeSubmitBooking() {
+                if (!validateCheckout()) {
+                    return false;
+                }
+
+                const confirmButton = document.getElementById('btnConfirmPayment');
+                if (confirmButton) {
+                    confirmButton.disabled = true;
+                    confirmButton.textContent = 'Đang tạo vé...';
+                    confirmButton.style.opacity = '0.7';
+                    confirmButton.style.cursor = 'wait';
+                }
+                return true;
+            }
+
             // Tự động ẩn thông báo sau 5 giây
             setTimeout(() => {
                 const sAlert = document.getElementById('successAlert');
@@ -1763,8 +1811,44 @@
             }
 
             function submitBookingForm() {
-                document.getElementById('bookingForm').submit();
+                /*
+                 * Luồng BANKING gọi hàm này ngay khi staff chọn thanh toán chuyển khoản.
+                 * requestSubmit() kích hoạt onsubmit/beforeSubmitBooking(), không bỏ qua
+                 * validation như form.submit() cũ; nhờ đó hai phương thức CASH và BANKING
+                 * có cùng đường đi, cùng chống double submit và cùng gửi POST chuẩn.
+                 */
+                const bookingForm = document.getElementById('bookingForm');
+                if (bookingForm) {
+                    bookingForm.requestSubmit();
+                }
             }
+
+            /*
+             * Fallback riêng cho nút xác nhận ở payment modal.
+             *
+             * Modal được đặt bên ngoài bookingForm để không làm vỡ bố cục ba cột của
+             * trang POS. Một số lần browser/DOM cache có thể không kích hoạt default
+             * submit của button có thuộc tính form="bookingForm". Listener này bắt click
+             * trực tiếp, tự kiểm tra dữ liệu và gọi native submit của HTMLFormElement.
+             *
+             * event.preventDefault() ngăn browser submit thêm lần thứ hai; vì vậy dù
+             * button có form="bookingForm" hay không, staff chỉ tạo đúng một booking.
+             */
+            document.addEventListener('click', function (event) {
+                const confirmButton = event.target.closest('#btnConfirmPayment');
+                if (!confirmButton || confirmButton.style.display === 'none') {
+                    return;
+                }
+
+                event.preventDefault();
+                const bookingForm = document.getElementById('bookingForm');
+                if (!bookingForm || !beforeSubmitBooking()) {
+                    return;
+                }
+
+                // Gọi native method để không bị ảnh hưởng bởi thuộc tính/name trong form.
+                HTMLFormElement.prototype.submit.call(bookingForm);
+            });
 
             function openSuccessModal() {
                 document.getElementById('successModal').style.display = 'flex';

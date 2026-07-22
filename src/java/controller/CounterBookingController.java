@@ -112,7 +112,9 @@ public class CounterBookingController extends HttpServlet {
             return;
         }
         if ("printTicket".equalsIgnoreCase(action)) {
-            printTicket(request, response, staffId);
+            // branchId đã được xác thực từ STAFF_BRANCH ở đầu request.
+            // Dùng lại đúng giá trị này khi in vé để đồng nhất với luồng tạo vé.
+            printTicket(request, response, branchId);
             return;
         }
 
@@ -219,7 +221,7 @@ public class CounterBookingController extends HttpServlet {
     private void printTicket(
             HttpServletRequest request,
             HttpServletResponse response,
-            int staffId
+            int staffBranchId
     ) throws ServletException, IOException {
 
         int bookingId = parseId(
@@ -230,27 +232,6 @@ public class CounterBookingController extends HttpServlet {
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     "Booking ID không hợp lệ."
-            );
-            return;
-        }
-
-        String status = bookingService.getCounterBookingStatus(
-                staffId,
-                bookingId
-        );
-
-        if (status == null) {
-            response.sendError(
-                    HttpServletResponse.SC_FORBIDDEN,
-                    "Booking không thuộc chi nhánh của nhân viên."
-            );
-            return;
-        }
-
-        if (!"CONFIRMED".equalsIgnoreCase(status)) {
-            response.sendError(
-                    HttpServletResponse.SC_CONFLICT,
-                    "Booking chưa được thanh toán thành công."
             );
             return;
         }
@@ -266,14 +247,39 @@ public class CounterBookingController extends HttpServlet {
             return;
         }
 
+        /*
+         * Chuỗi kiểm tra quyền khi in vé:
+         * BOOKINGS.showtime_id -> ShowtimeService -> SHOWTIMES/HALLS.branch_id.
+         *
+         * Đây là cùng nguồn branch với BookingService lúc staff bán vé. Trước đây
+         * code gọi getCounterBookingStatus(staffId, bookingId), truy vấn lại
+         * STAFF_BRANCH qua connection khác và có thể trả null sau khi DB reload;
+         * kết quả là booking đã tạo nhưng staff lại nhận HTTP 403 khi in.
+         */
+        Showtime bookingShowtime = showtimeService.getShowtimeById(
+                booking.getShowtimeId()
+        );
+        if (bookingShowtime == null
+                || bookingShowtime.getBranchId() != staffBranchId) {
+            response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN,
+                    "Booking không thuộc chi nhánh của nhân viên."
+            );
+            return;
+        }
+
+        if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+            response.sendError(
+                    HttpServletResponse.SC_CONFLICT,
+                    "Booking chưa được thanh toán thành công."
+            );
+            return;
+        }
+
         request.setAttribute("booking", booking);
 
-        request.setAttribute(
-                "showtime",
-                showtimeService.getShowtimeById(
-                        booking.getShowtimeId()
-                )
-        );
+        // Đưa showtime đã xác thực sang ticketPrint.jsp, không truy vấn lặp lần nữa.
+        request.setAttribute("showtime", bookingShowtime);
 
         request.setAttribute(
                 "seatCodes",
@@ -333,8 +339,21 @@ public class CounterBookingController extends HttpServlet {
             request.setAttribute("seatPricesMap", prices);
         }
         int successId = parseId(request.getParameter("bookingSuccessId"));
-        if (successId > 0 && bookingService.getCounterBookingStatus(((User) request.getSession(false).getAttribute("user")).getId(), successId) != null) {
+        if (successId > 0) {
+            /*
+             * bookingSuccessId chỉ được controller tự gắn vào URL sau khi
+             * BookingService#createCounterBooking() đã commit thành công.
+             *
+             * Luôn truyền lại id này sang JSP để modal thành công có thể in hóa đơn.
+             * Việc đọc chi tiết vẫn giữ kiểm tra thuộc chi nhánh staff ở điều kiện dưới;
+             * nhờ vậy URL hiển thị kết quả không bị trống chỉ vì truy vấn chi tiết tạm thời
+             * chưa trả dữ liệu, đồng thời không nới quyền in/xem vé.
+             */
             request.setAttribute("bookingSuccessId", successId);
+
+            if (bookingService.getCounterBookingStatus(
+                    ((User) request.getSession(false).getAttribute("user")).getId(),
+                    successId) != null) {
             request.setAttribute("successBooking", bookingService.getBookingById(successId));
 
             // ===== F&B STAFF - SUCCESS SUMMARY BEGIN =====
@@ -343,6 +362,7 @@ public class CounterBookingController extends HttpServlet {
                     bookingFnbDAO.findByBookingId(successId)
             );
             // ===== F&B STAFF - SUCCESS SUMMARY END =====
+            }
         }
         String bankCode = getServletContext()
                 .getInitParameter("bank.code");

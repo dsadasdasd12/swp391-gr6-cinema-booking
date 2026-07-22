@@ -590,6 +590,9 @@ public class ShowtimeDAO {
                 + "JOIN dbo.BRANCHES b ON b.id = h.branch_id "
                 + "WHERE s.id = ? "
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                // Chỉ mở bước chọn ghế cho phim đã phát hành. Điều kiện này
+                // đồng bộ với badge MOVIES.status ở trang chi tiết phim.
+                + "AND m.status = 'NOW_SHOWING' "
                 + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE()";
 
         try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -630,6 +633,9 @@ public class ShowtimeDAO {
                 + "AND s.movie_id = ? "
                 + "AND CONVERT(date, s.start_time) = ? "
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                // Suất của phim COMING_SOON có thể tồn tại để Manager chuẩn bị
+                // lịch, nhưng Customer không được nhìn thấy/đặt vé trước.
+                + "AND m.status = 'NOW_SHOWING' "
                 + "AND DATEADD(MINUTE, 30, s.start_time) > GETDATE() "
                 + "ORDER BY s.start_time, h.name";
 
@@ -675,6 +681,9 @@ public class ShowtimeDAO {
                 + "AND s.start_time >= ? "
                 + "AND s.start_time < ? "
                 + "AND s.status IN ('SCHEDULED','ON_SALE') "
+                // Lớp UI chỉ là một cửa kiểm tra; BookingDAO sẽ kiểm tra lại
+                // cùng điều kiện này ngay trước khi tạo PENDING booking.
+                + "AND m.status = 'NOW_SHOWING' "
                 + "AND s.start_time > GETDATE() "
                 + "ORDER BY s.start_time, h.name";
         try (Connection conn = DBContext.getInstance().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
