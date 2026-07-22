@@ -50,6 +50,15 @@ public class SeatService {
         return seatDAO.findByShowtimeAndIds(showtimeId, seatIds);
     }
 
+    /**
+     * Bien the dung trong luong booking dang giu ghe tam. ignoredCartId chi
+     * bo qua cart cua chinh customer, khong bao gio bo qua lock cua nguoi khac.
+     */
+    public List<SeatView> getSeatViewsByShowtimeAndIds(int showtimeId,
+            List<Integer> seatIds, int ignoredCartId) {
+        return seatDAO.findByShowtimeAndIds(showtimeId, seatIds, ignoredCartId);
+    }
+
     public List<SeatType> getActiveSeatTypes() {
         // Màn hình cấu hình chỉ nên đề xuất loại ghế còn active.
         return seatTypeDAO.findAllActive();

@@ -276,5 +276,19 @@
                 showType('PRODUCT');
             })();
         </script>
+        <script>
+            /*
+             * POST /booking/seats dung PRG de redirect den F&B. Tren mot so
+             * trinh duyet, Browser Back co the quay vao history entry POST va
+             * lam mat payload ghe. Them mot entry F&B de Back luon di ve GET
+             * seat map; Controller se doc cart trong session va tick san ghe.
+             */
+            (function () {
+                history.pushState({bookingFnb: true}, '', window.location.href);
+                window.addEventListener('popstate', function () {
+                    window.location.replace('${ctx}/booking/seats?showtimeId=${draftView.showtime.id}');
+                });
+            }());
+        </script>
     </body>
 </html>

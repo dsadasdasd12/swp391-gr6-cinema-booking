@@ -1,6 +1,7 @@
 package service;
 
 import dao.BookingDAO;
+import dao.CartDAO;
 import dao.BookingStatusHistoryDAO;
 import dao.DiscountDAO;
 import dto.BookingDraftView;
@@ -25,6 +26,7 @@ import java.util.Collections;
 public class BookingService {
 
     private final BookingDAO bookingDAO = new BookingDAO();
+    private final CartDAO cartDAO = new CartDAO();
     private final BookingStatusHistoryDAO bookingStatusHistoryDAO = new BookingStatusHistoryDAO();
     private final ShowtimeService showtimeService = new ShowtimeService();
     private final SeatService seatService = new SeatService();
@@ -274,6 +276,15 @@ public class BookingService {
 //        return draftView;
 //    }
     public BookingDraftView buildDraftView(int showtimeId, List<Integer> seatIds) {
+        return buildDraftView(showtimeId, seatIds, -1);
+    }
+
+    /**
+     * Tao view cho F&B/confirm. ignoredCartId la cart dang giu ghe cua session
+     * hien tai; nhờ đó customer khong tu coi ghe cua minh la da het cho.
+     */
+    public BookingDraftView buildDraftView(int showtimeId, List<Integer> seatIds,
+            int ignoredCartId) {
         Showtime showtime = showtimeService.getBookableShowtime(showtimeId);
         if (showtime == null) {
             throw new IllegalArgumentException("Suất chiếu không còn mở đặt vé.");
@@ -284,8 +295,8 @@ public class BookingService {
             throw new IllegalArgumentException("Vui lòng chọn ít nhất một ghế.");
         }
 
-        List<SeatView> seatViews
-                = seatService.getSeatViewsByShowtimeAndIds(showtimeId, cleanSeatIds);
+        List<SeatView> seatViews = seatService.getSeatViewsByShowtimeAndIds(
+                showtimeId, cleanSeatIds, ignoredCartId);
 
         if (seatViews.size() != cleanSeatIds.size()) {
             throw new IllegalArgumentException("Danh sách ghế không hợp lệ.");
@@ -426,6 +437,15 @@ public class BookingService {
     }
 
     public int createPendingBooking(int userId, BookingDraftView draftView, VoucherQuote voucherQuote) {
+        return createPendingBooking(userId, draftView, voucherQuote, -1);
+    }
+
+    /**
+     * Chuyen cart dang khoa ghe thanh booking PENDING trong cung transaction.
+     * Cart chi duoc xoa sau khi BOOKINGS + BOOKING_SEATS da insert thanh cong.
+     */
+    public int createPendingBooking(int userId, BookingDraftView draftView,
+            VoucherQuote voucherQuote, int cartId) {
         // Dữ liệu draft đã được build lại từ DB trước khi tới đây, không lấy giá từ client.
         if (userId <= 0 || draftView == null || draftView.getShowtime() == null
                 || draftView.getSeats() == null || draftView.getSeats().isEmpty()) {
@@ -457,8 +477,36 @@ public class BookingService {
                 Math.max(0, orderSubtotal - discount),
                 voucherCode,
                 discount,
-                draftView.getFnbLines()
+                draftView.getFnbLines(),
+                cartId
         );
+    }
+
+    /** Giu ghe tam 15 phut ngay sau buoc chon ghe. */
+    public int holdSeatsForOnlineBooking(int userId, BookingDraftView draftView) {
+        if (userId <= 0 || draftView == null || draftView.getShowtime() == null) {
+            return -1;
+        }
+        List<Integer> ids = new ArrayList<>();
+        List<Double> prices = new ArrayList<>();
+        for (BookingSeatLine line : draftView.getSeats()) {
+            if (line == null || line.getSeat() == null) {
+                return -1;
+            }
+            ids.add(line.getSeat().getId());
+            prices.add(line.getPrice());
+        }
+        return cartDAO.createSeatHold(userId, draftView.getShowtime().getId(), ids, prices);
+    }
+
+    /** Gia han cart khi customer thuc su dang thao tac o F&B/confirm. */
+    public boolean refreshOnlineSeatHold(int userId, int cartId) {
+        return cartDAO.refreshSeatHold(userId, cartId);
+    }
+
+    /** Xoa cart cu neu customer quay lai va chon mot tap ghe moi. */
+    public void releaseOnlineSeatHold(int userId, int cartId) {
+        cartDAO.releaseSeatHold(userId, cartId);
     }
 
     public List<BookingView> getHistory(int userId) {

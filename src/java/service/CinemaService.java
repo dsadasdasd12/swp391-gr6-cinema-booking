@@ -61,6 +61,14 @@ public class CinemaService {
      * controller hiển thị trang 404 thân thiện.
      */
     public SeatMap getSeatMap(int showtimeId) {
+        return getSeatMap(showtimeId, -1);
+    }
+
+    /**
+     * Bien the dung khi customer quay lai sua ghe: chi bo qua cart cua chinh
+     * customer, con moi lock cua customer/staff khac van duoc ton trong.
+     */
+    public SeatMap getSeatMap(int showtimeId, int ignoredCartId) {
         if (showtimeId <= 0) {
             return null;
         }
@@ -70,7 +78,7 @@ public class CinemaService {
         }
 
         // Gom ghế theo hàng (DAO đã sắp theo hàng rồi số ghế nên thứ tự đúng)
-        List<SeatView> seats = seatDAO.findByShowtime(showtimeId);
+        List<SeatView> seats = seatDAO.findByShowtime(showtimeId, ignoredCartId);
         Map<String, SeatRow> rows = new LinkedHashMap<>();
         int available = 0;
         for (SeatView sv : seats) {

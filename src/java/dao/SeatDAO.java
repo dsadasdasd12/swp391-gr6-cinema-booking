@@ -137,6 +137,14 @@ public class SeatDAO {
     }
 
     public List<SeatView> findByShowtime(int showtimeId) {
+        return findByShowtime(showtimeId, -1);
+    }
+
+    /**
+     * Lay so do ghe va bo qua cart cua chinh customer khi customer quay lai
+     * sua lua chon. Cac cart/booking cua nguoi khac van duoc coi la da dat.
+     */
+    public List<SeatView> findByShowtime(int showtimeId, int ignoredCartId) {
 
         List<SeatView> list = new ArrayList<>();
 
@@ -155,6 +163,7 @@ public class SeatDAO {
                 + "JOIN CART c ON c.id=ci.cart_id "
                 + "WHERE ci.seat_id=s.id "
                 + "AND c.showtime_id=? "
+                + "AND c.id<>? "
                 + "AND ci.locked_until>GETDATE()"
                 + ") THEN 1 ELSE 0 END booked "
                 + "FROM SEATS s "
@@ -166,7 +175,8 @@ public class SeatDAO {
 
             ps.setInt(1, showtimeId);
             ps.setInt(2, showtimeId);
-            ps.setInt(3, showtimeId);
+            ps.setInt(3, ignoredCartId);
+            ps.setInt(4, showtimeId);
 
             ResultSet rs = ps.executeQuery();
 
@@ -196,6 +206,19 @@ public class SeatDAO {
     }
 
     public List<SeatView> findByShowtimeAndIds(int showtimeId, List<Integer> seatIds) {
+        return findByShowtimeAndIds(showtimeId, seatIds, -1);
+    }
+
+    /**
+     * Doc ghe cua mot suat chieu va cho phep bo qua cart cua chinh customer.
+     *
+     * <p>Sau khi customer bam "Tiep tuc" o buoc chon ghe, CART_ITEMS cua
+     * customer do da duoc coi la ghe dang khoa. Khi render F&B/confirm, chinh
+     * customer van phai doc duoc ghe cua minh nhu mot ghe hop le; con cart cua
+     * nguoi khac van giu nguyen tac dung.</p>
+     */
+    public List<SeatView> findByShowtimeAndIds(int showtimeId, List<Integer> seatIds,
+            int ignoredCartId) {
         List<SeatView> list = new ArrayList<>();
 
         if (showtimeId <= 0 || seatIds == null || seatIds.isEmpty()) {
@@ -225,6 +248,7 @@ public class SeatDAO {
                 + "JOIN CART c ON c.id=ci.cart_id "
                 + "WHERE ci.seat_id=s.id "
                 + "AND c.showtime_id=? "
+                + "AND c.id<>? "
                 + "AND ci.locked_until>GETDATE()"
                 + ") THEN 1 ELSE 0 END booked "
                 + "FROM SEATS s "
@@ -237,8 +261,9 @@ public class SeatDAO {
 
             ps.setInt(1, showtimeId);
             ps.setInt(2, showtimeId);
-            ps.setInt(3, showtimeId);
-            int index = 4;
+            ps.setInt(3, ignoredCartId);
+            ps.setInt(4, showtimeId);
+            int index = 5;
             for (Integer seatId : seatIds) {
                 ps.setInt(index++, seatId);
             }

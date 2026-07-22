@@ -121,6 +121,7 @@ public class BookingController extends HttpServlet {
                 break;
             case "/booking/seats":
                 // Buoc xem so do ghe cua mot suat chieu.
+                releaseHoldWhenChangingSeats(user, request);
                 showSeats(request, response, null);
                 break;
             case "/booking/confirm":
@@ -157,7 +158,7 @@ public class BookingController extends HttpServlet {
         switch (path) {
             case "/booking/seats":
                 // User submit danh sach ghe da chon.
-                submitSeats(request, response);
+                submitSeats(user, request, response);
                 break;
             case "/booking/confirm":
                 // User bam xac nhan tao booking.
@@ -286,12 +287,22 @@ public class BookingController extends HttpServlet {
             return;
         }
 
-        // Lay so do ghe kem trang thai da dat/bao tri/gia ghe.
-        SeatMap seatMap = cinemaService.getSeatMap(showtimeId);
+        /*
+         * Browser Back tu F&B khong dong nghia customer muon bo ghe cu. Neu
+         * draft cua session dang giu ghe cho dung showtime, bo qua dung cart
+         * do va tick san ghe cu de customer co the bam Tiep tuc ngay.
+         */
+        BookingDraft current = currentDraft(request);
+        int ownCartId = current != null && current.getShowtimeId() == showtimeId
+                ? current.getCartId() : -1;
+        SeatMap seatMap = cinemaService.getSeatMap(showtimeId, ownCartId);
 
         // seatMap de JSP ve ghe, bookingMode de JSP biet day la man dat ve.
         request.setAttribute("seatMap", seatMap);
         request.setAttribute("bookingMode", Boolean.TRUE);
+        if (current != null && ownCartId > 0) {
+            request.setAttribute("selectedSeatIds", current.getSeatIds());
+        }
 
         // error co the null; neu co thi JSP hien loi validate ghe.
         request.setAttribute("error", error);
@@ -303,10 +314,41 @@ public class BookingController extends HttpServlet {
     }
 
     /**
+     * Xu ly viec quay lai man chon ghe tu buoc F&B.
+     *
+     * <p>Customer da chon mot tap ghe thi CART_ITEMS dang khoa tap ghe do. Neu
+     * muon doi ghe, lock cu phai duoc giai phong truoc khi ve so do; neu khong
+     * giao dien se tu coi cac ghe cua chinh customer la da dat. Chi khi URL co
+     * {@code changeSeats=1}. Browser Back lai chi gui URL /booking/seats cu,
+     * nen method cung nhan ra draft co cung showtime va xu ly nhu mot yeu cau
+     * doi ghe. Reload o F&B/confirm khong di qua method nay nen lock van giu
+     * nguyen trong luc customer dang tiep tuc thanh toan.</p>
+     */
+    private void releaseHoldWhenChangingSeats(User user, HttpServletRequest request) {
+        if (!"1".equals(request.getParameter("changeSeats"))) {
+            return;
+        }
+        BookingDraft draft = currentDraft(request);
+
+        /*
+         * Browser Back quay tu /booking/fnb ve dung URL /booking/seats cu,
+         * khong mang theo changeSeats=1. Vi vay khong duoc chi dua vao nut
+         * "Quay lại chọn ghế" cua JSP: bat cu GET nao quay lai dung seat map
+         * cua cart hien tai deu duoc xem la y dinh chon lai ghe.
+         */
+        if (draft != null && draft.getCartId() > 0) {
+            bookingService.releaseOnlineSeatHold(user.getId(), draft.getCartId());
+        }
+        // Voucher/F&B gan voi draft cu; khi doi ghe phai tinh lai tong tien tu server.
+        request.getSession().removeAttribute(DRAFT_SESSION_KEY);
+        request.getSession().removeAttribute(VOUCHER_SESSION_KEY);
+    }
+
+    /**
      * Xử lý bước chọn ghế: validate showtime/seat, sau đó lưu BookingDraft vào
      * session.
      */
-    private void submitSeats(HttpServletRequest request, HttpServletResponse response)
+    private void submitSeats(User user, HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Lay suat chieu va danh sach ghe user vua submit.
         int showtimeId = parsePositiveInt(request.getParameter("showtimeId"));
@@ -317,12 +359,34 @@ public class BookingController extends HttpServlet {
              * Goi buildDraftView de service validate showtime/seat.
              * Neu ghe khong hop le, service nem IllegalArgumentException.
              */
-            bookingService.buildDraftView(showtimeId, seatIds);
+            BookingDraft oldDraft = currentDraft(request);
+            int ownCartId = oldDraft != null && oldDraft.getShowtimeId() == showtimeId
+                    ? oldDraft.getCartId() : -1;
+            BookingDraftView draftView = bookingService.buildDraftView(showtimeId, seatIds, ownCartId);
+
+            /*
+             * Neu session cu da giu ghe, customer dang doi lua chon. Giai phong
+             * lock cu truoc khi tao lock moi de khong bo lai cart rac trong DB.
+             */
+            if (oldDraft != null && oldDraft.getCartId() > 0) {
+                bookingService.releaseOnlineSeatHold(user.getId(), oldDraft.getCartId());
+            }
+
+            /*
+             * Tao CART/CART_ITEMS truoc khi sang F&B. Day la lock tam co TTL,
+             * nen staff va customer khac thay ghe da ban trong suot thoi gian
+             * customer dang chon F&B va xem xac nhan.
+             */
+            int cartId = bookingService.holdSeatsForOnlineBooking(user.getId(), draftView);
+            if (cartId <= 0) {
+                throw new IllegalArgumentException("Ghế vừa được người khác giữ hoặc đặt. Vui lòng chọn ghế khác.");
+            }
 
             // Tao draft nhe gom showtimeId + seatIds, chua ghi booking vao DB.
             BookingDraft draft = new BookingDraft();
             draft.setShowtimeId(showtimeId);
             draft.setSeatIds(seatIds);
+            draft.setCartId(cartId);
 
             // Luu draft vao session de buoc /booking/confirm doc lai.
             request.getSession().setAttribute(DRAFT_SESSION_KEY, draft);
@@ -343,7 +407,10 @@ public class BookingController extends HttpServlet {
             return;
         }
         try {
-            BookingDraftView view = bookingService.buildDraftView(draft.getShowtimeId(), draft.getSeatIds());
+            if (draft.getCartId() <= 0 || !bookingService.refreshOnlineSeatHold(currentUser(request).getId(), draft.getCartId())) {
+                throw new IllegalArgumentException("Thời gian giữ ghế đã hết. Vui lòng chọn ghế lại.");
+            }
+            BookingDraftView view = bookingService.buildDraftView(draft.getShowtimeId(), draft.getSeatIds(), draft.getCartId());
             request.setAttribute("draftView", view);
             request.setAttribute("fnbOptions", bookingFnbDAO.findSellableByBranch(view.getShowtime().getBranchId()));
             request.setAttribute("selectedFnb", draft.getFnbQuantities());
@@ -373,7 +440,10 @@ public class BookingController extends HttpServlet {
             }
         }
         try {
-            BookingDraftView view = bookingService.buildDraftView(draft.getShowtimeId(), draft.getSeatIds());
+            if (draft.getCartId() <= 0 || !bookingService.refreshOnlineSeatHold(currentUser(request).getId(), draft.getCartId())) {
+                throw new IllegalArgumentException("Thời gian giữ ghế đã hết. Vui lòng chọn ghế lại.");
+            }
+            BookingDraftView view = bookingService.buildDraftView(draft.getShowtimeId(), draft.getSeatIds(), draft.getCartId());
             bookingFnbDAO.resolveSelection(view.getShowtime().getBranchId(), quantities);
             draft.setFnbQuantities(quantities);
             response.sendRedirect(request.getContextPath() + "/booking/confirm");
@@ -403,10 +473,11 @@ public class BookingController extends HttpServlet {
              * BuildDraftView tao ban hien thi day du cho JSP:
              * phim, rap, phong, ngay gio, ghe, gia tung ghe, tong tien.
              */
+            if (draft.getCartId() <= 0 || !bookingService.refreshOnlineSeatHold(currentUser(request).getId(), draft.getCartId())) {
+                throw new IllegalArgumentException("Thời gian giữ ghế đã hết. Vui lòng chọn ghế lại.");
+            }
             BookingDraftView draftView = bookingService.buildDraftView(
-                    draft.getShowtimeId(),
-                    draft.getSeatIds()
-            );
+                    draft.getShowtimeId(), draft.getSeatIds(), draft.getCartId());
             draftView.setFnbLines(bookingFnbDAO.resolveSelection(
                     draftView.getShowtime().getBranchId(), draft.getFnbQuantities()));
             // Dua draftView sang JSP confirm de user kiem tra lai truoc khi dat.
@@ -453,11 +524,18 @@ public class BookingController extends HttpServlet {
         }
 
         try {
+            /*
+             * Xac nhan lan cuoi chi duoc phep neu cart cua session van con han.
+             * Khong bo qua buoc nay: buildDraftView co bo qua cart cua chinh user
+             * de hien thi UI, con DAO se dung cart nay de chuyen doi nguyen tu.
+             */
+            if (draft.getCartId() <= 0
+                    || !bookingService.refreshOnlineSeatHold(user.getId(), draft.getCartId())) {
+                throw new IllegalArgumentException("Thời gian giữ ghế đã hết. Vui lòng chọn ghế lại.");
+            }
             // Validate lai draft lan cuoi truoc khi ghi DB.
             BookingDraftView draftView = bookingService.buildDraftView(
-                    draft.getShowtimeId(),
-                    draft.getSeatIds()
-            );
+                    draft.getShowtimeId(), draft.getSeatIds(), draft.getCartId());
             draftView.setFnbLines(bookingFnbDAO.resolveSelection(
                     draftView.getShowtime().getBranchId(), draft.getFnbQuantities()));
             String requestedAction = request.getParameter("action");
@@ -500,7 +578,8 @@ public class BookingController extends HttpServlet {
              * Tao booking pending trong DB.
              * Service se tao BOOKING, BOOKING_SEATS va PAYMENT pending neu thanh cong.
              */
-            int bookingId = bookingService.createPendingBooking(user.getId(), draftView, voucherQuote);
+            int bookingId = bookingService.createPendingBooking(
+                    user.getId(), draftView, voucherQuote, draft.getCartId());
             if (bookingId <= 0) {
                 showConfirm(request, response, "Không thể tạo booking. Ghế có thể vừa được người khác đặt.");
                 return;

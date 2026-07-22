@@ -70,6 +70,17 @@ public class BookingDAO {
                 + "(booking_id,item_type,product_id,combo_id,item_name,quantity,unit_price,status,last_update) "
                 + "VALUES (?,?,?,?,?,?,?,?,GETDATE())";
 
+        /*
+         * POS cũng phải tuân thủ cùng nghiệp vụ với luồng Customer: chỉ bán
+         * vé khi phim đã phát hành (NOW_SHOWING) và suất vẫn còn mở bán.
+         * Không tin riêng dữ liệu showtime mà trình duyệt staff gửi lên.
+         */
+        String checkBookableShowtimeSql = "SELECT COUNT(*) FROM dbo.SHOWTIMES st "
+                + "JOIN dbo.MOVIES m ON m.id = st.movie_id "
+                + "WHERE st.id = ? AND st.status IN ('SCHEDULED', 'ON_SALE') "
+                + "AND m.status = 'NOW_SHOWING' "
+                + "AND DATEADD(MINUTE, 30, st.start_time) > GETDATE()";
+
         String consumeProductSql = "UPDATE dbo.BRANCH_FNB_INVENTORY "
                 + "SET stock_quantity = stock_quantity - ?, last_update = GETDATE() "
                 + "WHERE branch_id = (SELECT h.branch_id FROM dbo.SHOWTIMES st "
@@ -112,11 +123,24 @@ public class BookingDAO {
              * Khóa theo showtime ở cấp SQL Server trước khi đọc/chèn BOOKING_SEATS.
              * Customer online và staff POS đều đi qua BookingDAO, nên request đến
              * đồng thời sẽ lần lượt chạy thay vì cùng thấy một ghế đang trống.
-             * LockOwner=Transaction được giải phóng tự động khi commit/rollback.
+             * LockOwner=Session được giải phóng khi connection đóng ở finally, sau
+             * commit/rollback. Cách này tránh transaction SQL Server lồng nhau.
              */
             if (!acquireShowtimeSeatLock(conn, showtimeId)) {
                 conn.rollback();
                 return -1;
+            }
+
+            // Kiểm tra lại ở server để staff không thể bán vé cho phim Sắp chiếu
+            // bằng cách giữ URL/showtimeId cũ sau khi dữ liệu đã đổi trạng thái.
+            try (PreparedStatement ps = conn.prepareStatement(checkBookableShowtimeSql)) {
+                ps.setInt(1, showtimeId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next() || rs.getInt(1) != 1) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
             }
 
             int walkinCustomerId = getOrCreateWalkinCustomer(conn);
@@ -816,6 +840,19 @@ public class BookingDAO {
     public int createPendingBooking(int userId, int showtimeId, List<Integer> seatIds,
             List<Double> seatPrices, double totalPrice,
             String voucherCode, double voucherDiscount, List<BookingFnbLine> fnbLines) {
+        return createPendingBooking(userId, showtimeId, seatIds, seatPrices, totalPrice,
+                voucherCode, voucherDiscount, fnbLines, -1);
+    }
+
+    /**
+     * Chuyen cart giu ghe cua customer thanh booking PENDING. cartId duoc
+     * kiem tra trong cung transaction va chi bi xoa sau khi booking da duoc
+     * tao, nen staff/POS khong co khe ho chen vao giua hai thao tac.
+     */
+    public int createPendingBooking(int userId, int showtimeId, List<Integer> seatIds,
+            List<Double> seatPrices, double totalPrice,
+            String voucherCode, double voucherDiscount, List<BookingFnbLine> fnbLines,
+            int cartId) {
         if (userId <= 0 || showtimeId <= 0 || seatIds == null || seatIds.isEmpty()
                 || seatPrices == null || seatPrices.size() != seatIds.size()) {
             return -1;
@@ -823,9 +860,16 @@ public class BookingDAO {
         // Voucher có thể làm tổng đơn online bằng 0. Đơn miễn phí phải xác nhận ngay.
         boolean complimentary = totalPrice <= 0.0001d;
 
-        String checkShowtimeSql = "SELECT COUNT(*) FROM dbo.SHOWTIMES "
-                + "WHERE id = ? AND status IN ('SCHEDULED','ON_SALE') "
-                + "AND DATEADD(MINUTE, 30, start_time) > GETDATE()";
+        /*
+         * Chặn bypass URL/HTML: dù người dùng tự gửi showtimeId của phim
+         * COMING_SOON, transaction chỉ được tạo nếu MOVIES.status là
+         * NOW_SHOWING. Đây là lớp bảo vệ cuối cùng sau ShowtimeDAO/JSP.
+         */
+        String checkShowtimeSql = "SELECT COUNT(*) FROM dbo.SHOWTIMES st "
+                + "JOIN dbo.MOVIES m ON m.id = st.movie_id "
+                + "WHERE st.id = ? AND st.status IN ('SCHEDULED','ON_SALE') "
+                + "AND m.status = 'NOW_SHOWING' "
+                + "AND DATEADD(MINUTE, 30, st.start_time) > GETDATE()";
 
         String seatPlaceholders = placeholders(seatIds.size());
 
@@ -845,6 +889,13 @@ public class BookingDAO {
                 + "FROM dbo.CART_ITEMS ci "
                 + "JOIN dbo.CART c ON c.id = ci.cart_id "
                 + "WHERE c.showtime_id = ? AND ci.locked_until > GETDATE() "
+                + "AND c.id <> ? "
+                + "AND ci.seat_id IN (" + seatPlaceholders + ")";
+
+        String checkOwnCartSql = "SELECT COUNT(*) FROM dbo.CART_ITEMS ci "
+                + "JOIN dbo.CART c ON c.id=ci.cart_id "
+                + "WHERE c.id=? AND c.user_id=? AND c.showtime_id=? "
+                + "AND c.expires_at>GETDATE() AND ci.locked_until>GETDATE() "
                 + "AND ci.seat_id IN (" + seatPlaceholders + ")";
 
         String insertBookingSql = "INSERT INTO dbo.BOOKINGS "
@@ -891,6 +942,21 @@ public class BookingDAO {
             if (!acquireShowtimeSeatLock(conn, showtimeId)) {
                 conn.rollback();
                 return -1;
+            }
+
+            if (cartId > 0) {
+                try (PreparedStatement ps = conn.prepareStatement(checkOwnCartSql)) {
+                    ps.setInt(1, cartId);
+                    ps.setInt(2, userId);
+                    ps.setInt(3, showtimeId);
+                    bindSeatIds(ps, seatIds, 4);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next() || rs.getInt(1) != seatIds.size()) {
+                            conn.rollback();
+                            return -1;
+                        }
+                    }
+                }
             }
 
             int voucherCodeId = 0;
@@ -941,7 +1007,8 @@ public class BookingDAO {
 
             try (PreparedStatement ps = conn.prepareStatement(checkLockedSql)) {
                 ps.setInt(1, showtimeId);
-                bindSeatIds(ps, seatIds, 2);
+                ps.setInt(2, cartId);
+                bindSeatIds(ps, seatIds, 3);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next() && rs.getInt(1) > 0) {
                         conn.rollback();
@@ -1073,6 +1140,26 @@ public class BookingDAO {
                     ps.setInt(3, voucherCodeId);
                     ps.setDouble(4, voucherDiscount);
                     ps.executeUpdate();
+                }
+            }
+
+            /*
+             * Cart chi duoc xoa o cuoi transaction. Neu bat ky insert nao
+             * that bai va rollback, CART_ITEMS van con va ghe van duoc giu cho
+             * customer den khi TTL het han.
+             */
+            if (cartId > 0) {
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM dbo.CART_ITEMS WHERE cart_id=?")) {
+                    ps.setInt(1, cartId);
+                    ps.executeUpdate();
+                }
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM dbo.CART WHERE id=? AND user_id=?")) {
+                    ps.setInt(1, cartId);
+                    ps.setInt(2, userId);
+                    if (ps.executeUpdate() != 1) {
+                        conn.rollback();
+                        return -1;
+                    }
                 }
             }
 
@@ -1485,14 +1572,38 @@ public class BookingDAO {
         String sql = "DECLARE @result INT; "
                 + "EXEC @result = sp_getapplock "
                 + "@Resource = ?, @LockMode = 'Exclusive', "
-                + "@LockOwner = 'Transaction', @LockTimeout = 5000; "
+                + "@LockOwner = 'Session', @LockTimeout = 5000; "
                 + "SELECT @result AS lock_result;";
 
+        /*
+         * Không dùng LockOwner='Transaction' hay BEGIN TRANSACTION ở đây. Với driver
+         * SQL Server hiện tại, setAutoCommit(false) chưa tạo @@TRANCOUNT cho đến khi
+         * có câu lệnh ghi; tự BEGIN ở đây lại tạo transaction lồng nhau. conn.commit()
+         * chỉ giảm một cấp và connection.close() rollback cấp còn lại, khiến identity
+         * booking tăng nhưng dòng BOOKINGS/BOOKING_SEATS bị mất.
+         *
+         * Vì vậy lock thuộc Session của chính connection này. Mỗi luồng tạo booking
+         * luôn đóng connection trong finally sau commit/rollback, nên lock bao phủ
+         * toàn transaction và được SQL Server giải phóng chắc chắn khi close().
+         */
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "RapViet:booking-seat-showtime:" + showtimeId);
-            try (ResultSet rs = ps.executeQuery()) {
-                // sp_getapplock trả >= 0 khi lấy lock thành công; số âm là timeout/lỗi.
-                return rs.next() && rs.getInt("lock_result") >= 0;
+            /*
+             * Batch DECLARE/EXEC/SELECT có thể trả về update count trước ResultSet.
+             * Vì vậy phải dùng execute() và duyệt các kết quả cho tới lock_result.
+             */
+            boolean hasResultSet = ps.execute();
+            while (true) {
+                if (hasResultSet) {
+                    try (ResultSet rs = ps.getResultSet()) {
+                        if (rs != null && rs.next()) {
+                            return rs.getInt("lock_result") >= 0;
+                        }
+                    }
+                } else if (ps.getUpdateCount() == -1) {
+                    return false;
+                }
+                hasResultSet = ps.getMoreResults();
             }
         }
     }

@@ -78,7 +78,8 @@
                                             <c:choose>
                                                 <c:when test="${sv.selectable}">
                                                     <label class="seat-choice">
-                                                        <input type="checkbox" name="seatIds" value="${sv.seat.id}">
+                                                        <input type="checkbox" name="seatIds" value="${sv.seat.id}"
+                                                               <c:if test="${not empty selectedSeatIds and selectedSeatIds.contains(sv.seat.id)}">checked</c:if>>
                                                         <span class="seat ${sv.statusClass} ${sv.seat.seatType}"
                                                               title="${sv.seat.seatCode} - ${sv.statusLabel}">
                                                             ${sv.seat.seatNumber}

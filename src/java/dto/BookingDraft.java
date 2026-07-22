@@ -10,6 +10,12 @@ import java.util.Map;
 public class BookingDraft implements Serializable {
 
     private int showtimeId;
+    /*
+     * ID cua CART dang giu ghe tam thoi trong DB. Khac voi session draft,
+     * cart nay duoc cac luong customer va staff cung kiem tra, nen ghe da
+     * chon khong the bi ban trung trong luc customer dang chon F&B.
+     */
+    private int cartId;
     private List<Integer> seatIds = new ArrayList<>();
     private LocalDateTime createdAt = LocalDateTime.now();
     private Map<String, Integer> fnbQuantities = new LinkedHashMap<>();
@@ -20,6 +26,14 @@ public class BookingDraft implements Serializable {
 
     public void setShowtimeId(int showtimeId) {
         this.showtimeId = showtimeId;
+    }
+
+    public int getCartId() {
+        return cartId;
+    }
+
+    public void setCartId(int cartId) {
+        this.cartId = cartId;
     }
 
     public List<Integer> getSeatIds() {
