@@ -108,6 +108,17 @@ public class BookingDAO {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
 
+            /*
+             * Khóa theo showtime ở cấp SQL Server trước khi đọc/chèn BOOKING_SEATS.
+             * Customer online và staff POS đều đi qua BookingDAO, nên request đến
+             * đồng thời sẽ lần lượt chạy thay vì cùng thấy một ghế đang trống.
+             * LockOwner=Transaction được giải phóng tự động khi commit/rollback.
+             */
+            if (!acquireShowtimeSeatLock(conn, showtimeId)) {
+                conn.rollback();
+                return -1;
+            }
+
             int walkinCustomerId = getOrCreateWalkinCustomer(conn);
             if (walkinCustomerId <= 0) {
                 conn.rollback();
@@ -872,6 +883,16 @@ public class BookingDAO {
             conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
 
+            /*
+             * Dùng cùng application lock với luồng POS. Nhờ đó, sau khi customer
+             * bấm xác nhận để đến QR, PENDING + BOOKING_SEATS được tạo nguyên tử
+             * trước khi một request staff có thể kiểm tra/chèn đúng ghế này.
+             */
+            if (!acquireShowtimeSeatLock(conn, showtimeId)) {
+                conn.rollback();
+                return -1;
+            }
+
             int voucherCodeId = 0;
             if (voucherCode != null && !voucherCode.trim().isEmpty() && voucherDiscount > 0) {
                 try (PreparedStatement ps = conn.prepareStatement(consumeVoucherSql)) {
@@ -1451,6 +1472,29 @@ public class BookingDAO {
         view.setCustomerEmail(rs.getString("customer_email"));
 
         return view;
+    }
+
+    /**
+     * Lấy exclusive application lock của SQL Server theo suất chiếu.
+     *
+     * <p>Không cần thêm bảng/cột DB: {@code sp_getapplock} lưu lock trong SQL
+     * Server và lock tự mất theo transaction. Mọi luồng tạo booking gọi method
+     * này trước query kiểm tra ghế, nên loại bỏ race condition check-then-insert.</p>
+     */
+    private boolean acquireShowtimeSeatLock(Connection conn, int showtimeId) throws Exception {
+        String sql = "DECLARE @result INT; "
+                + "EXEC @result = sp_getapplock "
+                + "@Resource = ?, @LockMode = 'Exclusive', "
+                + "@LockOwner = 'Transaction', @LockTimeout = 5000; "
+                + "SELECT @result AS lock_result;";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "RapViet:booking-seat-showtime:" + showtimeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                // sp_getapplock trả >= 0 khi lấy lock thành công; số âm là timeout/lỗi.
+                return rs.next() && rs.getInt("lock_result") >= 0;
+            }
+        }
     }
 
     private String placeholders(int size) {

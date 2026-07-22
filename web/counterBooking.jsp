@@ -872,6 +872,12 @@
                 <c:choose>
                     <c:when test="${not empty selectedShowtime}">
                         <div class="seat-map-container">
+                            <%--
+                                JavaScript cập nhật vùng này khi customer vừa tạo booking PENDING
+                                ở màn QR. Staff biết ghế nào vừa bị hệ thống bỏ khỏi giỏ tại quầy.
+                            --%>
+                            <div id="seatSyncMessage" role="status" aria-live="polite"
+                                 style="display:none; margin:10px 0; padding:9px 12px; border:1px solid rgba(251,191,36,.45); border-radius:8px; background:rgba(251,191,36,.10); color:#fcd34d; font-size:12px; font-weight:600;"></div>
                             <div class="screen">MÀN HÌNH CHIẾU CHÍNH (SCREEN)</div>
 
                             <div style="width: 100%; overflow-x: auto; padding-bottom: 10px;">
@@ -891,6 +897,10 @@
                                                 data-id="${s.id}"
                                                 data-code="${s.getSeatCode()}"
                                                 data-price="${seatPrice}"
+                                                <%-- Dùng khi đồng bộ lại UI: ghế bảo trì luôn bị disable,
+                                                     còn ghế thường có thể mở lại nếu booking PENDING bị hủy. --%>
+                                                data-maintenance="${s.maintenance}"
+                                                data-seat-type="${s.seatType}"
                                                 onclick="toggleSeatSelection(this)">
                                             ${s.getSeatCode()}
                                         </button>
@@ -1101,6 +1111,13 @@
 
         <script>
             let selectedSeats = [];
+            /*
+             * Tập ghế trả về từ server ở lần polling gần nhất. Đây chỉ là trạng
+             * thái hiển thị; khi staff bấm tạo vé, BookingService/BookingDAO vẫn
+             * kiểm tra lại DB trong transaction để chống double booking tuyệt đối.
+             */
+            let serverReservedSeatIds = new Set();
+            let seatAvailabilityPollingId = null;
             /* ===== F&B STAFF - JAVASCRIPT BEGIN ===== */
             // Giỏ F&B chạy phía client và đồng bộ vào selectedFnbInput.
             let selectedFnb = [];
@@ -1218,6 +1235,11 @@
             }
 
             function toggleSeatSelection(button) {
+                // Ghế có thể vừa bị customer giữ sau lần render trước. Không cho
+                // staff thêm nó vào giỏ ở phía client; server sẽ kiểm tra lần nữa.
+                if (button.disabled || serverReservedSeatIds.has(Number(button.dataset.id))) {
+                    return;
+                }
                 const id = parseInt(button.getAttribute('data-id'));
                 const code = button.getAttribute('data-code');
                 const price = parseFloat(button.getAttribute('data-price'));
@@ -1234,6 +1256,104 @@
                 }
 
                 updateCartUI();
+            }
+
+            /**
+             * Lấy showtime hiện đang mở trong POS. Hidden input thuộc bookingForm
+             * nên không phụ thuộc vào EL và an toàn cả khi staff chưa chọn suất.
+             */
+            function getActiveCounterShowtimeId() {
+                const showtimeInput = document.querySelector('input[name="showtimeId"]');
+                return showtimeInput ? Number(showtimeInput.value || 0) : 0;
+            }
+
+            /**
+             * Đồng bộ sơ đồ ghế POS với DB.
+             *
+             * Flow: JSP fetch /CounterBooking?action=seatAvailability ->
+             * CounterBookingController -> BookingService -> BookingDAO -> JSON.
+             * Khi customer đến màn QR, booking PENDING đã có BOOKING_SEATS nên
+             * seatId xuất hiện trong JSON và nút tương ứng bị khóa ngay trên POS.
+             */
+            function syncSeatAvailability() {
+                const showtimeId = getActiveCounterShowtimeId();
+                if (showtimeId <= 0) {
+                    return;
+                }
+
+                fetch('${pageContext.request.contextPath}/CounterBooking?action=seatAvailability&showtimeId='
+                        + encodeURIComponent(showtimeId), {
+                    method: 'GET',
+                    headers: {'Accept': 'application/json'},
+                    cache: 'no-store'
+                })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Không thể đồng bộ ghế: HTTP ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (!data.success) {
+                                return;
+                            }
+                            applySeatAvailability(new Set((data.bookedSeatIds || []).map(Number)));
+                        })
+                        .catch(error => {
+                            // Không làm gián đoạn thao tác POS khi mạng tạm chập chờn.
+                            // Server vẫn là lớp bảo vệ cuối cùng ở bước tạo booking.
+                            console.warn('Seat availability polling error:', error);
+                        });
+            }
+
+            /**
+             * Cập nhật trạng thái nút ghế từ response server. Nếu staff đang chọn
+             * một ghế mà customer vừa khóa, ghế đó bị loại khỏi selectedSeats để
+             * staff không tiếp tục báo giá hay submit với dữ liệu đã cũ.
+             */
+            function applySeatAvailability(reservedIds) {
+                serverReservedSeatIds = reservedIds;
+                const removedCodes = [];
+
+                document.querySelectorAll('button.seat[data-id]').forEach(button => {
+                    const seatId = Number(button.dataset.id);
+                    const maintenance = button.dataset.maintenance === 'true';
+                    const reserved = reservedIds.has(seatId);
+
+                    if (reserved) {
+                        const selectedIndex = selectedSeats.findIndex(seat => seat.id === seatId);
+                        if (selectedIndex >= 0) {
+                            removedCodes.push(selectedSeats[selectedIndex].code);
+                            selectedSeats.splice(selectedIndex, 1);
+                        }
+                        button.classList.remove('SELECTED', button.dataset.seatType);
+                        button.classList.add('OCCUPIED');
+                        button.disabled = true;
+                        button.title = 'Ghế đang được giữ hoặc đã bán';
+                        return;
+                    }
+
+                    // Nếu booking PENDING bị hủy/timeout, server không còn trả seatId.
+                    // Chỉ mở lại ghế không bảo trì; ghế maintenance luôn bị khóa riêng.
+                    if (!maintenance) {
+                        button.classList.remove('OCCUPIED');
+                        if (!button.classList.contains('SELECTED')) {
+                            button.classList.add(button.dataset.seatType);
+                        }
+                        button.disabled = false;
+                        button.title = button.dataset.code;
+                    }
+                });
+
+                if (removedCodes.length > 0) {
+                    updateCartUI();
+                    const message = document.getElementById('seatSyncMessage');
+                    if (message) {
+                        message.textContent = 'Ghế ' + removedCodes.join(', ')
+                                + ' vừa được khách khác giữ để thanh toán. Hệ thống đã bỏ ghế này khỏi đơn tại quầy.';
+                        message.style.display = 'block';
+                    }
+                }
             }
 
             function updateCartUI() {
@@ -1663,6 +1783,16 @@
             // INITIALIZE AND APPLY DYNAMIC CLIENT-SIDE FILTERS FOR POS LEFT PANEL
             let posItems = [];
             window.addEventListener('DOMContentLoaded', () => {
+                /*
+                 * Đồng bộ ngay khi staff mở POS, sau đó lặp mỗi 3 giây. Nhờ vậy
+                 * customer vừa tới QR thanh toán sẽ khóa ghế trên POS mà staff
+                 * không cần nhấn F5. setInterval chỉ chạy khi đã chọn showtime.
+                 */
+                if (getActiveCounterShowtimeId() > 0) {
+                    syncSeatAvailability();
+                    seatAvailabilityPollingId = window.setInterval(syncSeatAvailability, 3000);
+                }
+
                 posItems = Array.from(document.querySelectorAll('.showtime-item'));
 
                 const movieSelect = document.getElementById('filterMoviePOS');

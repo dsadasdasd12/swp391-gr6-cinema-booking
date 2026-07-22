@@ -75,6 +75,16 @@ public class CounterBookingController extends HttpServlet {
             writeStatus(response, bookingService.getCounterBookingStatus(staffId, parseId(request.getParameter("bookingId"))));
             return;
         }
+        if ("seatAvailability".equalsIgnoreCase(action)) {
+            /*
+             * POS không chỉ đọc sơ đồ ghế lúc mở trang. Khi customer vừa xác nhận
+             * đơn online, BookingController tạo BOOKINGS=PENDING + BOOKING_SEATS.
+             * Endpoint này cho phép trình duyệt của staff lấy lại danh sách ghế
+             * đang bị giữ/đã bán để khóa nút ghế mà không cần reload toàn bộ POS.
+             */
+            writeSeatAvailability(response, staffId, parseId(request.getParameter("showtimeId")));
+            return;
+        }
         if ("cancelBooking".equalsIgnoreCase(action)) {
             if (!"POST".equalsIgnoreCase(request.getMethod())) {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
@@ -448,6 +458,42 @@ public class CounterBookingController extends HttpServlet {
 
     private void writeStatus(HttpServletResponse response, String status) throws IOException {
         writeJson(response, status == null ? "{\"status\":\"NOT_FOUND\"}" : "{\"status\":\"" + json(status) + "\"}");
+    }
+
+    /**
+     * Trả về các ghế không còn được phép bán tại quầy của một suất chiếu.
+     *
+     * <p>Dữ liệu đi theo luồng: CounterBookingController -> BookingService
+     * -> BookingDAO.getBookedSeatIds(). DAO gộp hai nguồn khóa ghế:</p>
+     * <ul>
+     *   <li>BOOKING_SEATS thuộc booking PENDING/CONFIRMED/CHECKED_IN/USED;</li>
+     *   <li>CART_ITEMS còn locked_until, nếu một luồng khác đang giữ ghế tạm.</li>
+     * </ul>
+     *
+     * <p>Kiểm tra branch ở đây rất quan trọng: staff chỉ được xem và đồng bộ
+     * ghế của suất chiếu thuộc chi nhánh mình được phân công.</p>
+     */
+    private void writeSeatAvailability(HttpServletResponse response, int staffId, int showtimeId)
+            throws IOException {
+        int branchId = userService.getBranchIdOfStaff(staffId);
+        Showtime showtime = showtimeId <= 0 ? null : showtimeService.getShowtimeById(showtimeId);
+
+        if (branchId <= 0 || showtime == null || showtime.getBranchId() != branchId) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            writeJson(response, "{\"success\":false,\"message\":\"Không có quyền xem trạng thái ghế của suất chiếu này.\"}");
+            return;
+        }
+
+        List<Integer> bookedSeatIds = bookingService.getBookedSeatIds(showtimeId);
+        StringBuilder jsonBody = new StringBuilder("{\"success\":true,\"bookedSeatIds\":[");
+        for (int i = 0; i < bookedSeatIds.size(); i++) {
+            if (i > 0) {
+                jsonBody.append(',');
+            }
+            jsonBody.append(bookedSeatIds.get(i));
+        }
+        jsonBody.append("]}");
+        writeJson(response, jsonBody.toString());
     }
 
     private void writeJson(HttpServletResponse response, String body) throws IOException {
