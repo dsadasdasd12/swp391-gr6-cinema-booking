@@ -38,7 +38,8 @@
         </a>
     </div>
 
-    <!-- 🎬 Movie Management (Admin / Manager / Staff view only) -->
+    <c:if test="${isAdminRole}">
+    <!-- 🎬 Movie Management (Admin) -->
     <div class="rv-nav__group ${isMovie || isGenre || isLanguage ? 'open' : ''}">
         <div class="rv-nav__item ${isMovie || isGenre || isLanguage ? 'active' : ''}">
             <i class="bi bi-film"></i>
@@ -64,6 +65,7 @@
             </c:if>
         </div>
     </div>
+    </c:if>
 
 
     <c:if test="${isAdminRole}">
@@ -99,6 +101,9 @@
     </c:if>
 
     <c:if test="${isManagerRole}">
+        <div class="rv-nav__label">
+                    Vận hành chi nhánh
+                </div>
         <div class="rv-nav__group">
             <a href="${ctx}/manager/halls" class="rv-nav__item ${uri.contains('/manager/halls') ? 'active' : ''}">
                 <i class="bi bi-door-open-fill"></i>
