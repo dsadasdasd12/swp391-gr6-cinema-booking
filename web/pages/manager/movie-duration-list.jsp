@@ -195,92 +195,99 @@
 
         <aside class="rv-sidebar">
 
-            <div class="manager-sidebar-info">
-                <span class="manager-sidebar-info__label">PHÂN HỆ</span>
-                <strong>Branch Manager</strong>
-                <span>Quản lý vận hành chi nhánh được phân công</span>
-            </div>
+                <div class="rv-nav__group">
+                    <a href="${ctx}/manager/dashboard"
+                       class="rv-nav__item active">
 
-            <div class="rv-nav__group">
-                <a href="${ctx}/manager/dashboard"
-                   class="rv-nav__item">
-
-                    <i class="bi bi-grid-1x2-fill"></i>
-                    Bảng điều khiển
-                </a>
-            </div>
-
-            <div class="rv-nav__label">
-                Vận hành chi nhánh
-            </div>
-
-            <div class="rv-nav__group">
-                <a href="${ctx}/manager/halls"
-                   class="rv-nav__item">
-
-                    <i class="bi bi-door-open-fill"></i>
-                    Quản lý phòng chiếu
-                </a>
-            </div>
-
-            <div class="rv-nav__group">
-                <a href="${ctx}/manager/seat-config"
-                   class="rv-nav__item">
-                    <i class="bi bi-grid-3x3-gap-fill"></i>
-                    Cấu hình ghế
-                </a>
-            </div>
-
-            <div class="rv-nav__group open">
-
-                <div class="rv-nav__item active"
-                     role="button"
-                     tabindex="0">
-
-                    <i class="bi bi-film"></i>
-                    Phân bổ phim
-
-                    <i class="bi bi-chevron-right rv-nav__arrow"></i>
-                </div>
-
-                <div class="rv-nav__sub">
-
-                    <a href="${ctx}/manager/movie-assignments/branches"
-                       class="rv-nav__sub-item">
-                        Phim tại chi nhánh
-                    </a>
-
-                    <a href="${ctx}/manager/movie-assignments/halls"
-                       class="rv-nav__sub-item">
-                        Phim tại phòng chiếu
-                    </a>
-
-                    <a href="${ctx}/manager/movie-durations"
-                       class="rv-nav__sub-item active">
-                        Thời lượng phim
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        Bảng điều khiển
                     </a>
                 </div>
-            </div>
 
-            <div class="rv-nav__group">
-                <a href="${ctx}/manager/showtimesmanagement"
-                   class="rv-nav__item">
+                <div class="rv-nav__label">
+                    Vận hành chi nhánh
+                </div>
 
-                    <i class="bi bi-calendar-week-fill"></i>
-                    Quản lý lịch chiếu
-                </a>
-            </div>
+                <div class="rv-nav__group">
+                    <a href="${ctx}/manager/halls"
+                       class="rv-nav__item">
 
+                        <i class="bi bi-door-open-fill"></i>
+                        Quản lý phòng chiếu
+                    </a>
+                </div>
 
-            <div class="rv-nav__group">
-                <a href="${ctx}/logout"
-                   class="rv-nav__item logout">
+                <div class="rv-nav__group">
+                    <a href="${ctx}/manager/seat-config"
+                       class="rv-nav__item">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                        Cấu hình ghế
+                    </a>
+                </div>
 
-                    <i class="bi bi-box-arrow-right"></i>
-                    Đăng xuất
-                </a>
-            </div>
-        </aside>
+                <div class="rv-nav__group">
+
+                    <div class="rv-nav__item"
+                         role="button"
+                         tabindex="0">
+
+                        <i class="bi bi-film"></i>
+                        Phân bổ phim
+
+                        <i class="bi bi-chevron-right rv-nav__arrow"></i>
+                    </div>
+
+                    <div class="rv-nav__sub">
+
+                        <a href="${ctx}/manager/movie-assignments/branches"
+                           class="rv-nav__sub-item">
+                            Phim tại chi nhánh
+                        </a>
+
+                        <a href="${ctx}/manager/movie-assignments/halls"
+                           class="rv-nav__sub-item">
+                            Phim tại phòng chiếu
+                        </a>
+
+                        <a href="${ctx}/manager/movie-durations"
+                           class="rv-nav__sub-item">
+                            Thời lượng phim
+                        </a>
+                    </div>
+                </div>
+
+                <div class="rv-nav__group">
+                    <a href="${ctx}/manager/showtimesmanagement"
+                       class="rv-nav__item">
+
+                        <i class="bi bi-calendar-week-fill"></i>
+                        Quản lý lịch chiếu
+                    </a>
+                </div>
+
+                <div class="rv-nav__group">
+                    <a href="${ctx}/manager/fnb"
+                       class="rv-nav__item ${isManagerFnb ? 'active' : ''}">
+
+                        <i class="bi bi-cup-straw"></i>
+                        Quản lý kho F&amp;B
+                    </a>
+                </div>
+
+                <div class="rv-nav__group">
+                    <a href="${ctx}/logout"
+                       class="rv-nav__item logout"
+                       data-confirm
+                       data-confirm-title="Đăng xuất?"
+                       data-confirm-message="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+                       data-confirm-type="warning"
+                       data-confirm-text="Đăng xuất">
+
+                        <i class="bi bi-box-arrow-right"></i>
+                        Đăng xuất
+                    </a>
+                </div>
+            </aside>
 
         <main class="rv-main">
 

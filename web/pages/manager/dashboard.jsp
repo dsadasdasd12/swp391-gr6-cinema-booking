@@ -241,8 +241,12 @@
                 font-size: var(--text-sm);
             }
 
-            .manager-operation-card__row strong { color: var(--n-800); }
-            .manager-operation-card__row--alert strong { color: var(--primary-light); }
+            .manager-operation-card__row strong {
+                color: var(--n-800);
+            }
+            .manager-operation-card__row--alert strong {
+                color: var(--primary-light);
+            }
 
             .manager-top-movies {
                 margin: 0;
@@ -260,8 +264,12 @@
                 font-size: var(--text-sm);
             }
 
-            .manager-top-movies li:last-child { border-bottom: 0; }
-            .manager-top-movies strong { color: var(--n-800); }
+            .manager-top-movies li:last-child {
+                border-bottom: 0;
+            }
+            .manager-top-movies strong {
+                color: var(--n-800);
+            }
 
             .manager-performance__kpi {
                 padding: var(--s-4);
@@ -487,13 +495,6 @@
         <div class="rv-wrapper">
 
             <aside class="rv-sidebar">
-
-                <div class="manager-sidebar-info">
-                    <span class="manager-sidebar-info__label">PHÂN HỆ</span>
-                    <strong>Branch Manager</strong>
-                    <span>Quản lý vận hành chi nhánh được phân công</span>
-                </div>
-
                 <div class="rv-nav__group">
                     <a href="${ctx}/manager/dashboard"
                        class="rv-nav__item active">
@@ -566,9 +567,9 @@
 
                 <div class="rv-nav__group">
                     <a href="${ctx}/manager/fnb"
-                       class="rv-nav__item">
+                       class="rv-nav__item ${isManagerFnb ? 'active' : ''}">
 
-                        <i class="bi bi-cup-hot-fill"></i>
+                        <i class="bi bi-cup-straw"></i>
                         Quản lý kho F&amp;B
                     </a>
                 </div>
@@ -729,10 +730,10 @@
                                         <ul class="manager-top-movies">
                                             <c:choose>
                                                 <c:when test="${empty performanceTopMovies}"><li><span>Chưa có suất chiếu phù hợp.</span></li></c:when>
-                                                <c:otherwise><c:forEach items="${performanceTopMovies}" var="moviePerformance">
-                                                    <c:url var="movieDetail" value="/manager/dashboard"><c:param name="fromDate" value="${performanceFromDate}"/><c:param name="toDate" value="${performanceToDate}"/><c:param name="movie" value="${moviePerformance.movieTitle}"/></c:url><li><span><a href="${movieDetail}" style="color:inherit;"><strong><c:out value="${moviePerformance.movieTitle}" /></strong></a> · ${moviePerformance.soldSeats}/${moviePerformance.capacity} ghế · ${moviePerformance.showtimeCount} suất</span><strong><fmt:formatNumber value="${moviePerformance.occupancyRate}" minFractionDigits="0" maxFractionDigits="2" />%</strong></li>
-                                                </c:forEach></c:otherwise>
-                                            </c:choose>
+                                                    <c:otherwise><c:forEach items="${performanceTopMovies}" var="moviePerformance">
+                                                            <c:url var="movieDetail" value="/manager/dashboard"><c:param name="fromDate" value="${performanceFromDate}"/><c:param name="toDate" value="${performanceToDate}"/><c:param name="movie" value="${moviePerformance.movieTitle}"/></c:url><li><span><a href="${movieDetail}" style="color:inherit;"><strong><c:out value="${moviePerformance.movieTitle}" /></strong></a> · ${moviePerformance.soldSeats}/${moviePerformance.capacity} ghế · ${moviePerformance.showtimeCount} suất</span><strong><fmt:formatNumber value="${moviePerformance.occupancyRate}" minFractionDigits="0" maxFractionDigits="2" />%</strong></li>
+                                                                    </c:forEach></c:otherwise>
+                                                            </c:choose>
                                         </ul>
                                     </section>
                                     <div class="manager-performance__kpis">

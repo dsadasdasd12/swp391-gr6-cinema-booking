@@ -177,16 +177,9 @@
 
             <%-- Sidebar chỉ có menu Manager. --%>
             <aside class="rv-sidebar">
-
-                <div class="manager-sidebar-info">
-                    <span class="manager-sidebar-info__label">PHÂN HỆ</span>
-                    <strong>Branch Manager</strong>
-                    <span>Quản lý vận hành chi nhánh được phân công</span>
-                </div>
-
                 <div class="rv-nav__group">
                     <a href="${ctx}/manager/dashboard"
-                       class="rv-nav__item">
+                       class="rv-nav__item active">
 
                         <i class="bi bi-grid-1x2-fill"></i>
                         Bảng điều khiển
@@ -214,9 +207,9 @@
                     </a>
                 </div>
 
-                <div class="rv-nav__group open">
+                <div class="rv-nav__group">
 
-                    <div class="rv-nav__item active"
+                    <div class="rv-nav__item"
                          role="button"
                          tabindex="0">
 
@@ -229,7 +222,7 @@
                     <div class="rv-nav__sub">
 
                         <a href="${ctx}/manager/movie-assignments/branches"
-                           class="rv-nav__sub-item active">
+                           class="rv-nav__sub-item">
                             Phim tại chi nhánh
                         </a>
 
@@ -254,10 +247,23 @@
                     </a>
                 </div>
 
+                <div class="rv-nav__group">
+                    <a href="${ctx}/manager/fnb"
+                       class="rv-nav__item ${isManagerFnb ? 'active' : ''}">
+
+                        <i class="bi bi-cup-straw"></i>
+                        Quản lý kho F&amp;B
+                    </a>
+                </div>
 
                 <div class="rv-nav__group">
                     <a href="${ctx}/logout"
-                       class="rv-nav__item logout">
+                       class="rv-nav__item logout"
+                       data-confirm
+                       data-confirm-title="Đăng xuất?"
+                       data-confirm-message="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+                       data-confirm-type="warning"
+                       data-confirm-text="Đăng xuất">
 
                         <i class="bi bi-box-arrow-right"></i>
                         Đăng xuất
