@@ -334,6 +334,14 @@
                         .then(function (data) {
                             if (data.paid === true) {
                                 window.location.href = ctx + "/booking/success?bookingId=" + bookingId;
+                            } else if (data.expired === true) {
+                                /*
+                                 * Backend đã tự chuyển booking PENDING quá 10
+                                 * phút sang CANCELLED và nhả ghế. Tải lại trang
+                                 * để user thấy badge/trạng thái mới và dừng
+                                 * vòng polling thanh toán.
+                                 */
+                                window.location.reload();
                             }
                         })
                         .catch(function (error) {

@@ -576,8 +576,10 @@ public class BookingDAO {
 
     // confirmPayment: Webhook cập nhật đơn hàng thành CONFIRMED và thanh toán thành SUCCESS
     public boolean confirmPayment(int bookingId, String transactionId, double amount, String gateway) {
-        String updateBookingSql = "UPDATE dbo.BOOKINGS SET status = 'CONFIRMED', last_update = GETDATE() WHERE id = ?";
-        String updatePaymentSql = "UPDATE dbo.PAYMENTS SET status = 'SUCCESS', transaction_id = ?, amount = ?, gateway = ?, paid_at = GETDATE(), last_update = GETDATE() WHERE booking_id = ?";
+        String updateBookingSql = "UPDATE dbo.BOOKINGS SET status = 'CONFIRMED', last_update = GETDATE() "
+                + "WHERE id = ? AND status = 'PENDING'";
+        String updatePaymentSql = "UPDATE dbo.PAYMENTS SET status = 'SUCCESS', transaction_id = ?, amount = ?, gateway = ?, paid_at = GETDATE(), last_update = GETDATE() "
+                + "WHERE booking_id = ? AND status = 'PENDING'";
         String updateFnbSql = "UPDATE dbo.BOOKING_FNB "
                 + "SET status = 'PREPARING', last_update = GETDATE() "
                 + "WHERE booking_id = ? AND status = 'PENDING'";
@@ -589,7 +591,14 @@ public class BookingDAO {
 
             try (PreparedStatement ps = conn.prepareStatement(updateBookingSql)) {
                 ps.setInt(1, bookingId);
-                ps.executeUpdate();
+                /*
+                 * Điều kiện status=PENDING ngăn webhook đến muộn khôi phục một
+                 * booking đã bị tác vụ 10 phút chuyển sang CANCELLED.
+                 */
+                if (ps.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
             }
 
             try (PreparedStatement ps = conn.prepareStatement(updatePaymentSql)) {
@@ -597,7 +606,10 @@ public class BookingDAO {
                 ps.setDouble(2, amount);
                 ps.setString(3, gateway);
                 ps.setInt(4, bookingId);
-                ps.executeUpdate();
+                if (ps.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
             }
 
             try (PreparedStatement ps = conn.prepareStatement(updateFnbSql)) {
@@ -1239,6 +1251,63 @@ public class BookingDAO {
     }
 
     public boolean cancelByUser(int bookingId, int userId) {
+        return cancelByUser(bookingId, userId, false);
+    }
+
+    /**
+     * Hủy các booking ONLINE vẫn PENDING quá thời gian thanh toán.
+     *
+     * <p>Phương thức chỉ lấy danh sách ứng viên ở đây; trước khi hủy từng
+     * booking, {@link #cancelByUser(int, int, boolean)} sẽ khóa và kiểm tra lại
+     * trạng thái trong transaction. Vì vậy nếu cổng thanh toán vừa xác nhận vé
+     * thành công thì booking đó không bị hủy nhầm.</p>
+     *
+     * @param timeoutMinutes số phút tối đa được chờ thanh toán
+     * @return số booking thực sự được chuyển sang CANCELLED
+     */
+    public int cancelExpiredOnlinePendingBookings(int timeoutMinutes) {
+        if (timeoutMinutes <= 0) {
+            throw new IllegalArgumentException("Thời gian chờ thanh toán phải lớn hơn 0 phút.");
+        }
+
+        String sql = "SELECT b.id, b.user_id "
+                + "FROM dbo.BOOKINGS b "
+                + "WHERE b.source = 'ONLINE' "
+                + "AND b.status = 'PENDING' "
+                + "AND b.booked_at <= DATEADD(MINUTE, -?, GETDATE()) "
+                + "AND NOT EXISTS (SELECT 1 FROM dbo.PAYMENTS p "
+                + "                WHERE p.booking_id = b.id AND p.status IN ('PAID','SUCCESS','COMPLETED'))";
+
+        List<int[]> expiredBookings = new ArrayList<>();
+        try (Connection conn = new DBContext().getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, timeoutMinutes);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    expiredBookings.add(new int[]{rs.getInt("id"), rs.getInt("user_id")});
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+
+        int cancelledCount = 0;
+        for (int[] booking : expiredBookings) {
+            if (cancelByUser(booking[0], booking[1], true)) {
+                cancelledCount++;
+            }
+        }
+        return cancelledCount;
+    }
+
+    /**
+     * Thực hiện nghiệp vụ hủy booking trong một transaction.
+     *
+     * @param pendingOnly true khi hệ thống tự hết hạn; lúc này tuyệt đối không
+     *                    được hủy vé đã CONFIRMED
+     */
+    private boolean cancelByUser(int bookingId, int userId, boolean pendingOnly) {
         String updateBookingSql = "UPDATE dbo.BOOKINGS "
                 + "SET status = 'CANCELLED', last_update = GETDATE() "
                 + "WHERE id = ? AND user_id = ? AND status = ?";
@@ -1278,8 +1347,10 @@ public class BookingDAO {
                     }
                 }
             }
-            if (!"PENDING".equalsIgnoreCase(previousStatus)
-                    && !"CONFIRMED".equalsIgnoreCase(previousStatus)) {
+            if ((pendingOnly && !"PENDING".equalsIgnoreCase(previousStatus))
+                    || (!pendingOnly
+                    && !"PENDING".equalsIgnoreCase(previousStatus)
+                    && !"CONFIRMED".equalsIgnoreCase(previousStatus))) {
                 conn.rollback();
                 return false;
             }

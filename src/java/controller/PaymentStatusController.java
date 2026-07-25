@@ -1,6 +1,6 @@
 package controller;
 
-import dao.BookingDAO;
+import service.BookingService;
 import java.io.IOException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -30,7 +30,7 @@ public class PaymentStatusController extends HttpServlet {
      * DAO nay dung de hoi DB xem booking hien tai dang o trang thai nao.
      * Controller khong tu query SQL truc tiep, ma goi DAO de tach tang web va tang data.
      */
-    private final BookingDAO bookingDAO = new BookingDAO();
+    private final BookingService bookingService = new BookingService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,12 +60,22 @@ public class PaymentStatusController extends HttpServlet {
         }
 
         // Hoi DB trang thai booking hien tai, vi du: PENDING, CONFIRMED, CANCELLED.
-        String status = bookingDAO.getBookingStatus(bookingId);
+        /*
+         * Service sẽ dọn các booking ONLINE PENDING quá 10 phút trước khi trả
+         * status. Vì trang QR polling endpoint này mỗi 3 giây nên UI nhận biết
+         * vé hết hạn mà không cần người dùng tải lại trang.
+         */
+        String status = bookingService.getBookingStatus(bookingId);
 
         // Chi khi booking da CONFIRMED thi UI moi coi la da thanh toan thanh cong.
         boolean paid = "CONFIRMED".equalsIgnoreCase(status);
+        boolean expired = "CANCELLED".equalsIgnoreCase(status);
 
-        // Ghi JSON ve browser. Bien paid la boolean nen khong can dat trong dau ngoac kep.
-        response.getWriter().write("{\"paid\":" + paid + "}");
+        /*
+         * expired=true giúp trang chi tiết dừng polling và tải lại badge
+         * CANCELLED, thay vì tiếp tục hỏi trạng thái vô hạn sau khi hết 10 phút.
+         */
+        response.getWriter().write(
+                "{\"paid\":" + paid + ",\"expired\":" + expired + "}");
     }
 }

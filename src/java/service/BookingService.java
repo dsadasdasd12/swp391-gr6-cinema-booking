@@ -25,6 +25,9 @@ import java.util.Collections;
 
 public class BookingService {
 
+    /** Customer có tối đa 10 phút để thanh toán booking online PENDING. */
+    public static final int ONLINE_PAYMENT_TIMEOUT_MINUTES = 10;
+
     private final BookingDAO bookingDAO = new BookingDAO();
     private final CartDAO cartDAO = new CartDAO();
     private final BookingStatusHistoryDAO bookingStatusHistoryDAO = new BookingStatusHistoryDAO();
@@ -216,7 +219,21 @@ public class BookingService {
     }
 
     public String getBookingStatus(int bookingId) {
+        /*
+         * Endpoint polling thanh toán gọi method này định kỳ. Dọn booking hết
+         * hạn trước khi đọc status để màn hình QR nhận được CANCELLED ngay.
+         */
+        cleanupExpiredPendingOnlineBookings();
         return bookingDAO.getBookingStatus(bookingId);
+    }
+
+    /**
+     * Chuyển booking online PENDING quá 10 phút thành CANCELLED.
+     * BOOKING_SEATS không cần xóa: các truy vấn ghế chỉ khóa những booking còn
+     * PENDING/CONFIRMED/CHECKED_IN/USED, nên ghế được nhả ngay khi status đổi.
+     */
+    public int cleanupExpiredPendingOnlineBookings() {
+        return bookingDAO.cancelExpiredOnlinePendingBookings(ONLINE_PAYMENT_TIMEOUT_MINUTES);
     }
 
     public String getCounterBookingStatus(int staffId, int bookingId) {
